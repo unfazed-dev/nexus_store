@@ -45,6 +45,26 @@
 | **Data Minimization** | ⏳ Pending | REQ-026 - GDPR retention policies |
 | **Consent Tracking** | ⏳ Pending | REQ-027 - GDPR consent management |
 | **Breach Notification** | ⏳ Pending | REQ-028 - GDPR breach support |
+| **Cross-Store Transactions** | ⏳ Pending | REQ-029 - Saga pattern |
+| **Middleware/Interceptors** | ⏳ Pending | REQ-030 - Pre/post hooks |
+| **Delta Sync** | ⏳ Pending | REQ-031 - Field-level sync |
+| **Background Sync** | ⏳ Pending | REQ-032 - Platform background fetch |
+| **Sync Priority Queues** | ⏳ Pending | REQ-033 - Prioritized sync |
+| **Code Generation** | ⏳ Pending | REQ-034 - Type-safe query codegen |
+| **Schema Validation** | ⏳ Pending | REQ-035 - Runtime schema checks |
+| **Circuit Breaker** | ⏳ Pending | REQ-036 - Backend failover |
+| **Health Check API** | ⏳ Pending | REQ-037 - Monitoring integration |
+| **Graceful Degradation** | ⏳ Pending | REQ-038 - Offline fallbacks |
+| **Memory Pressure Handling** | ⏳ Pending | REQ-039 - Auto cache eviction |
+| **Lazy Field Loading** | ⏳ Pending | REQ-040 - On-demand blob loading |
+| **Connection Pooling** | ⏳ Pending | REQ-041 - Backend connection management |
+| **Store Registry** | ⏳ Pending | REQ-042 - Built-in DI for stores |
+| **Computed Stores** | ⏳ Pending | REQ-043 - Derived state from multiple stores |
+| **UI State Containers** | ⏳ Pending | REQ-044 - Non-data reactive state |
+| **Selectors** | ⏳ Pending | REQ-045 - Efficient derived values |
+| **Riverpod Integration** | ⏳ Pending | REQ-046 - nexus_store_riverpod_binding package |
+| **Bloc Integration** | ⏳ Pending | REQ-047 - nexus_store_bloc_binding package |
+| **Signals Integration** | ⏳ Pending | REQ-048 - nexus_store_signals_binding package |
 
 ---
 
@@ -795,6 +815,546 @@ So that I can comply with GDPR breach notification requirements
 - GIVEN breach processing
   WHEN performed
   THEN all actions are audit logged with breach reference ID
+
+**Priority**: Nice to Have
+
+---
+
+### REQ-029: Cross-Store Transactions (Saga Pattern)
+
+**User Story**:
+As a developer
+I want to coordinate transactions across multiple stores
+So that complex operations involving different entity types remain consistent
+
+**Acceptance Criteria**:
+- GIVEN multiple `NexusStore` instances
+  WHEN I call `NexusStoreCoordinator.transaction([store1, store2], ...)`
+  THEN all operations across stores are coordinated
+
+- GIVEN a saga transaction
+  WHEN one store operation fails
+  THEN compensating actions are executed on successful stores
+
+- GIVEN a saga transaction with `Order` and `Inventory` stores
+  WHEN `inventory.decrement()` succeeds but `order.create()` fails
+  THEN `inventory.increment()` compensation is executed
+
+**Priority**: Should Have
+
+---
+
+### REQ-030: Middleware/Interceptor API
+
+**User Story**:
+As a developer
+I want pre/post hooks for all store operations
+So that I can add logging, transformation, or validation globally
+
+**Acceptance Criteria**:
+- GIVEN `StoreConfig` with `interceptors`
+  WHEN any operation is called
+  THEN interceptors run in order before and after
+
+- GIVEN an interceptor
+  WHEN it modifies the request
+  THEN the modified request is passed to the next interceptor
+
+- GIVEN an interceptor
+  WHEN it returns early (e.g., from cache)
+  THEN subsequent interceptors and the actual operation are skipped
+
+- GIVEN a response interceptor
+  WHEN the operation completes
+  THEN it can transform the response
+
+**Priority**: Should Have
+
+---
+
+### REQ-031: Delta Sync Support
+
+**User Story**:
+As a developer with bandwidth-constrained users
+I want to sync only changed fields
+So that sync operations are efficient
+
+**Acceptance Criteria**:
+- GIVEN `StoreConfig` with `deltaSync: true`
+  WHEN an item is updated locally
+  THEN only changed fields are tracked
+
+- GIVEN pending changes with delta sync
+  WHEN sync occurs
+  THEN only changed fields are sent to remote
+
+- GIVEN remote delta updates
+  WHEN received
+  THEN only specified fields are merged into local state
+
+**Priority**: Should Have
+
+---
+
+### REQ-032: Background Sync Service
+
+**User Story**:
+As a developer building mobile apps
+I want sync to continue when the app is backgrounded
+So that data stays fresh for users
+
+**Acceptance Criteria**:
+- GIVEN `BackgroundSyncConfig` enabled
+  WHEN app goes to background
+  THEN sync continues using platform background APIs
+
+- GIVEN Android platform
+  WHEN background sync is configured
+  THEN WorkManager is used for reliable background execution
+
+- GIVEN iOS platform
+  WHEN background sync is configured
+  THEN BGTaskScheduler is used
+
+- GIVEN configurable intervals
+  WHEN set
+  THEN background sync runs at specified intervals
+
+**Priority**: Nice to Have
+
+---
+
+### REQ-033: Sync Priority Queues
+
+**User Story**:
+As a developer
+I want critical changes to sync before less important ones
+So that important data has lower latency
+
+**Acceptance Criteria**:
+- GIVEN `save(item, priority: SyncPriority.critical)`
+  WHEN sync occurs
+  THEN critical items sync before normal priority
+
+- GIVEN multiple priority levels (critical, high, normal, low)
+  WHEN queue is processed
+  THEN items are processed in priority order, then FIFO within priority
+
+- GIVEN network bandwidth constraints
+  WHEN available
+  THEN critical items get priority access
+
+**Priority**: Nice to Have
+
+---
+
+### REQ-034: Code Generation Tooling
+
+**User Story**:
+As a developer
+I want generated type-safe query fields
+So that I get compile-time validation without manual boilerplate
+
+**Acceptance Criteria**:
+- GIVEN a `@NexusEntity()` annotated model
+  WHEN `build_runner` runs
+  THEN `$ModelFields` class is generated with typed field accessors
+
+- GIVEN generated fields
+  WHEN used in queries like `Query<User>().where(User$.age > 18)`
+  THEN compilation succeeds with type safety
+
+- GIVEN a non-existent field reference
+  WHEN using generated fields
+  THEN compilation fails
+
+**Priority**: Nice to Have
+
+---
+
+### REQ-035: Schema Validation
+
+**User Story**:
+As a developer
+I want runtime validation against expected schema
+So that data integrity issues are caught early
+
+**Acceptance Criteria**:
+- GIVEN `SchemaConfig` with field definitions
+  WHEN an item is saved with invalid type
+  THEN `SchemaValidationError` is thrown
+
+- GIVEN schema validation enabled
+  WHEN data is loaded from backend
+  THEN schema compliance is verified
+
+- GIVEN schema mismatches
+  WHEN detected
+  THEN detailed error with field name and expected vs actual type is provided
+
+**Priority**: Nice to Have
+
+---
+
+### REQ-036: Circuit Breaker Pattern
+
+**User Story**:
+As a developer
+I want automatic backend failover
+So that temporary backend issues don't cascade failures
+
+**Acceptance Criteria**:
+- GIVEN `CircuitBreakerConfig` with failure threshold
+  WHEN consecutive failures exceed threshold
+  THEN circuit opens and operations fail fast
+
+- GIVEN an open circuit
+  WHEN cooldown period elapses
+  THEN circuit moves to half-open, allowing test requests
+
+- GIVEN a half-open circuit
+  WHEN test request succeeds
+  THEN circuit closes and normal operation resumes
+
+- GIVEN circuit state changes
+  WHEN monitored
+  THEN events are emitted for observability
+
+**Priority**: Should Have
+
+---
+
+### REQ-037: Health Check API
+
+**User Story**:
+As a DevOps engineer
+I want to query store health status
+So that I can integrate with monitoring systems
+
+**Acceptance Criteria**:
+- GIVEN a `NexusStore`
+  WHEN `store.healthCheck()` is called
+  THEN returns `HealthStatus` with component health
+
+- GIVEN `HealthStatus`
+  WHEN accessed
+  THEN includes: overall status, backend connectivity, cache status, sync status
+
+- GIVEN multiple components
+  WHEN any is unhealthy
+  THEN overall status reflects degraded/unhealthy
+
+- GIVEN health check
+  WHEN called
+  THEN response includes latency metrics
+
+**Priority**: Should Have
+
+---
+
+### REQ-038: Graceful Degradation Modes
+
+**User Story**:
+As a developer
+I want configurable behavior when backends are unavailable
+So that the app remains usable offline
+
+**Acceptance Criteria**:
+- GIVEN `DegradationConfig` with mode `readOnlyCache`
+  WHEN backend is unavailable
+  THEN reads work from cache, writes are queued
+
+- GIVEN degradation mode `failFast`
+  WHEN backend is unavailable
+  THEN operations throw immediately with clear error
+
+- GIVEN degradation mode `staleData`
+  WHEN backend is unavailable
+  THEN expired cache data is returned with warning
+
+- GIVEN degradation state changes
+  WHEN detected
+  THEN `store.degradationStatus` stream emits new state
+
+**Priority**: Should Have
+
+---
+
+### REQ-039: Memory Pressure Handling
+
+**User Story**:
+As a developer targeting low-end devices
+I want automatic cache eviction under memory pressure
+So that my app doesn't crash on memory-constrained devices
+
+**Acceptance Criteria**:
+- GIVEN `MemoryConfig` with pressure thresholds
+  WHEN system memory pressure is detected
+  THEN LRU cache entries are evicted
+
+- GIVEN memory pressure levels (moderate, critical)
+  WHEN moderate pressure occurs
+  THEN aggressive eviction begins
+
+- GIVEN critical memory pressure
+  WHEN detected
+  THEN cache is cleared except pinned items
+
+- GIVEN memory events
+  WHEN they occur
+  THEN metrics are reported for monitoring
+
+**Priority**: Should Have
+
+---
+
+### REQ-040: Lazy Field Loading
+
+**User Story**:
+As a developer with large blob fields
+I want to load heavy fields on demand
+So that initial load is fast
+
+**Acceptance Criteria**:
+- GIVEN `@LazyLoad()` annotation on a field
+  WHEN item is fetched
+  THEN that field is not loaded initially
+
+- GIVEN a lazy field
+  WHEN `item.loadField('thumbnail')` is called
+  THEN the field is fetched and populated
+
+- GIVEN a lazy field
+  WHEN accessed before loading
+  THEN returns null or placeholder
+
+- GIVEN batch loading
+  WHEN multiple items need same lazy field
+  THEN fields are loaded in single request
+
+**Priority**: Nice to Have
+
+---
+
+### REQ-041: Connection Pooling Abstraction
+
+**User Story**:
+As a developer with high-throughput apps
+I want managed backend connections
+So that connection overhead is minimized
+
+**Acceptance Criteria**:
+- GIVEN `ConnectionPoolConfig` with pool size
+  WHEN multiple concurrent operations occur
+  THEN connections are reused from pool
+
+- GIVEN connection pool
+  WHEN pool is exhausted
+  THEN operations wait or fail based on config
+
+- GIVEN idle connections
+  WHEN timeout elapses
+  THEN connections are closed
+
+- GIVEN connection health
+  WHEN checked periodically
+  THEN unhealthy connections are replaced
+
+**Priority**: Nice to Have
+
+---
+
+### REQ-042: Store Registry (Built-in DI)
+
+**User Story**:
+As a developer
+I want a simple way to register and access store instances
+So that I don't need an external DI package for basic use cases
+
+**Acceptance Criteria**:
+- GIVEN `NexusRegistry.register<User>(store)`
+  WHEN I call `NexusRegistry.get<User>()` anywhere
+  THEN I receive the registered store instance
+
+- GIVEN a registered store
+  WHEN I call `NexusRegistry.dispose<User>()`
+  THEN the store is disposed and removed from registry
+
+- GIVEN scoped registration with `NexusRegistry.registerScoped<User>(store, scope: 'tenant-123')`
+  WHEN I call `NexusRegistry.get<User>(scope: 'tenant-123')`
+  THEN I receive the scoped instance
+
+- GIVEN the registry
+  WHEN I call `NexusRegistry.reset()`
+  THEN all stores are disposed and registry is cleared
+
+**Priority**: Should Have
+
+---
+
+### REQ-043: Computed Stores
+
+**User Story**:
+As a developer
+I want to derive state from multiple stores
+So that I can create aggregate views without manual stream combining
+
+**Acceptance Criteria**:
+- GIVEN multiple stores
+  WHEN I create `ComputedStore([userStore, orderStore], (user, orders) => ...)`
+  THEN it combines streams and computes derived state
+
+- GIVEN a computed store
+  WHEN any source store emits
+  THEN the computed store recalculates and emits
+
+- GIVEN a compute function
+  WHEN it returns the same value (by equality)
+  THEN the computed store does not emit (distinctUntilChanged)
+
+- GIVEN a computed store
+  WHEN watched
+  THEN it emits immediately with current computed value (BehaviorSubject)
+
+**Priority**: Should Have
+
+---
+
+### REQ-044: UI State Containers
+
+**User Story**:
+As a developer
+I want reactive containers for non-data UI state
+So that I can manage form state, filters, etc. with the same patterns as data
+
+**Acceptance Criteria**:
+- GIVEN `NexusState<T>(initialValue)`
+  WHEN I call `state.value = newValue`
+  THEN the stream emits the new value
+
+- GIVEN a NexusState
+  WHEN I call `state.update((current) => current.copyWith(...))`
+  THEN it applies the transform and emits
+
+- GIVEN a NexusState
+  WHEN I subscribe to `state.stream`
+  THEN I immediately receive the current value (BehaviorSubject)
+
+- GIVEN a NexusState
+  WHEN I call `state.reset()`
+  THEN it reverts to initial value and emits
+
+**Priority**: Should Have
+
+---
+
+### REQ-045: Selectors
+
+**User Story**:
+As a developer
+I want to efficiently select/transform subsets of store data
+So that widgets only rebuild when their specific data changes
+
+**Acceptance Criteria**:
+- GIVEN a store and `store.select((items) => items.where((i) => i.isActive))`
+  WHEN the selector is watched
+  THEN it emits only when the selected subset changes
+
+- GIVEN a selector with custom equality
+  WHEN `store.select(..., equals: listEquals)`
+  THEN it uses the custom equality for change detection
+
+- GIVEN a selector
+  WHEN source data changes but selected result is equal
+  THEN the selector does not emit
+
+- GIVEN multiple selectors on same store
+  WHEN store updates
+  THEN each selector computes independently
+
+**Priority**: Should Have
+
+---
+
+### REQ-046: Riverpod Integration
+
+**User Story**:
+As a developer using Riverpod
+I want first-class NexusStore integration
+So that I get auto-generated providers and seamless DI
+
+**Acceptance Criteria**:
+- GIVEN `nexus_store_riverpod_binding` package
+  WHEN I annotate with `@riverpodNexusStore`
+  THEN providers are generated for the store
+
+- GIVEN generated providers
+  WHEN I use `ref.watch(usersProvider)`
+  THEN I get a `Stream<List<User>>` from `watchAll()`
+
+- GIVEN generated providers
+  WHEN I use `ref.watch(userProvider(id))`
+  THEN I get a `Stream<User?>` from `watch(id)`
+
+- GIVEN store disposal
+  WHEN Riverpod disposes the provider
+  THEN the store is properly disposed
+
+**Priority**: Nice to Have
+
+---
+
+### REQ-047: Bloc Integration
+
+**User Story**:
+As a developer using Bloc
+I want pre-built Bloc/Cubit wrappers for NexusStore
+So that I can use familiar Bloc patterns with NexusStore data
+
+**Acceptance Criteria**:
+- GIVEN `nexus_store_bloc_binding` package
+  WHEN I extend `NexusStoreCubit<User>`
+  THEN I get a Cubit that wraps store operations
+
+- GIVEN a NexusStoreCubit
+  WHEN store data changes
+  THEN Cubit state updates accordingly
+
+- GIVEN a NexusStoreCubit
+  WHEN I call `cubit.save(user)`
+  THEN it delegates to the underlying store
+
+- GIVEN Bloc disposal
+  WHEN `close()` is called
+  THEN store subscriptions are cancelled
+
+**Priority**: Nice to Have
+
+---
+
+### REQ-048: Signals Integration
+
+**User Story**:
+As a developer using Signals
+I want NexusStore data exposed as Signals
+So that I can use fine-grained reactivity with NexusStore
+
+**Acceptance Criteria**:
+- GIVEN `nexus_store_signals_binding` package
+  WHEN I call `store.toSignal()`
+  THEN I get a `Signal<List<T>>` that tracks store data
+
+- GIVEN a store signal
+  WHEN store emits new data
+  THEN the signal updates and dependents rebuild
+
+- GIVEN `store.toSignal(id)`
+  WHEN watching a single item
+  THEN I get a `Signal<T?>` for that item
+
+- GIVEN computed signals
+  WHEN combining store signals
+  THEN they work with standard Signals computed()
 
 **Priority**: Nice to Have
 
@@ -2267,6 +2827,205 @@ final store = NexusStore<Patient, String>(
 - [ ] Create `BreachReport` model
 - [ ] Create `BreachService` with identifyAffectedUsers, generateReport
 - [ ] Integrate with audit logging
+- [ ] Add unit tests
+
+### Task 26: Cross-Store Transactions (Saga) ⏳ PENDING
+**Files**: `lib/src/coordination/saga_coordinator.dart`, `lib/src/coordination/compensating_action.dart`
+**Implements**: REQ-029
+**Depends On**: Task 16
+**Complexity**: High
+
+**Deliverables**:
+- [ ] Create `SagaCoordinator` class for multi-store transactions
+- [ ] Create `CompensatingAction<T>` for rollback operations
+- [ ] Create `SagaStep` model with action and compensation
+- [ ] Implement execute-or-compensate logic
+- [ ] Add timeout handling for long-running sagas
+- [ ] Add unit tests
+
+### Task 27: Middleware/Interceptor API ⏳ PENDING
+**Files**: `lib/src/interceptors/store_interceptor.dart`, `lib/src/interceptors/interceptor_chain.dart`
+**Implements**: REQ-030
+**Depends On**: Task 1
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `StoreInterceptor` abstract class
+- [ ] Create `InterceptorChain` for ordered execution
+- [ ] Create `InterceptorContext` with request/response data
+- [ ] Implement request interception (pre-operation)
+- [ ] Implement response interception (post-operation)
+- [ ] Add `interceptors` to `StoreConfig`
+- [ ] Create `LoggingInterceptor` example
+- [ ] Add unit tests
+
+### Task 28: Delta Sync Support ⏳ PENDING
+**Files**: `lib/src/sync/delta_tracker.dart`, `lib/src/sync/field_change.dart`
+**Implements**: REQ-031
+**Depends On**: Task 1
+**Complexity**: High
+
+**Deliverables**:
+- [ ] Create `DeltaTracker<T>` for field-level change tracking
+- [ ] Create `FieldChange` model with field name, old value, new value
+- [ ] Implement dirty field detection
+- [ ] Modify sync flow to send only changed fields
+- [ ] Implement merge logic for incoming deltas
+- [ ] Add `deltaSync` option to `StoreConfig`
+- [ ] Add unit tests
+
+### Task 29: Background Sync Service ⏳ PENDING
+**Package**: `nexus_store_flutter`
+**Files**: `lib/src/background/background_sync_service.dart`
+**Implements**: REQ-032
+**Depends On**: Task 14
+**Complexity**: High
+
+**Deliverables**:
+- [ ] Create `BackgroundSyncService` abstract interface
+- [ ] Create `WorkManagerSyncService` for Android
+- [ ] Create `BGTaskSchedulerService` for iOS
+- [ ] Create `BackgroundSyncConfig` with intervals and constraints
+- [ ] Implement platform detection and service selection
+- [ ] Add integration tests
+
+### Task 30: Production Reliability ⏳ PENDING
+**Files**: `lib/src/reliability/circuit_breaker.dart`, `lib/src/reliability/health_check.dart`, `lib/src/reliability/degradation.dart`
+**Implements**: REQ-036, REQ-037, REQ-038
+**Depends On**: Task 1
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `CircuitBreaker` with closed/open/half-open states
+- [ ] Create `CircuitBreakerConfig` with thresholds and cooldown
+- [ ] Create `HealthCheck` service with component health aggregation
+- [ ] Create `HealthStatus` model with overall and per-component status
+- [ ] Create `DegradationMode` enum (readOnlyCache, failFast, staleData)
+- [ ] Create `DegradationConfig` with mode selection
+- [ ] Add `healthCheck()` method to `NexusStore`
+- [ ] Add unit tests
+
+### Task 31: Memory Management ⏳ PENDING
+**Files**: `lib/src/cache/memory_manager.dart`, `lib/src/cache/pressure_handler.dart`
+**Implements**: REQ-039
+**Depends On**: Task 1
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `MemoryManager` for cache pressure handling
+- [ ] Create `MemoryPressureHandler` interface
+- [ ] Implement LRU eviction under pressure
+- [ ] Create `MemoryConfig` with thresholds
+- [ ] Implement pinned item protection
+- [ ] Add memory metrics reporting
+- [ ] Add unit tests
+
+### Task 32: Lazy Field Loading ⏳ PENDING
+**Files**: `lib/src/core/lazy_field.dart`, `lib/src/core/field_loader.dart`
+**Implements**: REQ-040
+**Depends On**: Task 1
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `@LazyLoad()` annotation
+- [ ] Create `LazyField<T>` wrapper class
+- [ ] Create `FieldLoader` service
+- [ ] Implement on-demand field loading
+- [ ] Implement batch field loading
+- [ ] Add unit tests
+
+### Task 33: Connection Pooling ⏳ PENDING
+**Files**: `lib/src/backend/connection_pool.dart`, `lib/src/backend/pooled_connection.dart`
+**Implements**: REQ-041
+**Depends On**: Task 1
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `ConnectionPool<C>` generic pool
+- [ ] Create `PooledConnection<C>` wrapper
+- [ ] Create `ConnectionPoolConfig` with size and timeouts
+- [ ] Implement connection health checking
+- [ ] Implement connection recycling
+- [ ] Add unit tests
+
+### Task 34: Built-in State Layer ⏳ PENDING
+**Files**: `lib/src/state/nexus_registry.dart`, `lib/src/state/computed_store.dart`, `lib/src/state/nexus_state.dart`, `lib/src/state/selector.dart`
+**Implements**: REQ-042, REQ-043, REQ-044, REQ-045
+**Depends On**: Task 1, Task 3
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `NexusRegistry` singleton for store DI
+  - [ ] `register<T>(store)`, `get<T>()`, `dispose<T>()`
+  - [ ] Scoped registration support
+  - [ ] `reset()` for testing
+- [ ] Create `ComputedStore<T>` for derived state
+  - [ ] Combine multiple store streams
+  - [ ] distinctUntilChanged behavior
+  - [ ] BehaviorSubject backing
+- [ ] Create `NexusState<T>` for UI state
+  - [ ] `value` getter/setter
+  - [ ] `update()` transform method
+  - [ ] `reset()` to initial value
+  - [ ] BehaviorSubject backing
+- [ ] Create `Selector<T, R>` for efficient derived values
+  - [ ] Custom equality support
+  - [ ] Memoization
+- [ ] Add `select()` method to NexusStore
+- [ ] Add unit tests
+
+### Task 35: Riverpod Binding Package ⏳ PENDING
+**Package**: `nexus_store_riverpod_binding`
+**Implements**: REQ-046
+**Depends On**: Task 1
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create package skeleton with Riverpod dependency
+- [ ] Create `@riverpodNexusStore` annotation
+- [ ] Create code generator for providers
+  - [ ] Store provider
+  - [ ] watchAll provider
+  - [ ] watch(id) family provider
+  - [ ] watchWithStatus providers
+- [ ] Implement proper disposal integration
+- [ ] Add example and documentation
+- [ ] Add unit tests
+
+### Task 36: Bloc Binding Package ⏳ PENDING
+**Package**: `nexus_store_bloc_binding`
+**Implements**: REQ-047
+**Depends On**: Task 1
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create package skeleton with Bloc dependency
+- [ ] Create `NexusStoreCubit<T, ID>` base class
+  - [ ] State: `NexusStoreState<T>` with data, loading, error
+  - [ ] Auto-subscribe to store changes
+  - [ ] CRUD method delegates
+- [ ] Create `NexusStoreBloc<T, ID, E>` for event-driven
+  - [ ] Load, Save, Delete events
+  - [ ] Proper state transitions
+- [ ] Implement disposal/cancellation
+- [ ] Add example and documentation
+- [ ] Add unit tests
+
+### Task 37: Signals Binding Package ⏳ PENDING
+**Package**: `nexus_store_signals_binding`
+**Implements**: REQ-048
+**Depends On**: Task 1
+**Complexity**: Low
+
+**Deliverables**:
+- [ ] Create package skeleton with signals dependency
+- [ ] Create `NexusStoreSignalExtension`
+  - [ ] `store.toSignal()` → `Signal<List<T>>`
+  - [ ] `store.toSignal(id)` → `Signal<T?>`
+  - [ ] `store.toStatusSignal()` → `Signal<StoreResult<List<T>>>`
+- [ ] Create `SignalSelector` utilities
+- [ ] Implement proper cleanup/disposal
+- [ ] Add example and documentation
 - [ ] Add unit tests
 
 ---

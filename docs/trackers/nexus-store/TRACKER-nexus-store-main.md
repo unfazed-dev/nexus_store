@@ -34,7 +34,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 ### Phase 4: Documentation
 - [ ] Documentation & examples - See [TRACKER-documentation.md](./TRACKER-documentation.md)
 
-### Phase 5: Production Readiness Features (NEW)
+### Phase 5: Production Readiness Features
 - [ ] Transaction support - See [TRACKER-transactions.md](./TRACKER-transactions.md)
 - [ ] Cursor-based pagination - See [TRACKER-cursor-pagination.md](./TRACKER-cursor-pagination.md)
 - [ ] Type-safe query builder - See [TRACKER-type-safe-query.md](./TRACKER-type-safe-query.md)
@@ -44,6 +44,27 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 - [ ] Key derivation (PBKDF2/Argon2) - See [TRACKER-key-derivation.md](./TRACKER-key-derivation.md)
 - [ ] Batch streaming - See [TRACKER-batch-streaming.md](./TRACKER-batch-streaming.md)
 - [ ] Enhanced GDPR compliance - See [TRACKER-gdpr-enhanced.md](./TRACKER-gdpr-enhanced.md)
+
+### Phase 6: Enterprise & Performance (10/10 Features)
+- [ ] Cross-store transactions (Saga) - See [TRACKER-saga-transactions.md](./TRACKER-saga-transactions.md)
+- [ ] Middleware/interceptor API - See [TRACKER-interceptors.md](./TRACKER-interceptors.md)
+- [ ] Delta sync support - See [TRACKER-delta-sync.md](./TRACKER-delta-sync.md)
+- [ ] Background sync service - See [TRACKER-background-sync.md](./TRACKER-background-sync.md)
+- [ ] Production reliability (circuit breaker, health, degradation) - See [TRACKER-reliability.md](./TRACKER-reliability.md)
+- [ ] Memory management - See [TRACKER-memory-management.md](./TRACKER-memory-management.md)
+- [ ] Lazy field loading - See [TRACKER-lazy-loading.md](./TRACKER-lazy-loading.md)
+- [ ] Connection pooling - See [TRACKER-connection-pool.md](./TRACKER-connection-pool.md)
+
+### Phase 7: Built-in State Layer (Self-Sufficient)
+- [ ] Store Registry (DI) - See [TRACKER-state-layer.md](./TRACKER-state-layer.md)
+- [ ] Computed Stores - See [TRACKER-state-layer.md](./TRACKER-state-layer.md)
+- [ ] UI State Containers - See [TRACKER-state-layer.md](./TRACKER-state-layer.md)
+- [ ] Selectors - See [TRACKER-state-layer.md](./TRACKER-state-layer.md)
+
+### Phase 8: State Management Bindings (Optional)
+- [ ] Riverpod binding - See [TRACKER-riverpod-binding.md](./TRACKER-riverpod-binding.md)
+- [ ] Bloc binding - See [TRACKER-bloc-binding.md](./TRACKER-bloc-binding.md)
+- [ ] Signals binding - See [TRACKER-signals-binding.md](./TRACKER-signals-binding.md)
 
 ## Package Structure
 
@@ -56,7 +77,10 @@ nexus_store/
 │   ├── nexus_store_drift_adapter/        # Drift (📦 Stub)
 │   ├── nexus_store_supabase_adapter/     # Supabase (📦 Stub)
 │   ├── nexus_store_brick_adapter/        # Brick (📦 Stub)
-│   └── nexus_store_crdt_adapter/         # CRDT (📦 Stub)
+│   ├── nexus_store_crdt_adapter/         # CRDT (📦 Stub)
+│   ├── nexus_store_riverpod_binding/     # Riverpod integration (⏳ Planned)
+│   ├── nexus_store_bloc_binding/         # Bloc integration (⏳ Planned)
+│   └── nexus_store_signals_binding/      # Signals integration (⏳ Planned)
 └── docs/
     ├── specs/SPEC-nexus-store.md
     └── trackers/nexus-store/             # This directory
@@ -113,6 +137,26 @@ Documentation (depends on all above)
 | REQ-026 | Data Minimization (GDPR) | ⏳ Pending | [gdpr-enhanced](./TRACKER-gdpr-enhanced.md) |
 | REQ-027 | Consent Tracking (GDPR) | ⏳ Pending | [gdpr-enhanced](./TRACKER-gdpr-enhanced.md) |
 | REQ-028 | Breach Notification (GDPR) | ⏳ Pending | [gdpr-enhanced](./TRACKER-gdpr-enhanced.md) |
+| REQ-029 | Cross-Store Transactions (Saga) | ⏳ Pending | [saga](./TRACKER-saga-transactions.md) |
+| REQ-030 | Middleware/Interceptor API | ⏳ Pending | [interceptors](./TRACKER-interceptors.md) |
+| REQ-031 | Delta Sync Support | ⏳ Pending | [delta-sync](./TRACKER-delta-sync.md) |
+| REQ-032 | Background Sync Service | ⏳ Pending | [background-sync](./TRACKER-background-sync.md) |
+| REQ-033 | Sync Priority Queues | ⏳ Pending | [background-sync](./TRACKER-background-sync.md) |
+| REQ-034 | Code Generation Tooling | ⏳ Pending | [type-safe](./TRACKER-type-safe-query.md) |
+| REQ-035 | Schema Validation | ⏳ Pending | [reliability](./TRACKER-reliability.md) |
+| REQ-036 | Circuit Breaker Pattern | ⏳ Pending | [reliability](./TRACKER-reliability.md) |
+| REQ-037 | Health Check API | ⏳ Pending | [reliability](./TRACKER-reliability.md) |
+| REQ-038 | Graceful Degradation | ⏳ Pending | [reliability](./TRACKER-reliability.md) |
+| REQ-039 | Memory Pressure Handling | ⏳ Pending | [memory](./TRACKER-memory-management.md) |
+| REQ-040 | Lazy Field Loading | ⏳ Pending | [lazy-loading](./TRACKER-lazy-loading.md) |
+| REQ-041 | Connection Pooling | ⏳ Pending | [connection-pool](./TRACKER-connection-pool.md) |
+| REQ-042 | Store Registry (Built-in DI) | ⏳ Pending | [state-layer](./TRACKER-state-layer.md) |
+| REQ-043 | Computed Stores | ⏳ Pending | [state-layer](./TRACKER-state-layer.md) |
+| REQ-044 | UI State Containers | ⏳ Pending | [state-layer](./TRACKER-state-layer.md) |
+| REQ-045 | Selectors | ⏳ Pending | [state-layer](./TRACKER-state-layer.md) |
+| REQ-046 | Riverpod Binding | ⏳ Pending | [riverpod-binding](./TRACKER-riverpod-binding.md) |
+| REQ-047 | Bloc Binding | ⏳ Pending | [bloc-binding](./TRACKER-bloc-binding.md) |
+| REQ-048 | Signals Binding | ⏳ Pending | [signals-binding](./TRACKER-signals-binding.md) |
 
 ## Related Trackers
 
@@ -133,13 +177,31 @@ Documentation (depends on all above)
 ### Production Readiness (Phase 5)
 - [Transactions](./TRACKER-transactions.md) - REQ-017: Atomic operations
 - [Cursor Pagination](./TRACKER-cursor-pagination.md) - REQ-018: Efficient pagination
-- [Type-Safe Query](./TRACKER-type-safe-query.md) - REQ-019: Compile-time validation
+- [Type-Safe Query](./TRACKER-type-safe-query.md) - REQ-019, REQ-034: Compile-time validation
 - [Conflict Resolution](./TRACKER-conflict-resolution.md) - REQ-020, REQ-021: Sync control
 - [Cache Invalidation](./TRACKER-cache-invalidation.md) - REQ-022: Tag-based clearing
 - [Telemetry](./TRACKER-telemetry.md) - REQ-023: Observability
 - [Key Derivation](./TRACKER-key-derivation.md) - REQ-024: PBKDF2/Argon2
 - [Batch Streaming](./TRACKER-batch-streaming.md) - REQ-025: Large datasets
 - [Enhanced GDPR](./TRACKER-gdpr-enhanced.md) - REQ-026, REQ-027, REQ-028
+
+### Enterprise & Performance (Phase 6)
+- [Saga Transactions](./TRACKER-saga-transactions.md) - REQ-029: Cross-store coordination
+- [Interceptors](./TRACKER-interceptors.md) - REQ-030: Middleware/hooks
+- [Delta Sync](./TRACKER-delta-sync.md) - REQ-031: Field-level sync
+- [Background Sync](./TRACKER-background-sync.md) - REQ-032, REQ-033: Platform background sync
+- [Reliability](./TRACKER-reliability.md) - REQ-035, REQ-036, REQ-037, REQ-038: Circuit breaker, health, degradation
+- [Memory Management](./TRACKER-memory-management.md) - REQ-039: Pressure handling
+- [Lazy Loading](./TRACKER-lazy-loading.md) - REQ-040: On-demand fields
+- [Connection Pool](./TRACKER-connection-pool.md) - REQ-041: Connection management
+
+### Built-in State Layer (Phase 7)
+- [State Layer](./TRACKER-state-layer.md) - REQ-042, REQ-043, REQ-044, REQ-045: Registry, computed, UI state, selectors
+
+### State Management Bindings (Phase 8)
+- [Riverpod Binding](./TRACKER-riverpod-binding.md) - REQ-046: Auto-generated providers
+- [Bloc Binding](./TRACKER-bloc-binding.md) - REQ-047: Cubit/Bloc wrappers
+- [Signals Binding](./TRACKER-signals-binding.md) - REQ-048: Signal adapters
 
 ## Notes
 
