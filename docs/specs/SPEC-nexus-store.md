@@ -33,6 +33,18 @@
 | **Flutter Extension** | 📦 Stub | Package skeleton only |
 | **Unit Tests** | ⏳ Pending | Core package needs tests |
 | **Documentation** | ⏳ Pending | README and examples needed |
+| **Transaction Support** | ⏳ Pending | REQ-017 - Atomic multi-entity operations |
+| **Cursor Pagination** | ⏳ Pending | REQ-018 - Efficient large dataset pagination |
+| **Type-Safe Query** | ⏳ Pending | REQ-019 - Compile-time validated queries |
+| **Conflict Resolution** | ⏳ Pending | REQ-020 - Custom conflict callbacks |
+| **Pending Changes API** | ⏳ Pending | REQ-021 - Visibility into sync queue |
+| **Tag-Based Invalidation** | ⏳ Pending | REQ-022 - Selective cache clearing |
+| **Telemetry & Metrics** | ⏳ Pending | REQ-023 - Store observability |
+| **Key Derivation** | ⏳ Pending | REQ-024 - PBKDF2/Argon2 support |
+| **Batch Streaming** | ⏳ Pending | REQ-025 - Paginated streaming for large datasets |
+| **Data Minimization** | ⏳ Pending | REQ-026 - GDPR retention policies |
+| **Consent Tracking** | ⏳ Pending | REQ-027 - GDPR consent management |
+| **Breach Notification** | ⏳ Pending | REQ-028 - GDPR breach support |
 
 ---
 
@@ -2111,6 +2123,151 @@ final store = NexusStore<Patient, String>(
 - [ ] Write comprehensive README
 - [ ] Create example app for each backend
 - [ ] Add API documentation
+
+### Task 16: Transaction Support ⏳ PENDING
+**Files**: `lib/src/core/transaction.dart`, `lib/src/core/nexus_store.dart`
+**Implements**: REQ-017
+**Depends On**: Task 1
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `Transaction<T, ID>` class with save/delete/saveAll methods
+- [ ] Create `TransactionContext` for tracking transaction state
+- [ ] Add `transaction()` method to `NexusStore`
+- [ ] Implement rollback on failure
+- [ ] Implement savepoint support for nested transactions
+- [ ] Add unit tests
+
+### Task 17: Cursor-Based Pagination ⏳ PENDING
+**Files**: `lib/src/query/cursor.dart`, `lib/src/query/query.dart`
+**Implements**: REQ-018
+**Depends On**: Task 4
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `Cursor` class with encode/decode methods
+- [ ] Create `PagedResult<T>` with items, nextCursor, previousCursor
+- [ ] Add `after(cursor)` and `before(cursor)` to `Query<T>`
+- [ ] Implement cursor encoding based on orderBy fields
+- [ ] Add `getAllPaged()` method to `NexusStore`
+- [ ] Add unit tests
+
+### Task 18: Type-Safe Query Builder ⏳ PENDING
+**Files**: `lib/src/query/type_safe_query.dart`
+**Implements**: REQ-019
+**Depends On**: Task 4
+**Complexity**: High
+
+**Deliverables**:
+- [ ] Create `TypeSafeQuery<T>` builder using expression trees
+- [ ] Implement `where((item) => item.field > value)` syntax
+- [ ] Create `FieldAccessor<T, F>` for compile-time field validation
+- [ ] Add code generation support (optional build_runner integration)
+- [ ] Ensure backward compatibility with string-based queries
+- [ ] Add unit tests
+
+### Task 19: Conflict Resolution Callbacks ⏳ PENDING
+**Files**: `lib/src/sync/conflict_resolver.dart`, `lib/src/sync/conflict_details.dart`
+**Implements**: REQ-020
+**Depends On**: Task 1, Task 5
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `ConflictDetails<T>` with localValue, remoteValue, timestamp info
+- [ ] Create `ConflictAction` enum (keepLocal, keepRemote, merge)
+- [ ] Create `ConflictResolver<T>` callback typedef
+- [ ] Add `onConflict` to `StoreConfig`
+- [ ] Integrate with sync flow in `NexusStore`
+- [ ] Add unit tests
+
+### Task 20: Pending Changes Visibility ⏳ PENDING
+**Files**: `lib/src/sync/pending_change.dart`, `lib/src/core/nexus_store.dart`
+**Implements**: REQ-021
+**Depends On**: Task 1
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `PendingChange<T>` model with item, operation, retryCount, lastError
+- [ ] Create `PendingChangeOperation` enum (create, update, delete)
+- [ ] Add `pendingChanges` stream to `NexusStore`
+- [ ] Add `retryPendingChange(changeId)` method
+- [ ] Add `cancelPendingChange(changeId)` method
+- [ ] Add unit tests
+
+### Task 21: Tag-Based Cache Invalidation ⏳ PENDING
+**Files**: `lib/src/cache/cache_tags.dart`, `lib/src/core/nexus_store.dart`
+**Implements**: REQ-022
+**Depends On**: Task 1
+**Complexity**: Low
+
+**Deliverables**:
+- [ ] Create tag storage alongside cached items
+- [ ] Add `tags` parameter to `save()` method
+- [ ] Add `invalidateByTags(Set<String> tags)` method
+- [ ] Add `invalidateWhere(Query<T> query)` method
+- [ ] Emit updates on affected watch streams
+- [ ] Add unit tests
+
+### Task 22: Telemetry & Metrics ⏳ PENDING
+**Files**: `lib/src/telemetry/metrics_reporter.dart`, `lib/src/telemetry/store_metrics.dart`
+**Implements**: REQ-023
+**Depends On**: Task 1
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `MetricsReporter` abstract interface
+- [ ] Create `StoreMetric` model with operation, duration, success
+- [ ] Create `CacheMetrics` with hitCount, missCount, hitRate
+- [ ] Create `SyncMetrics` with successCount, failureCount, retryCount
+- [ ] Add `metricsReporter` to `StoreConfig`
+- [ ] Instrument all store operations
+- [ ] Create `NoOpMetricsReporter` default implementation
+- [ ] Add unit tests
+
+### Task 23: Key Derivation ⏳ PENDING
+**Files**: `lib/src/security/key_derivation.dart`
+**Implements**: REQ-024
+**Depends On**: Task 11
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `KeyDerivationConfig` sealed class (pbkdf2, argon2id)
+- [ ] Implement PBKDF2-HMAC-SHA256 with configurable iterations
+- [ ] Implement Argon2id with configurable memory/time cost
+- [ ] Create `DerivedKey` model with key bytes and salt
+- [ ] Add secure random salt generation
+- [ ] Integrate with `EncryptionConfig`
+- [ ] Add unit tests
+
+### Task 24: Batch Streaming ⏳ PENDING
+**Files**: `lib/src/core/nexus_store.dart`, `lib/src/query/paged_result.dart`
+**Implements**: REQ-025
+**Depends On**: Task 1, Task 17
+**Complexity**: Medium
+
+**Deliverables**:
+- [ ] Create `PagedResult<T>` with items, hasMore, loadMore callback
+- [ ] Add `watchAllPaginated(pageSize)` method to `NexusStore`
+- [ ] Implement chunked loading with BehaviorSubject
+- [ ] Add windowed loading support (release old pages)
+- [ ] Integrate with Flutter ListView.builder patterns
+- [ ] Add unit tests
+
+### Task 25: Enhanced GDPR Compliance ⏳ PENDING
+**Files**: `lib/src/compliance/data_minimization.dart`, `lib/src/compliance/consent_service.dart`, `lib/src/compliance/breach_service.dart`
+**Implements**: REQ-026, REQ-027, REQ-028
+**Depends On**: Task 12, Task 13
+**Complexity**: High
+
+**Deliverables**:
+- [ ] Create `RetentionPolicy` model with field, duration, action
+- [ ] Create `DataMinimizationService` with auto-purge logic
+- [ ] Create `ConsentRecord` model with purposes, timestamps
+- [ ] Create `ConsentService` with record/get/withdraw methods
+- [ ] Create `BreachReport` model
+- [ ] Create `BreachService` with identifyAffectedUsers, generateReport
+- [ ] Integrate with audit logging
+- [ ] Add unit tests
 
 ---
 
