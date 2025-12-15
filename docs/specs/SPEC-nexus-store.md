@@ -464,6 +464,330 @@ So that I comply with GDPR Article 20
 
 ---
 
+### REQ-017: Transaction Support
+
+**User Story**:
+As a developer
+I want atomic multi-entity operations
+So that data integrity is maintained when saving related entities
+
+**Acceptance Criteria**:
+- GIVEN a `NexusStore<T, ID>`
+  WHEN I call `store.transaction((tx) => ...)`
+  THEN all operations within the callback are atomic
+
+- GIVEN a transaction with multiple saves
+  WHEN one operation fails
+  THEN all operations are rolled back
+
+- GIVEN nested transactions
+  WHEN the inner transaction fails
+  THEN only the inner transaction is rolled back (savepoint behavior)
+
+- GIVEN a transaction
+  WHEN `tx.save()`, `tx.delete()`, `tx.saveAll()` are called
+  THEN they participate in the transaction context
+
+**Priority**: Must Have
+
+---
+
+### REQ-018: Cursor-Based Pagination
+
+**User Story**:
+As a developer with large datasets
+I want cursor-based pagination
+So that I can efficiently paginate without offset performance issues
+
+**Acceptance Criteria**:
+- GIVEN a `Query<T>` builder
+  WHEN I call `.after(cursor)`
+  THEN results start after the cursor position
+
+- GIVEN a `Query<T>` builder
+  WHEN I call `.before(cursor)`
+  THEN results end before the cursor position
+
+- GIVEN a paginated result
+  WHEN returned
+  THEN includes `nextCursor` and `previousCursor` for navigation
+
+- GIVEN cursor pagination
+  WHEN used with `orderBy()`
+  THEN cursor is encoded based on sort fields
+
+**Priority**: Should Have
+
+---
+
+### REQ-019: Type-Safe Query Builder (Optional)
+
+**User Story**:
+As a developer
+I want compile-time validated queries
+So that field name typos are caught at build time
+
+**Acceptance Criteria**:
+- GIVEN a type-safe query builder
+  WHEN I call `Query<User>().where((u) => u.age > 18)`
+  THEN field access is validated at compile time
+
+- GIVEN a type-safe query
+  WHEN a non-existent field is referenced
+  THEN compilation fails
+
+- GIVEN the type-safe builder
+  WHEN used alongside string-based queries
+  THEN both approaches work (opt-in type safety)
+
+**Priority**: Nice to Have
+
+---
+
+### REQ-020: Conflict Resolution Callbacks
+
+**User Story**:
+As a developer
+I want control over conflict resolution
+So that users can decide how to merge conflicting changes
+
+**Acceptance Criteria**:
+- GIVEN `StoreConfig` with `onConflict` callback
+  WHEN a sync conflict occurs
+  THEN the callback receives `ConflictDetails<T>` with local and remote values
+
+- GIVEN a conflict callback
+  WHEN it returns `ConflictAction.keepLocal`
+  THEN local version is preserved
+
+- GIVEN a conflict callback
+  WHEN it returns `ConflictAction.keepRemote`
+  THEN remote version is accepted
+
+- GIVEN a conflict callback
+  WHEN it returns `ConflictAction.merge(T merged)`
+  THEN the custom merged value is saved
+
+- GIVEN no conflict callback
+  WHEN conflict occurs
+  THEN default `ConflictResolution` strategy is applied
+
+**Priority**: Should Have
+
+---
+
+### REQ-021: Pending Changes Visibility
+
+**User Story**:
+As a developer
+I want to see and manage pending changes
+So that users can track and retry/cancel individual sync operations
+
+**Acceptance Criteria**:
+- GIVEN a `NexusStore<T, ID>`
+  WHEN I subscribe to `store.pendingChanges`
+  THEN I receive `Stream<List<PendingChange<T>>>` with details
+
+- GIVEN a `PendingChange<T>`
+  WHEN accessed
+  THEN it includes: item, operation (create/update/delete), retryCount, lastError
+
+- GIVEN a pending change
+  WHEN I call `store.retryPendingChange(changeId)`
+  THEN that specific change is retried immediately
+
+- GIVEN a pending change
+  WHEN I call `store.cancelPendingChange(changeId)`
+  THEN the change is removed from queue (local state reverted)
+
+**Priority**: Should Have
+
+---
+
+### REQ-022: Tag-Based Cache Invalidation
+
+**User Story**:
+As a developer
+I want to invalidate cache by tags or queries
+So that I can selectively clear related data
+
+**Acceptance Criteria**:
+- GIVEN items saved with tags via `store.save(item, tags: {'user-data', 'profile'})`
+  WHEN I call `store.invalidateByTags({'user-data'})`
+  THEN all items with that tag are marked stale
+
+- GIVEN a query
+  WHEN I call `store.invalidateWhere(query)`
+  THEN all items matching the query are invalidated
+
+- GIVEN tag-based invalidation
+  WHEN performed
+  THEN affected watch streams emit updated data
+
+**Priority**: Should Have
+
+---
+
+### REQ-023: Telemetry & Metrics
+
+**User Story**:
+As a developer
+I want observability into store performance
+So that I can monitor and optimize data layer behavior
+
+**Acceptance Criteria**:
+- GIVEN `StoreConfig` with `metricsReporter`
+  WHEN any operation completes
+  THEN metrics are reported: operation type, duration, success/failure
+
+- GIVEN metrics enabled
+  WHEN cache operations occur
+  THEN hit/miss rates are tracked
+
+- GIVEN metrics enabled
+  WHEN sync operations occur
+  THEN success/failure/retry counts are tracked
+
+- GIVEN a custom `MetricsReporter` implementation
+  WHEN provided
+  THEN it receives all metric events (pluggable: Firebase, DataDog, custom)
+
+**Priority**: Should Have
+
+---
+
+### REQ-024: Key Derivation Specification
+
+**User Story**:
+As a security-conscious developer
+I want proper key derivation from passwords/passphrases
+So that encryption keys are cryptographically strong
+
+**Acceptance Criteria**:
+- GIVEN `KeyDerivationConfig.pbkdf2(password, salt, iterations)`
+  WHEN key is derived
+  THEN PBKDF2-HMAC-SHA256 is used with configurable iterations (min 100,000)
+
+- GIVEN `KeyDerivationConfig.argon2id(password, salt, ...)`
+  WHEN key is derived
+  THEN Argon2id is used with configurable memory/time cost
+
+- GIVEN key derivation
+  WHEN salt is not provided
+  THEN a secure random salt is generated and stored
+
+- GIVEN derived keys
+  WHEN stored
+  THEN only the salt is persisted, never the password or derived key
+
+**Priority**: Must Have
+
+---
+
+### REQ-025: Batch Streaming
+
+**User Story**:
+As a developer with large datasets
+I want paginated streaming
+So that I can load large lists without OOM errors
+
+**Acceptance Criteria**:
+- GIVEN a `NexusStore<T, ID>`
+  WHEN I call `store.watchAllPaginated(pageSize: 50)`
+  THEN it returns `Stream<PagedResult<T>>` loading in chunks
+
+- GIVEN paginated streaming
+  WHEN scrolled
+  THEN next page is loaded automatically (infinite scroll support)
+
+- GIVEN `PagedResult<T>`
+  WHEN accessed
+  THEN it includes: items, hasMore, loadMore() callback
+
+- GIVEN memory pressure
+  WHEN earlier pages are no longer visible
+  THEN they can be released (windowed loading)
+
+**Priority**: Should Have
+
+---
+
+### REQ-026: Data Minimization (GDPR)
+
+**User Story**:
+As a developer handling EU user data
+I want automatic data retention policies
+So that I comply with GDPR data minimization principle
+
+**Acceptance Criteria**:
+- GIVEN `GdprConfig` with `retentionPolicies`
+  WHEN a retention period expires for a field
+  THEN that field is automatically nullified or the record deleted
+
+- GIVEN retention policy `RetentionPolicy(field: 'ipAddress', duration: Duration(days: 30))`
+  WHEN 30 days pass since record creation
+  THEN `ipAddress` field is set to null
+
+- GIVEN retention processing
+  WHEN fields are cleared
+  THEN an audit log entry is created
+
+**Priority**: Should Have
+
+---
+
+### REQ-027: Consent Tracking (GDPR)
+
+**User Story**:
+As a developer handling EU user data
+I want to track user consent
+So that I only process data for consented purposes
+
+**Acceptance Criteria**:
+- GIVEN `GdprConfig` with `consentTracking: true`
+  WHEN `store.gdpr.recordConsent(userId, purposes: {'marketing', 'analytics'})` is called
+  THEN consent is recorded with timestamp
+
+- GIVEN recorded consent
+  WHEN `store.gdpr.getConsent(userId)` is called
+  THEN returns `ConsentRecord` with all consented purposes and timestamps
+
+- GIVEN consent
+  WHEN `store.gdpr.withdrawConsent(userId, purposes: {'marketing'})` is called
+  THEN consent is withdrawn and audit logged
+
+- GIVEN consent records
+  WHEN accessed
+  THEN full history with timestamps is available for compliance audits
+
+**Priority**: Should Have
+
+---
+
+### REQ-028: Breach Notification Support (GDPR)
+
+**User Story**:
+As a developer handling EU user data
+I want to identify affected users in a data breach
+So that I can comply with GDPR breach notification requirements
+
+**Acceptance Criteria**:
+- GIVEN `GdprConfig` with breach support enabled
+  WHEN `store.gdpr.identifyAffectedUsers(query, timeRange)` is called
+  THEN returns list of user IDs whose data matches criteria in time range
+
+- GIVEN breach identification
+  WHEN `store.gdpr.generateBreachReport(affectedUsers)` is called
+  THEN generates report with: affected users, data categories, timeline
+
+- GIVEN breach processing
+  WHEN performed
+  THEN all actions are audit logged with breach reference ID
+
+**Priority**: Nice to Have
+
+---
+
 ## Technical Constraints
 
 ### Project Configuration (nexus_store monorepo)
