@@ -1,0 +1,17 @@
+name: nexus_store_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+workspace:
+  - packages/nexus_store
+  - packages/nexus_store_flutter
+  - packages/nexus_store_powersync_adapter
+  - packages/nexus_store_drift_adapter
+  - packages/nexus_store_supabase_adapter
+  - packages/nexus_store_brick_adapter
+  - packages/nexus_store_crdt_adapter
+
+dev_dependencies:
+  melos: ^6.2.0

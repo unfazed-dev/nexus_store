@@ -1,0 +1,21 @@
+name: nexus_store_flutter
+description: Flutter extension for nexus_store with StreamBuilder widgets and providers.
+version: 0.1.0
+repository: https://github.com/user/nexus_store
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.22.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  nexus_store:
+    path: ../nexus_store
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
