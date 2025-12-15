@@ -79,7 +79,7 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
         await cache?.save(result);
         return result;
       }
-    } catch (_) {
+    } on Object {
       // Primary failed, try fallback
     }
 
@@ -87,7 +87,7 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
     if (fallback != null) {
       try {
         return fallback!.get(id);
-      } catch (_) {
+      } on Object {
         // Fallback also failed
       }
     }
@@ -110,9 +110,7 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
   }
 
   Future<T?> _getFastest(ID id) async {
-    final futures = <Future<T?>>[];
-
-    futures.add(primary.get(id));
+    final futures = <Future<T?>>[primary.get(id)];
     if (fallback != null) futures.add(fallback!.get(id));
     if (cache != null) futures.add(cache!.get(id));
 
@@ -134,14 +132,14 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
         await cache?.save(item);
       }
       return results;
-    } catch (_) {
+    } on Object {
       // Primary failed, try fallback
     }
 
     if (fallback != null) {
       try {
         return fallback!.getAll(query: query);
-      } catch (_) {
+      } on Object {
         // Fallback also failed
       }
     }
@@ -153,9 +151,7 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
   @override
   Stream<T?> watch(ID id) {
     // Merge streams from primary and fallback
-    final streams = <Stream<T?>>[];
-
-    streams.add(primary.watch(id));
+    final streams = <Stream<T?>>[primary.watch(id)];
     if (fallback != null) streams.add(fallback!.watch(id));
 
     return Rx.merge(streams).distinct();
@@ -163,9 +159,7 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
 
   @override
   Stream<List<T>> watchAll({Query<T>? query}) {
-    final streams = <Stream<List<T>>>[];
-
-    streams.add(primary.watchAll(query: query));
+    final streams = <Stream<List<T>>>[primary.watchAll(query: query)];
     if (fallback != null) streams.add(fallback!.watchAll(query: query));
 
     return Rx.merge(streams).distinct();
@@ -262,7 +256,7 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
       await primary.sync();
       await fallback?.sync();
       _syncStatusSubject.add(SyncStatus.synced);
-    } catch (_) {
+    } on Object {
       _syncStatusSubject.add(SyncStatus.error);
       rethrow;
     }

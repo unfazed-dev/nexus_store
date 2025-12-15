@@ -1,4 +1,4 @@
 /// CRDT adapter for nexus_store with conflict-free replicated data types.
 library;
 
-// TODO: Implement CrdtBackend
+// TODO(developer): Implement CrdtBackend

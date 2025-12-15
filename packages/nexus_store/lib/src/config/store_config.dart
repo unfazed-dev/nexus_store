@@ -34,7 +34,8 @@ abstract class StoreConfig with _$StoreConfig {
     @Default(SyncMode.realtime) SyncMode syncMode,
 
     /// Conflict resolution strategy.
-    @Default(ConflictResolution.serverWins) ConflictResolution conflictResolution,
+    @Default(ConflictResolution.serverWins)
+    ConflictResolution conflictResolution,
 
     /// Retry configuration for failed operations.
     @Default(RetryConfig.defaults) RetryConfig retryConfig,

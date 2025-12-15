@@ -8,7 +8,8 @@ import 'package:nexus_store/src/query/query.dart';
 /// ## Example Implementation
 ///
 /// ```dart
-/// class DriftQueryTranslator<T> implements QueryTranslator<T, Expression<bool>> {
+/// class DriftQueryTranslator<T>
+///     implements QueryTranslator<T, Expression<bool>> {
 ///   @override
 ///   Expression<bool> translate(Query<T> query) {
 ///     // Convert Query filters to Drift expressions

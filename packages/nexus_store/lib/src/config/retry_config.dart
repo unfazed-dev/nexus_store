@@ -34,7 +34,10 @@ class RetryConfig {
     this.jitterFactor = 0.1,
     this.retryableExceptions = const {},
   })  : assert(maxAttempts >= 1, 'maxAttempts must be at least 1'),
-        assert(backoffMultiplier >= 1.0, 'backoffMultiplier must be at least 1.0'),
+        assert(
+          backoffMultiplier >= 1.0,
+          'backoffMultiplier must be at least 1.0',
+        ),
         assert(
           jitterFactor >= 0.0 && jitterFactor <= 1.0,
           'jitterFactor must be between 0.0 and 1.0',

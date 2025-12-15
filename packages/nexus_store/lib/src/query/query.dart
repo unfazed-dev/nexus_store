@@ -73,17 +73,29 @@ class Query<T> {
 
     if (isEqualTo != null) {
       newFilters.add(
-        QueryFilter(field: field, operator: FilterOperator.equals, value: isEqualTo),
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.equals,
+          value: isEqualTo,
+        ),
       );
     }
     if (isNotEqualTo != null) {
       newFilters.add(
-        QueryFilter(field: field, operator: FilterOperator.notEquals, value: isNotEqualTo),
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.notEquals,
+          value: isNotEqualTo,
+        ),
       );
     }
     if (isLessThan != null) {
       newFilters.add(
-        QueryFilter(field: field, operator: FilterOperator.lessThan, value: isLessThan),
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.lessThan,
+          value: isLessThan,
+        ),
       );
     }
     if (isLessThanOrEqualTo != null) {
@@ -97,7 +109,11 @@ class Query<T> {
     }
     if (isGreaterThan != null) {
       newFilters.add(
-        QueryFilter(field: field, operator: FilterOperator.greaterThan, value: isGreaterThan),
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.greaterThan,
+          value: isGreaterThan,
+        ),
       );
     }
     if (isGreaterThanOrEqualTo != null) {
@@ -111,7 +127,11 @@ class Query<T> {
     }
     if (arrayContains != null) {
       newFilters.add(
-        QueryFilter(field: field, operator: FilterOperator.arrayContains, value: arrayContains),
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.arrayContains,
+          value: arrayContains,
+        ),
       );
     }
     if (arrayContainsAny != null) {
@@ -125,12 +145,20 @@ class Query<T> {
     }
     if (whereIn != null) {
       newFilters.add(
-        QueryFilter(field: field, operator: FilterOperator.whereIn, value: whereIn),
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.whereIn,
+          value: whereIn,
+        ),
       );
     }
     if (whereNotIn != null) {
       newFilters.add(
-        QueryFilter(field: field, operator: FilterOperator.whereNotIn, value: whereNotIn),
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.whereNotIn,
+          value: whereNotIn,
+        ),
       );
     }
     if (isNull != null) {

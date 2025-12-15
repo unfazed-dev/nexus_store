@@ -43,7 +43,8 @@ mixin ReactiveStoreMixin {
 /// immediately when a new listener subscribes.
 class ReactiveState<T> {
   /// Creates a reactive state with the given initial value.
-  ReactiveState(T initialValue) : _subject = BehaviorSubject.seeded(initialValue);
+  ReactiveState(T initialValue)
+      : _subject = BehaviorSubject.seeded(initialValue);
 
   final BehaviorSubject<T> _subject;
 
@@ -73,7 +74,8 @@ class ReactiveState<T> {
 /// A reactive list that emits updates when items are added/removed.
 class ReactiveList<T> extends ReactiveState<List<T>> {
   /// Creates a reactive list with optional initial items.
-  ReactiveList([List<T>? initialItems]) : super(List<T>.from(initialItems ?? []));
+  ReactiveList([List<T>? initialItems])
+      : super(List<T>.from(initialItems ?? []));
 
   /// Adds an item to the list.
   void add(T item) {
@@ -88,8 +90,7 @@ class ReactiveList<T> extends ReactiveState<List<T>> {
   /// Removes item at index.
   void removeAt(int index) {
     update((current) {
-      final copy = List<T>.from(current);
-      copy.removeAt(index);
+      final copy = List<T>.from(current)..removeAt(index);
       return copy;
     });
   }
@@ -115,7 +116,8 @@ class ReactiveList<T> extends ReactiveState<List<T>> {
 /// A reactive map that emits updates when entries change.
 class ReactiveMap<K, V> extends ReactiveState<Map<K, V>> {
   /// Creates a reactive map with optional initial entries.
-  ReactiveMap([Map<K, V>? initialMap]) : super(Map<K, V>.from(initialMap ?? {}));
+  ReactiveMap([Map<K, V>? initialMap])
+      : super(Map<K, V>.from(initialMap ?? {}));
 
   /// Sets a key-value pair.
   void set(K key, V value) {
@@ -125,8 +127,7 @@ class ReactiveMap<K, V> extends ReactiveState<Map<K, V>> {
   /// Removes a key.
   void remove(K key) {
     update((current) {
-      final copy = Map<K, V>.from(current);
-      copy.remove(key);
+      final copy = Map<K, V>.from(current)..remove(key);
       return copy;
     });
   }

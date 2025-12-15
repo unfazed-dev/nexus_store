@@ -80,7 +80,7 @@ class FetchPolicyHandler<T, ID> {
       await backend.sync();
       _lastFetchTimes[id] = DateTime.now();
       return backend.get(id);
-    } catch (_) {
+    } on Object {
       // Network failed, return whatever we have
       return cached;
     }
@@ -96,7 +96,7 @@ class FetchPolicyHandler<T, ID> {
     try {
       await backend.sync();
       return backend.getAll(query: query);
-    } catch (_) {
+    } on Object {
       return cached;
     }
   }
@@ -110,7 +110,7 @@ class FetchPolicyHandler<T, ID> {
       await backend.sync();
       _lastFetchTimes[id] = DateTime.now();
       return backend.get(id);
-    } catch (_) {
+    } on Object {
       // Network failed, fallback to cache
       return backend.get(id);
     }
@@ -120,7 +120,7 @@ class FetchPolicyHandler<T, ID> {
     try {
       await backend.sync();
       return backend.getAll(query: query);
-    } catch (_) {
+    } on Object {
       return backend.getAll(query: query);
     }
   }
@@ -137,7 +137,7 @@ class FetchPolicyHandler<T, ID> {
       await backend.sync();
       _lastFetchTimes[id] = DateTime.now();
       return backend.get(id);
-    } catch (_) {
+    } on Object {
       return cached;
     }
   }
@@ -146,7 +146,7 @@ class FetchPolicyHandler<T, ID> {
     try {
       await backend.sync();
       return backend.getAll(query: query);
-    } catch (_) {
+    } on Object {
       return backend.getAll(query: query);
     }
   }
@@ -203,7 +203,7 @@ class FetchPolicyHandler<T, ID> {
     try {
       await backend.sync();
       _lastFetchTimes[id] = DateTime.now();
-    } catch (_) {
+    } on Object {
       // Silently ignore background revalidation failures
     }
   }
@@ -211,7 +211,7 @@ class FetchPolicyHandler<T, ID> {
   Future<void> _revalidateAllInBackground() async {
     try {
       await backend.sync();
-    } catch (_) {
+    } on Object {
       // Silently ignore background revalidation failures
     }
   }

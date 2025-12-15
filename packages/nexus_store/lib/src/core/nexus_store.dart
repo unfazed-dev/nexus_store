@@ -10,7 +10,6 @@ import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/policy/fetch_policy_handler.dart';
 import 'package:nexus_store/src/policy/write_policy_handler.dart';
 import 'package:nexus_store/src/query/query.dart';
-import 'package:nexus_store/src/security/encryption_service.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// A unified reactive data store abstraction.
@@ -73,7 +72,7 @@ class NexusStore<T, ID> {
     AuditService? auditService,
     String? subjectIdField,
   })  : _backend = backend,
-        _config = config ?? const StoreConfig(),
+        _config = config ?? StoreConfig.defaults,
         _auditService = auditService {
     _logger = Logger('NexusStore<$T, $ID>');
 
@@ -87,8 +86,6 @@ class NexusStore<T, ID> {
       backend: _backend,
       defaultPolicy: _config.writePolicy,
     );
-
-    _encryptionService = EncryptionService(config: _config.encryption);
 
     if (_config.enableGdpr && subjectIdField != null) {
       _gdprService = GdprService<T, ID>(
@@ -106,7 +103,6 @@ class NexusStore<T, ID> {
   late final Logger _logger;
   late final FetchPolicyHandler<T, ID> _fetchHandler;
   late final WritePolicyHandler<T, ID> _writeHandler;
-  late final EncryptionService _encryptionService;
   GdprService<T, ID>? _gdprService;
 
   bool _initialized = false;

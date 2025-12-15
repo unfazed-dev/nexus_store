@@ -178,6 +178,7 @@ class EncryptionException implements Exception {
   final Object? cause;
 
   @override
-  String toString() =>
-      cause != null ? 'EncryptionException: $message ($cause)' : 'EncryptionException: $message';
+  String toString() => cause != null
+      ? 'EncryptionException: $message ($cause)'
+      : 'EncryptionException: $message';
 }

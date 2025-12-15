@@ -43,9 +43,12 @@ sealed class StoreError implements Exception {
   /// Whether this error is potentially recoverable through retry.
   bool get isRetryable => false;
 
+  /// The name of this error type for display purposes.
+  String get errorName;
+
   @override
   String toString() {
-    final buffer = StringBuffer('$runtimeType: $message');
+    final buffer = StringBuffer('$errorName: $message');
     if (code != null) buffer.write(' (code: $code)');
     if (cause != null) buffer.write('\nCaused by: $cause');
     return buffer.toString();
@@ -72,6 +75,9 @@ class NotFoundError extends StoreError {
 
   /// The type of entity that was not found.
   final String? entityType;
+
+  @override
+  String get errorName => 'NotFoundError';
 }
 
 /// Error thrown when a network operation fails.
@@ -98,6 +104,9 @@ class NetworkError extends StoreError {
       statusCode! >= 500 ||
       statusCode == 408 ||
       statusCode == 429;
+
+  @override
+  String get errorName => 'NetworkError';
 }
 
 /// Error thrown when a timeout occurs.
@@ -123,6 +132,9 @@ class TimeoutError extends StoreError {
 
   @override
   bool get isRetryable => true;
+
+  @override
+  String get errorName => 'TimeoutError';
 }
 
 /// Error thrown when validation fails.
@@ -145,6 +157,9 @@ class ValidationError extends StoreError {
 
   /// List of validation violations.
   final List<ValidationViolation> violations;
+
+  @override
+  String get errorName => 'ValidationError';
 }
 
 /// A single validation violation.
@@ -193,6 +208,9 @@ class ConflictError extends StoreError {
 
   /// Fields that have conflicting values.
   final List<String> conflictedFields;
+
+  @override
+  String get errorName => 'ConflictError';
 }
 
 /// Error thrown when synchronization fails.
@@ -211,6 +229,9 @@ class SyncError extends StoreError {
 
   @override
   bool get isRetryable => true;
+
+  @override
+  String get errorName => 'SyncError';
 }
 
 /// Error thrown when authentication fails.
@@ -221,6 +242,9 @@ class AuthenticationError extends StoreError {
     super.cause,
     super.stackTrace,
   }) : super(code: 'AUTHENTICATION_ERROR');
+
+  @override
+  String get errorName => 'AuthenticationError';
 }
 
 /// Error thrown when authorization fails.
@@ -235,6 +259,9 @@ class AuthorizationError extends StoreError {
 
   /// The permission that was required.
   final String? requiredPermission;
+
+  @override
+  String get errorName => 'AuthorizationError';
 }
 
 /// Error thrown when a transaction fails.
@@ -249,6 +276,9 @@ class TransactionError extends StoreError {
 
   /// Whether the transaction was rolled back.
   final bool wasRolledBack;
+
+  @override
+  String get errorName => 'TransactionError';
 }
 
 /// Error thrown when the store is in an invalid state.
@@ -267,6 +297,9 @@ class StateError extends StoreError {
 
   /// The expected state.
   final String? expectedState;
+
+  @override
+  String get errorName => 'StateError';
 }
 
 /// Error thrown when an operation is cancelled.
@@ -285,6 +318,9 @@ class CancellationError extends StoreError {
 
   /// The operation that was cancelled.
   final String? operation;
+
+  @override
+  String get errorName => 'CancellationError';
 }
 
 /// Error thrown when a quota or limit is exceeded.
@@ -307,4 +343,7 @@ class QuotaExceededError extends StoreError {
 
   /// The type of quota (e.g., 'storage', 'requests').
   final String? quotaType;
+
+  @override
+  String get errorName => 'QuotaExceededError';
 }

@@ -158,7 +158,7 @@ class WritePolicyHandler<T, ID> {
   Future<void> _syncInBackground() async {
     try {
       await backend.sync();
-    } catch (_) {
+    } on Object {
       // Silently ignore background sync failures
       // Changes will be synced on next opportunity
     }
