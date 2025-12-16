@@ -1,0 +1,16 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+
+linter:
+  rules:
+    # Disabled for test files - tests intentionally use const constructors
+    # to verify default values rather than named constants
+    use_named_constants: false
+
+    # Disabled - many test setup methods return void, making cascades
+    # inapplicable (e.g., backend.addToStorage, backend.shouldFailOnX)
+    cascade_invocations: false

@@ -86,7 +86,7 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
     // Try fallback
     if (fallback != null) {
       try {
-        return fallback!.get(id);
+        return await fallback!.get(id);
       } on Object {
         // Fallback also failed
       }
@@ -138,7 +138,7 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
 
     if (fallback != null) {
       try {
-        return fallback!.getAll(query: query);
+        return await fallback!.getAll(query: query);
       } on Object {
         // Fallback also failed
       }
