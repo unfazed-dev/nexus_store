@@ -7,7 +7,7 @@ Quick navigation and status dashboard for all implementation trackers.
 | Phase | Name | Trackers | Status |
 |-------|------|----------|--------|
 | 1 | Foundation | 1 | ✅ COMPLETE |
-| 2 | Adapters | 5 | 1/5 COMPLETE |
+| 2 | Adapters | 5 | 2/5 COMPLETE |
 | 3 | Flutter | 1 | PENDING |
 | 4 | Documentation | 1 | PENDING |
 | 5 | Production | 9 | PENDING |
@@ -41,7 +41,7 @@ Database backend implementations.
 |---------|--------------|--------|
 | [PowerSync](./phase-2-adapters/TRACKER-powersync-adapter.md) | REQ-007 | PENDING |
 | [Drift](./phase-2-adapters/TRACKER-drift-adapter.md) | REQ-010 | PENDING |
-| [Supabase](./phase-2-adapters/TRACKER-supabase-adapter.md) | REQ-009 | PENDING |
+| [Supabase](./phase-2-adapters/TRACKER-supabase-adapter.md) | REQ-009 | ✅ COMPLETE |
 | [Brick](./phase-2-adapters/TRACKER-brick-adapter.md) | REQ-008 | ✅ COMPLETE |
 | [CRDT](./phase-2-adapters/TRACKER-crdt-adapter.md) | REQ-011 | PENDING |
 

@@ -24,7 +24,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 ### Phase 2: Backend Adapters
 - [ ] PowerSync adapter - See [TRACKER-powersync-adapter.md](./phase-2-adapters/TRACKER-powersync-adapter.md)
 - [ ] Drift adapter - See [TRACKER-drift-adapter.md](./phase-2-adapters/TRACKER-drift-adapter.md)
-- [ ] Supabase adapter - See [TRACKER-supabase-adapter.md](./phase-2-adapters/TRACKER-supabase-adapter.md)
+- [x] Supabase adapter - See [TRACKER-supabase-adapter.md](./phase-2-adapters/TRACKER-supabase-adapter.md) ✅
 - [x] Brick adapter - See [TRACKER-brick-adapter.md](./phase-2-adapters/TRACKER-brick-adapter.md) ✅
 - [ ] CRDT adapter - See [TRACKER-crdt-adapter.md](./phase-2-adapters/TRACKER-crdt-adapter.md)
 
@@ -75,7 +75,7 @@ nexus_store/
 │   ├── nexus_store_flutter/              # Flutter extension (📦 Stub)
 │   ├── nexus_store_powersync_adapter/    # PowerSync (📦 Stub)
 │   ├── nexus_store_drift_adapter/        # Drift (📦 Stub)
-│   ├── nexus_store_supabase_adapter/     # Supabase (📦 Stub)
+│   ├── nexus_store_supabase_adapter/     # Supabase (✅ Complete with 59 tests)
 │   ├── nexus_store_brick_adapter/        # Brick (✅ Complete with 51 tests)
 │   ├── nexus_store_crdt_adapter/         # CRDT (📦 Stub)
 │   ├── nexus_store_riverpod_binding/     # Riverpod integration (⏳ Planned)
@@ -117,7 +117,7 @@ Documentation (depends on all above)
 | REQ-006 | Query Builder | ✅ Complete | core |
 | REQ-007 | PowerSync Backend | 📦 Stub | [powersync](./phase-2-adapters/TRACKER-powersync-adapter.md) |
 | REQ-008 | Brick Backend | ✅ Complete | [brick](./phase-2-adapters/TRACKER-brick-adapter.md) |
-| REQ-009 | Supabase Backend | 📦 Stub | [supabase](./phase-2-adapters/TRACKER-supabase-adapter.md) |
+| REQ-009 | Supabase Backend | ✅ Complete | [supabase](./phase-2-adapters/TRACKER-supabase-adapter.md) |
 | REQ-010 | Drift Backend | 📦 Stub | [drift](./phase-2-adapters/TRACKER-drift-adapter.md) |
 | REQ-011 | CRDT Backend | 📦 Stub | [crdt](./phase-2-adapters/TRACKER-crdt-adapter.md) |
 | REQ-012 | SQLCipher Encryption | ✅ Complete | core |

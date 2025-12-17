@@ -12,7 +12,8 @@ resolution: workspace
 dependencies:
   nexus_store:
     path: ../nexus_store
-  # supabase: ^2.8.0
+  supabase: ^2.8.0
+  rxdart: ^0.28.0
 
 dev_dependencies:
   test: ^1.25.0
