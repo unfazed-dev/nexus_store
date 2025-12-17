@@ -12,7 +12,10 @@ resolution: workspace
 dependencies:
   nexus_store:
     path: ../nexus_store
-  # brick_offline_first_with_supabase: ^2.1.0
+  brick_offline_first_with_supabase: ^2.1.0
+  brick_offline_first: ^4.0.0
+  brick_core: ^2.0.0
+  rxdart: ^0.28.0
 
 dev_dependencies:
   test: ^1.25.0

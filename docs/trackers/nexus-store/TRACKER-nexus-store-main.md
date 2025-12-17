@@ -25,7 +25,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 - [ ] PowerSync adapter - See [TRACKER-powersync-adapter.md](./phase-2-adapters/TRACKER-powersync-adapter.md)
 - [ ] Drift adapter - See [TRACKER-drift-adapter.md](./phase-2-adapters/TRACKER-drift-adapter.md)
 - [ ] Supabase adapter - See [TRACKER-supabase-adapter.md](./phase-2-adapters/TRACKER-supabase-adapter.md)
-- [ ] Brick adapter - See [TRACKER-brick-adapter.md](./phase-2-adapters/TRACKER-brick-adapter.md)
+- [x] Brick adapter - See [TRACKER-brick-adapter.md](./phase-2-adapters/TRACKER-brick-adapter.md) ✅
 - [ ] CRDT adapter - See [TRACKER-crdt-adapter.md](./phase-2-adapters/TRACKER-crdt-adapter.md)
 
 ### Phase 3: Flutter Extension
@@ -76,7 +76,7 @@ nexus_store/
 │   ├── nexus_store_powersync_adapter/    # PowerSync (📦 Stub)
 │   ├── nexus_store_drift_adapter/        # Drift (📦 Stub)
 │   ├── nexus_store_supabase_adapter/     # Supabase (📦 Stub)
-│   ├── nexus_store_brick_adapter/        # Brick (📦 Stub)
+│   ├── nexus_store_brick_adapter/        # Brick (✅ Complete with 51 tests)
 │   ├── nexus_store_crdt_adapter/         # CRDT (📦 Stub)
 │   ├── nexus_store_riverpod_binding/     # Riverpod integration (⏳ Planned)
 │   ├── nexus_store_bloc_binding/         # Bloc integration (⏳ Planned)
@@ -116,7 +116,7 @@ Documentation (depends on all above)
 | REQ-005 | Sync Status Observability | ✅ Complete | core |
 | REQ-006 | Query Builder | ✅ Complete | core |
 | REQ-007 | PowerSync Backend | 📦 Stub | [powersync](./phase-2-adapters/TRACKER-powersync-adapter.md) |
-| REQ-008 | Brick Backend | 📦 Stub | [brick](./phase-2-adapters/TRACKER-brick-adapter.md) |
+| REQ-008 | Brick Backend | ✅ Complete | [brick](./phase-2-adapters/TRACKER-brick-adapter.md) |
 | REQ-009 | Supabase Backend | 📦 Stub | [supabase](./phase-2-adapters/TRACKER-supabase-adapter.md) |
 | REQ-010 | Drift Backend | 📦 Stub | [drift](./phase-2-adapters/TRACKER-drift-adapter.md) |
 | REQ-011 | CRDT Backend | 📦 Stub | [crdt](./phase-2-adapters/TRACKER-crdt-adapter.md) |
