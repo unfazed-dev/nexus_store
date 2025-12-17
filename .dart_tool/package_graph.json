@@ -71,11 +71,16 @@
       "name": "nexus_store_drift_adapter",
       "version": "0.1.0",
       "dependencies": [
-        "nexus_store"
+        "drift",
+        "nexus_store",
+        "rxdart"
       ],
       "devDependencies": [
+        "build_runner",
+        "drift_dev",
         "lints",
         "mocktail",
+        "sqlite3",
         "test"
       ]
     },
@@ -267,6 +272,88 @@
       ]
     },
     {
+      "name": "build_runner",
+      "version": "2.10.4",
+      "dependencies": [
+        "analyzer",
+        "args",
+        "async",
+        "build",
+        "build_config",
+        "build_daemon",
+        "built_collection",
+        "built_value",
+        "code_builder",
+        "collection",
+        "convert",
+        "crypto",
+        "dart_style",
+        "glob",
+        "graphs",
+        "http_multi_server",
+        "io",
+        "json_annotation",
+        "logging",
+        "meta",
+        "mime",
+        "package_config",
+        "path",
+        "pool",
+        "pub_semver",
+        "shelf",
+        "shelf_web_socket",
+        "stream_transform",
+        "watcher",
+        "web_socket_channel",
+        "yaml"
+      ]
+    },
+    {
+      "name": "drift_dev",
+      "version": "2.30.0",
+      "dependencies": [
+        "analyzer",
+        "args",
+        "build",
+        "build_config",
+        "charcode",
+        "cli_util",
+        "collection",
+        "dart_style",
+        "drift",
+        "io",
+        "json_annotation",
+        "logging",
+        "meta",
+        "package_config",
+        "path",
+        "pub_semver",
+        "recase",
+        "source_gen",
+        "source_span",
+        "sqlite3",
+        "sqlparser",
+        "stream_transform",
+        "string_scanner",
+        "yaml"
+      ]
+    },
+    {
+      "name": "drift",
+      "version": "2.30.0",
+      "dependencies": [
+        "async",
+        "collection",
+        "convert",
+        "meta",
+        "path",
+        "sqlite3",
+        "stack_trace",
+        "stream_channel",
+        "web"
+      ]
+    },
+    {
       "name": "powersync",
       "version": "1.17.0",
       "dependencies": [
@@ -312,43 +399,6 @@
         "meta",
         "sky_engine",
         "vector_math"
-      ]
-    },
-    {
-      "name": "build_runner",
-      "version": "2.10.4",
-      "dependencies": [
-        "analyzer",
-        "args",
-        "async",
-        "build",
-        "build_config",
-        "build_daemon",
-        "built_collection",
-        "built_value",
-        "code_builder",
-        "collection",
-        "convert",
-        "crypto",
-        "dart_style",
-        "glob",
-        "graphs",
-        "http_multi_server",
-        "io",
-        "json_annotation",
-        "logging",
-        "meta",
-        "mime",
-        "package_config",
-        "path",
-        "pool",
-        "pub_semver",
-        "shelf",
-        "shelf_web_socket",
-        "stream_transform",
-        "watcher",
-        "web_socket_channel",
-        "yaml"
       ]
     },
     {
@@ -951,86 +1001,6 @@
       "dependencies": []
     },
     {
-      "name": "powersync_flutter_libs",
-      "version": "0.4.14",
-      "dependencies": [
-        "flutter"
-      ]
-    },
-    {
-      "name": "powersync_core",
-      "version": "1.7.0",
-      "dependencies": [
-        "args",
-        "async",
-        "collection",
-        "http",
-        "logging",
-        "meta",
-        "path",
-        "pub_semver",
-        "pubspec_parse",
-        "sqlite3_web",
-        "sqlite_async",
-        "typed_data",
-        "uuid",
-        "web"
-      ]
-    },
-    {
-      "name": "sqlite3_flutter_libs",
-      "version": "0.5.41",
-      "dependencies": [
-        "flutter"
-      ]
-    },
-    {
-      "name": "leak_tracker_flutter_testing",
-      "version": "3.0.10",
-      "dependencies": [
-        "flutter",
-        "leak_tracker",
-        "leak_tracker_testing",
-        "matcher",
-        "meta"
-      ]
-    },
-    {
-      "name": "vector_math",
-      "version": "2.2.0",
-      "dependencies": []
-    },
-    {
-      "name": "clock",
-      "version": "1.1.2",
-      "dependencies": []
-    },
-    {
-      "name": "fake_async",
-      "version": "1.3.3",
-      "dependencies": [
-        "clock",
-        "collection"
-      ]
-    },
-    {
-      "name": "sky_engine",
-      "version": "0.0.0",
-      "dependencies": []
-    },
-    {
-      "name": "material_color_utilities",
-      "version": "0.11.1",
-      "dependencies": [
-        "collection"
-      ]
-    },
-    {
-      "name": "characters",
-      "version": "1.4.0",
-      "dependencies": []
-    },
-    {
       "name": "watcher",
       "version": "1.2.0",
       "dependencies": [
@@ -1122,14 +1092,6 @@
       ]
     },
     {
-      "name": "source_helper",
-      "version": "1.3.8",
-      "dependencies": [
-        "analyzer",
-        "source_gen"
-      ]
-    },
-    {
       "name": "source_gen",
       "version": "4.1.1",
       "dependencies": [
@@ -1142,6 +1104,114 @@
         "pub_semver",
         "source_span",
         "yaml"
+      ]
+    },
+    {
+      "name": "sqlparser",
+      "version": "0.42.1",
+      "dependencies": [
+        "charcode",
+        "collection",
+        "meta",
+        "source_span"
+      ]
+    },
+    {
+      "name": "recase",
+      "version": "4.1.0",
+      "dependencies": []
+    },
+    {
+      "name": "charcode",
+      "version": "1.4.0",
+      "dependencies": []
+    },
+    {
+      "name": "powersync_flutter_libs",
+      "version": "0.4.14",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "powersync_core",
+      "version": "1.7.0",
+      "dependencies": [
+        "args",
+        "async",
+        "collection",
+        "http",
+        "logging",
+        "meta",
+        "path",
+        "pub_semver",
+        "pubspec_parse",
+        "sqlite3_web",
+        "sqlite_async",
+        "typed_data",
+        "uuid",
+        "web"
+      ]
+    },
+    {
+      "name": "sqlite3_flutter_libs",
+      "version": "0.5.41",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "leak_tracker_flutter_testing",
+      "version": "3.0.10",
+      "dependencies": [
+        "flutter",
+        "leak_tracker",
+        "leak_tracker_testing",
+        "matcher",
+        "meta"
+      ]
+    },
+    {
+      "name": "vector_math",
+      "version": "2.2.0",
+      "dependencies": []
+    },
+    {
+      "name": "clock",
+      "version": "1.1.2",
+      "dependencies": []
+    },
+    {
+      "name": "fake_async",
+      "version": "1.3.3",
+      "dependencies": [
+        "clock",
+        "collection"
+      ]
+    },
+    {
+      "name": "sky_engine",
+      "version": "0.0.0",
+      "dependencies": []
+    },
+    {
+      "name": "material_color_utilities",
+      "version": "0.11.1",
+      "dependencies": [
+        "collection"
+      ]
+    },
+    {
+      "name": "characters",
+      "version": "1.4.0",
+      "dependencies": []
+    },
+    {
+      "name": "source_helper",
+      "version": "1.3.8",
+      "dependencies": [
+        "analyzer",
+        "source_gen"
       ]
     },
     {
@@ -1161,11 +1231,6 @@
         "path",
         "platform"
       ]
-    },
-    {
-      "name": "charcode",
-      "version": "1.4.0",
-      "dependencies": []
     },
     {
       "name": "http_parser",
@@ -1269,6 +1334,11 @@
       "dependencies": []
     },
     {
+      "name": "fixnum",
+      "version": "1.1.1",
+      "dependencies": []
+    },
+    {
       "name": "uuid",
       "version": "4.5.2",
       "dependencies": [
@@ -1319,11 +1389,6 @@
         "path",
         "vm_service"
       ]
-    },
-    {
-      "name": "fixnum",
-      "version": "1.1.1",
-      "dependencies": []
     },
     {
       "name": "ed25519_edwards",

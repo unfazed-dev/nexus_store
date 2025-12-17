@@ -218,6 +218,18 @@
       "languageVersion": "3.9"
     },
     {
+      "name": "drift",
+      "rootUri": "file:///Users/unfazed-mac/.pub-cache/hosted/pub.dev/drift-2.30.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "drift_dev",
+      "rootUri": "file:///Users/unfazed-mac/.pub-cache/hosted/pub.dev/drift_dev-2.30.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
       "name": "ed25519_edwards",
       "rootUri": "file:///Users/unfazed-mac/.pub-cache/hosted/pub.dev/ed25519_edwards-0.3.1",
       "packageUri": "lib/",
@@ -530,6 +542,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "recase",
+      "rootUri": "file:///Users/unfazed-mac/.pub-cache/hosted/pub.dev/recase-4.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "retry",
       "rootUri": "file:///Users/unfazed-mac/.pub-cache/hosted/pub.dev/retry-3.1.2",
       "packageUri": "lib/",
@@ -628,6 +646,12 @@
     {
       "name": "sqlite_async",
       "rootUri": "file:///Users/unfazed-mac/.pub-cache/hosted/pub.dev/sqlite_async-0.13.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "sqlparser",
+      "rootUri": "file:///Users/unfazed-mac/.pub-cache/hosted/pub.dev/sqlparser-0.42.1",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
