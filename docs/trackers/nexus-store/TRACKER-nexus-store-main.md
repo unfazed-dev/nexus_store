@@ -23,7 +23,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 
 ### Phase 2: Backend Adapters
 - [x] PowerSync adapter - See [TRACKER-powersync-adapter.md](./phase-2-adapters/TRACKER-powersync-adapter.md) ✅
-- [ ] Drift adapter - See [TRACKER-drift-adapter.md](./phase-2-adapters/TRACKER-drift-adapter.md)
+- [x] Drift adapter - See [TRACKER-drift-adapter.md](./phase-2-adapters/TRACKER-drift-adapter.md) ✅
 - [x] Supabase adapter - See [TRACKER-supabase-adapter.md](./phase-2-adapters/TRACKER-supabase-adapter.md) ✅
 - [x] Brick adapter - See [TRACKER-brick-adapter.md](./phase-2-adapters/TRACKER-brick-adapter.md) ✅
 - [ ] CRDT adapter - See [TRACKER-crdt-adapter.md](./phase-2-adapters/TRACKER-crdt-adapter.md)
@@ -74,7 +74,7 @@ nexus_store/
 │   ├── nexus_store/                      # Core (✅ Complete with 519 tests)
 │   ├── nexus_store_flutter/              # Flutter extension (📦 Stub)
 │   ├── nexus_store_powersync_adapter/    # PowerSync (✅ Complete with 76 tests)
-│   ├── nexus_store_drift_adapter/        # Drift (📦 Stub)
+│   ├── nexus_store_drift_adapter/        # Drift (✅ Complete with 82 tests)
 │   ├── nexus_store_supabase_adapter/     # Supabase (✅ Complete with 59 tests)
 │   ├── nexus_store_brick_adapter/        # Brick (✅ Complete with 51 tests)
 │   ├── nexus_store_crdt_adapter/         # CRDT (📦 Stub)
@@ -118,7 +118,7 @@ Documentation (depends on all above)
 | REQ-007 | PowerSync Backend | ✅ Complete | [powersync](./phase-2-adapters/TRACKER-powersync-adapter.md) |
 | REQ-008 | Brick Backend | ✅ Complete | [brick](./phase-2-adapters/TRACKER-brick-adapter.md) |
 | REQ-009 | Supabase Backend | ✅ Complete | [supabase](./phase-2-adapters/TRACKER-supabase-adapter.md) |
-| REQ-010 | Drift Backend | 📦 Stub | [drift](./phase-2-adapters/TRACKER-drift-adapter.md) |
+| REQ-010 | Drift Backend | ✅ Complete | [drift](./phase-2-adapters/TRACKER-drift-adapter.md) |
 | REQ-011 | CRDT Backend | 📦 Stub | [crdt](./phase-2-adapters/TRACKER-crdt-adapter.md) |
 | REQ-012 | SQLCipher Encryption | ✅ Complete | core |
 | REQ-013 | Field-Level Encryption | ✅ Complete | core |
@@ -211,7 +211,8 @@ Documentation (depends on all above)
 - ✅ PowerSync adapter implemented with 76 tests (offline-first sync with PostgreSQL, SQLCipher encryption)
 - ✅ Supabase adapter implemented with 59 tests (online realtime)
 - ✅ Brick adapter implemented with 51 tests (code-gen offline-first)
-- Remaining adapters (Drift, CRDT) exist as stubs
+- ✅ Drift adapter implemented with 82 tests (local-only SQLite with SQL query translation, integration tests)
+- Remaining adapter (CRDT) exists as stub
 - Priority: Adapters (parallel) > Flutter > Documentation
 - Melos workspace configured with shared scripts for analyze, test, format
 - Fixed bug in composite_backend.dart (missing await in fallback handling)

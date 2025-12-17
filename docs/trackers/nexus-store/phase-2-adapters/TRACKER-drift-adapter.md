@@ -1,6 +1,6 @@
 # TRACKER: Drift Backend Adapter
 
-## Status: PENDING
+## Status: COMPLETE ✅
 
 ## Overview
 
@@ -12,86 +12,93 @@ Implement the Drift backend adapter for nexus_store, providing local-only SQLite
 ## Tasks
 
 ### Package Setup
-- [ ] Uncomment drift dependency in pubspec.yaml
-- [ ] Add drift_dev and build_runner to dev_dependencies
-- [ ] Create lib/src/ directory structure
-- [ ] Export public API from nexus_store_drift_adapter.dart
+- [x] Uncomment drift dependency in pubspec.yaml
+- [x] Add drift_dev and build_runner to dev_dependencies
+- [x] Create lib/src/ directory structure
+- [x] Export public API from nexus_store_drift_adapter.dart
 
 ### Core Implementation
-- [ ] `drift_backend.dart`
-  - [ ] Implement StoreBackend<T, ID> interface
-  - [ ] Constructor accepting GeneratedDatabase, TableInfo, serializers
-  - [ ] Generic approach that works with any Drift table
-  - [ ] getId(T item) implementation
-  - [ ] fromJson(Map<String, dynamic>) implementation
-  - [ ] toJson(T item) implementation
+- [x] `drift_backend.dart`
+  - [x] Implement StoreBackend<T, ID> interface
+  - [x] Constructor accepting tableName, getId, fromJson, toJson, primaryKeyField
+  - [x] Generic approach that works with any Drift table via raw SQL
+  - [x] getId(T item) implementation
+  - [x] fromJson(Map<String, dynamic>) implementation
+  - [x] toJson(T item) implementation
 
 ### Lifecycle Management
-- [ ] `initialize()` - Open database connection
-- [ ] `close()` - Close database connection
-- [ ] Handle database not initialized errors
+- [x] `initialize()` - No-op (use initializeWithExecutor for database connection)
+- [x] `initializeWithExecutor()` - Accept DatabaseConnectionUser for database operations
+- [x] `close()` - Close database connection and clean up watchers
+- [x] Handle database not initialized errors (throws StateError)
 
 ### Read Operations
-- [ ] `get(ID id)` - Single row select
-- [ ] `getAll({Query? query})` - Multi-row select with filters
-- [ ] `watch(ID id)` - Watch single row with watchSingle()
-- [ ] `watchAll({Query? query})` - Watch table with watch()
+- [x] `get(ID id)` - Single row select using customSelect
+- [x] `getAll({Query? query})` - Multi-row select with filters
+- [x] `watch(ID id)` - Watch single row with BehaviorSubject
+- [x] `watchAll({Query? query})` - Watch table with BehaviorSubject
 
 ### Write Operations
-- [ ] `save(T item)` - Insert or replace
-- [ ] `saveAll(List<T> items)` - Batch insert with transaction
-- [ ] `delete(ID id)` - Delete by ID
-- [ ] `deleteAll(List<ID> ids)` - Batch delete
-- [ ] `deleteWhere(Query query)` - Conditional delete
+- [x] `save(T item)` - INSERT OR REPLACE for upsert behavior
+- [x] `saveAll(List<T> items)` - Batch insert with transaction
+- [x] `delete(ID id)` - Delete by ID using customUpdate
+- [x] `deleteAll(List<ID> ids)` - Batch delete with transaction
+- [x] `deleteWhere(Query query)` - Conditional delete
 
 ### Sync Operations (Local-Only Stubs)
-- [ ] `syncStatus` getter - Always returns SyncStatus.synced
-- [ ] `syncStatusStream` - Emits single SyncStatus.synced
-- [ ] `sync()` - No-op, completes immediately
-- [ ] `pendingChangesCount` getter - Always returns 0
-- [ ] `isConnected` stream - Always true (local)
+- [x] `syncStatus` getter - Always returns SyncStatus.synced
+- [x] `syncStatusStream` - Emits single SyncStatus.synced via BehaviorSubject
+- [x] `sync()` - No-op, completes immediately
+- [x] `pendingChangesCount` getter - Always returns 0
 
 ### Query Translation
-- [ ] `drift_query_translator.dart`
-  - [ ] Implement QueryTranslator interface
-  - [ ] Translate Query.where() to Drift Expression
-  - [ ] Translate Query.orderBy() to OrderingTerm
-  - [ ] Translate Query.limit() to limit()
-  - [ ] Translate Query.offset() to offset()
-  - [ ] Handle comparison operators
-  - [ ] Handle IN operator with isIn()
-  - [ ] Handle IS NULL with isNull()
+- [x] `drift_query_translator.dart`
+  - [x] Implement QueryTranslator interface
+  - [x] Translate Query.where() to SQL WHERE clauses
+  - [x] Translate Query.orderBy() to ORDER BY clauses
+  - [x] Translate Query.limit() to LIMIT clause
+  - [x] Translate Query.offset() to OFFSET clause
+  - [x] Handle comparison operators (=, !=, <, <=, >, >=)
+  - [x] Handle IN operator with parameterized placeholders
+  - [x] Handle IS NULL / IS NOT NULL
+  - [x] Handle LIKE operators (contains, startsWith, endsWith)
+  - [x] Handle arrayContainsAny with json_each()
 
 ### Backend Info
-- [ ] `name` getter returns 'drift'
-- [ ] `supportsOffline` returns true (local-only)
-- [ ] `supportsRealtime` returns false (no remote sync)
-- [ ] `supportsTransactions` returns true
+- [x] `name` getter returns 'drift'
+- [x] `supportsOffline` returns true (local-only)
+- [x] `supportsRealtime` returns false (no remote sync)
+- [x] `supportsTransactions` returns true
 
 ### Generic Table Support
-- [ ] Helper for mapping generic JSON to Drift Companions
-- [ ] Helper for mapping Drift DataClass to JSON
-- [ ] Consider TypeConverter usage
+- [x] Generic JSON to row mapping via toJson/fromJson callbacks
+- [x] Field mapping support for column name translation
 
 ### Error Handling
-- [ ] Map Drift/SQLite exceptions to StoreError types
-- [ ] Handle constraint violations as ValidationError
-- [ ] Handle database locked as TransactionError
+- [x] Map Drift/SQLite exceptions to StoreError types
+- [x] Handle constraint violations as ValidationError
+- [x] Handle database locked as TransactionError
+- [x] Handle missing table as StateError
 
 ### Unit Tests
-- [ ] `test/drift_backend_test.dart`
-  - [ ] Constructor validation
-  - [ ] Lifecycle (initialize/close)
-  - [ ] CRUD operations with in-memory database
-  - [ ] Query translation correctness
-  - [ ] Sync status (always synced)
-  - [ ] Error mapping
+- [x] `test/drift_backend_test.dart` (18 tests)
+  - [x] Constructor validation
+  - [x] Lifecycle (initialize/close)
+  - [x] Sync status (always synced)
+  - [x] Error mapping (StateError before initialize)
+- [x] `test/drift_query_translator_test.dart` (34 tests)
+  - [x] Query translation correctness
+  - [x] All filter operators
+  - [x] OrderBy translation
+  - [x] Pagination (limit/offset)
+  - [x] Field mapping
+  - [x] DELETE SQL generation
 
 ### Integration Tests
-- [ ] `test/integration/drift_integration_test.dart`
-  - [ ] Real database operations
-  - [ ] Watch stream emissions
-  - [ ] Transaction behavior
+- [x] `test/integration/drift_integration_test.dart` (30 tests)
+  - [x] Real database operations with in-memory SQLite
+  - [x] Watch stream emissions
+  - [x] Transaction behavior
 
 ## Files
 
@@ -99,18 +106,19 @@ Implement the Drift backend adapter for nexus_store, providing local-only SQLite
 ```
 packages/nexus_store_drift_adapter/
 ├── lib/
-│   ├── nexus_store_drift_adapter.dart    # Public exports
+│   ├── nexus_store_drift_adapter.dart      # Public exports
 │   └── src/
-│       ├── drift_backend.dart            # Main backend class
-│       └── drift_query_translator.dart   # Query builder
+│       ├── drift_backend.dart              # Main backend class
+│       └── drift_query_translator.dart     # Query translator
 ├── test/
-│   ├── drift_backend_test.dart           # Unit tests
-│   ├── fixtures/
-│   │   └── test_database.dart            # Test Drift database
+│   ├── drift_backend_test.dart             # Unit tests (18)
+│   ├── drift_query_translator_test.dart    # Unit tests (34)
 │   └── integration/
-│       └── drift_integration_test.dart   # Integration tests
+│       └── drift_integration_test.dart     # Integration tests (30)
 └── pubspec.yaml
 ```
+
+**Total Tests: 82** (52 unit + 30 integration)
 
 **Dependencies:**
 ```yaml
