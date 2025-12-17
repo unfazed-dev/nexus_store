@@ -68,7 +68,8 @@ class BrickQueryTranslator<T> implements QueryTranslator<T, brick.Query> {
   }
 
   /// Translates a list of [QueryFilter] to Brick [brick.WhereCondition]s.
-  List<brick.WhereCondition> _translateFilters(List<QueryFilter> filters) => filters.map(_translateFilter).toList();
+  List<brick.WhereCondition> _translateFilters(List<QueryFilter> filters) =>
+      filters.map(_translateFilter).toList();
 
   /// Translates a single [QueryFilter] to a Brick [brick.WhereCondition].
   brick.WhereCondition _translateFilter(QueryFilter filter) {
@@ -186,30 +187,39 @@ class BrickQueryTranslator<T> implements QueryTranslator<T, brick.Query> {
   ///
   /// Brick doesn't have native startsWith, so we use contains as a fallback.
   /// Provider-specific implementations may handle this differently.
-  brick.WhereCondition _createStartsWithCondition(String field, Object? value) => brick.Where(
-      field,
-      value: value,
-      compare: brick.Compare.contains,
-    );
+  brick.WhereCondition _createStartsWithCondition(
+    String field,
+    Object? value,
+  ) =>
+      brick.Where(
+        field,
+        value: value,
+        compare: brick.Compare.contains,
+      );
 
   /// Creates an ends-with condition using contains comparison.
   ///
   /// Brick doesn't have native endsWith, so we use contains as a fallback.
   /// Provider-specific implementations may handle this differently.
-  brick.WhereCondition _createEndsWithCondition(String field, Object? value) => brick.Where(
-      field,
-      value: value,
-      compare: brick.Compare.contains,
-    );
+  brick.WhereCondition _createEndsWithCondition(
+    String field,
+    Object? value,
+  ) =>
+      brick.Where(
+        field,
+        value: value,
+        compare: brick.Compare.contains,
+      );
 
   /// Translates a list of [QueryOrderBy] to Brick [brick.OrderBy]s.
-  List<brick.OrderBy> _translateOrderBy(List<QueryOrderBy> orderBy) => orderBy.map((o) {
-      final field = _mapFieldName(o.field);
-      return brick.OrderBy(
-        field,
-        ascending: !o.descending,
-      );
-    }).toList();
+  List<brick.OrderBy> _translateOrderBy(List<QueryOrderBy> orderBy) =>
+      orderBy.map((o) {
+        final field = _mapFieldName(o.field);
+        return brick.OrderBy(
+          field,
+          ascending: !o.descending,
+        );
+      }).toList();
 
   /// Maps a query field name to the Brick model field name.
   String _mapFieldName(String field) => _fieldMapping[field] ?? field;

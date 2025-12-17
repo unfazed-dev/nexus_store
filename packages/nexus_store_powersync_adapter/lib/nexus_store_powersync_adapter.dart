@@ -2,4 +2,11 @@
 /// and SQLCipher support.
 library;
 
-// TODO(developer): Implement PowerSyncBackend
+export 'src/powersync_backend.dart' show PowerSyncBackend;
+export 'src/powersync_encrypted_backend.dart'
+    show
+        EncryptionAlgorithm,
+        EncryptionKeyProvider,
+        InMemoryKeyProvider,
+        PowerSyncEncryptedBackend;
+export 'src/powersync_query_translator.dart' show PowerSyncQueryTranslator;

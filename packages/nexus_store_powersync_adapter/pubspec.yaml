@@ -12,8 +12,10 @@ resolution: workspace
 dependencies:
   nexus_store:
     path: ../nexus_store
-  # powersync: ^1.17.0
-  # powersync_sqlcipher: ^1.0.0
+  powersync: ^1.17.0
+  rxdart: ^0.28.0
+  sqlite3: ^2.4.0
+  # powersync_sqlcipher: ^1.0.0  # Optional: for SQLCipher encryption
 
 dev_dependencies:
   test: ^1.25.0

@@ -30,7 +30,7 @@ class TestModel extends OfflineFirstModel {
 void main() {
   setUpAll(() {
     registerFallbackValue(TestModel(id: 'fallback', name: 'fallback'));
-    registerFallbackValue(brick.Query());
+    registerFallbackValue(const brick.Query());
   });
 
   group('BrickBackend', () {
@@ -244,11 +244,9 @@ void main() {
           TestModel(id: '1', name: 'Test 1'),
           TestModel(id: '2', name: 'Test 2'),
         ];
+        // Return item based on query
         when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
-            .thenAnswer((inv) async {
-          // Return item based on query
-          return [items.first];
-        });
+            .thenAnswer((inv) async => [items.first]);
         when(() => mockRepository.delete<TestModel>(any()))
             .thenAnswer((_) async => true);
 

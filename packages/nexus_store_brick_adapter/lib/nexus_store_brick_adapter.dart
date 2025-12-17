@@ -20,8 +20,8 @@
 /// // Use with NexusStore
 /// final store = NexusStore(backend: backend);
 /// ```
-library nexus_store_brick_adapter;
+library;
 
 export 'src/brick_backend.dart' show BrickBackend;
 export 'src/brick_query_translator.dart'
-    show BrickQueryTranslator, BrickQueryExtension;
+    show BrickQueryExtension, BrickQueryTranslator;

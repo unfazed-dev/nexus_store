@@ -56,7 +56,10 @@
       "name": "nexus_store_powersync_adapter",
       "version": "0.1.0",
       "dependencies": [
-        "nexus_store"
+        "nexus_store",
+        "powersync",
+        "rxdart",
+        "sqlite3"
       ],
       "devDependencies": [
         "lints",
@@ -249,6 +252,29 @@
         "rxdart",
         "storage_client",
         "yet_another_json_isolate"
+      ]
+    },
+    {
+      "name": "sqlite3",
+      "version": "2.9.4",
+      "dependencies": [
+        "collection",
+        "ffi",
+        "meta",
+        "path",
+        "typed_data",
+        "web"
+      ]
+    },
+    {
+      "name": "powersync",
+      "version": "1.17.0",
+      "dependencies": [
+        "collection",
+        "flutter",
+        "powersync_core",
+        "powersync_flutter_libs",
+        "sqlite3_flutter_libs"
       ]
     },
     {
@@ -915,6 +941,50 @@
       ]
     },
     {
+      "name": "web",
+      "version": "1.1.1",
+      "dependencies": []
+    },
+    {
+      "name": "ffi",
+      "version": "2.1.4",
+      "dependencies": []
+    },
+    {
+      "name": "powersync_flutter_libs",
+      "version": "0.4.14",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "powersync_core",
+      "version": "1.7.0",
+      "dependencies": [
+        "args",
+        "async",
+        "collection",
+        "http",
+        "logging",
+        "meta",
+        "path",
+        "pub_semver",
+        "pubspec_parse",
+        "sqlite3_web",
+        "sqlite_async",
+        "typed_data",
+        "uuid",
+        "web"
+      ]
+    },
+    {
+      "name": "sqlite3_flutter_libs",
+      "version": "0.5.41",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
       "name": "leak_tracker_flutter_testing",
       "version": "3.0.10",
       "dependencies": [
@@ -1075,11 +1145,6 @@
       ]
     },
     {
-      "name": "ffi",
-      "version": "2.1.4",
-      "dependencies": []
-    },
-    {
       "name": "checked_yaml",
       "version": "2.0.4",
       "dependencies": [
@@ -1100,11 +1165,6 @@
     {
       "name": "charcode",
       "version": "1.4.0",
-      "dependencies": []
-    },
-    {
-      "name": "web",
-      "version": "1.1.1",
       "dependencies": []
     },
     {
@@ -1209,6 +1269,38 @@
       "dependencies": []
     },
     {
+      "name": "uuid",
+      "version": "4.5.2",
+      "dependencies": [
+        "crypto",
+        "fixnum",
+        "meta"
+      ]
+    },
+    {
+      "name": "sqlite3_web",
+      "version": "0.4.1",
+      "dependencies": [
+        "meta",
+        "sqlite3",
+        "stream_channel",
+        "web"
+      ]
+    },
+    {
+      "name": "sqlite_async",
+      "version": "0.13.0",
+      "dependencies": [
+        "async",
+        "collection",
+        "meta",
+        "mutex",
+        "sqlite3",
+        "sqlite3_web",
+        "web"
+      ]
+    },
+    {
       "name": "leak_tracker_testing",
       "version": "3.0.2",
       "dependencies": [
@@ -1250,6 +1342,11 @@
         "collection",
         "convert"
       ]
+    },
+    {
+      "name": "mutex",
+      "version": "3.1.0",
+      "dependencies": []
     },
     {
       "name": "adaptive_number",

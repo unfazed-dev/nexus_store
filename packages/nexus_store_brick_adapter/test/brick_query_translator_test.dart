@@ -13,7 +13,7 @@ void main() {
 
     group('translate', () {
       test('translates empty query to empty Brick query', () {
-        final query = const Query<TestModel>();
+        const query = Query<TestModel>();
         final result = translator.translate(query);
 
         expect(result.where, isNull);
@@ -147,8 +147,10 @@ void main() {
       });
 
       test('translates descending orderBy', () {
-        final query =
-            const Query<TestModel>().orderByField('createdAt', descending: true);
+        final query = const Query<TestModel>().orderByField(
+          'createdAt',
+          descending: true,
+        );
         final result = translator.translate(query);
 
         expect(result.orderBy, isNotEmpty);
@@ -190,7 +192,8 @@ void main() {
           fieldMapping: {'userName': 'user_name'},
         );
 
-        final query = const Query<TestModel>().where('status', isEqualTo: 'active');
+        final query =
+            const Query<TestModel>().where('status', isEqualTo: 'active');
         final result = translatorWithMapping.translate(query);
 
         expect(result.where!.first.evaluatedField, 'status');
@@ -241,8 +244,11 @@ void main() {
       });
 
       test('toBrickQuery with fieldMapping', () {
-        final query = const Query<TestModel>().where('userName', isEqualTo: 'john');
-        final result = query.toBrickQuery(fieldMapping: {'userName': 'user_name'});
+        final query =
+            const Query<TestModel>().where('userName', isEqualTo: 'john');
+        final result = query.toBrickQuery(
+          fieldMapping: {'userName': 'user_name'},
+        );
 
         expect(result.where!.first.evaluatedField, 'user_name');
       });

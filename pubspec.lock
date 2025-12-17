@@ -563,6 +563,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  mutex:
+    dependency: transitive
+    description:
+      name: mutex
+      sha256: "8827da25de792088eb33e572115a5eb0d61d61a3c01acbc8bcbe76ed78f1a1f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   node_preamble:
     dependency: transitive
     description:
@@ -619,6 +627,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.6.0"
+  powersync:
+    dependency: transitive
+    description:
+      name: powersync
+      sha256: "5023a9a68ea2f01f1fdf7c05c84ea7f966574a84a5ee368cde2570497ae51e0f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.17.0"
+  powersync_core:
+    dependency: transitive
+    description:
+      name: powersync_core
+      sha256: "20ff37895eff15c8f9791c76b90364c4a1cb18c55dc50d96024e44507d435e2e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.7.0"
+  powersync_flutter_libs:
+    dependency: transitive
+    description:
+      name: powersync_flutter_libs
+      sha256: cf039113be13ecb6a9fa9831415436526a40ac6461babcb904a759140b1776d9
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.14"
   process:
     dependency: transitive
     description:
@@ -768,6 +800,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.5.6"
+  sqlite3:
+    dependency: transitive
+    description:
+      name: sqlite3
+      sha256: "3145bd74dcdb4fd6f5c6dda4d4e4490a8087d7f286a14dee5d37087290f0f8a2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.9.4"
+  sqlite3_flutter_libs:
+    dependency: transitive
+    description:
+      name: sqlite3_flutter_libs
+      sha256: "1e800ebe7f85a80a66adacaa6febe4d5f4d8b75f244e9838a27cb2ffc7aec08d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.41"
+  sqlite3_web:
+    dependency: transitive
+    description:
+      name: sqlite3_web
+      sha256: "3973adf9ee74e485d5552319e1903129f4ed999fe675aa0b4b5d35d112b2aa1c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.1"
+  sqlite_async:
+    dependency: transitive
+    description:
+      name: sqlite_async
+      sha256: ba3acc93e20a810ce6bde7ba1a3356ca5b162d34906f186374398106f1458f52
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.13.0"
   stack_trace:
     dependency: transitive
     description:
@@ -864,6 +928,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  uuid:
+    dependency: transitive
+    description:
+      name: uuid
+      sha256: a11b666489b1954e01d992f3d601b1804a33937b5a8fe677bd26b8a9f96f96e8
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.5.2"
   vector_math:
     dependency: transitive
     description:

@@ -6,7 +6,8 @@ import 'package:nexus_store/nexus_store.dart' as nexus;
 import 'package:nexus_store_brick_adapter/src/brick_query_translator.dart';
 import 'package:rxdart/rxdart.dart';
 
-/// A [nexus.StoreBackend] implementation using Brick's offline-first repository.
+/// A [nexus.StoreBackend] implementation using Brick's offline-first
+/// repository.
 ///
 /// This adapter provides offline-first capabilities through Brick's repository
 /// pattern, with automatic local caching and background synchronization.
@@ -154,6 +155,7 @@ class BrickBackend<T extends OfflineFirstModel, ID>
       return _watchSubjects[id]!.stream;
     }
 
+    // ignore: close_sinks - closed in close() method
     final subject = BehaviorSubject<T?>();
     _watchSubjects[id] = subject;
 
@@ -177,6 +179,7 @@ class BrickBackend<T extends OfflineFirstModel, ID>
       return _watchAllSubjects[queryKey]!.stream;
     }
 
+    // ignore: close_sinks - closed in close() method
     final subject = BehaviorSubject<List<T>>();
     _watchAllSubjects[queryKey] = subject;
 
@@ -338,13 +341,12 @@ class BrickBackend<T extends OfflineFirstModel, ID>
     }
   }
 
+  // Brick handles its offline queue internally.
+  // This would require access to the SQLite provider's queue.
+  // For now, return 0 if synced, or estimate based on status.
   @override
-  Future<int> get pendingChangesCount async {
-    // Brick handles its offline queue internally
-    // This would require access to the SQLite provider's queue
-    // For now, return 0 if synced, or estimate based on status
-    return syncStatus == nexus.SyncStatus.pending ? 1 : 0;
-  }
+  Future<int> get pendingChangesCount async =>
+      syncStatus == nexus.SyncStatus.pending ? 1 : 0;
 
   // ---------------------------------------------------------------------------
   // Private Helpers
@@ -352,7 +354,7 @@ class BrickBackend<T extends OfflineFirstModel, ID>
 
   void _ensureInitialized() {
     if (!_initialized) {
-      throw nexus.StateError(
+      throw const nexus.StateError(
         message: 'Backend not initialized. Call initialize() first.',
         currentState: 'uninitialized',
         expectedState: 'initialized',
@@ -385,6 +387,7 @@ class BrickBackend<T extends OfflineFirstModel, ID>
   void _refreshAllWatchers() {
     for (final entry in _watchAllSubjects.entries) {
       final queryKey = entry.key;
+      // ignore: close_sinks - subject is from _watchAllSubjects, closed in close()
       final subject = entry.value;
 
       // Refresh all with no query for simplicity

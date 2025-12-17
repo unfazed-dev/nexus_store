@@ -22,7 +22,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 - [x] **Core package unit tests** - See [TRACKER-core-testing.md](./phase-1-foundation/TRACKER-core-testing.md) ✅ (519 tests)
 
 ### Phase 2: Backend Adapters
-- [ ] PowerSync adapter - See [TRACKER-powersync-adapter.md](./phase-2-adapters/TRACKER-powersync-adapter.md)
+- [x] PowerSync adapter - See [TRACKER-powersync-adapter.md](./phase-2-adapters/TRACKER-powersync-adapter.md) ✅
 - [ ] Drift adapter - See [TRACKER-drift-adapter.md](./phase-2-adapters/TRACKER-drift-adapter.md)
 - [x] Supabase adapter - See [TRACKER-supabase-adapter.md](./phase-2-adapters/TRACKER-supabase-adapter.md) ✅
 - [x] Brick adapter - See [TRACKER-brick-adapter.md](./phase-2-adapters/TRACKER-brick-adapter.md) ✅
@@ -73,7 +73,7 @@ nexus_store/
 ├── packages/
 │   ├── nexus_store/                      # Core (✅ Complete with 519 tests)
 │   ├── nexus_store_flutter/              # Flutter extension (📦 Stub)
-│   ├── nexus_store_powersync_adapter/    # PowerSync (📦 Stub)
+│   ├── nexus_store_powersync_adapter/    # PowerSync (✅ Complete with 76 tests)
 │   ├── nexus_store_drift_adapter/        # Drift (📦 Stub)
 │   ├── nexus_store_supabase_adapter/     # Supabase (✅ Complete with 59 tests)
 │   ├── nexus_store_brick_adapter/        # Brick (✅ Complete with 51 tests)
@@ -115,7 +115,7 @@ Documentation (depends on all above)
 | REQ-004 | Write Policies | ✅ Complete | core |
 | REQ-005 | Sync Status Observability | ✅ Complete | core |
 | REQ-006 | Query Builder | ✅ Complete | core |
-| REQ-007 | PowerSync Backend | 📦 Stub | [powersync](./phase-2-adapters/TRACKER-powersync-adapter.md) |
+| REQ-007 | PowerSync Backend | ✅ Complete | [powersync](./phase-2-adapters/TRACKER-powersync-adapter.md) |
 | REQ-008 | Brick Backend | ✅ Complete | [brick](./phase-2-adapters/TRACKER-brick-adapter.md) |
 | REQ-009 | Supabase Backend | ✅ Complete | [supabase](./phase-2-adapters/TRACKER-supabase-adapter.md) |
 | REQ-010 | Drift Backend | 📦 Stub | [drift](./phase-2-adapters/TRACKER-drift-adapter.md) |
@@ -208,7 +208,10 @@ Documentation (depends on all above)
 ## Notes
 
 - ✅ Core package is fully implemented with comprehensive unit tests (519 tests across 17 files)
-- All adapter packages exist as stubs with dependencies commented out
+- ✅ PowerSync adapter implemented with 76 tests (offline-first sync with PostgreSQL, SQLCipher encryption)
+- ✅ Supabase adapter implemented with 59 tests (online realtime)
+- ✅ Brick adapter implemented with 51 tests (code-gen offline-first)
+- Remaining adapters (Drift, CRDT) exist as stubs
 - Priority: Adapters (parallel) > Flutter > Documentation
 - Melos workspace configured with shared scripts for analyze, test, format
 - Fixed bug in composite_backend.dart (missing await in fallback handling)
