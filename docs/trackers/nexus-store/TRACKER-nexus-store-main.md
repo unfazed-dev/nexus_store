@@ -10,7 +10,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 
 ## Milestones
 
-### Phase 1: Core Foundation
+### Phase 1: Core Foundation ✅
 - [x] Core package implementation (NexusStore, StoreBackend, CompositeBackend)
 - [x] Configuration classes (StoreConfig, policies, RetryConfig)
 - [x] Reactive layer (ReactiveStoreMixin, BehaviorSubject streams)
@@ -19,7 +19,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 - [x] Encryption support (SQLCipher config, field-level AES-256-GCM)
 - [x] Audit logging (HIPAA-compliant hash-chained logs)
 - [x] GDPR service (erasure, portability)
-- [ ] **Core package unit tests** - See [TRACKER-core-testing.md](./phase-1-foundation/TRACKER-core-testing.md)
+- [x] **Core package unit tests** - See [TRACKER-core-testing.md](./phase-1-foundation/TRACKER-core-testing.md) ✅ (519 tests)
 
 ### Phase 2: Backend Adapters
 - [ ] PowerSync adapter - See [TRACKER-powersync-adapter.md](./phase-2-adapters/TRACKER-powersync-adapter.md)
@@ -71,7 +71,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 ```
 nexus_store/
 ├── packages/
-│   ├── nexus_store/                      # Core (✅ Complete, needs tests)
+│   ├── nexus_store/                      # Core (✅ Complete with 519 tests)
 │   ├── nexus_store_flutter/              # Flutter extension (📦 Stub)
 │   ├── nexus_store_powersync_adapter/    # PowerSync (📦 Stub)
 │   ├── nexus_store_drift_adapter/        # Drift (📦 Stub)
@@ -207,7 +207,9 @@ Documentation (depends on all above)
 
 ## Notes
 
-- Core package is fully implemented but needs comprehensive unit tests
+- ✅ Core package is fully implemented with comprehensive unit tests (519 tests across 17 files)
 - All adapter packages exist as stubs with dependencies commented out
-- Priority: Core tests > Adapters (parallel) > Flutter > Documentation
+- Priority: Adapters (parallel) > Flutter > Documentation
 - Melos workspace configured with shared scripts for analyze, test, format
+- Fixed bug in composite_backend.dart (missing await in fallback handling)
+- Added analysis_options.yaml with linting configuration
