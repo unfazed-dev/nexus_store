@@ -52,9 +52,9 @@ void main() {
     setUp(() async {
       backend = CrdtBackend<TestModel, String>(
         tableName: 'test_models',
-        getId: (TestModel m) => m.id,
+        getId: (m) => m.id,
         fromJson: TestModel.fromJson,
-        toJson: (TestModel m) => m.toJson(),
+        toJson: (m) => m.toJson(),
         primaryKeyField: 'id',
       );
       await backend.initialize();
@@ -250,9 +250,9 @@ void main() {
       test('different backends have different nodeIds', () async {
         final backend2 = CrdtBackend<TestModel, String>(
           tableName: 'test_models',
-          getId: (TestModel m) => m.id,
+          getId: (m) => m.id,
           fromJson: TestModel.fromJson,
-          toJson: (TestModel m) => m.toJson(),
+          toJson: (m) => m.toJson(),
           primaryKeyField: 'id',
         );
         await backend2.initialize();
@@ -267,9 +267,9 @@ void main() {
       test('operations fail gracefully on uninitialized backend', () async {
         final uninitializedBackend = CrdtBackend<TestModel, String>(
           tableName: 'test_models',
-          getId: (TestModel m) => m.id,
+          getId: (m) => m.id,
           fromJson: TestModel.fromJson,
-          toJson: (TestModel m) => m.toJson(),
+          toJson: (m) => m.toJson(),
           primaryKeyField: 'id',
         );
 

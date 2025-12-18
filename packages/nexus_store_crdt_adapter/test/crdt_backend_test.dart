@@ -10,13 +10,11 @@ class TestModel {
     this.age = 0,
   });
 
-  factory TestModel.fromJson(Map<String, dynamic> json) {
-    return TestModel(
+  factory TestModel.fromJson(Map<String, dynamic> json) => TestModel(
       id: json['id'] as String,
       name: json['name'] as String,
       age: json['age'] as int? ?? 0,
     );
-  }
 
   final String id;
   final String name;
@@ -51,9 +49,9 @@ void main() {
     setUp(() async {
       backend = CrdtBackend<TestModel, String>(
         tableName: 'test_models',
-        getId: (TestModel m) => m.id,
+        getId: (m) => m.id,
         fromJson: TestModel.fromJson,
-        toJson: (TestModel m) => m.toJson(),
+        toJson: (m) => m.toJson(),
         primaryKeyField: 'id',
       );
     });
@@ -178,7 +176,7 @@ void main() {
             const nexus.Query<TestModel>().orderByField('name');
         final result = await backend.getAll(query: query);
         expect(
-          result.map((TestModel m) => m.name).toList(),
+          result.map((m) => m.name).toList(),
           equals(['Alice', 'Bob', 'Charlie']),
         );
       });
@@ -347,9 +345,9 @@ void main() {
       test('nodeId is unique per instance', () async {
         final backend2 = CrdtBackend<TestModel, String>(
           tableName: 'test_models',
-          getId: (TestModel m) => m.id,
+          getId: (m) => m.id,
           fromJson: TestModel.fromJson,
-          toJson: (TestModel m) => m.toJson(),
+          toJson: (m) => m.toJson(),
           primaryKeyField: 'id',
         );
         await backend2.initialize();
