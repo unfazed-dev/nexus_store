@@ -1,0 +1,20 @@
+name: flutter_widgets_example
+description: Flutter widgets example for nexus_store
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  nexus_store:
+    path: ../../packages/nexus_store
+  nexus_store_flutter:
+    path: ../../packages/nexus_store_flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

@@ -1,0 +1,13 @@
+name: basic_usage_example
+description: Basic usage example for nexus_store
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  nexus_store:
+    path: ../../packages/nexus_store
+
+dev_dependencies:
+  lints: ^5.1.0
