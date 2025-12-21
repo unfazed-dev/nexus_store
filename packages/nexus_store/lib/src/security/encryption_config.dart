@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nexus_store/src/security/encryption_algorithm.dart';
+import 'package:nexus_store/src/security/key_derivation_config.dart';
+import 'package:nexus_store/src/security/salt_storage.dart';
 
 part 'encryption_config.freezed.dart';
 
@@ -70,13 +72,15 @@ sealed class EncryptionConfig with _$EncryptionConfig {
   /// Useful for HIPAA/PII compliance where only certain data needs protection.
   ///
   /// - [encryptedFields]: Set of field names to encrypt.
-  /// - [keyProvider]: Callback to retrieve the encryption key.
+  /// - [keyProvider]: Callback to retrieve the encryption key (or password).
   /// - [algorithm]: Encryption algorithm to use.
+  /// - [keyDerivation]: Optional key derivation configuration (PBKDF2).
+  /// - [saltStorage]: Optional salt storage for persisting salts.
   const factory EncryptionConfig.fieldLevel({
     /// Set of field names to encrypt.
     required Set<String> encryptedFields,
 
-    /// Callback to retrieve the encryption key.
+    /// Callback to retrieve the encryption key (or password if using key derivation).
     required Future<String> Function() keyProvider,
 
     /// Encryption algorithm (default: AES-256-GCM).
@@ -84,6 +88,15 @@ sealed class EncryptionConfig with _$EncryptionConfig {
 
     /// Version prefix for encrypted values (for key rotation).
     @Default('v1') String version,
+
+    /// Optional key derivation configuration.
+    /// When set, the keyProvider returns a password which is derived
+    /// into an encryption key using the specified algorithm (e.g., PBKDF2).
+    KeyDerivationConfig? keyDerivation,
+
+    /// Optional salt storage for persisting salts.
+    /// Required when using key derivation to ensure consistent key derivation.
+    SaltStorage? saltStorage,
   }) = EncryptionFieldLevel;
 
   /// Returns `true` if encryption is enabled.
@@ -94,4 +107,10 @@ sealed class EncryptionConfig with _$EncryptionConfig {
 
   /// Returns `true` if this is field-level encryption.
   bool get isFieldLevel => this is EncryptionFieldLevel;
+}
+
+/// Extension methods for [EncryptionFieldLevel].
+extension EncryptionFieldLevelExtension on EncryptionFieldLevel {
+  /// Returns `true` if key derivation is configured.
+  bool get hasKeyDerivation => keyDerivation != null;
 }

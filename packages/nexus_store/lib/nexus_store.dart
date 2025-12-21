@@ -89,11 +89,17 @@ export 'src/query/query.dart';
 export 'src/query/query_translator.dart';
 // Reactive
 export 'src/reactive/reactive_store_mixin.dart';
+export 'src/security/derived_key.dart';
 export 'src/security/encryption_algorithm.dart';
 // Security
 export 'src/security/encryption_config.dart';
 export 'src/security/encryption_service.dart';
 export 'src/security/field_encryptor.dart';
+export 'src/security/key_deriver.dart';
+export 'src/security/key_derivation_config.dart';
+export 'src/security/key_derivation_service.dart';
+export 'src/security/pbkdf2_key_deriver.dart';
+export 'src/security/salt_storage.dart';
 // Sync
 export 'src/sync/conflict_action.dart';
 export 'src/sync/conflict_details.dart';

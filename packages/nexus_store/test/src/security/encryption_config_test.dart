@@ -1,4 +1,6 @@
 import 'package:nexus_store/nexus_store.dart';
+import 'package:nexus_store/src/security/key_derivation_config.dart';
+import 'package:nexus_store/src/security/salt_storage.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -175,6 +177,79 @@ void main() {
         );
         final fieldLevelConfig = config as EncryptionFieldLevel;
         expect(fieldLevelConfig.version, equals('v2'));
+      });
+
+      test('should have null keyDerivation by default', () {
+        final config = EncryptionConfig.fieldLevel(
+          encryptedFields: {'ssn'},
+          keyProvider: () async => 'test-key',
+        );
+        final fieldLevelConfig = config as EncryptionFieldLevel;
+        expect(fieldLevelConfig.keyDerivation, isNull);
+      });
+
+      test('should accept keyDerivation config', () {
+        const kdfConfig = KeyDerivationConfig.pbkdf2(iterations: 310000);
+        final config = EncryptionConfig.fieldLevel(
+          encryptedFields: {'ssn'},
+          keyProvider: () async => 'test-key',
+          keyDerivation: kdfConfig,
+        );
+        final fieldLevelConfig = config as EncryptionFieldLevel;
+        expect(fieldLevelConfig.keyDerivation, equals(kdfConfig));
+      });
+
+      test('should have null saltStorage by default', () {
+        final config = EncryptionConfig.fieldLevel(
+          encryptedFields: {'ssn'},
+          keyProvider: () async => 'test-key',
+        );
+        final fieldLevelConfig = config as EncryptionFieldLevel;
+        expect(fieldLevelConfig.saltStorage, isNull);
+      });
+
+      test('should accept saltStorage', () {
+        final storage = InMemorySaltStorage();
+        final config = EncryptionConfig.fieldLevel(
+          encryptedFields: {'ssn'},
+          keyProvider: () async => 'test-key',
+          saltStorage: storage,
+        );
+        final fieldLevelConfig = config as EncryptionFieldLevel;
+        expect(fieldLevelConfig.saltStorage, equals(storage));
+      });
+
+      test('should accept both keyDerivation and saltStorage', () {
+        const kdfConfig = KeyDerivationConfig.pbkdf2();
+        final storage = InMemorySaltStorage();
+        final config = EncryptionConfig.fieldLevel(
+          encryptedFields: {'ssn'},
+          keyProvider: () async => 'test-key',
+          keyDerivation: kdfConfig,
+          saltStorage: storage,
+        );
+        final fieldLevelConfig = config as EncryptionFieldLevel;
+        expect(fieldLevelConfig.keyDerivation, equals(kdfConfig));
+        expect(fieldLevelConfig.saltStorage, equals(storage));
+      });
+
+      test('hasKeyDerivation should return true when keyDerivation is set', () {
+        final config = EncryptionConfig.fieldLevel(
+          encryptedFields: {'ssn'},
+          keyProvider: () async => 'test-key',
+          keyDerivation: const KeyDerivationConfig.pbkdf2(),
+        );
+        final fieldLevelConfig = config as EncryptionFieldLevel;
+        expect(fieldLevelConfig.hasKeyDerivation, isTrue);
+      });
+
+      test('hasKeyDerivation should return false when keyDerivation is null', () {
+        final config = EncryptionConfig.fieldLevel(
+          encryptedFields: {'ssn'},
+          keyProvider: () async => 'test-key',
+        );
+        final fieldLevelConfig = config as EncryptionFieldLevel;
+        expect(fieldLevelConfig.hasKeyDerivation, isFalse);
       });
     });
 

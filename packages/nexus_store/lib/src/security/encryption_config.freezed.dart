@@ -151,7 +151,9 @@ extension EncryptionConfigPatterns on EncryptionConfig {
             Set<String> encryptedFields,
             Future<String> Function() keyProvider,
             EncryptionAlgorithm algorithm,
-            String version)?
+            String version,
+            KeyDerivationConfig? keyDerivation,
+            SaltStorage? saltStorage)?
         fieldLevel,
     required TResult orElse(),
   }) {
@@ -162,8 +164,13 @@ extension EncryptionConfigPatterns on EncryptionConfig {
       case EncryptionSqlCipher() when sqlCipher != null:
         return sqlCipher(_that.keyProvider, _that.kdfIterations);
       case EncryptionFieldLevel() when fieldLevel != null:
-        return fieldLevel(_that.encryptedFields, _that.keyProvider,
-            _that.algorithm, _that.version);
+        return fieldLevel(
+            _that.encryptedFields,
+            _that.keyProvider,
+            _that.algorithm,
+            _that.version,
+            _that.keyDerivation,
+            _that.saltStorage);
       case _:
         return orElse();
     }
@@ -192,7 +199,9 @@ extension EncryptionConfigPatterns on EncryptionConfig {
             Set<String> encryptedFields,
             Future<String> Function() keyProvider,
             EncryptionAlgorithm algorithm,
-            String version)
+            String version,
+            KeyDerivationConfig? keyDerivation,
+            SaltStorage? saltStorage)
         fieldLevel,
   }) {
     final _that = this;
@@ -202,8 +211,13 @@ extension EncryptionConfigPatterns on EncryptionConfig {
       case EncryptionSqlCipher():
         return sqlCipher(_that.keyProvider, _that.kdfIterations);
       case EncryptionFieldLevel():
-        return fieldLevel(_that.encryptedFields, _that.keyProvider,
-            _that.algorithm, _that.version);
+        return fieldLevel(
+            _that.encryptedFields,
+            _that.keyProvider,
+            _that.algorithm,
+            _that.version,
+            _that.keyDerivation,
+            _that.saltStorage);
     }
   }
 
@@ -228,7 +242,9 @@ extension EncryptionConfigPatterns on EncryptionConfig {
             Set<String> encryptedFields,
             Future<String> Function() keyProvider,
             EncryptionAlgorithm algorithm,
-            String version)?
+            String version,
+            KeyDerivationConfig? keyDerivation,
+            SaltStorage? saltStorage)?
         fieldLevel,
   }) {
     final _that = this;
@@ -238,8 +254,13 @@ extension EncryptionConfigPatterns on EncryptionConfig {
       case EncryptionSqlCipher() when sqlCipher != null:
         return sqlCipher(_that.keyProvider, _that.kdfIterations);
       case EncryptionFieldLevel() when fieldLevel != null:
-        return fieldLevel(_that.encryptedFields, _that.keyProvider,
-            _that.algorithm, _that.version);
+        return fieldLevel(
+            _that.encryptedFields,
+            _that.keyProvider,
+            _that.algorithm,
+            _that.version,
+            _that.keyDerivation,
+            _that.saltStorage);
       case _:
         return null;
     }
@@ -352,7 +373,9 @@ class EncryptionFieldLevel extends EncryptionConfig {
       {required final Set<String> encryptedFields,
       required this.keyProvider,
       this.algorithm = EncryptionAlgorithm.aes256Gcm,
-      this.version = 'v1'})
+      this.version = 'v1',
+      this.keyDerivation,
+      this.saltStorage})
       : _encryptedFields = encryptedFields,
         super._();
 
@@ -366,7 +389,7 @@ class EncryptionFieldLevel extends EncryptionConfig {
     return EqualUnmodifiableSetView(_encryptedFields);
   }
 
-  /// Callback to retrieve the encryption key.
+  /// Callback to retrieve the encryption key (or password if using key derivation).
   final Future<String> Function() keyProvider;
 
   /// Encryption algorithm (default: AES-256-GCM).
@@ -376,6 +399,15 @@ class EncryptionFieldLevel extends EncryptionConfig {
   /// Version prefix for encrypted values (for key rotation).
   @JsonKey()
   final String version;
+
+  /// Optional key derivation configuration.
+  /// When set, the keyProvider returns a password which is derived
+  /// into an encryption key using the specified algorithm (e.g., PBKDF2).
+  final KeyDerivationConfig? keyDerivation;
+
+  /// Optional salt storage for persisting salts.
+  /// Required when using key derivation to ensure consistent key derivation.
+  final SaltStorage? saltStorage;
 
   /// Create a copy of EncryptionConfig
   /// with the given fields replaced by the non-null parameter values.
@@ -396,7 +428,11 @@ class EncryptionFieldLevel extends EncryptionConfig {
                 other.keyProvider == keyProvider) &&
             (identical(other.algorithm, algorithm) ||
                 other.algorithm == algorithm) &&
-            (identical(other.version, version) || other.version == version));
+            (identical(other.version, version) || other.version == version) &&
+            (identical(other.keyDerivation, keyDerivation) ||
+                other.keyDerivation == keyDerivation) &&
+            (identical(other.saltStorage, saltStorage) ||
+                other.saltStorage == saltStorage));
   }
 
   @override
@@ -405,11 +441,13 @@ class EncryptionFieldLevel extends EncryptionConfig {
       const DeepCollectionEquality().hash(_encryptedFields),
       keyProvider,
       algorithm,
-      version);
+      version,
+      keyDerivation,
+      saltStorage);
 
   @override
   String toString() {
-    return 'EncryptionConfig.fieldLevel(encryptedFields: $encryptedFields, keyProvider: $keyProvider, algorithm: $algorithm, version: $version)';
+    return 'EncryptionConfig.fieldLevel(encryptedFields: $encryptedFields, keyProvider: $keyProvider, algorithm: $algorithm, version: $version, keyDerivation: $keyDerivation, saltStorage: $saltStorage)';
   }
 }
 
@@ -424,7 +462,11 @@ abstract mixin class $EncryptionFieldLevelCopyWith<$Res>
       {Set<String> encryptedFields,
       Future<String> Function() keyProvider,
       EncryptionAlgorithm algorithm,
-      String version});
+      String version,
+      KeyDerivationConfig? keyDerivation,
+      SaltStorage? saltStorage});
+
+  $KeyDerivationConfigCopyWith<$Res>? get keyDerivation;
 }
 
 /// @nodoc
@@ -443,6 +485,8 @@ class _$EncryptionFieldLevelCopyWithImpl<$Res>
     Object? keyProvider = null,
     Object? algorithm = null,
     Object? version = null,
+    Object? keyDerivation = freezed,
+    Object? saltStorage = freezed,
   }) {
     return _then(EncryptionFieldLevel(
       encryptedFields: null == encryptedFields
@@ -461,7 +505,29 @@ class _$EncryptionFieldLevelCopyWithImpl<$Res>
           ? _self.version
           : version // ignore: cast_nullable_to_non_nullable
               as String,
+      keyDerivation: freezed == keyDerivation
+          ? _self.keyDerivation
+          : keyDerivation // ignore: cast_nullable_to_non_nullable
+              as KeyDerivationConfig?,
+      saltStorage: freezed == saltStorage
+          ? _self.saltStorage
+          : saltStorage // ignore: cast_nullable_to_non_nullable
+              as SaltStorage?,
     ));
+  }
+
+  /// Create a copy of EncryptionConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $KeyDerivationConfigCopyWith<$Res>? get keyDerivation {
+    if (_self.keyDerivation == null) {
+      return null;
+    }
+
+    return $KeyDerivationConfigCopyWith<$Res>(_self.keyDerivation!, (value) {
+      return _then(_self.copyWith(keyDerivation: value));
+    });
   }
 }
 

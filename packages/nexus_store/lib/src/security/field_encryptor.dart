@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:nexus_store/src/security/encryption_algorithm.dart';
 import 'package:nexus_store/src/security/encryption_config.dart';
+import 'package:nexus_store/src/security/key_derivation_config.dart';
+import 'package:nexus_store/src/security/key_derivation_service.dart';
 
 /// Abstract interface for field-level encryption.
 ///
@@ -42,6 +44,7 @@ class DefaultFieldEncryptor implements FieldEncryptor {
 
   Cipher? _cipher;
   SecretKey? _secretKey;
+  KeyDerivationService? _keyDerivationService;
 
   Future<Cipher> _getCipher() async {
     if (_cipher != null) return _cipher!;
@@ -61,6 +64,24 @@ class DefaultFieldEncryptor implements FieldEncryptor {
     if (_secretKey != null) return _secretKey!;
 
     final keyString = await config.keyProvider();
+
+    // Use key derivation if configured
+    if (config.keyDerivation != null) {
+      _keyDerivationService ??= KeyDerivationService(
+        config: config.keyDerivation!,
+        saltStorage: config.saltStorage,
+      );
+
+      final derivedKey = await _keyDerivationService!.deriveKey(
+        password: keyString,
+        keyId: 'field-encryption',
+      );
+
+      _secretKey = SecretKey(derivedKey.keyBytes);
+      return _secretKey!;
+    }
+
+    // Fallback: simple key derivation for backward compatibility
     final keyBytes = utf8.encode(keyString);
 
     // Ensure key is 32 bytes for AES-256
@@ -163,6 +184,7 @@ class DefaultFieldEncryptor implements FieldEncryptor {
   void clearCache() {
     _cipher = null;
     _secretKey = null;
+    _keyDerivationService = null;
   }
 }
 

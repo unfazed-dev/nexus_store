@@ -1,4 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:nexus_store/nexus_store.dart';
+import 'package:nexus_store/src/security/key_derivation_config.dart';
+import 'package:nexus_store/src/security/salt_storage.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -250,6 +254,150 @@ void main() {
         EncryptionAlgorithm.values,
         contains(EncryptionAlgorithm.chaCha20Poly1305),
       );
+    });
+  });
+
+  group('DefaultFieldEncryptor with PBKDF2 key derivation', () {
+    late InMemorySaltStorage saltStorage;
+
+    setUp(() {
+      saltStorage = InMemorySaltStorage();
+    });
+
+    test('should encrypt and decrypt with PBKDF2 key derivation', () async {
+      final encryptor = DefaultFieldEncryptor(
+        config: EncryptionConfig.fieldLevel(
+          keyProvider: () async => 'user-password',
+          encryptedFields: {'ssn'},
+          keyDerivation: const KeyDerivationConfig.pbkdf2(
+            iterations: 100000, // Lower for testing speed
+          ),
+          saltStorage: saltStorage,
+        ) as EncryptionFieldLevel,
+      );
+
+      const original = '123-45-6789';
+      final encrypted = await encryptor.encrypt(original, 'ssn');
+      final decrypted = await encryptor.decrypt(encrypted, 'ssn');
+
+      expect(encrypted, startsWith('enc:'));
+      expect(decrypted, equals(original));
+    });
+
+    test('should store salt when using key derivation', () async {
+      final encryptor = DefaultFieldEncryptor(
+        config: EncryptionConfig.fieldLevel(
+          keyProvider: () async => 'password',
+          encryptedFields: {'field'},
+          keyDerivation: const KeyDerivationConfig.pbkdf2(iterations: 100000),
+          saltStorage: saltStorage,
+        ) as EncryptionFieldLevel,
+      );
+
+      await encryptor.encrypt('data', 'field');
+
+      // Salt should be stored
+      final storedSalt = await saltStorage.getSalt('field-encryption');
+      expect(storedSalt, isNotNull);
+      expect(storedSalt!.length, greaterThanOrEqualTo(16));
+    });
+
+    test('should reuse stored salt for consistent key derivation', () async {
+      final encryptor = DefaultFieldEncryptor(
+        config: EncryptionConfig.fieldLevel(
+          keyProvider: () async => 'password',
+          encryptedFields: {'field'},
+          keyDerivation: const KeyDerivationConfig.pbkdf2(iterations: 100000),
+          saltStorage: saltStorage,
+        ) as EncryptionFieldLevel,
+      );
+
+      // Encrypt with first instance
+      const original = 'secret data';
+      final encrypted = await encryptor.encrypt(original, 'field');
+
+      // Create new encryptor (simulating app restart)
+      final newEncryptor = DefaultFieldEncryptor(
+        config: EncryptionConfig.fieldLevel(
+          keyProvider: () async => 'password',
+          encryptedFields: {'field'},
+          keyDerivation: const KeyDerivationConfig.pbkdf2(iterations: 100000),
+          saltStorage: saltStorage,
+        ) as EncryptionFieldLevel,
+      );
+
+      // Should still decrypt with same password and stored salt
+      final decrypted = await newEncryptor.decrypt(encrypted, 'field');
+      expect(decrypted, equals(original));
+    });
+
+    test('should derive different keys for different passwords', () async {
+      // Pre-store a salt so both encryptors use the same salt
+      final salt = Uint8List.fromList(List.generate(16, (i) => i));
+      await saltStorage.storeSalt('field-encryption', salt);
+
+      final encryptor1 = DefaultFieldEncryptor(
+        config: EncryptionConfig.fieldLevel(
+          keyProvider: () async => 'password1',
+          encryptedFields: {'field'},
+          keyDerivation: const KeyDerivationConfig.pbkdf2(iterations: 100000),
+          saltStorage: saltStorage,
+        ) as EncryptionFieldLevel,
+      );
+
+      final encryptor2 = DefaultFieldEncryptor(
+        config: EncryptionConfig.fieldLevel(
+          keyProvider: () async => 'password2',
+          encryptedFields: {'field'},
+          keyDerivation: const KeyDerivationConfig.pbkdf2(iterations: 100000),
+          saltStorage: saltStorage,
+        ) as EncryptionFieldLevel,
+      );
+
+      const original = 'secret';
+      final encrypted = await encryptor1.encrypt(original, 'field');
+
+      // Different password should fail to decrypt
+      expect(
+        () => encryptor2.decrypt(encrypted, 'field'),
+        throwsA(isA<EncryptionException>()),
+      );
+    });
+
+    test('should work with raw key derivation (no derivation)', () async {
+      final encryptor = DefaultFieldEncryptor(
+        config: EncryptionConfig.fieldLevel(
+          keyProvider: () async => 'raw-key-32-bytes-for-aes-256!!',
+          encryptedFields: {'field'},
+          keyDerivation: const KeyDerivationConfig.raw(),
+        ) as EncryptionFieldLevel,
+      );
+
+      const original = 'test data';
+      final encrypted = await encryptor.encrypt(original, 'field');
+      final decrypted = await encryptor.decrypt(encrypted, 'field');
+
+      expect(decrypted, equals(original));
+    });
+
+    test('should clear derived key cache on clearCache', () async {
+      final encryptor = DefaultFieldEncryptor(
+        config: EncryptionConfig.fieldLevel(
+          keyProvider: () async => 'password',
+          encryptedFields: {'field'},
+          keyDerivation: const KeyDerivationConfig.pbkdf2(iterations: 100000),
+          saltStorage: saltStorage,
+        ) as EncryptionFieldLevel,
+      );
+
+      const original = 'test data';
+      final encrypted = await encryptor.encrypt(original, 'field');
+
+      encryptor.clearCache();
+
+      // Should still work after clearing cache
+      final decrypted = await encryptor.decrypt(encrypted, 'field');
+      expect(decrypted, equals(original));
     });
   });
 }
