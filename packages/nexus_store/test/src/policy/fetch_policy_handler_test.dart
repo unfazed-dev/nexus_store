@@ -1,4 +1,5 @@
 import 'package:nexus_store/nexus_store.dart';
+import 'package:nexus_store/src/cache/cache_stats.dart';
 import 'package:test/test.dart';
 
 import '../../fixtures/mock_backend.dart';
@@ -397,6 +398,209 @@ void main() {
         );
 
         expect(results, hasLength(1));
+      });
+    });
+
+    group('cache tags', () {
+      setUp(() {
+        handler = FetchPolicyHandler(
+          backend: backend,
+          defaultPolicy: FetchPolicy.cacheFirst,
+          staleDuration: const Duration(minutes: 5),
+        );
+      });
+
+      group('recordCachedItem', () {
+        test('should track tags when recorded', () {
+          handler.recordCachedItem('user-1', tags: {'premium', 'active'});
+
+          expect(handler.getTags('user-1'), containsAll(['premium', 'active']));
+        });
+
+        test('should track item without tags', () {
+          handler.recordCachedItem('user-1');
+
+          expect(handler.getTags('user-1'), isEmpty);
+        });
+      });
+
+      group('addTags', () {
+        test('should add tags to existing item', () {
+          handler.recordCachedItem('user-1', tags: {'user'});
+
+          handler.addTags('user-1', {'premium'});
+
+          expect(handler.getTags('user-1'), containsAll(['user', 'premium']));
+        });
+
+        test('should add tags to untracked item', () {
+          handler.addTags('user-1', {'premium'});
+
+          expect(handler.getTags('user-1'), contains('premium'));
+        });
+      });
+
+      group('removeTags', () {
+        test('should remove tags from item', () {
+          handler.recordCachedItem('user-1', tags: {'user', 'premium'});
+
+          handler.removeTags('user-1', {'premium'});
+
+          expect(handler.getTags('user-1'), equals({'user'}));
+        });
+      });
+
+      group('getTags', () {
+        test('should return empty set for unknown ID', () {
+          expect(handler.getTags('unknown'), isEmpty);
+        });
+      });
+
+      group('invalidateByTags', () {
+        test('should invalidate items by tag', () {
+          handler.recordCachedItem('user-1', tags: {'premium'});
+          handler.recordCachedItem('user-2', tags: {'premium'});
+          handler.recordCachedItem('user-3', tags: {'basic'});
+
+          handler.invalidateByTags({'premium'});
+
+          // user-1 and user-2 should be stale, user-3 should not
+          expect(handler.isStale('user-1'), isTrue);
+          expect(handler.isStale('user-2'), isTrue);
+          expect(handler.isStale('user-3'), isFalse);
+        });
+
+        test('should invalidate items matching any tag (union)', () {
+          handler.recordCachedItem('user-1', tags: {'premium'});
+          handler.recordCachedItem('user-2', tags: {'admin'});
+          handler.recordCachedItem('user-3', tags: {'basic'});
+
+          handler.invalidateByTags({'premium', 'admin'});
+
+          expect(handler.isStale('user-1'), isTrue);
+          expect(handler.isStale('user-2'), isTrue);
+          expect(handler.isStale('user-3'), isFalse);
+        });
+      });
+
+      group('invalidateByIds', () {
+        test('should invalidate by list of IDs', () {
+          handler.recordCachedItem('user-1', tags: {'user'});
+          handler.recordCachedItem('user-2', tags: {'user'});
+          handler.recordCachedItem('user-3', tags: {'user'});
+
+          handler.invalidateByIds(['user-1', 'user-3']);
+
+          expect(handler.isStale('user-1'), isTrue);
+          expect(handler.isStale('user-2'), isFalse);
+          expect(handler.isStale('user-3'), isTrue);
+        });
+      });
+
+      group('tags survive invalidation', () {
+        test('should preserve tags after invalidation', () {
+          handler.recordCachedItem('user-1', tags: {'premium', 'active'});
+
+          handler.invalidate('user-1');
+
+          expect(handler.getTags('user-1'), containsAll(['premium', 'active']));
+        });
+
+        test('should preserve tags after invalidateAll', () {
+          handler.recordCachedItem('user-1', tags: {'premium'});
+
+          handler.invalidateAll();
+
+          expect(handler.getTags('user-1'), contains('premium'));
+        });
+      });
+
+      group('isStale', () {
+        test('should return true for invalidated item', () {
+          handler.recordCachedItem('user-1');
+          handler.invalidate('user-1');
+
+          expect(handler.isStale('user-1'), isTrue);
+        });
+
+        test('should return true for untracked item', () {
+          expect(handler.isStale('unknown'), isTrue);
+        });
+
+        test('should return false for fresh item', () {
+          handler.recordCachedItem('user-1');
+
+          expect(handler.isStale('user-1'), isFalse);
+        });
+      });
+
+      group('getCacheStats', () {
+        test('should return cache stats', () {
+          handler.recordCachedItem('user-1', tags: {'premium'});
+          handler.recordCachedItem('user-2', tags: {'premium', 'active'});
+          handler.recordCachedItem('user-3', tags: {'basic'});
+          handler.invalidate('user-3');
+
+          final stats = handler.getCacheStats();
+
+          expect(stats.totalCount, equals(3));
+          expect(stats.staleCount, equals(1));
+          expect(stats.tagCounts['premium'], equals(2));
+          expect(stats.tagCounts['active'], equals(1));
+          expect(stats.tagCounts['basic'], equals(1));
+        });
+
+        test('should return empty stats when no items', () {
+          final stats = handler.getCacheStats();
+
+          expect(stats.totalCount, equals(0));
+          expect(stats.staleCount, equals(0));
+          expect(stats.tagCounts, isEmpty);
+        });
+      });
+
+      group('invalidateWhere', () {
+        test('should invalidate items matching query', () async {
+          backend.addToStorage(
+            'user-1',
+            TestFixtures.createUser(id: 'user-1', isActive: true),
+          );
+          backend.addToStorage(
+            'user-2',
+            TestFixtures.createUser(id: 'user-2', isActive: false),
+          );
+          backend.addToStorage(
+            'user-3',
+            TestFixtures.createUser(id: 'user-3', isActive: true),
+          );
+          handler.recordCachedItem('user-1');
+          handler.recordCachedItem('user-2');
+          handler.recordCachedItem('user-3');
+
+          final query = Query<TestUser>().where('isActive', isEqualTo: false);
+          await handler.invalidateWhere(
+            query,
+            fieldAccessor: (user, field) => switch (field) {
+              'isActive' => user.isActive,
+              _ => null,
+            },
+          );
+
+          expect(handler.isStale('user-1'), isFalse);
+          expect(handler.isStale('user-2'), isTrue); // only inactive user
+          expect(handler.isStale('user-3'), isFalse);
+        });
+      });
+
+      group('removeEntry', () {
+        test('should remove entry and its tags', () {
+          handler.recordCachedItem('user-1', tags: {'premium'});
+
+          handler.removeEntry('user-1');
+
+          expect(handler.getTags('user-1'), isEmpty);
+          expect(handler.getCacheStats().totalCount, equals(0));
+        });
       });
     });
   });

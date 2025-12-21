@@ -1,5 +1,6 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart';
+import 'package:nexus_store/src/cache/cache_stats.dart';
 import 'package:test/test.dart';
 
 import '../../fixtures/mock_backend.dart';
@@ -506,6 +507,7 @@ void main() {
           config: const StoreConfig(
             staleDuration: Duration(minutes: 5),
           ),
+          idExtractor: (user) => user.id,
         );
         await store.initialize();
       });
@@ -527,6 +529,112 @@ void main() {
 
         // Invalidation marks as stale - subsequent get would try network
         // We can only verify this doesn't throw
+      });
+
+      group('cache tags', () {
+        test('should save item with tags', () async {
+          final user = TestFixtures.createUser();
+
+          await store.save(user, tags: {'premium', 'active'});
+
+          expect(store.getTags('user-1'), containsAll(['premium', 'active']));
+        });
+
+        test('should save multiple items with same tags', () async {
+          final users = TestFixtures.createUsers(3);
+
+          await store.saveAll(users, tags: {'batch-1'});
+
+          expect(store.getTags('user-0'), contains('batch-1'));
+          expect(store.getTags('user-1'), contains('batch-1'));
+          expect(store.getTags('user-2'), contains('batch-1'));
+        });
+
+        test('should add and remove tags', () async {
+          final user = TestFixtures.createUser();
+          await store.save(user);
+
+          store.addTags('user-1', {'premium'});
+          expect(store.getTags('user-1'), contains('premium'));
+
+          store.removeTags('user-1', {'premium'});
+          expect(store.getTags('user-1'), isNot(contains('premium')));
+        });
+
+        test('should invalidate by tags', () async {
+          await store.save(
+            TestFixtures.createUser(id: 'user-1'),
+            tags: {'premium'},
+          );
+          await store.save(
+            TestFixtures.createUser(id: 'user-2'),
+            tags: {'basic'},
+          );
+
+          store.invalidateByTags({'premium'});
+
+          // user-1 should be stale, user-2 should not
+          expect(store.isStale('user-1'), isTrue);
+          expect(store.isStale('user-2'), isFalse);
+        });
+
+        test('should invalidate by IDs', () async {
+          await store.save(TestFixtures.createUser(id: 'user-1'));
+          await store.save(TestFixtures.createUser(id: 'user-2'));
+          await store.save(TestFixtures.createUser(id: 'user-3'));
+
+          store.invalidateByIds(['user-1', 'user-3']);
+
+          expect(store.isStale('user-1'), isTrue);
+          expect(store.isStale('user-2'), isFalse);
+          expect(store.isStale('user-3'), isTrue);
+        });
+
+        test('should invalidate by query', () async {
+          await store.save(
+            TestFixtures.createUser(id: 'user-1', isActive: true),
+          );
+          await store.save(
+            TestFixtures.createUser(id: 'user-2', isActive: false),
+          );
+
+          await store.invalidateWhere(
+            Query<TestUser>().where('isActive', isEqualTo: false),
+            fieldAccessor: (user, field) => switch (field) {
+              'isActive' => user.isActive,
+              _ => null,
+            },
+          );
+
+          expect(store.isStale('user-1'), isFalse);
+          expect(store.isStale('user-2'), isTrue);
+        });
+
+        test('should return cache stats', () async {
+          await store.save(
+            TestFixtures.createUser(id: 'user-1'),
+            tags: {'premium'},
+          );
+          await store.save(
+            TestFixtures.createUser(id: 'user-2'),
+            tags: {'premium', 'active'},
+          );
+          await store.save(
+            TestFixtures.createUser(id: 'user-3'),
+            tags: {'basic'},
+          );
+          store.invalidate('user-3');
+
+          final stats = store.getCacheStats();
+
+          expect(stats.totalCount, equals(3));
+          expect(stats.staleCount, equals(1));
+          expect(stats.tagCounts['premium'], equals(2));
+        });
+
+        test('should return empty set for unknown ID tags', () async {
+          expect(store.getTags('unknown'), isEmpty);
+        });
       });
     });
 

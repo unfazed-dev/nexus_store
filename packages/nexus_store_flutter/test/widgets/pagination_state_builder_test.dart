@@ -32,7 +32,7 @@ void main() {
           home: PaginationStateBuilder<String>(
             state: state,
             initial: () => const Text('Initial'),
-            loading: (List<String>? previousItems) =>
+            loading: (previousItems) =>
                 Text('Loading ${previousItems?.length ?? 0}'),
             loadingMore: (_, __) => const Text('Loading More'),
             data: (_, __) => const Text('Data'),
@@ -54,7 +54,7 @@ void main() {
           home: PaginationStateBuilder<String>(
             state: state,
             initial: () => const Text('Initial'),
-            loading: (List<String>? previousItems) =>
+            loading: (previousItems) =>
                 Text('Loading ${previousItems?.length ?? 0}'),
             loadingMore: (_, __) => const Text('Loading More'),
             data: (_, __) => const Text('Data'),
@@ -81,7 +81,7 @@ void main() {
             state: state,
             initial: () => const Text('Initial'),
             loading: (_) => const Text('Loading'),
-            loadingMore: (List<String> items, PageInfo pageInfo) =>
+            loadingMore: (items, pageInfo) =>
                 Text('Loading More: ${items.length}'),
             data: (_, __) => const Text('Data'),
             error: (_, __, ___) => const Text('Error'),
@@ -108,7 +108,7 @@ void main() {
             initial: () => const Text('Initial'),
             loading: (_) => const Text('Loading'),
             loadingMore: (_, __) => const Text('Loading More'),
-            data: (List<String> items, PageInfo pageInfo) =>
+            data: (items, pageInfo) =>
                 Text('Data: ${items.length}'),
             error: (_, __, ___) => const Text('Error'),
           ),
@@ -131,7 +131,7 @@ void main() {
             loading: (_) => const Text('Loading'),
             loadingMore: (_, __) => const Text('Loading More'),
             data: (_, __) => const Text('Data'),
-            error: (Object error, List<String>? previousItems, PageInfo? pageInfo) =>
+            error: (error, previousItems, pageInfo) =>
                 Text('Error: $error'),
           ),
         ),
@@ -155,7 +155,7 @@ void main() {
             loading: (_) => const Text('Loading'),
             loadingMore: (_, __) => const Text('Loading More'),
             data: (_, __) => const Text('Data'),
-            error: (Object error, List<String>? previousItems, PageInfo? pageInfo) =>
+            error: (error, previousItems, pageInfo) =>
                 Text('Error with ${previousItems?.length ?? 0} items'),
           ),
         ),
@@ -170,15 +170,14 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
+            builder: (context, setState) => Column(
                 children: [
                   PaginationStateBuilder<String>(
                     state: state,
                     initial: () => const Text('Initial'),
                     loading: (_) => const Text('Loading'),
                     loadingMore: (_, __) => const Text('Loading More'),
-                    data: (List<String> items, _) => Text('Data: ${items.length}'),
+                    data: (items, _) => Text('Data: ${items.length}'),
                     error: (_, __, ___) => const Text('Error'),
                   ),
                   ElevatedButton(
@@ -196,8 +195,7 @@ void main() {
                     child: const Text('Change State'),
                   ),
                 ],
-              );
-            },
+              ),
           ),
         ),
       );
@@ -217,7 +215,7 @@ void main() {
         MaterialApp(
           home: PaginationStateBuilder<String>.maybeWhen(
             state: state,
-            data: (List<String> items, _) => Text('Data: ${items.length}'),
+            data: (items, _) => Text('Data: ${items.length}'),
             orElse: () => const Text('Fallback'),
           ),
         ),
@@ -236,7 +234,7 @@ void main() {
         MaterialApp(
           home: PaginationStateBuilder<String>.maybeWhen(
             state: state,
-            data: (List<String> items, _) => Text('Data: ${items.length}'),
+            data: (items, _) => Text('Data: ${items.length}'),
             orElse: () => const Text('Fallback'),
           ),
         ),

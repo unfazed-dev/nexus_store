@@ -39,7 +39,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 - [x] Cursor-based pagination - See [TRACKER-cursor-pagination.md](./phase-5-production/TRACKER-cursor-pagination.md) ✅ (120+ tests)
 - [ ] Type-safe query builder - See [TRACKER-type-safe-query.md](./phase-5-production/TRACKER-type-safe-query.md)
 - [ ] Conflict resolution & pending changes - See [TRACKER-conflict-resolution.md](./phase-5-production/TRACKER-conflict-resolution.md)
-- [ ] Tag-based cache invalidation - See [TRACKER-cache-invalidation.md](./phase-5-production/TRACKER-cache-invalidation.md)
+- [x] Tag-based cache invalidation - See [TRACKER-cache-invalidation.md](./phase-5-production/TRACKER-cache-invalidation.md) ✅ (109 tests)
 - [ ] Telemetry & metrics - See [TRACKER-telemetry.md](./phase-5-production/TRACKER-telemetry.md)
 - [ ] Key derivation (PBKDF2/Argon2) - See [TRACKER-key-derivation.md](./phase-5-production/TRACKER-key-derivation.md)
 - [x] Batch streaming - See [TRACKER-batch-streaming.md](./phase-5-production/TRACKER-batch-streaming.md) ✅ (80+ tests)
@@ -130,7 +130,7 @@ Documentation (depends on all above)
 | REQ-019 | Type-Safe Query Builder | ⏳ Pending | [type-safe](./phase-5-production/TRACKER-type-safe-query.md) |
 | REQ-020 | Conflict Resolution Callbacks | ⏳ Pending | [conflict](./phase-5-production/TRACKER-conflict-resolution.md) |
 | REQ-021 | Pending Changes Visibility | ⏳ Pending | [conflict](./phase-5-production/TRACKER-conflict-resolution.md) |
-| REQ-022 | Tag-Based Cache Invalidation | ⏳ Pending | [cache](./phase-5-production/TRACKER-cache-invalidation.md) |
+| REQ-022 | Tag-Based Cache Invalidation | ✅ Complete | [cache](./phase-5-production/TRACKER-cache-invalidation.md) |
 | REQ-023 | Telemetry & Metrics | ⏳ Pending | [telemetry](./phase-5-production/TRACKER-telemetry.md) |
 | REQ-024 | Key Derivation | ⏳ Pending | [key-derivation](./phase-5-production/TRACKER-key-derivation.md) |
 | REQ-025 | Batch Streaming | ✅ Complete | [streaming](./phase-5-production/TRACKER-batch-streaming.md) |
@@ -217,10 +217,11 @@ Documentation (depends on all above)
 - ✅ Phase 4 Documentation complete with 25 files (READMEs, examples, architecture docs, migration guides)
 - ✅ Cursor-based pagination implemented with 120+ tests (Cursor, PageInfo, PagedResult, Query extensions, NexusStore methods)
 - ✅ Batch streaming implemented with 80+ tests (StreamingConfig, PaginationState, PaginationController, Flutter widgets)
+- ✅ Tag-based cache invalidation implemented with 109 tests (CacheEntry, CacheStats, CacheTagIndex, InMemoryQueryEvaluator, tag-based/query-based invalidation)
 - All Phase 2 backend adapters are now complete
 - Phase 3 Flutter extension is now complete
 - Phase 4 Documentation is now complete
-- Phase 5: 2/9 production features complete (cursor pagination, batch streaming)
+- Phase 5: 3/9 production features complete (cursor pagination, batch streaming, cache invalidation)
 - Melos workspace configured with shared scripts for analyze, test, format
 - Fixed bug in composite_backend.dart (missing await in fallback handling)
 - Added analysis_options.yaml with linting configuration

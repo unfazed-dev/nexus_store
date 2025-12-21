@@ -2,9 +2,6 @@ import 'dart:async';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart';
-import 'package:nexus_store/src/pagination/cursor.dart';
-import 'package:nexus_store/src/pagination/page_info.dart';
-import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// Mock implementation of [StoreBackend] for testing.

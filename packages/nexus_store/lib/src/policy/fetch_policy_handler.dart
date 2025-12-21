@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:nexus_store/src/cache/cache_stats.dart';
+import 'package:nexus_store/src/cache/cache_tag_index.dart';
+import 'package:nexus_store/src/cache/query_evaluator.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/query/query.dart';
@@ -28,6 +31,12 @@ class FetchPolicyHandler<T, ID> {
 
   /// Tracks when each entity was last fetched from network.
   final Map<ID, DateTime> _lastFetchTimes;
+
+  /// Tag index for cache entries.
+  final CacheTagIndex<ID> _tagIndex = CacheTagIndex<ID>();
+
+  /// Set of tracked cache entry IDs.
+  final Set<ID> _trackedIds = {};
 
   /// Gets a single entity according to the [policy].
   Future<T?> get(ID id, {FetchPolicy? policy}) async {
@@ -237,5 +246,108 @@ class FetchPolicyHandler<T, ID> {
   /// Marks all entities as stale.
   void invalidateAll() {
     _lastFetchTimes.clear();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cache Tag Management
+  // ---------------------------------------------------------------------------
+
+  /// Records a cached item with optional tags.
+  ///
+  /// This should be called when an item is saved to track its cache metadata.
+  void recordCachedItem(ID id, {Set<String>? tags}) {
+    _trackedIds.add(id);
+    _lastFetchTimes[id] = DateTime.now();
+    if (tags != null && tags.isNotEmpty) {
+      _tagIndex.addTags(id, tags);
+    }
+  }
+
+  /// Adds tags to an existing cached item.
+  void addTags(ID id, Set<String> tags) {
+    _trackedIds.add(id);
+    _tagIndex.addTags(id, tags);
+  }
+
+  /// Removes tags from a cached item.
+  void removeTags(ID id, Set<String> tags) {
+    _tagIndex.removeTags(id, tags);
+  }
+
+  /// Gets the tags for a cached item.
+  Set<String> getTags(ID id) {
+    return _tagIndex.getTagsForId(id);
+  }
+
+  /// Invalidates all items with any of the given tags.
+  void invalidateByTags(Set<String> tags) {
+    final idsToInvalidate = _tagIndex.getIdsByAnyTag(tags);
+    for (final id in idsToInvalidate) {
+      _lastFetchTimes.remove(id);
+    }
+  }
+
+  /// Invalidates multiple items by their IDs.
+  void invalidateByIds(List<ID> ids) {
+    for (final id in ids) {
+      _lastFetchTimes.remove(id);
+    }
+  }
+
+  /// Invalidates items matching the given query.
+  ///
+  /// Requires a [fieldAccessor] to extract field values from items.
+  Future<void> invalidateWhere(
+    Query<T> query, {
+    required FieldAccessor<T> fieldAccessor,
+  }) async {
+    final evaluator = InMemoryQueryEvaluator<T>(fieldAccessor: fieldAccessor);
+
+    // Check each tracked ID and invalidate if it matches the query
+    for (final id in _trackedIds.toList()) {
+      final item = await backend.get(id);
+      if (item != null && evaluator.matches(item, query)) {
+        _lastFetchTimes.remove(id);
+      }
+    }
+  }
+
+  /// Returns whether an item is stale.
+  ///
+  /// An item is stale if it has no recorded fetch time or
+  /// if the staleDuration has elapsed since the last fetch.
+  bool isStale(ID id) {
+    return _isStale(id);
+  }
+
+  /// Removes a cache entry and its tags.
+  void removeEntry(ID id) {
+    _trackedIds.remove(id);
+    _lastFetchTimes.remove(id);
+    _tagIndex.removeId(id);
+  }
+
+  /// Gets cache statistics.
+  CacheStats getCacheStats() {
+    final totalCount = _trackedIds.length;
+    var staleCount = 0;
+
+    for (final id in _trackedIds) {
+      if (_isStale(id)) {
+        staleCount++;
+      }
+    }
+
+    // Build tag counts
+    final tagCounts = <String, int>{};
+    for (final tag in _tagIndex.allTags) {
+      tagCounts[tag] = _tagIndex.getIdsByTag(tag).length;
+    }
+
+    return CacheStats(
+      totalCount: totalCount,
+      staleCount: staleCount,
+      tagCounts: tagCounts,
+    );
   }
 }

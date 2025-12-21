@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
+import 'package:nexus_store/src/cache/cache_stats.dart';
+import 'package:nexus_store/src/cache/query_evaluator.dart';
 import 'package:nexus_store/src/compliance/audit_log_entry.dart';
 import 'package:nexus_store/src/compliance/audit_service.dart';
 import 'package:nexus_store/src/compliance/gdpr_service.dart';
@@ -70,14 +72,19 @@ import 'package:rxdart/rxdart.dart';
 /// ```
 class NexusStore<T, ID> {
   /// Creates a NexusStore with the given backend and configuration.
+  ///
+  /// The [idExtractor] is required for tag-based cache invalidation features.
+  /// If not provided, cache tagging features will not track item IDs.
   NexusStore({
     required StoreBackend<T, ID> backend,
     StoreConfig? config,
     AuditService? auditService,
     String? subjectIdField,
+    ID Function(T)? idExtractor,
   })  : _backend = backend,
         _config = config ?? StoreConfig.defaults,
-        _auditService = auditService {
+        _auditService = auditService,
+        _idExtractor = idExtractor {
     _logger = Logger('NexusStore<$T, $ID>');
 
     _fetchHandler = FetchPolicyHandler(
@@ -103,6 +110,7 @@ class NexusStore<T, ID> {
   final StoreBackend<T, ID> _backend;
   final StoreConfig _config;
   final AuditService? _auditService;
+  final ID Function(T)? _idExtractor;
 
   late final Logger _logger;
   late final FetchPolicyHandler<T, ID> _fetchHandler;
@@ -355,8 +363,9 @@ class NexusStore<T, ID> {
   /// Saves an entity (creates or updates).
   ///
   /// Uses the configured [WritePolicy] or the provided [policy] override.
+  /// Optionally associates [tags] with the cached item for tag-based invalidation.
   /// Returns the saved entity, which may include server-generated fields.
-  Future<T> save(T item, {WritePolicy? policy}) async {
+  Future<T> save(T item, {WritePolicy? policy, Set<String>? tags}) async {
     _ensureInitialized();
 
     // Encrypt fields if configured
@@ -365,6 +374,12 @@ class NexusStore<T, ID> {
     // a serializer interface
 
     final result = await _writeHandler.save(item, policy: policy);
+
+    // Record in cache with tags if idExtractor is available
+    if (_idExtractor != null) {
+      final id = _idExtractor(result);
+      _fetchHandler.recordCachedItem(id, tags: tags);
+    }
 
     if (_config.enableAuditLogging) {
       await _auditService?.log(
@@ -378,10 +393,24 @@ class NexusStore<T, ID> {
   }
 
   /// Saves multiple entities in a batch operation.
-  Future<List<T>> saveAll(List<T> items, {WritePolicy? policy}) async {
+  ///
+  /// Optionally associates [tags] with all cached items for tag-based invalidation.
+  Future<List<T>> saveAll(
+    List<T> items, {
+    WritePolicy? policy,
+    Set<String>? tags,
+  }) async {
     _ensureInitialized();
 
     final results = await _writeHandler.saveAll(items, policy: policy);
+
+    // Record each item in cache with tags if idExtractor is available
+    if (_idExtractor != null) {
+      for (final result in results) {
+        final id = _idExtractor(result);
+        _fetchHandler.recordCachedItem(id, tags: tags);
+      }
+    }
 
     if (_config.enableAuditLogging && results.isNotEmpty) {
       await _auditService?.log(
@@ -470,5 +499,63 @@ class NexusStore<T, ID> {
   /// Marks all entities as stale.
   void invalidateAll() {
     _fetchHandler.invalidateAll();
+  }
+
+  /// Invalidates all cached items with any of the given [tags].
+  ///
+  /// Items with matching tags will be marked as stale, forcing the next
+  /// fetch to hit the network.
+  void invalidateByTags(Set<String> tags) {
+    _fetchHandler.invalidateByTags(tags);
+  }
+
+  /// Invalidates multiple cached items by their [ids].
+  void invalidateByIds(List<ID> ids) {
+    _fetchHandler.invalidateByIds(ids);
+  }
+
+  /// Invalidates cached items matching the given [query].
+  ///
+  /// Requires a [fieldAccessor] to extract field values from items for
+  /// query evaluation.
+  Future<void> invalidateWhere(
+    Query<T> query, {
+    required FieldAccessor<T> fieldAccessor,
+  }) async {
+    await _fetchHandler.invalidateWhere(query, fieldAccessor: fieldAccessor);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tag Management
+  // ---------------------------------------------------------------------------
+
+  /// Gets the tags associated with a cached item.
+  ///
+  /// Returns an empty set if the item has no tags or is not tracked.
+  Set<String> getTags(ID id) {
+    return _fetchHandler.getTags(id);
+  }
+
+  /// Adds [tags] to an existing cached item.
+  void addTags(ID id, Set<String> tags) {
+    _fetchHandler.addTags(id, tags);
+  }
+
+  /// Removes [tags] from a cached item.
+  void removeTags(ID id, Set<String> tags) {
+    _fetchHandler.removeTags(id, tags);
+  }
+
+  /// Returns whether a cached item is stale.
+  ///
+  /// An item is stale if it has no recorded fetch time or if the
+  /// staleDuration has elapsed since the last fetch.
+  bool isStale(ID id) {
+    return _fetchHandler.isStale(id);
+  }
+
+  /// Returns cache statistics.
+  CacheStats getCacheStats() {
+    return _fetchHandler.getCacheStats();
   }
 }

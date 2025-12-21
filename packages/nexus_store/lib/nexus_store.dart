@@ -46,6 +46,11 @@
 /// ```
 library;
 
+// Cache
+export 'src/cache/cache_entry.dart';
+export 'src/cache/cache_stats.dart';
+export 'src/cache/cache_tag_index.dart';
+export 'src/cache/query_evaluator.dart';
 export 'src/compliance/audit_log_entry.dart';
 // Compliance
 export 'src/compliance/audit_service.dart';
