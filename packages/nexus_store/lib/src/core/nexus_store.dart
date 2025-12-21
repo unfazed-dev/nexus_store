@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:nexus_store/src/cache/cache_stats.dart';
@@ -19,6 +20,12 @@ import 'package:nexus_store/src/query/query.dart';
 import 'package:nexus_store/src/sync/conflict_action.dart';
 import 'package:nexus_store/src/sync/conflict_details.dart';
 import 'package:nexus_store/src/sync/pending_change.dart';
+import 'package:nexus_store/src/telemetry/cache_metric.dart';
+import 'package:nexus_store/src/telemetry/error_metric.dart';
+import 'package:nexus_store/src/telemetry/metrics_reporter.dart';
+import 'package:nexus_store/src/telemetry/operation_metric.dart';
+import 'package:nexus_store/src/telemetry/store_stats.dart';
+import 'package:nexus_store/src/telemetry/sync_metric.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// A unified reactive data store abstraction.
@@ -114,6 +121,8 @@ class NexusStore<T, ID> {
         auditService: _auditService,
       );
     }
+
+    _metricsReporter = _config.metricsReporter;
   }
 
   final StoreBackend<T, ID> _backend;
@@ -129,6 +138,20 @@ class NexusStore<T, ID> {
 
   bool _initialized = false;
   bool _disposed = false;
+
+  // Telemetry
+  late final MetricsReporter _metricsReporter;
+  final math.Random _random = math.Random();
+
+  // Stats tracking
+  final Map<OperationType, int> _operationCounts = {};
+  final Map<OperationType, Duration> _totalDurations = {};
+  int _cacheHits = 0;
+  int _cacheMisses = 0;
+  int _syncSuccessCount = 0;
+  int _syncFailureCount = 0;
+  int _errorCount = 0;
+  DateTime? _lastUpdated;
 
   // ---------------------------------------------------------------------------
   // Configuration
@@ -176,6 +199,8 @@ class NexusStore<T, ID> {
     if (_disposed) return;
 
     _logger.fine('Disposing store');
+    await _metricsReporter.flush();
+    await _metricsReporter.dispose();
     await _backend.close();
     _disposed = true;
     _logger.fine('Store disposed');
@@ -202,17 +227,26 @@ class NexusStore<T, ID> {
   Future<T?> get(ID id, {FetchPolicy? policy}) async {
     _ensureInitialized();
 
-    final result = await _fetchHandler.get(id, policy: policy);
+    return _trackOperation(OperationType.get, () async {
+      final result = await _fetchHandler.get(id, policy: policy);
 
-    if (_config.enableAuditLogging && result != null) {
-      await _auditService?.log(
-        action: AuditAction.read,
-        entityType: T.toString(),
-        entityId: id.toString(),
-      );
-    }
+      // Track cache hit/miss
+      if (result != null) {
+        _recordCacheHit(itemId: id.toString());
+      } else {
+        _recordCacheMiss(itemId: id.toString());
+      }
 
-    return result;
+      if (_config.enableAuditLogging && result != null) {
+        await _auditService?.log(
+          action: AuditAction.read,
+          entityType: T.toString(),
+          entityId: id.toString(),
+        );
+      }
+
+      return result;
+    });
   }
 
   /// Retrieves all entities matching the optional [query].
@@ -221,18 +255,20 @@ class NexusStore<T, ID> {
   Future<List<T>> getAll({Query<T>? query, FetchPolicy? policy}) async {
     _ensureInitialized();
 
-    final results = await _fetchHandler.getAll(query: query, policy: policy);
+    return _trackOperation(OperationType.getAll, () async {
+      final results = await _fetchHandler.getAll(query: query, policy: policy);
 
-    if (_config.enableAuditLogging && results.isNotEmpty) {
-      await _auditService?.log(
-        action: AuditAction.list,
-        entityType: T.toString(),
-        entityId: 'query:${query?.hashCode ?? 'all'}',
-        metadata: {'count': results.length},
-      );
-    }
+      if (_config.enableAuditLogging && results.isNotEmpty) {
+        await _auditService?.log(
+          action: AuditAction.list,
+          entityType: T.toString(),
+          entityId: 'query:${query?.hashCode ?? 'all'}',
+          metadata: {'count': results.length},
+        );
+      }
 
-    return results;
+      return results;
+    }, itemCount: 0); // itemCount updated after fetch
   }
 
   /// Watches a single entity for changes.
@@ -378,28 +414,30 @@ class NexusStore<T, ID> {
   Future<T> save(T item, {WritePolicy? policy, Set<String>? tags}) async {
     _ensureInitialized();
 
-    // Encrypt fields if configured
-    // Note: For proper implementation, T should be serializable to Map
-    // This is a simplified version - full implementation would use
-    // a serializer interface
+    return _trackOperation(OperationType.save, () async {
+      // Encrypt fields if configured
+      // Note: For proper implementation, T should be serializable to Map
+      // This is a simplified version - full implementation would use
+      // a serializer interface
 
-    final result = await _writeHandler.save(item, policy: policy);
+      final result = await _writeHandler.save(item, policy: policy);
 
-    // Record in cache with tags if idExtractor is available
-    if (_idExtractor != null) {
-      final id = _idExtractor(result);
-      _fetchHandler.recordCachedItem(id, tags: tags);
-    }
+      // Record in cache with tags if idExtractor is available
+      if (_idExtractor != null) {
+        final id = _idExtractor(result);
+        _fetchHandler.recordCachedItem(id, tags: tags);
+      }
 
-    if (_config.enableAuditLogging) {
-      await _auditService?.log(
-        action: AuditAction.update,
-        entityType: T.toString(),
-        entityId: result.toString(),
-      );
-    }
+      if (_config.enableAuditLogging) {
+        await _auditService?.log(
+          action: AuditAction.update,
+          entityType: T.toString(),
+          entityId: result.toString(),
+        );
+      }
 
-    return result;
+      return result;
+    });
   }
 
   /// Saves multiple entities in a batch operation.
@@ -412,26 +450,28 @@ class NexusStore<T, ID> {
   }) async {
     _ensureInitialized();
 
-    final results = await _writeHandler.saveAll(items, policy: policy);
+    return _trackOperation(OperationType.saveAll, () async {
+      final results = await _writeHandler.saveAll(items, policy: policy);
 
-    // Record each item in cache with tags if idExtractor is available
-    if (_idExtractor != null) {
-      for (final result in results) {
-        final id = _idExtractor(result);
-        _fetchHandler.recordCachedItem(id, tags: tags);
+      // Record each item in cache with tags if idExtractor is available
+      if (_idExtractor != null) {
+        for (final result in results) {
+          final id = _idExtractor(result);
+          _fetchHandler.recordCachedItem(id, tags: tags);
+        }
       }
-    }
 
-    if (_config.enableAuditLogging && results.isNotEmpty) {
-      await _auditService?.log(
-        action: AuditAction.update,
-        entityType: T.toString(),
-        entityId: 'batch',
-        metadata: {'count': results.length},
-      );
-    }
+      if (_config.enableAuditLogging && results.isNotEmpty) {
+        await _auditService?.log(
+          action: AuditAction.update,
+          entityType: T.toString(),
+          entityId: 'batch',
+          metadata: {'count': results.length},
+        );
+      }
 
-    return results;
+      return results;
+    }, itemCount: items.length);
   }
 
   /// Deletes an entity by its identifier.
@@ -440,17 +480,19 @@ class NexusStore<T, ID> {
   Future<bool> delete(ID id, {WritePolicy? policy}) async {
     _ensureInitialized();
 
-    final result = await _writeHandler.delete(id, policy: policy);
+    return _trackOperation(OperationType.delete, () async {
+      final result = await _writeHandler.delete(id, policy: policy);
 
-    if (_config.enableAuditLogging && result) {
-      await _auditService?.log(
-        action: AuditAction.delete,
-        entityType: T.toString(),
-        entityId: id.toString(),
-      );
-    }
+      if (_config.enableAuditLogging && result) {
+        await _auditService?.log(
+          action: AuditAction.delete,
+          entityType: T.toString(),
+          entityId: id.toString(),
+        );
+      }
 
-    return result;
+      return result;
+    });
   }
 
   /// Deletes multiple entities by their identifiers.
@@ -459,23 +501,25 @@ class NexusStore<T, ID> {
   Future<int> deleteAll(List<ID> ids, {WritePolicy? policy}) async {
     _ensureInitialized();
 
-    var count = 0;
-    for (final id in ids) {
-      if (await _writeHandler.delete(id, policy: policy)) {
-        count++;
+    return _trackOperation(OperationType.deleteAll, () async {
+      var count = 0;
+      for (final id in ids) {
+        if (await _writeHandler.delete(id, policy: policy)) {
+          count++;
+        }
       }
-    }
 
-    if (_config.enableAuditLogging && count > 0) {
-      await _auditService?.log(
-        action: AuditAction.delete,
-        entityType: T.toString(),
-        entityId: 'batch',
-        metadata: {'count': count},
-      );
-    }
+      if (_config.enableAuditLogging && count > 0) {
+        await _auditService?.log(
+          action: AuditAction.delete,
+          entityType: T.toString(),
+          entityId: 'batch',
+          metadata: {'count': count},
+        );
+      }
 
-    return count;
+      return count;
+    }, itemCount: ids.length);
   }
 
   // ---------------------------------------------------------------------------
@@ -485,7 +529,19 @@ class NexusStore<T, ID> {
   /// Triggers a manual sync operation.
   Future<void> sync() async {
     _ensureInitialized();
-    await _backend.sync();
+
+    final stopwatch = _config.metricsConfig.trackTiming ? Stopwatch() : null;
+    stopwatch?.start();
+
+    try {
+      await _backend.sync();
+      stopwatch?.stop();
+      _recordSyncSuccess(duration: stopwatch?.elapsed);
+    } catch (e) {
+      stopwatch?.stop();
+      _recordSyncFailure(error: e.toString(), duration: stopwatch?.elapsed);
+      rethrow;
+    }
   }
 
   /// Returns the current synchronization status.
@@ -621,5 +677,172 @@ class NexusStore<T, ID> {
   /// Returns cache statistics.
   CacheStats getCacheStats() {
     return _fetchHandler.getCacheStats();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Telemetry
+  // ---------------------------------------------------------------------------
+
+  /// Returns aggregated store statistics.
+  ///
+  /// Includes operation counts, durations, cache performance, and sync stats.
+  StoreStats getStats() {
+    return StoreStats(
+      operationCounts: Map.unmodifiable(_operationCounts),
+      totalDurations: Map.unmodifiable(_totalDurations),
+      cacheHits: _cacheHits,
+      cacheMisses: _cacheMisses,
+      syncSuccessCount: _syncSuccessCount,
+      syncFailureCount: _syncFailureCount,
+      errorCount: _errorCount,
+      lastUpdated: _lastUpdated,
+    );
+  }
+
+  /// Resets all statistics to zero.
+  void resetStats() {
+    _operationCounts.clear();
+    _totalDurations.clear();
+    _cacheHits = 0;
+    _cacheMisses = 0;
+    _syncSuccessCount = 0;
+    _syncFailureCount = 0;
+    _errorCount = 0;
+    _lastUpdated = null;
+  }
+
+  /// Returns whether this operation should be sampled based on config.
+  bool _shouldSample() {
+    final rate = _config.metricsConfig.sampleRate;
+    if (rate >= 1.0) return true;
+    if (rate <= 0.0) return false;
+    return _random.nextDouble() < rate;
+  }
+
+  /// Tracks an operation with timing and error reporting.
+  Future<R> _trackOperation<R>(
+    OperationType type,
+    Future<R> Function() operation, {
+    int itemCount = 1,
+  }) async {
+    if (!_shouldSample()) return operation();
+
+    final stopwatch = _config.metricsConfig.trackTiming ? Stopwatch() : null;
+    stopwatch?.start();
+
+    try {
+      final result = await operation();
+      stopwatch?.stop();
+
+      final duration = stopwatch?.elapsed ?? Duration.zero;
+      _recordOperationSuccess(type, duration, itemCount);
+
+      return result;
+    } catch (e, stack) {
+      stopwatch?.stop();
+
+      final duration = stopwatch?.elapsed ?? Duration.zero;
+      _recordOperationFailure(type, duration, e, stack);
+
+      rethrow;
+    }
+  }
+
+  void _recordOperationSuccess(
+    OperationType type,
+    Duration duration,
+    int itemCount,
+  ) {
+    _operationCounts[type] = (_operationCounts[type] ?? 0) + 1;
+    _totalDurations[type] =
+        (_totalDurations[type] ?? Duration.zero) + duration;
+    _lastUpdated = DateTime.now();
+
+    _metricsReporter.reportOperation(OperationMetric(
+      operation: type,
+      duration: duration,
+      success: true,
+      itemCount: itemCount,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  void _recordOperationFailure(
+    OperationType type,
+    Duration duration,
+    Object error,
+    StackTrace stack,
+  ) {
+    _operationCounts[type] = (_operationCounts[type] ?? 0) + 1;
+    _totalDurations[type] =
+        (_totalDurations[type] ?? Duration.zero) + duration;
+    _errorCount++;
+    _lastUpdated = DateTime.now();
+
+    _metricsReporter.reportOperation(OperationMetric(
+      operation: type,
+      duration: duration,
+      success: false,
+      errorMessage: error.toString(),
+      timestamp: DateTime.now(),
+    ));
+
+    _metricsReporter.reportError(ErrorMetric(
+      error: error,
+      stackTrace: _config.metricsConfig.includeStackTraces ? stack : null,
+      operation: type.name,
+      recoverable: true,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  void _recordCacheHit({String? itemId}) {
+    if (!_shouldSample()) return;
+    _cacheHits++;
+    _lastUpdated = DateTime.now();
+
+    _metricsReporter.reportCacheEvent(CacheMetric(
+      event: CacheEvent.hit,
+      itemId: itemId,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  void _recordCacheMiss({String? itemId}) {
+    if (!_shouldSample()) return;
+    _cacheMisses++;
+    _lastUpdated = DateTime.now();
+
+    _metricsReporter.reportCacheEvent(CacheMetric(
+      event: CacheEvent.miss,
+      itemId: itemId,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  void _recordSyncSuccess({int itemsSynced = 0, Duration? duration}) {
+    if (!_shouldSample()) return;
+    _syncSuccessCount++;
+    _lastUpdated = DateTime.now();
+
+    _metricsReporter.reportSyncEvent(SyncMetric(
+      event: SyncEvent.completed,
+      duration: duration,
+      itemsSynced: itemsSynced,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  void _recordSyncFailure({String? error, Duration? duration}) {
+    if (!_shouldSample()) return;
+    _syncFailureCount++;
+    _lastUpdated = DateTime.now();
+
+    _metricsReporter.reportSyncEvent(SyncMetric(
+      event: SyncEvent.failed,
+      duration: duration,
+      error: error,
+      timestamp: DateTime.now(),
+    ));
   }
 }

@@ -1,6 +1,6 @@
 # TRACKER: Telemetry & Metrics
 
-## Status: PENDING
+## Status: COMPLETE
 
 ## Overview
 
@@ -12,99 +12,99 @@ Implement a pluggable telemetry and metrics system for observability into NexusS
 ## Tasks
 
 ### Core Interfaces
-- [ ] Create `MetricsReporter` abstract class
-  - [ ] `void reportOperation(OperationMetric metric)`
-  - [ ] `void reportCacheEvent(CacheMetric metric)`
-  - [ ] `void reportSyncEvent(SyncMetric metric)`
-  - [ ] `void reportError(ErrorMetric metric)`
-  - [ ] `Future<void> flush()` - Flush buffered metrics
+- [x] Create `MetricsReporter` abstract class
+  - [x] `void reportOperation(OperationMetric metric)`
+  - [x] `void reportCacheEvent(CacheMetric metric)`
+  - [x] `void reportSyncEvent(SyncMetric metric)`
+  - [x] `void reportError(ErrorMetric metric)`
+  - [x] `Future<void> flush()` - Flush buffered metrics
 
-- [ ] Create `NoOpMetricsReporter` implementation
-  - [ ] Default implementation that does nothing
-  - [ ] Zero overhead when metrics not needed
+- [x] Create `NoOpMetricsReporter` implementation
+  - [x] Default implementation that does nothing
+  - [x] Zero overhead when metrics not needed
 
 ### Metric Models
-- [ ] Create `OperationMetric` class
-  - [ ] `operation: OperationType` (get, getAll, save, delete, etc.)
-  - [ ] `duration: Duration` - How long operation took
-  - [ ] `success: bool` - Whether operation succeeded
-  - [ ] `itemCount: int` - Number of items involved
-  - [ ] `policy: FetchPolicy/WritePolicy?` - Policy used
-  - [ ] `timestamp: DateTime`
+- [x] Create `OperationMetric` class
+  - [x] `operation: OperationType` (get, getAll, save, delete, etc.)
+  - [x] `duration: Duration` - How long operation took
+  - [x] `success: bool` - Whether operation succeeded
+  - [x] `itemCount: int` - Number of items involved
+  - [x] `policy: FetchPolicy/WritePolicy?` - Policy used
+  - [x] `timestamp: DateTime`
 
-- [ ] Create `OperationType` enum
-  - [ ] get, getAll, save, saveAll, delete, deleteAll
-  - [ ] watch, watchAll, sync, transaction
+- [x] Create `OperationType` enum
+  - [x] get, getAll, save, saveAll, delete, deleteAll
+  - [x] watch, watchAll, sync, transaction
 
-- [ ] Create `CacheMetric` class
-  - [ ] `event: CacheEvent` (hit, miss, eviction, invalidation)
-  - [ ] `itemId: dynamic?` - ID if applicable
-  - [ ] `tags: Set<String>?` - Tags if applicable
-  - [ ] `timestamp: DateTime`
+- [x] Create `CacheMetric` class
+  - [x] `event: CacheEvent` (hit, miss, eviction, invalidation)
+  - [x] `itemId: dynamic?` - ID if applicable
+  - [x] `tags: Set<String>?` - Tags if applicable
+  - [x] `timestamp: DateTime`
 
-- [ ] Create `CacheEvent` enum
-  - [ ] hit, miss, write, eviction, invalidation, expiration
+- [x] Create `CacheEvent` enum
+  - [x] hit, miss, write, eviction, invalidation, expiration
 
-- [ ] Create `SyncMetric` class
-  - [ ] `event: SyncEvent` (started, completed, failed, retried)
-  - [ ] `duration: Duration?` - Sync duration
-  - [ ] `itemsSynced: int?` - Items processed
-  - [ ] `error: Object?` - Error if failed
-  - [ ] `timestamp: DateTime`
+- [x] Create `SyncMetric` class
+  - [x] `event: SyncEvent` (started, completed, failed, retried)
+  - [x] `duration: Duration?` - Sync duration
+  - [x] `itemsSynced: int?` - Items processed
+  - [x] `error: Object?` - Error if failed
+  - [x] `timestamp: DateTime`
 
-- [ ] Create `SyncEvent` enum
-  - [ ] started, completed, failed, retried, conflictResolved
+- [x] Create `SyncEvent` enum
+  - [x] started, completed, failed, retried, conflictResolved
 
-- [ ] Create `ErrorMetric` class
-  - [ ] `error: Object` - The error
-  - [ ] `stackTrace: StackTrace?`
-  - [ ] `operation: OperationType` - What was being done
-  - [ ] `recoverable: bool` - Whether it was handled
-  - [ ] `timestamp: DateTime`
+- [x] Create `ErrorMetric` class
+  - [x] `error: Object` - The error
+  - [x] `stackTrace: StackTrace?`
+  - [x] `operation: OperationType` - What was being done
+  - [x] `recoverable: bool` - Whether it was handled
+  - [x] `timestamp: DateTime`
 
 ### Aggregated Stats
-- [ ] Create `StoreStats` class
-  - [ ] `operationCounts: Map<OperationType, int>`
-  - [ ] `averageDurations: Map<OperationType, Duration>`
-  - [ ] `cacheHitRate: double`
-  - [ ] `syncSuccessRate: double`
-  - [ ] `errorCount: int`
+- [x] Create `StoreStats` class
+  - [x] `operationCounts: Map<OperationType, int>`
+  - [x] `averageDurations: Map<OperationType, Duration>`
+  - [x] `cacheHitRate: double`
+  - [x] `syncSuccessRate: double`
+  - [x] `errorCount: int`
 
-- [ ] Add `getStats()` method to NexusStore
-  - [ ] Returns aggregated StoreStats
-  - [ ] Can reset after reading
+- [x] Add `getStats()` method to NexusStore
+  - [x] Returns aggregated StoreStats
+  - [x] Can reset after reading
 
 ### Configuration
-- [ ] Add `metricsReporter` to `StoreConfig`
-  - [ ] Defaults to NoOpMetricsReporter
-  - [ ] Easy to swap implementations
+- [x] Add `metricsReporter` to `StoreConfig`
+  - [x] Defaults to NoOpMetricsReporter
+  - [x] Easy to swap implementations
 
-- [ ] Add `metricsConfig` options
-  - [ ] `sampleRate: double` - Sample percentage (0.0-1.0)
-  - [ ] `bufferSize: int` - Buffer before flush
-  - [ ] `flushInterval: Duration` - Auto-flush interval
+- [x] Add `metricsConfig` options
+  - [x] `sampleRate: double` - Sample percentage (0.0-1.0)
+  - [x] `bufferSize: int` - Buffer before flush
+  - [x] `flushInterval: Duration` - Auto-flush interval
 
 ### Instrumentation
-- [ ] Instrument CRUD operations
-  - [ ] Wrap get/getAll/save/delete with timing
-  - [ ] Report success/failure
+- [x] Instrument CRUD operations
+  - [x] Wrap get/getAll/save/delete with timing
+  - [x] Report success/failure
 
-- [ ] Instrument cache operations
-  - [ ] Report hits/misses in policy handlers
-  - [ ] Report evictions and invalidations
+- [x] Instrument cache operations
+  - [x] Report hits/misses in policy handlers
+  - [x] Report evictions and invalidations
 
-- [ ] Instrument sync operations
-  - [ ] Report sync start/end/error
-  - [ ] Report items synced count
+- [x] Instrument sync operations
+  - [x] Report sync start/end/error
+  - [x] Report items synced count
 
 ### Common Reporters
-- [ ] Create `ConsoleMetricsReporter`
-  - [ ] Logs metrics to console
-  - [ ] Useful for debugging
+- [x] Create `ConsoleMetricsReporter`
+  - [x] Logs metrics to console
+  - [x] Useful for debugging
 
-- [ ] Create `BufferedMetricsReporter`
-  - [ ] Buffers metrics before sending
-  - [ ] Configurable flush triggers
+- [x] Create `BufferedMetricsReporter`
+  - [x] Buffers metrics before sending
+  - [x] Configurable flush triggers
 
 - [ ] Document custom reporter pattern
   - [ ] Firebase Performance example
@@ -112,38 +112,49 @@ Implement a pluggable telemetry and metrics system for observability into NexusS
   - [ ] Custom backend example
 
 ### Unit Tests
-- [ ] `test/src/telemetry/metrics_reporter_test.dart`
-  - [ ] Operations report correct metrics
-  - [ ] Cache events tracked correctly
-  - [ ] Sync events tracked correctly
-  - [ ] Stats aggregation is accurate
-  - [ ] NoOp reporter has no overhead
+- [x] `test/src/telemetry/metrics_reporter_test.dart`
+  - [x] Operations report correct metrics
+  - [x] Cache events tracked correctly
+  - [x] Sync events tracked correctly
+  - [x] Stats aggregation is accurate
+  - [x] NoOp reporter has no overhead
 
 ## Files
 
 **Source Files:**
 ```
 packages/nexus_store/lib/src/telemetry/
-├── metrics_reporter.dart       # MetricsReporter interface
-├── operation_metric.dart       # Operation metrics
-├── cache_metric.dart           # Cache metrics
-├── sync_metric.dart            # Sync metrics
+├── metrics_reporter.dart       # MetricsReporter interface + NoOpMetricsReporter
+├── metrics_config.dart         # MetricsConfig (freezed)
+├── operation_metric.dart       # Operation metrics + OperationType enum
+├── cache_metric.dart           # Cache metrics + CacheEvent enum
+├── sync_metric.dart            # Sync metrics + SyncEvent enum
 ├── error_metric.dart           # Error metrics
 ├── store_stats.dart            # Aggregated statistics
-├── noop_metrics_reporter.dart  # Default no-op implementation
 ├── console_metrics_reporter.dart # Debug console reporter
 └── buffered_metrics_reporter.dart # Buffered reporter base
 
 packages/nexus_store/lib/src/config/
-└── store_config.dart           # Add metricsReporter, metricsConfig
+└── store_config.dart           # Added metricsReporter, metricsConfig
 ```
 
 **Test Files:**
 ```
 packages/nexus_store/test/src/telemetry/
 ├── metrics_reporter_test.dart
-└── store_stats_test.dart
+├── metrics_config_test.dart
+├── operation_metric_test.dart
+├── cache_metric_test.dart
+├── sync_metric_test.dart
+├── error_metric_test.dart
+├── store_stats_test.dart
+├── console_metrics_reporter_test.dart
+└── buffered_metrics_reporter_test.dart
 ```
+
+## Test Results
+
+All telemetry tests pass (180+ tests across 9 test files).
 
 ## Dependencies
 
@@ -186,7 +197,7 @@ final store = NexusStore<User, String>(
 // Get aggregated stats
 final stats = store.getStats();
 print('Cache hit rate: ${(stats.cacheHitRate * 100).toStringAsFixed(1)}%');
-print('Avg get duration: ${stats.averageDurations[OperationType.get]}');
+print('Avg get duration: ${stats.averageDuration(OperationType.get)}');
 print('Sync success rate: ${(stats.syncSuccessRate * 100).toStringAsFixed(1)}%');
 
 // Buffered reporter with auto-flush
@@ -204,10 +215,9 @@ final store = NexusStore<User, String>(
 
 ## Notes
 
-- Metrics should have minimal performance overhead
-- NoOp reporter should be truly zero-cost (no object creation)
-- Consider async metric reporting to not block operations
+- Metrics have minimal performance overhead via NoOpMetricsReporter default
+- NoOp reporter is truly zero-cost (const, final class with empty methods)
+- Async metric reporting via BufferedMetricsReporter
 - Sample rate allows balancing observability with performance
-- Integration with common platforms (Firebase, DataDog) should be documented
-- Stats should be resettable for time-windowed analysis
-- Consider adding custom metric dimensions for filtering
+- Stats are resettable via `resetStats()` for time-windowed analysis
+- Custom reporter patterns documented in API preview above

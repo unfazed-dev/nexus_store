@@ -54,6 +54,12 @@ mixin _$StoreConfig {
   /// Custom table/collection name override.
   String? get tableName;
 
+  /// Metrics reporter for telemetry (defaults to no-op).
+  MetricsReporter get metricsReporter;
+
+  /// Metrics configuration for sampling and buffering.
+  MetricsConfig get metricsConfig;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -88,7 +94,11 @@ mixin _$StoreConfig {
             (identical(other.syncInterval, syncInterval) ||
                 other.syncInterval == syncInterval) &&
             (identical(other.tableName, tableName) ||
-                other.tableName == tableName));
+                other.tableName == tableName) &&
+            (identical(other.metricsReporter, metricsReporter) ||
+                other.metricsReporter == metricsReporter) &&
+            (identical(other.metricsConfig, metricsConfig) ||
+                other.metricsConfig == metricsConfig));
   }
 
   @override
@@ -105,11 +115,13 @@ mixin _$StoreConfig {
       gdpr,
       staleDuration,
       syncInterval,
-      tableName);
+      tableName,
+      metricsReporter,
+      metricsConfig);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig)';
   }
 }
 
@@ -131,10 +143,13 @@ abstract mixin class $StoreConfigCopyWith<$Res> {
       GdprConfig? gdpr,
       Duration? staleDuration,
       Duration? syncInterval,
-      String? tableName});
+      String? tableName,
+      MetricsReporter metricsReporter,
+      MetricsConfig metricsConfig});
 
   $EncryptionConfigCopyWith<$Res> get encryption;
   $GdprConfigCopyWith<$Res>? get gdpr;
+  $MetricsConfigCopyWith<$Res> get metricsConfig;
 }
 
 /// @nodoc
@@ -161,6 +176,8 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
     Object? staleDuration = freezed,
     Object? syncInterval = freezed,
     Object? tableName = freezed,
+    Object? metricsReporter = null,
+    Object? metricsConfig = null,
   }) {
     return _then(_self.copyWith(
       fetchPolicy: null == fetchPolicy
@@ -211,6 +228,14 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
           ? _self.tableName
           : tableName // ignore: cast_nullable_to_non_nullable
               as String?,
+      metricsReporter: null == metricsReporter
+          ? _self.metricsReporter
+          : metricsReporter // ignore: cast_nullable_to_non_nullable
+              as MetricsReporter,
+      metricsConfig: null == metricsConfig
+          ? _self.metricsConfig
+          : metricsConfig // ignore: cast_nullable_to_non_nullable
+              as MetricsConfig,
     ));
   }
 
@@ -235,6 +260,16 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
 
     return $GdprConfigCopyWith<$Res>(_self.gdpr!, (value) {
       return _then(_self.copyWith(gdpr: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $MetricsConfigCopyWith<$Res> get metricsConfig {
+    return $MetricsConfigCopyWith<$Res>(_self.metricsConfig, (value) {
+      return _then(_self.copyWith(metricsConfig: value));
     });
   }
 }
@@ -344,7 +379,9 @@ extension StoreConfigPatterns on StoreConfig {
             GdprConfig? gdpr,
             Duration? staleDuration,
             Duration? syncInterval,
-            String? tableName)?
+            String? tableName,
+            MetricsReporter metricsReporter,
+            MetricsConfig metricsConfig)?
         $default, {
     required TResult orElse(),
   }) {
@@ -363,7 +400,9 @@ extension StoreConfigPatterns on StoreConfig {
             _that.gdpr,
             _that.staleDuration,
             _that.syncInterval,
-            _that.tableName);
+            _that.tableName,
+            _that.metricsReporter,
+            _that.metricsConfig);
       case _:
         return orElse();
     }
@@ -396,7 +435,9 @@ extension StoreConfigPatterns on StoreConfig {
             GdprConfig? gdpr,
             Duration? staleDuration,
             Duration? syncInterval,
-            String? tableName)
+            String? tableName,
+            MetricsReporter metricsReporter,
+            MetricsConfig metricsConfig)
         $default,
   ) {
     final _that = this;
@@ -414,7 +455,9 @@ extension StoreConfigPatterns on StoreConfig {
             _that.gdpr,
             _that.staleDuration,
             _that.syncInterval,
-            _that.tableName);
+            _that.tableName,
+            _that.metricsReporter,
+            _that.metricsConfig);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -446,7 +489,9 @@ extension StoreConfigPatterns on StoreConfig {
             GdprConfig? gdpr,
             Duration? staleDuration,
             Duration? syncInterval,
-            String? tableName)?
+            String? tableName,
+            MetricsReporter metricsReporter,
+            MetricsConfig metricsConfig)?
         $default,
   ) {
     final _that = this;
@@ -464,7 +509,9 @@ extension StoreConfigPatterns on StoreConfig {
             _that.gdpr,
             _that.staleDuration,
             _that.syncInterval,
-            _that.tableName);
+            _that.tableName,
+            _that.metricsReporter,
+            _that.metricsConfig);
       case _:
         return null;
     }
@@ -486,7 +533,9 @@ class _StoreConfig extends StoreConfig {
       this.gdpr,
       this.staleDuration,
       this.syncInterval,
-      this.tableName})
+      this.tableName,
+      this.metricsReporter = const NoOpMetricsReporter(),
+      this.metricsConfig = MetricsConfig.defaults})
       : super._();
 
   /// Default fetch policy for read operations.
@@ -549,6 +598,16 @@ class _StoreConfig extends StoreConfig {
   @override
   final String? tableName;
 
+  /// Metrics reporter for telemetry (defaults to no-op).
+  @override
+  @JsonKey()
+  final MetricsReporter metricsReporter;
+
+  /// Metrics configuration for sampling and buffering.
+  @override
+  @JsonKey()
+  final MetricsConfig metricsConfig;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -584,7 +643,11 @@ class _StoreConfig extends StoreConfig {
             (identical(other.syncInterval, syncInterval) ||
                 other.syncInterval == syncInterval) &&
             (identical(other.tableName, tableName) ||
-                other.tableName == tableName));
+                other.tableName == tableName) &&
+            (identical(other.metricsReporter, metricsReporter) ||
+                other.metricsReporter == metricsReporter) &&
+            (identical(other.metricsConfig, metricsConfig) ||
+                other.metricsConfig == metricsConfig));
   }
 
   @override
@@ -601,11 +664,13 @@ class _StoreConfig extends StoreConfig {
       gdpr,
       staleDuration,
       syncInterval,
-      tableName);
+      tableName,
+      metricsReporter,
+      metricsConfig);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig)';
   }
 }
 
@@ -629,12 +694,16 @@ abstract mixin class _$StoreConfigCopyWith<$Res>
       GdprConfig? gdpr,
       Duration? staleDuration,
       Duration? syncInterval,
-      String? tableName});
+      String? tableName,
+      MetricsReporter metricsReporter,
+      MetricsConfig metricsConfig});
 
   @override
   $EncryptionConfigCopyWith<$Res> get encryption;
   @override
   $GdprConfigCopyWith<$Res>? get gdpr;
+  @override
+  $MetricsConfigCopyWith<$Res> get metricsConfig;
 }
 
 /// @nodoc
@@ -661,6 +730,8 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
     Object? staleDuration = freezed,
     Object? syncInterval = freezed,
     Object? tableName = freezed,
+    Object? metricsReporter = null,
+    Object? metricsConfig = null,
   }) {
     return _then(_StoreConfig(
       fetchPolicy: null == fetchPolicy
@@ -711,6 +782,14 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
           ? _self.tableName
           : tableName // ignore: cast_nullable_to_non_nullable
               as String?,
+      metricsReporter: null == metricsReporter
+          ? _self.metricsReporter
+          : metricsReporter // ignore: cast_nullable_to_non_nullable
+              as MetricsReporter,
+      metricsConfig: null == metricsConfig
+          ? _self.metricsConfig
+          : metricsConfig // ignore: cast_nullable_to_non_nullable
+              as MetricsConfig,
     ));
   }
 
@@ -735,6 +814,16 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
 
     return $GdprConfigCopyWith<$Res>(_self.gdpr!, (value) {
       return _then(_self.copyWith(gdpr: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $MetricsConfigCopyWith<$Res> get metricsConfig {
+    return $MetricsConfigCopyWith<$Res>(_self.metricsConfig, (value) {
+      return _then(_self.copyWith(metricsConfig: value));
     });
   }
 }

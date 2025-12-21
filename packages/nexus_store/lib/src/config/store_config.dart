@@ -3,6 +3,8 @@ import 'package:nexus_store/src/compliance/gdpr_config.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/retry_config.dart';
 import 'package:nexus_store/src/security/encryption_config.dart';
+import 'package:nexus_store/src/telemetry/metrics_config.dart';
+import 'package:nexus_store/src/telemetry/metrics_reporter.dart';
 
 part 'store_config.freezed.dart';
 
@@ -65,6 +67,12 @@ abstract class StoreConfig with _$StoreConfig {
 
     /// Custom table/collection name override.
     String? tableName,
+
+    /// Metrics reporter for telemetry (defaults to no-op).
+    @Default(NoOpMetricsReporter()) MetricsReporter metricsReporter,
+
+    /// Metrics configuration for sampling and buffering.
+    @Default(MetricsConfig.defaults) MetricsConfig metricsConfig,
   }) = _StoreConfig;
 
   const StoreConfig._();

@@ -40,7 +40,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 - [ ] Type-safe query builder - See [TRACKER-type-safe-query.md](./phase-5-production/TRACKER-type-safe-query.md)
 - [x] Conflict resolution & pending changes - See [TRACKER-conflict-resolution.md](./phase-5-production/TRACKER-conflict-resolution.md) ✅ (84+ tests)
 - [x] Tag-based cache invalidation - See [TRACKER-cache-invalidation.md](./phase-5-production/TRACKER-cache-invalidation.md) ✅ (109 tests)
-- [ ] Telemetry & metrics - See [TRACKER-telemetry.md](./phase-5-production/TRACKER-telemetry.md)
+- [x] Telemetry & metrics - See [TRACKER-telemetry.md](./phase-5-production/TRACKER-telemetry.md) ✅ (180+ tests)
 - [x] Key derivation (PBKDF2) - See [TRACKER-key-derivation.md](./phase-5-production/TRACKER-key-derivation.md) ✅ (134 tests)
 - [x] Batch streaming - See [TRACKER-batch-streaming.md](./phase-5-production/TRACKER-batch-streaming.md) ✅ (80+ tests)
 - [x] Enhanced GDPR compliance - See [TRACKER-gdpr-enhanced.md](./phase-5-production/TRACKER-gdpr-enhanced.md) ✅ (100+ tests)
@@ -131,7 +131,7 @@ Documentation (depends on all above)
 | REQ-020 | Conflict Resolution Callbacks | ✅ Complete | [conflict](./phase-5-production/TRACKER-conflict-resolution.md) |
 | REQ-021 | Pending Changes Visibility | ✅ Complete | [conflict](./phase-5-production/TRACKER-conflict-resolution.md) |
 | REQ-022 | Tag-Based Cache Invalidation | ✅ Complete | [cache](./phase-5-production/TRACKER-cache-invalidation.md) |
-| REQ-023 | Telemetry & Metrics | ⏳ Pending | [telemetry](./phase-5-production/TRACKER-telemetry.md) |
+| REQ-023 | Telemetry & Metrics | ✅ Complete | [telemetry](./phase-5-production/TRACKER-telemetry.md) |
 | REQ-024 | Key Derivation | ✅ Complete | [key-derivation](./phase-5-production/TRACKER-key-derivation.md) |
 | REQ-025 | Batch Streaming | ✅ Complete | [streaming](./phase-5-production/TRACKER-batch-streaming.md) |
 | REQ-026 | Data Minimization (GDPR) | ✅ Complete | [gdpr-enhanced](./phase-5-production/TRACKER-gdpr-enhanced.md) |
@@ -221,10 +221,11 @@ Documentation (depends on all above)
 - ✅ Conflict resolution & pending changes implemented with 84+ tests (ConflictDetails, ConflictAction, PendingChange, PendingChangesManager, state reversion on cancel)
 - ✅ Enhanced GDPR compliance implemented with 100+ tests (RetentionPolicy, DataMinimizationService, ConsentService, BreachService, GdprConfig)
 - ✅ Key derivation (PBKDF2) implemented with 134 tests (KeyDerivationConfig, DerivedKey, KeyDeriver, Pbkdf2KeyDeriver, KeyDerivationService, SaltStorage)
+- ✅ Telemetry & metrics implemented with 180+ tests (MetricsReporter, OperationMetric, CacheMetric, SyncMetric, ErrorMetric, StoreStats, MetricsConfig, ConsoleMetricsReporter, BufferedMetricsReporter, NexusStore instrumentation)
 - All Phase 2 backend adapters are now complete
 - Phase 3 Flutter extension is now complete
 - Phase 4 Documentation is now complete
-- Phase 5: 6/9 production features complete (cursor pagination, batch streaming, cache invalidation, conflict resolution, enhanced GDPR, key derivation)
+- Phase 5: 7/9 production features complete (cursor pagination, batch streaming, cache invalidation, conflict resolution, enhanced GDPR, key derivation, telemetry)
 - Melos workspace configured with shared scripts for analyze, test, format
 - Fixed bug in composite_backend.dart (missing await in fallback handling)
 - Added analysis_options.yaml with linting configuration

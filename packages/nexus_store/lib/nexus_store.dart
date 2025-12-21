@@ -105,3 +105,13 @@ export 'src/sync/conflict_action.dart';
 export 'src/sync/conflict_details.dart';
 export 'src/sync/pending_change.dart';
 export 'src/sync/pending_changes_manager.dart';
+// Telemetry
+export 'src/telemetry/buffered_metrics_reporter.dart';
+export 'src/telemetry/cache_metric.dart';
+export 'src/telemetry/console_metrics_reporter.dart';
+export 'src/telemetry/error_metric.dart';
+export 'src/telemetry/metrics_config.dart';
+export 'src/telemetry/metrics_reporter.dart';
+export 'src/telemetry/operation_metric.dart';
+export 'src/telemetry/store_stats.dart';
+export 'src/telemetry/sync_metric.dart';
