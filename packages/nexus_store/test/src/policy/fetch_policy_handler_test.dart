@@ -1,5 +1,4 @@
 import 'package:nexus_store/nexus_store.dart';
-import 'package:nexus_store/src/cache/cache_stats.dart';
 import 'package:test/test.dart';
 
 import '../../fixtures/mock_backend.dart';
