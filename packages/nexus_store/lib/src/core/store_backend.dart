@@ -2,6 +2,8 @@ import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/pagination/page_info.dart';
 import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:nexus_store/src/query/query.dart';
+import 'package:nexus_store/src/sync/conflict_details.dart';
+import 'package:nexus_store/src/sync/pending_change.dart';
 
 /// Abstract interface for storage backends.
 ///
@@ -103,6 +105,26 @@ abstract interface class StoreBackend<T, ID> {
   /// Returns the count of pending changes awaiting sync.
   Future<int> get pendingChangesCount;
 
+  /// Returns a stream of pending changes with details.
+  ///
+  /// Emits whenever changes are added, removed, or updated.
+  Stream<List<PendingChange<T>>> get pendingChangesStream;
+
+  /// Returns a stream of detected conflicts.
+  ///
+  /// Emits when conflicts are detected during sync operations.
+  Stream<ConflictDetails<T>> get conflictsStream;
+
+  /// Retries a specific pending change.
+  ///
+  /// Throws if the change is not found or retry fails.
+  Future<void> retryChange(String changeId);
+
+  /// Cancels a pending change and reverts local state.
+  ///
+  /// Returns the cancelled change, or `null` if not found.
+  Future<PendingChange<T>?> cancelChange(String changeId);
+
   // ---------------------------------------------------------------------------
   // Pagination Operations
   // ---------------------------------------------------------------------------
@@ -173,6 +195,23 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
 
   @override
   Future<int> get pendingChangesCount async => 0;
+
+  @override
+  Stream<List<PendingChange<T>>> get pendingChangesStream =>
+      Stream.value(const []);
+
+  @override
+  Stream<ConflictDetails<T>> get conflictsStream => const Stream.empty();
+
+  @override
+  Future<void> retryChange(String changeId) async {
+    // No-op by default
+  }
+
+  @override
+  Future<PendingChange<T>?> cancelChange(String changeId) async {
+    return null;
+  }
 
   @override
   bool get supportsOffline => false;

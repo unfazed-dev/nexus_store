@@ -283,5 +283,43 @@ void main() {
         expect(backendWithMapping, isNotNull);
       });
     });
+
+    group('pending changes', () {
+      setUp(() async {
+        await backend.initialize();
+      });
+
+      test('pendingChangesStream returns empty list initially', () async {
+        expect(
+          backend.pendingChangesStream,
+          emits(isEmpty),
+        );
+      });
+
+      test('retryChange completes without error', () async {
+        await expectLater(
+          backend.retryChange('non-existent-id'),
+          completes,
+        );
+      });
+
+      test('cancelChange returns null for non-existent change', () async {
+        final result = await backend.cancelChange('non-existent-id');
+        expect(result, isNull);
+      });
+    });
+
+    group('conflicts', () {
+      setUp(() async {
+        await backend.initialize();
+      });
+
+      test('conflictsStream is available', () async {
+        expect(
+          backend.conflictsStream,
+          isA<Stream<nexus.ConflictDetails<TestUser>>>(),
+        );
+      });
+    });
   });
 }

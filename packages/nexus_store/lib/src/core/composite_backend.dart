@@ -5,6 +5,8 @@ import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/pagination/page_info.dart';
 import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:nexus_store/src/query/query.dart';
+import 'package:nexus_store/src/sync/conflict_details.dart';
+import 'package:nexus_store/src/sync/pending_change.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// A composite backend that combines multiple backends with fallback behavior.
@@ -269,6 +271,49 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
     final primaryCount = await primary.pendingChangesCount;
     final fallbackCount = await fallback?.pendingChangesCount ?? 0;
     return primaryCount + fallbackCount;
+  }
+
+  @override
+  Stream<List<PendingChange<T>>> get pendingChangesStream {
+    final streams = <Stream<List<PendingChange<T>>>>[
+      primary.pendingChangesStream,
+    ];
+    if (fallback != null) {
+      streams.add(fallback!.pendingChangesStream);
+    }
+    // Merge and combine pending changes from all backends
+    return Rx.combineLatest(streams, (lists) => lists.expand((l) => l).toList());
+  }
+
+  @override
+  Stream<ConflictDetails<T>> get conflictsStream {
+    final streams = <Stream<ConflictDetails<T>>>[primary.conflictsStream];
+    if (fallback != null) {
+      streams.add(fallback!.conflictsStream);
+    }
+    return Rx.merge(streams);
+  }
+
+  @override
+  Future<void> retryChange(String changeId) async {
+    // Try primary first, then fallback
+    try {
+      await primary.retryChange(changeId);
+      return;
+    } on Object {
+      // Not found in primary, try fallback
+    }
+    await fallback?.retryChange(changeId);
+  }
+
+  @override
+  Future<PendingChange<T>?> cancelChange(String changeId) async {
+    // Try primary first
+    final primaryResult = await primary.cancelChange(changeId);
+    if (primaryResult != null) return primaryResult;
+
+    // Try fallback
+    return fallback?.cancelChange(changeId);
   }
 
   // ---------------------------------------------------------------------------

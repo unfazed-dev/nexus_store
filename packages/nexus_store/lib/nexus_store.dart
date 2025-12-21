@@ -85,3 +85,8 @@ export 'src/security/encryption_algorithm.dart';
 export 'src/security/encryption_config.dart';
 export 'src/security/encryption_service.dart';
 export 'src/security/field_encryptor.dart';
+// Sync
+export 'src/sync/conflict_action.dart';
+export 'src/sync/conflict_details.dart';
+export 'src/sync/pending_change.dart';
+export 'src/sync/pending_changes_manager.dart';

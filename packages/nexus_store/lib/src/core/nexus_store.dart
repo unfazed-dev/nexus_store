@@ -16,6 +16,9 @@ import 'package:nexus_store/src/pagination/streaming_config.dart';
 import 'package:nexus_store/src/policy/fetch_policy_handler.dart';
 import 'package:nexus_store/src/policy/write_policy_handler.dart';
 import 'package:nexus_store/src/query/query.dart';
+import 'package:nexus_store/src/sync/conflict_action.dart';
+import 'package:nexus_store/src/sync/conflict_details.dart';
+import 'package:nexus_store/src/sync/pending_change.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// A unified reactive data store abstraction.
@@ -75,16 +78,22 @@ class NexusStore<T, ID> {
   ///
   /// The [idExtractor] is required for tag-based cache invalidation features.
   /// If not provided, cache tagging features will not track item IDs.
+  ///
+  /// The [onConflict] callback is invoked when conflicts are detected during
+  /// sync operations. If not provided, conflicts are resolved using the
+  /// [StoreConfig.conflictResolution] strategy.
   NexusStore({
     required StoreBackend<T, ID> backend,
     StoreConfig? config,
     AuditService? auditService,
     String? subjectIdField,
     ID Function(T)? idExtractor,
+    ConflictResolver<T>? onConflict,
   })  : _backend = backend,
         _config = config ?? StoreConfig.defaults,
         _auditService = auditService,
-        _idExtractor = idExtractor {
+        _idExtractor = idExtractor,
+        _onConflict = onConflict {
     _logger = Logger('NexusStore<$T, $ID>');
 
     _fetchHandler = FetchPolicyHandler(
@@ -111,6 +120,7 @@ class NexusStore<T, ID> {
   final StoreConfig _config;
   final AuditService? _auditService;
   final ID Function(T)? _idExtractor;
+  final ConflictResolver<T>? _onConflict;
 
   late final Logger _logger;
   late final FetchPolicyHandler<T, ID> _fetchHandler;
@@ -486,6 +496,60 @@ class NexusStore<T, ID> {
 
   /// Returns the count of pending changes awaiting sync.
   Future<int> get pendingChangesCount => _backend.pendingChangesCount;
+
+  /// Returns a stream of pending changes with details.
+  ///
+  /// Use this to display pending changes in the UI or track sync progress.
+  Stream<List<PendingChange<T>>> get pendingChanges =>
+      _backend.pendingChangesStream;
+
+  /// Returns a stream of detected conflicts.
+  ///
+  /// Emits when conflicts are detected during sync operations that require
+  /// resolution.
+  Stream<ConflictDetails<T>> get conflicts => _backend.conflictsStream;
+
+  /// Returns `true` if a conflict resolver callback is configured.
+  bool get hasConflictResolver => _onConflict != null;
+
+  /// Retries a specific pending change.
+  ///
+  /// Throws if the change is not found or retry fails.
+  Future<void> retryPendingChange(String changeId) async {
+    _ensureInitialized();
+    await _backend.retryChange(changeId);
+  }
+
+  /// Cancels a pending change and reverts local state.
+  ///
+  /// Returns the cancelled change, or `null` if not found.
+  Future<PendingChange<T>?> cancelPendingChange(String changeId) async {
+    _ensureInitialized();
+    return _backend.cancelChange(changeId);
+  }
+
+  /// Retries all failed pending changes.
+  Future<void> retryAllPending() async {
+    _ensureInitialized();
+    final changes = await pendingChanges.first;
+    for (final change in changes.where((c) => c.hasFailed)) {
+      await _backend.retryChange(change.id);
+    }
+  }
+
+  /// Cancels all pending changes and reverts local state.
+  ///
+  /// Returns the number of changes cancelled.
+  Future<int> cancelAllPending() async {
+    _ensureInitialized();
+    final changes = await pendingChanges.first;
+    var count = 0;
+    for (final change in changes) {
+      final cancelled = await _backend.cancelChange(change.id);
+      if (cancelled != null) count++;
+    }
+    return count;
+  }
 
   // ---------------------------------------------------------------------------
   // Cache Management

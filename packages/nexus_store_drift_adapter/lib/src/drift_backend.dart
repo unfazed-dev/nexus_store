@@ -53,7 +53,11 @@ class DriftBackend<T, ID> implements nexus.StoreBackend<T, ID> {
         _toJson = toJson,
         _primaryKeyField = primaryKeyField,
         _queryTranslator = queryTranslator ??
-            DriftQueryTranslator<T>(fieldMapping: fieldMapping);
+            DriftQueryTranslator<T>(fieldMapping: fieldMapping) {
+    _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
+      idExtractor: getId,
+    );
+  }
 
   final String _tableName;
   final ID Function(T item) _getId;
@@ -69,6 +73,10 @@ class DriftBackend<T, ID> implements nexus.StoreBackend<T, ID> {
   final _watchSubjects = <ID, BehaviorSubject<T?>>{};
   final _watchAllSubjects = <String, BehaviorSubject<List<T>>>{};
   bool _initialized = false;
+
+  // Pending changes and conflicts
+  late final nexus.PendingChangesManager<T, ID> _pendingChangesManager;
+  final _conflictsSubject = BehaviorSubject<nexus.ConflictDetails<T>>();
 
   // ---------------------------------------------------------------------------
   // Backend Information
@@ -118,6 +126,8 @@ class DriftBackend<T, ID> implements nexus.StoreBackend<T, ID> {
     _watchAllSubjects.clear();
 
     await _syncStatusSubject.close();
+    await _conflictsSubject.close();
+    await _pendingChangesManager.dispose();
     _executor = null;
     _initialized = false;
   }
@@ -381,6 +391,172 @@ class DriftBackend<T, ID> implements nexus.StoreBackend<T, ID> {
 
   @override
   Future<int> get pendingChangesCount async => 0;
+
+  // ---------------------------------------------------------------------------
+  // Pending Changes & Conflicts
+  // ---------------------------------------------------------------------------
+
+  @override
+  Stream<List<nexus.PendingChange<T>>> get pendingChangesStream =>
+      _pendingChangesManager.pendingChangesStream;
+
+  @override
+  Stream<nexus.ConflictDetails<T>> get conflictsStream =>
+      _conflictsSubject.stream;
+
+  @override
+  Future<void> retryChange(String changeId) async {
+    _ensureInitialized();
+
+    final change = _pendingChangesManager.getChange(changeId);
+    if (change == null) return;
+
+    // Update retry count
+    _pendingChangesManager.updateChange(
+      changeId,
+      retryCount: change.retryCount + 1,
+      lastAttempt: DateTime.now(),
+    );
+
+    // Drift is local-only, so sync is a no-op
+    await sync();
+  }
+
+  @override
+  Future<nexus.PendingChange<T>?> cancelChange(String changeId) async {
+    _ensureInitialized();
+
+    final change = _pendingChangesManager.getChange(changeId);
+    if (change == null) return null;
+
+    // If we have an original value and this was an update, restore it
+    if (change.originalValue != null &&
+        change.operation == nexus.PendingChangeOperation.update) {
+      await save(change.originalValue as T);
+    }
+
+    // If this was a create, delete the item
+    if (change.operation == nexus.PendingChangeOperation.create) {
+      await delete(_getId(change.item));
+    }
+
+    // If this was a delete and we have original, restore it
+    if (change.operation == nexus.PendingChangeOperation.delete &&
+        change.originalValue != null) {
+      await save(change.originalValue as T);
+    }
+
+    // Remove from pending changes
+    return _pendingChangesManager.removeChange(changeId);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pagination
+  // ---------------------------------------------------------------------------
+
+  @override
+  bool get supportsPagination => true;
+
+  @override
+  Future<nexus.PagedResult<T>> getAllPaged({nexus.Query<T>? query}) async {
+    _ensureInitialized();
+
+    try {
+      final items = await getAll(query: query);
+
+      // Handle cursor-based pagination
+      final firstCount = query?.firstCount;
+      final afterCursor = query?.afterCursor;
+
+      var startIndex = 0;
+      if (afterCursor != null) {
+        final cursorIndex = afterCursor.toValues()['_index'] as int?;
+        if (cursorIndex != null) {
+          startIndex = cursorIndex;
+        }
+      }
+
+      var endIndex = items.length;
+      if (firstCount != null) {
+        endIndex = (startIndex + firstCount).clamp(0, items.length);
+      }
+
+      final pageItems = items.sublist(startIndex, endIndex);
+      final hasNextPage = endIndex < items.length;
+      final hasPreviousPage = startIndex > 0;
+
+      nexus.Cursor? startCursor;
+      nexus.Cursor? endCursor;
+
+      if (pageItems.isNotEmpty) {
+        startCursor = nexus.Cursor.fromValues({'_index': startIndex});
+        if (hasNextPage) {
+          endCursor = nexus.Cursor.fromValues({'_index': endIndex});
+        }
+      }
+
+      return nexus.PagedResult<T>(
+        items: pageItems,
+        pageInfo: nexus.PageInfo(
+          hasNextPage: hasNextPage,
+          hasPreviousPage: hasPreviousPage,
+          startCursor: startCursor,
+          endCursor: endCursor,
+          totalCount: items.length,
+        ),
+      );
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
+  @override
+  Stream<nexus.PagedResult<T>> watchAllPaged({nexus.Query<T>? query}) {
+    _ensureInitialized();
+
+    return watchAll(query: query).map((items) {
+      final firstCount = query?.firstCount;
+      final afterCursor = query?.afterCursor;
+
+      var startIndex = 0;
+      if (afterCursor != null) {
+        final cursorIndex = afterCursor.toValues()['_index'] as int?;
+        if (cursorIndex != null) {
+          startIndex = cursorIndex;
+        }
+      }
+
+      var endIndex = items.length;
+      if (firstCount != null) {
+        endIndex = (startIndex + firstCount).clamp(0, items.length);
+      }
+
+      final pageItems = items.sublist(startIndex, endIndex);
+      final hasNextPage = endIndex < items.length;
+      final hasPreviousPage = startIndex > 0;
+
+      nexus.Cursor? startCursor;
+      nexus.Cursor? endCursor;
+
+      if (pageItems.isNotEmpty) {
+        startCursor = nexus.Cursor.fromValues({'_index': startIndex});
+        if (hasNextPage) {
+          endCursor = nexus.Cursor.fromValues({'_index': endIndex});
+        }
+      }
+
+      return nexus.PagedResult<T>(
+        items: pageItems,
+        pageInfo: nexus.PageInfo(
+          hasNextPage: hasNextPage,
+          hasPreviousPage: hasPreviousPage,
+          startCursor: startCursor,
+          endCursor: endCursor,
+          totalCount: items.length,
+        ),
+      );
+    });
+  }
 
   // ---------------------------------------------------------------------------
   // Private Helpers
