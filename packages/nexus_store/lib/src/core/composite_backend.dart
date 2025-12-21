@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
+import 'package:nexus_store/src/pagination/page_info.dart';
+import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:nexus_store/src/query/query.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -286,6 +288,58 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
 
   @override
   bool get supportsTransactions => primary.supportsTransactions;
+
+  @override
+  bool get supportsPagination =>
+      primary.supportsPagination || (fallback?.supportsPagination ?? false);
+
+  // ---------------------------------------------------------------------------
+  // Pagination Operations
+  // ---------------------------------------------------------------------------
+
+  @override
+  Future<PagedResult<T>> getAllPaged({Query<T>? query}) async {
+    try {
+      final results = await primary.getAllPaged(query: query);
+      // Update cache with items
+      for (final item in results.items) {
+        await cache?.save(item);
+      }
+      return results;
+    } on Object {
+      // Primary failed, try fallback
+    }
+
+    if (fallback != null) {
+      try {
+        return await fallback!.getAllPaged(query: query);
+      } on Object {
+        // Fallback also failed
+      }
+    }
+
+    // Try cache as last resort
+    if (cache != null) {
+      return cache!.getAllPaged(query: query);
+    }
+
+    return PagedResult<T>(
+      items: [],
+      pageInfo: const PageInfo.empty(),
+    );
+  }
+
+  @override
+  Stream<PagedResult<T>> watchAllPaged({Query<T>? query}) {
+    final streams = <Stream<PagedResult<T>>>[
+      primary.watchAllPaged(query: query),
+    ];
+    if (fallback != null) {
+      streams.add(fallback!.watchAllPaged(query: query));
+    }
+
+    return Rx.merge(streams).distinct();
+  }
 
   // ---------------------------------------------------------------------------
   // Lifecycle

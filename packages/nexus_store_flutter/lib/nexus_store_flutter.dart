@@ -38,5 +38,6 @@ export 'src/types/store_result.dart';
 export 'src/utils/store_lifecycle_observer.dart';
 export 'src/widgets/nexus_store_builder.dart';
 export 'src/widgets/nexus_store_item_builder.dart';
+export 'src/widgets/pagination_state_builder.dart';
 export 'src/widgets/store_result_builder.dart';
 export 'src/widgets/store_result_stream_builder.dart';

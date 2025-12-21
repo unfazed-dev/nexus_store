@@ -7,6 +7,10 @@ import 'package:nexus_store/src/compliance/gdpr_service.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/store_config.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
+import 'package:nexus_store/src/pagination/paged_result.dart';
+import 'package:nexus_store/src/pagination/pagination_controller.dart';
+import 'package:nexus_store/src/pagination/pagination_state.dart';
+import 'package:nexus_store/src/pagination/streaming_config.dart';
 import 'package:nexus_store/src/policy/fetch_policy_handler.dart';
 import 'package:nexus_store/src/policy/write_policy_handler.dart';
 import 'package:nexus_store/src/query/query.dart';
@@ -229,6 +233,119 @@ class NexusStore<T, ID> {
   Stream<List<T>> watchAll({Query<T>? query}) {
     _ensureInitialized();
     return _fetchHandler.watchAll(query: query);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pagination Operations
+  // ---------------------------------------------------------------------------
+
+  /// Retrieves a page of entities matching the optional [query].
+  ///
+  /// Uses cursor-based pagination. The [query] can specify:
+  /// - `first(n)` to get the first n items
+  /// - `after(cursor)` to start after a specific cursor
+  /// - `last(n)` to get the last n items
+  /// - `before(cursor)` to end before a specific cursor
+  ///
+  /// Returns a [PagedResult] containing the items and pagination metadata.
+  ///
+  /// Example:
+  /// ```dart
+  /// // First page
+  /// final firstPage = await store.getAllPaged(
+  ///   query: Query<User>().orderByField('name').first(20),
+  /// );
+  ///
+  /// // Next page
+  /// if (firstPage.hasMore) {
+  ///   final secondPage = await store.getAllPaged(
+  ///     query: Query<User>()
+  ///         .orderByField('name')
+  ///         .after(firstPage.nextCursor!)
+  ///         .first(20),
+  ///   );
+  /// }
+  /// ```
+  Future<PagedResult<T>> getAllPaged({Query<T>? query, FetchPolicy? policy}) async {
+    _ensureInitialized();
+
+    final result = await _backend.getAllPaged(query: query);
+
+    if (_config.enableAuditLogging && result.isNotEmpty) {
+      await _auditService?.log(
+        action: AuditAction.list,
+        entityType: T.toString(),
+        entityId: 'paged_query:${query?.hashCode ?? 'all'}',
+        metadata: {
+          'count': result.length,
+          'hasMore': result.hasMore,
+          'totalCount': result.totalCount,
+        },
+      );
+    }
+
+    return result;
+  }
+
+  /// Watches a page of entities matching the optional [query] for changes.
+  ///
+  /// Returns a stream that emits [PagedResult] updates when data changes.
+  ///
+  /// Example:
+  /// ```dart
+  /// store.watchAllPaged(
+  ///   query: Query<User>().orderByField('name').first(20),
+  /// ).listen((page) {
+  ///   print('Got ${page.length} users, hasMore: ${page.hasMore}');
+  /// });
+  /// ```
+  Stream<PagedResult<T>> watchAllPaged({Query<T>? query}) {
+    _ensureInitialized();
+    return _backend.watchAllPaged(query: query);
+  }
+
+  /// Watches all entities with automatic pagination and prefetching.
+  ///
+  /// Returns a stream of [PaginationState] that manages loading, error,
+  /// and data states for paginated content. Use [onController] to access
+  /// the underlying [PaginationController] for refresh, loadMore, etc.
+  ///
+  /// Example:
+  /// ```dart
+  /// store.watchAllPaginated(
+  ///   query: Query<User>().where('status', isEqualTo: 'active'),
+  ///   config: const StreamingConfig(pageSize: 20, prefetchDistance: 5),
+  ///   onController: (controller) {
+  ///     controller.refresh(); // Load initial data
+  ///     // Store controller reference for later use
+  ///     _controller = controller;
+  ///   },
+  /// ).listen((state) {
+  ///   state.when(
+  ///     initial: () => print('Initial'),
+  ///     loading: (_) => print('Loading...'),
+  ///     loadingMore: (items, _, __) => print('Loading more...'),
+  ///     data: (items, _) => print('Got ${items.length} items'),
+  ///     error: (error, _, __) => print('Error: $error'),
+  ///   );
+  /// });
+  /// ```
+  Stream<PaginationState<T>> watchAllPaginated({
+    Query<T>? query,
+    StreamingConfig config = const StreamingConfig(),
+    void Function(PaginationController<T, ID> controller)? onController,
+  }) {
+    _ensureInitialized();
+
+    final controller = PaginationController<T, ID>(
+      store: this,
+      query: query,
+      config: config,
+    );
+
+    onController?.call(controller);
+
+    return controller.stream;
   }
 
   // ---------------------------------------------------------------------------

@@ -18,11 +18,6 @@ import 'package:nexus_store_flutter/nexus_store_flutter.dart';
 
 /// Simple Task model for the example.
 class Task {
-  final String id;
-  final String title;
-  final String description;
-  final bool isCompleted;
-  final DateTime createdAt;
 
   Task({
     required this.id,
@@ -39,6 +34,11 @@ class Task {
         isCompleted: json['isCompleted'] as bool,
         createdAt: DateTime.parse(json['createdAt'] as String),
       );
+  final String id;
+  final String title;
+  final String description;
+  final bool isCompleted;
+  final DateTime createdAt;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -68,16 +68,16 @@ class Task {
 
 /// Simple in-memory backend for demonstration.
 class InMemoryBackend<T, ID> implements StoreBackend<T, ID> {
-  final ID Function(T) getId;
-  final T Function(Map<String, dynamic>) fromJson;
-  final Map<String, dynamic> Function(T) toJson;
-  final Map<ID, T> _data = {};
 
   InMemoryBackend({
     required this.getId,
     required this.fromJson,
     required this.toJson,
   });
+  final ID Function(T) getId;
+  final T Function(Map<String, dynamic>) fromJson;
+  final Map<String, dynamic> Function(T) toJson;
+  final Map<ID, T> _data = {};
 
   @override
   String get name => 'InMemoryBackend';
@@ -148,9 +148,7 @@ class InMemoryBackend<T, ID> implements StoreBackend<T, ID> {
   }
 
   @override
-  Future<bool> delete(ID id) async {
-    return _data.remove(id) != null;
-  }
+  Future<bool> delete(ID id) async => _data.remove(id) != null;
 
   @override
   Future<int> deleteAll(List<ID> ids) async {
@@ -281,8 +279,7 @@ class TaskApp extends StatelessWidget {
   const TaskApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context) => MaterialApp(
       title: 'nexus_store Flutter Example',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -290,7 +287,6 @@ class TaskApp extends StatelessWidget {
       ),
       home: const TaskListScreen(),
     );
-  }
 }
 
 // ============================================================================
@@ -308,15 +304,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
   bool _showCompleted = true;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: const Text('Tasks'),
         actions: [
           IconButton(
             icon: Icon(_showCompleted
                 ? Icons.visibility
-                : Icons.visibility_off),
+                : Icons.visibility_off,),
             tooltip: _showCompleted ? 'Hide completed' : 'Show completed',
             onPressed: () => setState(() => _showCompleted = !_showCompleted),
           ),
@@ -326,7 +321,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
         store: context.nexusStore<Task, String>(),
         query: _showCompleted
             ? null
-            : Query<Task>().where('isCompleted', isEqualTo: false),
+            : const Query<Task>().where('isCompleted', isEqualTo: false),
         builder: (context, tasks) {
           if (tasks.isEmpty) {
             return const Center(
@@ -375,7 +370,6 @@ class _TaskListScreenState extends State<TaskListScreen> {
         child: const Icon(Icons.add),
       ),
     );
-  }
 
   void _navigateToDetail(BuildContext context, String taskId) {
     Navigator.of(context).push(
@@ -416,10 +410,6 @@ class _TaskListScreenState extends State<TaskListScreen> {
 // ============================================================================
 
 class TaskListTile extends StatelessWidget {
-  final Task task;
-  final VoidCallback onTap;
-  final VoidCallback onToggle;
-  final VoidCallback onDelete;
 
   const TaskListTile({
     super.key,
@@ -428,10 +418,13 @@ class TaskListTile extends StatelessWidget {
     required this.onToggle,
     required this.onDelete,
   });
+  final Task task;
+  final VoidCallback onTap;
+  final VoidCallback onToggle;
+  final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) {
-    return ListTile(
+  Widget build(BuildContext context) => ListTile(
       leading: IconButton(
         icon: Icon(
           task.isCompleted ? Icons.check_circle : Icons.circle_outlined,
@@ -456,7 +449,6 @@ class TaskListTile extends StatelessWidget {
       ),
       onTap: onTap,
     );
-  }
 }
 
 // ============================================================================
@@ -464,13 +456,12 @@ class TaskListTile extends StatelessWidget {
 // ============================================================================
 
 class TaskDetailScreen extends StatelessWidget {
-  final String taskId;
 
   const TaskDetailScreen({super.key, required this.taskId});
+  final String taskId;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: const Text('Task Details'),
       ),
@@ -518,7 +509,6 @@ class TaskDetailScreen extends StatelessWidget {
         error: (context, error) => Center(child: Text('Error: $error')),
       ),
     );
-  }
 }
 
 // ============================================================================
@@ -554,8 +544,7 @@ class _StoreResultExampleState extends State<StoreResultExample> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: const Text('StoreResult Example'),
       ),
@@ -592,5 +581,4 @@ class _StoreResultExampleState extends State<StoreResultExample> {
         child: const Icon(Icons.refresh),
       ),
     );
-  }
 }

@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart';
+import 'package:nexus_store/src/pagination/cursor.dart';
+import 'package:nexus_store/src/pagination/page_info.dart';
+import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// Mock implementation of [StoreBackend] for testing.
@@ -177,6 +182,7 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
     _storage[id] = item;
     _watchers[id]?.add(item);
     _watchAllSubject?.add(_storage.values.toList());
+    _notifyPagedWatchers();
   }
 
   /// Get storage contents for verification.
@@ -189,6 +195,7 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
       subject.add(null);
     }
     _watchAllSubject?.add([]);
+    _notifyPagedWatchers();
   }
 
   @override
@@ -198,5 +205,222 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
       await subject.close();
     }
     await _watchAllSubject?.close();
+    for (final controller in _pagedWatchers.values) {
+      await controller.close();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pagination Support
+  // ---------------------------------------------------------------------------
+
+  @override
+  bool get supportsPagination => true;
+
+  /// Map of active paged watchers.
+  final Map<int, StreamController<PagedResult<T>>> _pagedWatchers = {};
+  int _pagedWatcherCounter = 0;
+
+  /// Field accessor for filtering/ordering test entities.
+  /// Override this to provide custom field extraction.
+  Object? Function(T item, String field)? fieldAccessor;
+
+  @override
+  Future<PagedResult<T>> getAllPaged({Query<T>? query}) async {
+    if (shouldFailOnGet) {
+      throw errorToThrow ?? Exception('GetAllPaged failed');
+    }
+
+    var items = _storage.values.toList();
+    final totalCount = items.length;
+
+    // Apply filters if query has them
+    if (query != null && query.filters.isNotEmpty) {
+      items = _applyFilters(items, query.filters);
+    }
+
+    // Apply ordering
+    if (query != null && query.orderBy.isNotEmpty) {
+      items = _applyOrdering(items, query.orderBy);
+    }
+
+    // Handle cursor-based pagination
+    final afterCursor = query?.afterCursor;
+    final beforeCursor = query?.beforeCursor;
+    final firstCount = query?.firstCount;
+    final lastCount = query?.lastCount;
+
+    var startIndex = 0;
+    var endIndex = items.length;
+
+    // Handle after cursor (forward pagination)
+    if (afterCursor != null) {
+      final cursorIndex = afterCursor.toValues()['_index'] as int?;
+      if (cursorIndex != null && cursorIndex < items.length) {
+        startIndex = cursorIndex;
+      }
+    }
+
+    // Handle before cursor (backward pagination)
+    if (beforeCursor != null) {
+      final cursorIndex = beforeCursor.toValues()['_index'] as int?;
+      if (cursorIndex != null && cursorIndex <= items.length) {
+        endIndex = cursorIndex;
+      }
+    }
+
+    // Apply first/last limits
+    if (firstCount != null) {
+      endIndex = (startIndex + firstCount).clamp(0, items.length);
+    }
+
+    if (lastCount != null) {
+      startIndex = (endIndex - lastCount).clamp(0, endIndex);
+    }
+
+    // Extract the page
+    final pageItems = items.sublist(startIndex, endIndex);
+
+    // Build page info
+    final hasNextPage = endIndex < items.length;
+    final hasPreviousPage = startIndex > 0;
+
+    Cursor? startCursor;
+    Cursor? endCursor;
+
+    if (pageItems.isNotEmpty) {
+      startCursor = Cursor.fromValues({'_index': startIndex});
+      // Only provide endCursor (nextCursor) if there are more pages
+      if (hasNextPage) {
+        endCursor = Cursor.fromValues({'_index': endIndex});
+      }
+    }
+
+    return PagedResult<T>(
+      items: pageItems,
+      pageInfo: PageInfo(
+        hasNextPage: hasNextPage,
+        hasPreviousPage: hasPreviousPage,
+        startCursor: startCursor,
+        endCursor: endCursor,
+        totalCount: totalCount,
+      ),
+    );
+  }
+
+  @override
+  Stream<PagedResult<T>> watchAllPaged({Query<T>? query}) {
+    final id = _pagedWatcherCounter++;
+    final controller = StreamController<PagedResult<T>>.broadcast(
+      onCancel: () => _pagedWatchers.remove(id),
+    );
+    _pagedWatchers[id] = controller;
+
+    // Emit initial value
+    getAllPaged(query: query).then(controller.add);
+
+    // Store query for updates
+    _pagedWatcherQueries[id] = query;
+
+    return controller.stream;
+  }
+
+  final Map<int, Query<T>?> _pagedWatcherQueries = {};
+
+  void _notifyPagedWatchers() {
+    for (final entry in _pagedWatchers.entries) {
+      final query = _pagedWatcherQueries[entry.key];
+      getAllPaged(query: query).then(entry.value.add);
+    }
+  }
+
+  List<T> _applyFilters(List<T> items, List<QueryFilter> filters) {
+    return items.where((item) {
+      for (final filter in filters) {
+        final fieldValue = _getFieldValue(item, filter.field);
+        if (!_matchesFilter(fieldValue, filter)) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+  }
+
+  List<T> _applyOrdering(List<T> items, List<QueryOrderBy> orderSpecs) {
+    final result = List<T>.from(items);
+    result.sort((a, b) {
+      for (final spec in orderSpecs) {
+        final aValue = _getFieldValue(a, spec.field);
+        final bValue = _getFieldValue(b, spec.field);
+        final comparison = _compareValues(aValue, bValue);
+        if (comparison != 0) {
+          return spec.descending ? -comparison : comparison;
+        }
+      }
+      return 0;
+    });
+    return result;
+  }
+
+  Object? _getFieldValue(T item, String field) {
+    if (fieldAccessor != null) {
+      return fieldAccessor!(item, field);
+    }
+    // Default: try to access via reflection-like mechanism for test entities
+    // For production, backends should implement their own field access
+    return null;
+  }
+
+  bool _matchesFilter(Object? value, QueryFilter filter) {
+    switch (filter.operator) {
+      case FilterOperator.equals:
+        return value == filter.value;
+      case FilterOperator.notEquals:
+        return value != filter.value;
+      case FilterOperator.isNull:
+        return value == null;
+      case FilterOperator.isNotNull:
+        return value != null;
+      case FilterOperator.lessThan:
+        return _compareValues(value, filter.value) < 0;
+      case FilterOperator.lessThanOrEquals:
+        return _compareValues(value, filter.value) <= 0;
+      case FilterOperator.greaterThan:
+        return _compareValues(value, filter.value) > 0;
+      case FilterOperator.greaterThanOrEquals:
+        return _compareValues(value, filter.value) >= 0;
+      case FilterOperator.whereIn:
+        final list = filter.value as List?;
+        return list?.contains(value) ?? false;
+      case FilterOperator.whereNotIn:
+        final list = filter.value as List?;
+        return !(list?.contains(value) ?? true);
+      case FilterOperator.arrayContains:
+        final list = value as List?;
+        return list?.contains(filter.value) ?? false;
+      case FilterOperator.arrayContainsAny:
+        final list = value as List?;
+        final filterList = filter.value as List?;
+        if (list == null || filterList == null) return false;
+        return list.any(filterList.contains);
+      case FilterOperator.contains:
+        return value.toString().contains(filter.value.toString());
+      case FilterOperator.startsWith:
+        return value.toString().startsWith(filter.value.toString());
+      case FilterOperator.endsWith:
+        return value.toString().endsWith(filter.value.toString());
+    }
+  }
+
+  int _compareValues(Object? a, Object? b) {
+    if (a == null && b == null) return 0;
+    if (a == null) return -1;
+    if (b == null) return 1;
+
+    if (a is Comparable && b is Comparable) {
+      return a.compareTo(b);
+    }
+
+    return a.toString().compareTo(b.toString());
   }
 }

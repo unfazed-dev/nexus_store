@@ -60,6 +60,13 @@ export 'src/core/nexus_store.dart';
 export 'src/core/store_backend.dart';
 // Errors
 export 'src/errors/store_errors.dart';
+// Pagination
+export 'src/pagination/cursor.dart';
+export 'src/pagination/page_info.dart';
+export 'src/pagination/paged_result.dart';
+export 'src/pagination/pagination_controller.dart';
+export 'src/pagination/pagination_state.dart';
+export 'src/pagination/streaming_config.dart';
 // Policy handlers
 export 'src/policy/fetch_policy_handler.dart';
 export 'src/policy/write_policy_handler.dart';

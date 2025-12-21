@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:nexus_store/src/pagination/cursor.dart';
 
 /// Fluent query builder for filtering, sorting, and paginating data.
 ///
@@ -13,6 +14,12 @@ import 'package:meta/meta.dart';
 ///   .orderBy('createdAt', descending: true)
 ///   .limit(10)
 ///   .offset(20);
+///
+/// // Cursor-based pagination
+/// final cursorQuery = Query<User>()
+///   .orderByField('createdAt', descending: true)
+///   .after(cursor)
+///   .first(20);
 /// ```
 @immutable
 class Query<T> {
@@ -21,22 +28,38 @@ class Query<T> {
       : _filters = const [],
         _orderBy = const [],
         _limit = null,
-        _offset = null;
+        _offset = null,
+        _afterCursor = null,
+        _beforeCursor = null,
+        _first = null,
+        _last = null;
 
   const Query._({
     required List<QueryFilter> filters,
     required List<QueryOrderBy> orderBy,
     required int? limit,
     required int? offset,
+    Cursor? afterCursor,
+    Cursor? beforeCursor,
+    int? first,
+    int? last,
   })  : _filters = filters,
         _orderBy = orderBy,
         _limit = limit,
-        _offset = offset;
+        _offset = offset,
+        _afterCursor = afterCursor,
+        _beforeCursor = beforeCursor,
+        _first = first,
+        _last = last;
 
   final List<QueryFilter> _filters;
   final List<QueryOrderBy> _orderBy;
   final int? _limit;
   final int? _offset;
+  final Cursor? _afterCursor;
+  final Cursor? _beforeCursor;
+  final int? _first;
+  final int? _last;
 
   /// The filter conditions for this query.
   List<QueryFilter> get filters => List.unmodifiable(_filters);
@@ -49,6 +72,18 @@ class Query<T> {
 
   /// The number of results to skip, or `null` for none.
   int? get offset => _offset;
+
+  /// Cursor to start after for forward pagination.
+  Cursor? get afterCursor => _afterCursor;
+
+  /// Cursor to end before for backward pagination.
+  Cursor? get beforeCursor => _beforeCursor;
+
+  /// Number of items to fetch forward from cursor.
+  int? get firstCount => _first;
+
+  /// Number of items to fetch backward from cursor.
+  int? get lastCount => _last;
 
   // ---------------------------------------------------------------------------
   // Filter Methods
@@ -176,6 +211,10 @@ class Query<T> {
       orderBy: _orderBy,
       limit: _limit,
       offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
     );
   }
 
@@ -193,11 +232,15 @@ class Query<T> {
       orderBy: newOrderBy,
       limit: _limit,
       offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Pagination Methods
+  // Offset Pagination Methods
   // ---------------------------------------------------------------------------
 
   /// Sets the maximum number of results to return.
@@ -208,6 +251,10 @@ class Query<T> {
       orderBy: _orderBy,
       limit: count,
       offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
     );
   }
 
@@ -219,6 +266,111 @@ class Query<T> {
       orderBy: _orderBy,
       limit: _limit,
       offset: count,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cursor Pagination Methods
+  // ---------------------------------------------------------------------------
+
+  /// Sets the cursor position to start after for forward pagination.
+  ///
+  /// Use with [first] to paginate forward through results.
+  ///
+  /// Example:
+  /// ```dart
+  /// final nextPage = Query<User>()
+  ///   .orderByField('createdAt', descending: true)
+  ///   .after(previousPage.endCursor)
+  ///   .first(20);
+  /// ```
+  Query<T> after(Cursor cursor) {
+    return Query._(
+      filters: _filters,
+      orderBy: _orderBy,
+      limit: _limit,
+      offset: _offset,
+      afterCursor: cursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
+    );
+  }
+
+  /// Sets the cursor position to end before for backward pagination.
+  ///
+  /// Use with [last] to paginate backward through results.
+  ///
+  /// Example:
+  /// ```dart
+  /// final previousPage = Query<User>()
+  ///   .orderByField('createdAt', descending: true)
+  ///   .before(currentPage.startCursor)
+  ///   .last(20);
+  /// ```
+  Query<T> before(Cursor cursor) {
+    return Query._(
+      filters: _filters,
+      orderBy: _orderBy,
+      limit: _limit,
+      offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: cursor,
+      first: _first,
+      last: _last,
+    );
+  }
+
+  /// Sets the number of items to fetch in forward direction.
+  ///
+  /// Use with [after] for cursor-based forward pagination.
+  ///
+  /// Example:
+  /// ```dart
+  /// final firstPage = Query<User>()
+  ///   .orderByField('createdAt', descending: true)
+  ///   .first(20);
+  /// ```
+  Query<T> first(int count) {
+    assert(count > 0, 'First count must be positive');
+    return Query._(
+      filters: _filters,
+      orderBy: _orderBy,
+      limit: _limit,
+      offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: count,
+      last: _last,
+    );
+  }
+
+  /// Sets the number of items to fetch in backward direction.
+  ///
+  /// Use with [before] for cursor-based backward pagination.
+  ///
+  /// Example:
+  /// ```dart
+  /// final previousPage = Query<User>()
+  ///   .orderByField('createdAt', descending: true)
+  ///   .before(cursor)
+  ///   .last(20);
+  /// ```
+  Query<T> last(int count) {
+    assert(count > 0, 'Last count must be positive');
+    return Query._(
+      filters: _filters,
+      orderBy: _orderBy,
+      limit: _limit,
+      offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: count,
     );
   }
 
@@ -228,7 +380,14 @@ class Query<T> {
 
   /// Returns `true` if this query has no filters, ordering, or pagination.
   bool get isEmpty =>
-      _filters.isEmpty && _orderBy.isEmpty && _limit == null && _offset == null;
+      _filters.isEmpty &&
+      _orderBy.isEmpty &&
+      _limit == null &&
+      _offset == null &&
+      _afterCursor == null &&
+      _beforeCursor == null &&
+      _first == null &&
+      _last == null;
 
   /// Returns `true` if this query has any conditions.
   bool get isNotEmpty => !isEmpty;
@@ -239,12 +398,20 @@ class Query<T> {
     List<QueryOrderBy>? orderBy,
     int? limit,
     int? offset,
+    Cursor? afterCursor,
+    Cursor? beforeCursor,
+    int? first,
+    int? last,
   }) =>
       Query._(
         filters: filters ?? _filters,
         orderBy: orderBy ?? _orderBy,
         limit: limit ?? _limit,
         offset: offset ?? _offset,
+        afterCursor: afterCursor ?? _afterCursor,
+        beforeCursor: beforeCursor ?? _beforeCursor,
+        first: first ?? _first,
+        last: last ?? _last,
       );
 
   @override
@@ -255,7 +422,11 @@ class Query<T> {
           _listsEqual(_filters, other._filters) &&
           _listsEqual(_orderBy, other._orderBy) &&
           _limit == other._limit &&
-          _offset == other._offset;
+          _offset == other._offset &&
+          _afterCursor == other._afterCursor &&
+          _beforeCursor == other._beforeCursor &&
+          _first == other._first &&
+          _last == other._last;
 
   @override
   int get hashCode => Object.hash(
@@ -263,6 +434,10 @@ class Query<T> {
         Object.hashAll(_orderBy),
         _limit,
         _offset,
+        _afterCursor,
+        _beforeCursor,
+        _first,
+        _last,
       );
 
   @override
@@ -270,7 +445,11 @@ class Query<T> {
       'filters: $_filters, '
       'orderBy: $_orderBy, '
       'limit: $_limit, '
-      'offset: $_offset)';
+      'offset: $_offset, '
+      'afterCursor: $_afterCursor, '
+      'beforeCursor: $_beforeCursor, '
+      'first: $_first, '
+      'last: $_last)';
 
   static bool _listsEqual<E>(List<E> a, List<E> b) {
     if (identical(a, b)) return true;

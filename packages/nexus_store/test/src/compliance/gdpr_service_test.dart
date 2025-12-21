@@ -8,7 +8,9 @@ import 'package:test/test.dart';
 class MockAuditService extends Mock implements AuditService {}
 
 /// Test backend that supports query filtering for GDPR tests.
-class TestGdprBackend implements StoreBackend<Map<String, dynamic>, String> {
+class TestGdprBackend
+    with StoreBackendDefaults<Map<String, dynamic>, String>
+    implements StoreBackend<Map<String, dynamic>, String> {
   final Map<String, Map<String, dynamic>> _storage = {};
   final List<String> deletedIds = [];
 

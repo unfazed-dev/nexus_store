@@ -1,4 +1,6 @@
 import 'package:nexus_store/src/config/policies.dart';
+import 'package:nexus_store/src/pagination/page_info.dart';
+import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:nexus_store/src/query/query.dart';
 
 /// Abstract interface for storage backends.
@@ -102,6 +104,26 @@ abstract interface class StoreBackend<T, ID> {
   Future<int> get pendingChangesCount;
 
   // ---------------------------------------------------------------------------
+  // Pagination Operations
+  // ---------------------------------------------------------------------------
+
+  /// Retrieves a page of entities matching the optional [query].
+  ///
+  /// Uses cursor-based pagination. The [query] can specify:
+  /// - `first(n)` to get the first n items
+  /// - `after(cursor)` to start after a specific cursor
+  /// - `last(n)` to get the last n items
+  /// - `before(cursor)` to end before a specific cursor
+  ///
+  /// Returns a [PagedResult] containing the items and pagination metadata.
+  Future<PagedResult<T>> getAllPaged({Query<T>? query});
+
+  /// Watches a page of entities matching the optional [query] for changes.
+  ///
+  /// Returns a stream that emits [PagedResult] updates when data changes.
+  Stream<PagedResult<T>> watchAllPaged({Query<T>? query});
+
+  // ---------------------------------------------------------------------------
   // Backend Information
   // ---------------------------------------------------------------------------
 
@@ -116,6 +138,9 @@ abstract interface class StoreBackend<T, ID> {
 
   /// Returns `true` if this backend supports transactions.
   bool get supportsTransactions;
+
+  /// Returns `true` if this backend supports cursor-based pagination.
+  bool get supportsPagination;
 
   // ---------------------------------------------------------------------------
   // Lifecycle
@@ -157,6 +182,30 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
 
   @override
   bool get supportsTransactions => false;
+
+  @override
+  bool get supportsPagination => false;
+
+  @override
+  Future<PagedResult<T>> getAllPaged({Query<T>? query}) async {
+    // Default implementation: wrap getAll result in PagedResult
+    final items = await getAll(query: query);
+    return PagedResult<T>(
+      items: items,
+      pageInfo: const PageInfo.empty(),
+    );
+  }
+
+  @override
+  Stream<PagedResult<T>> watchAllPaged({Query<T>? query}) {
+    // Default implementation: wrap watchAll stream in PagedResult
+    return watchAll(query: query).map(
+      (items) => PagedResult<T>(
+        items: items,
+        pageInfo: const PageInfo.empty(),
+      ),
+    );
+  }
 
   @override
   Future<void> initialize() async {}
