@@ -54,7 +54,16 @@ export 'src/cache/query_evaluator.dart';
 export 'src/compliance/audit_log_entry.dart';
 // Compliance
 export 'src/compliance/audit_service.dart';
+export 'src/compliance/breach_report.dart';
+export 'src/compliance/breach_service.dart';
+export 'src/compliance/breach_storage.dart';
+export 'src/compliance/consent_record.dart';
+export 'src/compliance/consent_service.dart';
+export 'src/compliance/consent_storage.dart';
+export 'src/compliance/data_minimization_service.dart';
+export 'src/compliance/gdpr_config.dart';
 export 'src/compliance/gdpr_service.dart';
+export 'src/compliance/retention_policy.dart';
 export 'src/config/policies.dart';
 export 'src/config/retry_config.dart';
 // Config

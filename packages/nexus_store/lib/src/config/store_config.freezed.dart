@@ -38,6 +38,13 @@ mixin _$StoreConfig {
   /// Whether to enable GDPR compliance features.
   bool get enableGdpr;
 
+  /// GDPR configuration for enhanced compliance features.
+  ///
+  /// Provides configuration for data minimization, consent tracking,
+  /// and breach notification. When provided, enables the enhanced GDPR
+  /// compliance features (REQ-026, REQ-027, REQ-028).
+  GdprConfig? get gdpr;
+
   /// Duration to cache data before considering it stale.
   Duration? get staleDuration;
 
@@ -75,6 +82,7 @@ mixin _$StoreConfig {
                 other.enableAuditLogging == enableAuditLogging) &&
             (identical(other.enableGdpr, enableGdpr) ||
                 other.enableGdpr == enableGdpr) &&
+            (identical(other.gdpr, gdpr) || other.gdpr == gdpr) &&
             (identical(other.staleDuration, staleDuration) ||
                 other.staleDuration == staleDuration) &&
             (identical(other.syncInterval, syncInterval) ||
@@ -94,13 +102,14 @@ mixin _$StoreConfig {
       encryption,
       enableAuditLogging,
       enableGdpr,
+      gdpr,
       staleDuration,
       syncInterval,
       tableName);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName)';
   }
 }
 
@@ -119,11 +128,13 @@ abstract mixin class $StoreConfigCopyWith<$Res> {
       EncryptionConfig encryption,
       bool enableAuditLogging,
       bool enableGdpr,
+      GdprConfig? gdpr,
       Duration? staleDuration,
       Duration? syncInterval,
       String? tableName});
 
   $EncryptionConfigCopyWith<$Res> get encryption;
+  $GdprConfigCopyWith<$Res>? get gdpr;
 }
 
 /// @nodoc
@@ -146,6 +157,7 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
     Object? encryption = null,
     Object? enableAuditLogging = null,
     Object? enableGdpr = null,
+    Object? gdpr = freezed,
     Object? staleDuration = freezed,
     Object? syncInterval = freezed,
     Object? tableName = freezed,
@@ -183,6 +195,10 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
           ? _self.enableGdpr
           : enableGdpr // ignore: cast_nullable_to_non_nullable
               as bool,
+      gdpr: freezed == gdpr
+          ? _self.gdpr
+          : gdpr // ignore: cast_nullable_to_non_nullable
+              as GdprConfig?,
       staleDuration: freezed == staleDuration
           ? _self.staleDuration
           : staleDuration // ignore: cast_nullable_to_non_nullable
@@ -205,6 +221,20 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
   $EncryptionConfigCopyWith<$Res> get encryption {
     return $EncryptionConfigCopyWith<$Res>(_self.encryption, (value) {
       return _then(_self.copyWith(encryption: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $GdprConfigCopyWith<$Res>? get gdpr {
+    if (_self.gdpr == null) {
+      return null;
+    }
+
+    return $GdprConfigCopyWith<$Res>(_self.gdpr!, (value) {
+      return _then(_self.copyWith(gdpr: value));
     });
   }
 }
@@ -311,6 +341,7 @@ extension StoreConfigPatterns on StoreConfig {
             EncryptionConfig encryption,
             bool enableAuditLogging,
             bool enableGdpr,
+            GdprConfig? gdpr,
             Duration? staleDuration,
             Duration? syncInterval,
             String? tableName)?
@@ -329,6 +360,7 @@ extension StoreConfigPatterns on StoreConfig {
             _that.encryption,
             _that.enableAuditLogging,
             _that.enableGdpr,
+            _that.gdpr,
             _that.staleDuration,
             _that.syncInterval,
             _that.tableName);
@@ -361,6 +393,7 @@ extension StoreConfigPatterns on StoreConfig {
             EncryptionConfig encryption,
             bool enableAuditLogging,
             bool enableGdpr,
+            GdprConfig? gdpr,
             Duration? staleDuration,
             Duration? syncInterval,
             String? tableName)
@@ -378,6 +411,7 @@ extension StoreConfigPatterns on StoreConfig {
             _that.encryption,
             _that.enableAuditLogging,
             _that.enableGdpr,
+            _that.gdpr,
             _that.staleDuration,
             _that.syncInterval,
             _that.tableName);
@@ -409,6 +443,7 @@ extension StoreConfigPatterns on StoreConfig {
             EncryptionConfig encryption,
             bool enableAuditLogging,
             bool enableGdpr,
+            GdprConfig? gdpr,
             Duration? staleDuration,
             Duration? syncInterval,
             String? tableName)?
@@ -426,6 +461,7 @@ extension StoreConfigPatterns on StoreConfig {
             _that.encryption,
             _that.enableAuditLogging,
             _that.enableGdpr,
+            _that.gdpr,
             _that.staleDuration,
             _that.syncInterval,
             _that.tableName);
@@ -447,6 +483,7 @@ class _StoreConfig extends StoreConfig {
       this.encryption = const EncryptionConfig.none(),
       this.enableAuditLogging = false,
       this.enableGdpr = false,
+      this.gdpr,
       this.staleDuration,
       this.syncInterval,
       this.tableName})
@@ -492,6 +529,14 @@ class _StoreConfig extends StoreConfig {
   @JsonKey()
   final bool enableGdpr;
 
+  /// GDPR configuration for enhanced compliance features.
+  ///
+  /// Provides configuration for data minimization, consent tracking,
+  /// and breach notification. When provided, enables the enhanced GDPR
+  /// compliance features (REQ-026, REQ-027, REQ-028).
+  @override
+  final GdprConfig? gdpr;
+
   /// Duration to cache data before considering it stale.
   @override
   final Duration? staleDuration;
@@ -533,6 +578,7 @@ class _StoreConfig extends StoreConfig {
                 other.enableAuditLogging == enableAuditLogging) &&
             (identical(other.enableGdpr, enableGdpr) ||
                 other.enableGdpr == enableGdpr) &&
+            (identical(other.gdpr, gdpr) || other.gdpr == gdpr) &&
             (identical(other.staleDuration, staleDuration) ||
                 other.staleDuration == staleDuration) &&
             (identical(other.syncInterval, syncInterval) ||
@@ -552,13 +598,14 @@ class _StoreConfig extends StoreConfig {
       encryption,
       enableAuditLogging,
       enableGdpr,
+      gdpr,
       staleDuration,
       syncInterval,
       tableName);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName)';
   }
 }
 
@@ -579,12 +626,15 @@ abstract mixin class _$StoreConfigCopyWith<$Res>
       EncryptionConfig encryption,
       bool enableAuditLogging,
       bool enableGdpr,
+      GdprConfig? gdpr,
       Duration? staleDuration,
       Duration? syncInterval,
       String? tableName});
 
   @override
   $EncryptionConfigCopyWith<$Res> get encryption;
+  @override
+  $GdprConfigCopyWith<$Res>? get gdpr;
 }
 
 /// @nodoc
@@ -607,6 +657,7 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
     Object? encryption = null,
     Object? enableAuditLogging = null,
     Object? enableGdpr = null,
+    Object? gdpr = freezed,
     Object? staleDuration = freezed,
     Object? syncInterval = freezed,
     Object? tableName = freezed,
@@ -644,6 +695,10 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
           ? _self.enableGdpr
           : enableGdpr // ignore: cast_nullable_to_non_nullable
               as bool,
+      gdpr: freezed == gdpr
+          ? _self.gdpr
+          : gdpr // ignore: cast_nullable_to_non_nullable
+              as GdprConfig?,
       staleDuration: freezed == staleDuration
           ? _self.staleDuration
           : staleDuration // ignore: cast_nullable_to_non_nullable
@@ -666,6 +721,20 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
   $EncryptionConfigCopyWith<$Res> get encryption {
     return $EncryptionConfigCopyWith<$Res>(_self.encryption, (value) {
       return _then(_self.copyWith(encryption: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $GdprConfigCopyWith<$Res>? get gdpr {
+    if (_self.gdpr == null) {
+      return null;
+    }
+
+    return $GdprConfigCopyWith<$Res>(_self.gdpr!, (value) {
+      return _then(_self.copyWith(gdpr: value));
     });
   }
 }

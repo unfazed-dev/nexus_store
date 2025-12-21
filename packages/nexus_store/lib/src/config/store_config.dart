@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:nexus_store/src/compliance/gdpr_config.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/retry_config.dart';
 import 'package:nexus_store/src/security/encryption_config.dart';
@@ -48,6 +49,13 @@ abstract class StoreConfig with _$StoreConfig {
 
     /// Whether to enable GDPR compliance features.
     @Default(false) bool enableGdpr,
+
+    /// GDPR configuration for enhanced compliance features.
+    ///
+    /// Provides configuration for data minimization, consent tracking,
+    /// and breach notification. When provided, enables the enhanced GDPR
+    /// compliance features (REQ-026, REQ-027, REQ-028).
+    GdprConfig? gdpr,
 
     /// Duration to cache data before considering it stale.
     Duration? staleDuration,
