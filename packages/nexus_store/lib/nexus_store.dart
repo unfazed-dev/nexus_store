@@ -105,6 +105,10 @@ export 'src/sync/conflict_action.dart';
 export 'src/sync/conflict_details.dart';
 export 'src/sync/pending_change.dart';
 export 'src/sync/pending_changes_manager.dart';
+// Transaction
+export 'src/transaction/transaction.dart';
+export 'src/transaction/transaction_context.dart';
+export 'src/transaction/transaction_operation.dart';
 // Telemetry
 export 'src/telemetry/buffered_metrics_reporter.dart';
 export 'src/telemetry/cache_metric.dart';

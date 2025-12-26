@@ -165,6 +165,34 @@ abstract interface class StoreBackend<T, ID> {
   bool get supportsPagination;
 
   // ---------------------------------------------------------------------------
+  // Transaction Operations
+  // ---------------------------------------------------------------------------
+
+  /// Begins a new transaction.
+  ///
+  /// Returns a transaction identifier that can be used for commit/rollback.
+  /// Throws [TransactionError] if transactions are not supported.
+  Future<String> beginTransaction();
+
+  /// Commits a transaction by its identifier.
+  ///
+  /// Applies all pending operations atomically.
+  /// Throws [TransactionError] if the transaction is invalid or commit fails.
+  Future<void> commitTransaction(String transactionId);
+
+  /// Rolls back a transaction by its identifier.
+  ///
+  /// Reverts all operations performed within the transaction.
+  /// Throws [TransactionError] if the transaction is invalid.
+  Future<void> rollbackTransaction(String transactionId);
+
+  /// Executes operations within a transaction context.
+  ///
+  /// This is a higher-level API that handles begin/commit/rollback automatically.
+  /// If the callback throws, the transaction is rolled back.
+  Future<R> runInTransaction<R>(Future<R> Function() callback);
+
+  // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
 
@@ -224,6 +252,29 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
 
   @override
   bool get supportsPagination => false;
+
+  @override
+  Future<String> beginTransaction() async {
+    // Generate unique transaction ID
+    return 'tx_${DateTime.now().microsecondsSinceEpoch}';
+  }
+
+  @override
+  Future<void> commitTransaction(String transactionId) async {
+    // No-op for optimistic fallback - operations already applied
+  }
+
+  @override
+  Future<void> rollbackTransaction(String transactionId) async {
+    // Optimistic fallback cannot truly rollback
+    // The NexusStore handles rollback by reverting individual operations
+  }
+
+  @override
+  Future<R> runInTransaction<R>(Future<R> Function() callback) async {
+    // Simple implementation without true atomicity
+    return callback();
+  }
 
   @override
   Future<PagedResult<T>> getAllPaged({Query<T>? query}) async {

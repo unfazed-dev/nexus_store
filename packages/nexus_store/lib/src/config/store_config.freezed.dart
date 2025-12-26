@@ -60,6 +60,12 @@ mixin _$StoreConfig {
   /// Metrics configuration for sampling and buffering.
   MetricsConfig get metricsConfig;
 
+  /// Default timeout for transactions.
+  ///
+  /// If a transaction takes longer than this duration, it will be
+  /// automatically rolled back with a [TransactionError].
+  Duration get transactionTimeout;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -98,7 +104,9 @@ mixin _$StoreConfig {
             (identical(other.metricsReporter, metricsReporter) ||
                 other.metricsReporter == metricsReporter) &&
             (identical(other.metricsConfig, metricsConfig) ||
-                other.metricsConfig == metricsConfig));
+                other.metricsConfig == metricsConfig) &&
+            (identical(other.transactionTimeout, transactionTimeout) ||
+                other.transactionTimeout == transactionTimeout));
   }
 
   @override
@@ -117,11 +125,12 @@ mixin _$StoreConfig {
       syncInterval,
       tableName,
       metricsReporter,
-      metricsConfig);
+      metricsConfig,
+      transactionTimeout);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout)';
   }
 }
 
@@ -145,7 +154,8 @@ abstract mixin class $StoreConfigCopyWith<$Res> {
       Duration? syncInterval,
       String? tableName,
       MetricsReporter metricsReporter,
-      MetricsConfig metricsConfig});
+      MetricsConfig metricsConfig,
+      Duration transactionTimeout});
 
   $EncryptionConfigCopyWith<$Res> get encryption;
   $GdprConfigCopyWith<$Res>? get gdpr;
@@ -178,6 +188,7 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
     Object? tableName = freezed,
     Object? metricsReporter = null,
     Object? metricsConfig = null,
+    Object? transactionTimeout = null,
   }) {
     return _then(_self.copyWith(
       fetchPolicy: null == fetchPolicy
@@ -236,6 +247,10 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
           ? _self.metricsConfig
           : metricsConfig // ignore: cast_nullable_to_non_nullable
               as MetricsConfig,
+      transactionTimeout: null == transactionTimeout
+          ? _self.transactionTimeout
+          : transactionTimeout // ignore: cast_nullable_to_non_nullable
+              as Duration,
     ));
   }
 
@@ -381,7 +396,8 @@ extension StoreConfigPatterns on StoreConfig {
             Duration? syncInterval,
             String? tableName,
             MetricsReporter metricsReporter,
-            MetricsConfig metricsConfig)?
+            MetricsConfig metricsConfig,
+            Duration transactionTimeout)?
         $default, {
     required TResult orElse(),
   }) {
@@ -402,7 +418,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.syncInterval,
             _that.tableName,
             _that.metricsReporter,
-            _that.metricsConfig);
+            _that.metricsConfig,
+            _that.transactionTimeout);
       case _:
         return orElse();
     }
@@ -437,7 +454,8 @@ extension StoreConfigPatterns on StoreConfig {
             Duration? syncInterval,
             String? tableName,
             MetricsReporter metricsReporter,
-            MetricsConfig metricsConfig)
+            MetricsConfig metricsConfig,
+            Duration transactionTimeout)
         $default,
   ) {
     final _that = this;
@@ -457,7 +475,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.syncInterval,
             _that.tableName,
             _that.metricsReporter,
-            _that.metricsConfig);
+            _that.metricsConfig,
+            _that.transactionTimeout);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -491,7 +510,8 @@ extension StoreConfigPatterns on StoreConfig {
             Duration? syncInterval,
             String? tableName,
             MetricsReporter metricsReporter,
-            MetricsConfig metricsConfig)?
+            MetricsConfig metricsConfig,
+            Duration transactionTimeout)?
         $default,
   ) {
     final _that = this;
@@ -511,7 +531,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.syncInterval,
             _that.tableName,
             _that.metricsReporter,
-            _that.metricsConfig);
+            _that.metricsConfig,
+            _that.transactionTimeout);
       case _:
         return null;
     }
@@ -535,7 +556,8 @@ class _StoreConfig extends StoreConfig {
       this.syncInterval,
       this.tableName,
       this.metricsReporter = const NoOpMetricsReporter(),
-      this.metricsConfig = MetricsConfig.defaults})
+      this.metricsConfig = MetricsConfig.defaults,
+      this.transactionTimeout = const Duration(seconds: 30)})
       : super._();
 
   /// Default fetch policy for read operations.
@@ -608,6 +630,14 @@ class _StoreConfig extends StoreConfig {
   @JsonKey()
   final MetricsConfig metricsConfig;
 
+  /// Default timeout for transactions.
+  ///
+  /// If a transaction takes longer than this duration, it will be
+  /// automatically rolled back with a [TransactionError].
+  @override
+  @JsonKey()
+  final Duration transactionTimeout;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -647,7 +677,9 @@ class _StoreConfig extends StoreConfig {
             (identical(other.metricsReporter, metricsReporter) ||
                 other.metricsReporter == metricsReporter) &&
             (identical(other.metricsConfig, metricsConfig) ||
-                other.metricsConfig == metricsConfig));
+                other.metricsConfig == metricsConfig) &&
+            (identical(other.transactionTimeout, transactionTimeout) ||
+                other.transactionTimeout == transactionTimeout));
   }
 
   @override
@@ -666,11 +698,12 @@ class _StoreConfig extends StoreConfig {
       syncInterval,
       tableName,
       metricsReporter,
-      metricsConfig);
+      metricsConfig,
+      transactionTimeout);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout)';
   }
 }
 
@@ -696,7 +729,8 @@ abstract mixin class _$StoreConfigCopyWith<$Res>
       Duration? syncInterval,
       String? tableName,
       MetricsReporter metricsReporter,
-      MetricsConfig metricsConfig});
+      MetricsConfig metricsConfig,
+      Duration transactionTimeout});
 
   @override
   $EncryptionConfigCopyWith<$Res> get encryption;
@@ -732,6 +766,7 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
     Object? tableName = freezed,
     Object? metricsReporter = null,
     Object? metricsConfig = null,
+    Object? transactionTimeout = null,
   }) {
     return _then(_StoreConfig(
       fetchPolicy: null == fetchPolicy
@@ -790,6 +825,10 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
           ? _self.metricsConfig
           : metricsConfig // ignore: cast_nullable_to_non_nullable
               as MetricsConfig,
+      transactionTimeout: null == transactionTimeout
+          ? _self.transactionTimeout
+          : transactionTimeout // ignore: cast_nullable_to_non_nullable
+              as Duration,
     ));
   }
 

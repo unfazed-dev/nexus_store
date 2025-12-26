@@ -420,4 +420,79 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
 
     return a.toString().compareTo(b.toString());
   }
+
+  // ---------------------------------------------------------------------------
+  // Transaction Support
+  // ---------------------------------------------------------------------------
+
+  @override
+  bool get supportsTransactions => true;
+
+  /// Active transactions for testing.
+  final Map<String, _TransactionState<T, ID>> _transactions = {};
+
+  @override
+  Future<String> beginTransaction() async {
+    final txId = 'test_tx_${DateTime.now().microsecondsSinceEpoch}';
+    _transactions[txId] = _TransactionState<T, ID>();
+    return txId;
+  }
+
+  @override
+  Future<void> commitTransaction(String transactionId) async {
+    final tx = _transactions.remove(transactionId);
+    if (tx == null) {
+      throw const TransactionError(message: 'Unknown transaction');
+    }
+    // Operations already applied - just clean up
+  }
+
+  @override
+  Future<void> rollbackTransaction(String transactionId) async {
+    final tx = _transactions.remove(transactionId);
+    if (tx == null) {
+      throw const TransactionError(message: 'Unknown transaction');
+    }
+    // Revert operations in reverse order
+    for (final op in tx.operations.reversed) {
+      if (op.originalValue != null) {
+        _storage[op.id] = op.originalValue as T;
+        _watchers[op.id]?.add(op.originalValue as T);
+      } else {
+        _storage.remove(op.id);
+        _watchers[op.id]?.add(null);
+      }
+    }
+    _watchAllSubject?.add(_storage.values.toList());
+    _notifyPagedWatchers();
+  }
+
+  @override
+  Future<R> runInTransaction<R>(Future<R> Function() callback) async {
+    final txId = await beginTransaction();
+    try {
+      final result = await callback();
+      await commitTransaction(txId);
+      return result;
+    } catch (e) {
+      await rollbackTransaction(txId);
+      rethrow;
+    }
+  }
+}
+
+/// Internal class to track transaction state for testing.
+class _TransactionState<T, ID> {
+  final List<_PendingOperation<T, ID>> operations = [];
+}
+
+/// Internal class to track pending operations within a transaction.
+class _PendingOperation<T, ID> {
+  _PendingOperation({
+    required this.id,
+    this.originalValue,
+  });
+
+  final ID id;
+  final T? originalValue;
 }

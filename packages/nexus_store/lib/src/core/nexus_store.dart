@@ -17,10 +17,14 @@ import 'package:nexus_store/src/pagination/streaming_config.dart';
 import 'package:nexus_store/src/policy/fetch_policy_handler.dart';
 import 'package:nexus_store/src/policy/write_policy_handler.dart';
 import 'package:nexus_store/src/query/query.dart';
+import 'package:nexus_store/src/errors/store_errors.dart' hide StateError;
 import 'package:nexus_store/src/sync/conflict_action.dart';
 import 'package:nexus_store/src/sync/conflict_details.dart';
 import 'package:nexus_store/src/sync/pending_change.dart';
 import 'package:nexus_store/src/telemetry/cache_metric.dart';
+import 'package:nexus_store/src/transaction/transaction.dart';
+import 'package:nexus_store/src/transaction/transaction_context.dart';
+import 'package:nexus_store/src/transaction/transaction_operation.dart';
 import 'package:nexus_store/src/telemetry/error_metric.dart';
 import 'package:nexus_store/src/telemetry/metrics_reporter.dart';
 import 'package:nexus_store/src/telemetry/operation_metric.dart';
@@ -520,6 +524,243 @@ class NexusStore<T, ID> {
 
       return count;
     }, itemCount: ids.length);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Transaction Operations
+  // ---------------------------------------------------------------------------
+
+  /// Current transaction context (for nested transaction support).
+  TransactionContext<T, ID>? _currentTransactionContext;
+
+  /// Executes operations within an atomic transaction.
+  ///
+  /// All operations within the callback will be applied atomically.
+  /// If the callback throws an exception, all operations are rolled back.
+  ///
+  /// Example:
+  /// ```dart
+  /// final userId = await store.transaction((tx) async {
+  ///   final user = await tx.save(newUser);
+  ///   await tx.save(Profile(userId: user.id));
+  ///   return user.id;
+  /// });
+  /// ```
+  ///
+  /// Nested transactions create savepoints:
+  /// ```dart
+  /// await store.transaction((outerTx) async {
+  ///   await outerTx.save(user);
+  ///   try {
+  ///     await store.transaction((innerTx) async {
+  ///       await innerTx.save(riskyItem);
+  ///       throw Exception('Rollback inner only');
+  ///     });
+  ///   } catch (_) {}
+  ///   await outerTx.save(safeItem); // Still commits
+  /// });
+  /// ```
+  Future<R> transaction<R>(
+    Future<R> Function(Transaction<T, ID> tx) callback, {
+    Duration? timeout,
+  }) async {
+    _ensureInitialized();
+
+    final isNested = _currentTransactionContext != null;
+    final parentContext = _currentTransactionContext;
+
+    final context = TransactionContext<T, ID>(
+      id: 'tx_${DateTime.now().microsecondsSinceEpoch}_$hashCode',
+      parentContext: parentContext,
+    );
+
+    // Create savepoint for nested transactions
+    int? savepointIndex;
+    if (isNested && parentContext != null) {
+      savepointIndex = parentContext.createSavepoint();
+    }
+
+    final tx = Transaction<T, ID>.internal(
+      context: context,
+      backend: _backend,
+      idExtractor: _idExtractor,
+    );
+
+    // Track nested transactions
+    _currentTransactionContext = context;
+
+    try {
+      // Begin backend transaction if supported and not nested
+      String? backendTxId;
+      if (!isNested && _backend.supportsTransactions) {
+        backendTxId = await _backend.beginTransaction();
+      }
+
+      // Execute user callback with optional timeout
+      final effectiveTimeout = timeout ?? _config.transactionTimeout;
+      final result = await _executeWithTimeout(
+        () => callback(tx),
+        effectiveTimeout,
+      );
+
+      // Commit: apply all operations
+      await _commitTransaction(context, backendTxId);
+
+      return result;
+    } catch (e, stack) {
+      // Rollback on any error
+      if (isNested && parentContext != null && savepointIndex != null) {
+        // For nested transactions, rollback to savepoint
+        await _rollbackToSavepoint(parentContext, savepointIndex);
+      } else {
+        // For top-level transactions, full rollback
+        await _rollbackTransaction(context);
+      }
+
+      context.isRolledBack = true;
+
+      if (e is TransactionError) {
+        rethrow;
+      }
+
+      throw TransactionError(
+        message: 'Transaction failed: $e',
+        cause: e,
+        stackTrace: stack,
+        wasRolledBack: true,
+      );
+    } finally {
+      _currentTransactionContext = parentContext;
+    }
+  }
+
+  /// Commits a transaction by applying all pending operations.
+  Future<void> _commitTransaction(
+    TransactionContext<T, ID> context,
+    String? backendTxId,
+  ) async {
+    if (context.isNested) {
+      // Nested transactions just mark as committed
+      // Operations are propagated to parent context
+      if (context.parentContext != null) {
+        context.parentContext!.operations.addAll(context.operations);
+      }
+      context.isCommitted = true;
+      return;
+    }
+
+    try {
+      // Apply all operations to backend
+      if (_backend.supportsTransactions && backendTxId != null) {
+        // Use backend's native transaction
+        await _backend.runInTransaction(() async {
+          for (final op in context.operations) {
+            await _applyOperation(op);
+          }
+        });
+        await _backend.commitTransaction(backendTxId);
+      } else {
+        // Optimistic: apply operations directly
+        for (final op in context.operations) {
+          await _applyOperation(op);
+        }
+      }
+
+      context.isCommitted = true;
+
+      // Update cache for saved items
+      _notifyTransactionComplete(context.operations);
+    } catch (e) {
+      // Rollback on commit failure
+      await _rollbackTransaction(context);
+      rethrow;
+    }
+  }
+
+  /// Applies a single transaction operation to the backend.
+  Future<void> _applyOperation(TransactionOperation<T, ID> op) async {
+    switch (op) {
+      case SaveOperation<T, ID>(:final item):
+        await _backend.save(item);
+      case DeleteOperation<T, ID>(:final id):
+        await _backend.delete(id);
+    }
+  }
+
+  /// Rolls back a transaction by reverting all operations in reverse order.
+  Future<void> _rollbackTransaction(TransactionContext<T, ID> context) async {
+    if (context.isRolledBack) return;
+
+    // Revert operations in reverse order
+    for (final op in context.operationsReversed) {
+      try {
+        await _revertOperation(op);
+      } catch (e) {
+        _logger.warning('Failed to revert operation during rollback: $e');
+      }
+    }
+  }
+
+  /// Rolls back to a savepoint in a nested transaction.
+  Future<void> _rollbackToSavepoint(
+    TransactionContext<T, ID> context,
+    int savepointIndex,
+  ) async {
+    final operationsToRevert = context.rollbackToSavepoint(savepointIndex);
+    for (final op in operationsToRevert) {
+      try {
+        await _revertOperation(op);
+      } catch (e) {
+        _logger.warning('Failed to revert operation to savepoint: $e');
+      }
+    }
+  }
+
+  /// Reverts a single transaction operation.
+  Future<void> _revertOperation(TransactionOperation<T, ID> op) async {
+    switch (op) {
+      case SaveOperation<T, ID>(:final id, :final originalValue):
+        if (originalValue != null) {
+          // Was an update - restore original
+          await _backend.save(originalValue);
+        } else {
+          // Was a create - delete it
+          await _backend.delete(id);
+        }
+      case DeleteOperation<T, ID>(:final originalValue):
+        if (originalValue != null) {
+          // Restore deleted item
+          await _backend.save(originalValue);
+        }
+    }
+  }
+
+  /// Notifies cache of changes from transaction operations.
+  void _notifyTransactionComplete(List<TransactionOperation<T, ID>> operations) {
+    for (final op in operations) {
+      switch (op) {
+        case SaveOperation<T, ID>(:final id):
+          _fetchHandler.recordCachedItem(id);
+        case DeleteOperation<T, ID>(:final id):
+          _fetchHandler.invalidate(id);
+      }
+    }
+  }
+
+  /// Executes an operation with optional timeout.
+  Future<R> _executeWithTimeout<R>(
+    Future<R> Function() operation,
+    Duration timeout,
+  ) async {
+    return operation().timeout(
+      timeout,
+      onTimeout: () {
+        throw TransactionError(
+          message: 'Transaction timed out after $timeout',
+          wasRolledBack: true,
+        );
+      },
+    );
   }
 
   // ---------------------------------------------------------------------------

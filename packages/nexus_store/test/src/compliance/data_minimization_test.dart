@@ -5,8 +5,6 @@ import 'package:nexus_store/src/compliance/audit_service.dart';
 import 'package:nexus_store/src/compliance/data_minimization_service.dart';
 import 'package:nexus_store/src/compliance/retention_policy.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
-import 'package:nexus_store/src/pagination/page_info.dart';
-import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:nexus_store/src/query/query.dart';
 
 // Mock classes

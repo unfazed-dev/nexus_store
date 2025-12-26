@@ -334,6 +334,25 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
   @override
   bool get supportsTransactions => primary.supportsTransactions;
 
+  // ---------------------------------------------------------------------------
+  // Transaction Operations
+  // ---------------------------------------------------------------------------
+
+  @override
+  Future<String> beginTransaction() => primary.beginTransaction();
+
+  @override
+  Future<void> commitTransaction(String transactionId) =>
+      primary.commitTransaction(transactionId);
+
+  @override
+  Future<void> rollbackTransaction(String transactionId) =>
+      primary.rollbackTransaction(transactionId);
+
+  @override
+  Future<R> runInTransaction<R>(Future<R> Function() callback) =>
+      primary.runInTransaction(callback);
+
   @override
   bool get supportsPagination =>
       primary.supportsPagination || (fallback?.supportsPagination ?? false);

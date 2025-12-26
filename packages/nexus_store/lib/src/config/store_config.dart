@@ -73,6 +73,12 @@ abstract class StoreConfig with _$StoreConfig {
 
     /// Metrics configuration for sampling and buffering.
     @Default(MetricsConfig.defaults) MetricsConfig metricsConfig,
+
+    /// Default timeout for transactions.
+    ///
+    /// If a transaction takes longer than this duration, it will be
+    /// automatically rolled back with a [TransactionError].
+    @Default(Duration(seconds: 30)) Duration transactionTimeout,
   }) = _StoreConfig;
 
   const StoreConfig._();

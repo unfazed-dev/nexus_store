@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:nexus_store/src/security/encryption_algorithm.dart';
 import 'package:nexus_store/src/security/encryption_config.dart';
-import 'package:nexus_store/src/security/key_derivation_config.dart';
 import 'package:nexus_store/src/security/key_derivation_service.dart';
 
 /// Abstract interface for field-level encryption.
