@@ -85,7 +85,11 @@ export 'src/pagination/streaming_config.dart';
 export 'src/policy/fetch_policy_handler.dart';
 export 'src/policy/write_policy_handler.dart';
 // Query
+export 'src/query/expression.dart';
+export 'src/query/field.dart';
+export 'src/query/fields.dart';
 export 'src/query/query.dart';
+export 'src/query/query_expression_extension.dart';
 export 'src/query/query_translator.dart';
 // Reactive
 export 'src/reactive/reactive_store_mixin.dart';

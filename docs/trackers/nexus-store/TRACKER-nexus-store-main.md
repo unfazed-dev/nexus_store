@@ -37,7 +37,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 ### Phase 5: Production Readiness Features
 - [x] Transaction support - See [TRACKER-transactions.md](./phase-5-production/TRACKER-transactions.md) ✅ (28 tests)
 - [x] Cursor-based pagination - See [TRACKER-cursor-pagination.md](./phase-5-production/TRACKER-cursor-pagination.md) ✅ (120+ tests)
-- [ ] Type-safe query builder - See [TRACKER-type-safe-query.md](./phase-5-production/TRACKER-type-safe-query.md)
+- [x] Type-safe query builder - See [TRACKER-type-safe-query.md](./phase-5-production/TRACKER-type-safe-query.md) ✅ (109 tests)
 - [x] Conflict resolution & pending changes - See [TRACKER-conflict-resolution.md](./phase-5-production/TRACKER-conflict-resolution.md) ✅ (84+ tests)
 - [x] Tag-based cache invalidation - See [TRACKER-cache-invalidation.md](./phase-5-production/TRACKER-cache-invalidation.md) ✅ (109 tests)
 - [x] Telemetry & metrics - See [TRACKER-telemetry.md](./phase-5-production/TRACKER-telemetry.md) ✅ (180+ tests)
@@ -127,7 +127,7 @@ Documentation (depends on all above)
 | REQ-016 | GDPR Portability | ✅ Complete | core |
 | REQ-017 | Transaction Support | ✅ Complete | [transactions](./phase-5-production/TRACKER-transactions.md) |
 | REQ-018 | Cursor-Based Pagination | ✅ Complete | [pagination](./phase-5-production/TRACKER-cursor-pagination.md) |
-| REQ-019 | Type-Safe Query Builder | ⏳ Pending | [type-safe](./phase-5-production/TRACKER-type-safe-query.md) |
+| REQ-019 | Type-Safe Query Builder | ✅ Complete | [type-safe](./phase-5-production/TRACKER-type-safe-query.md) |
 | REQ-020 | Conflict Resolution Callbacks | ✅ Complete | [conflict](./phase-5-production/TRACKER-conflict-resolution.md) |
 | REQ-021 | Pending Changes Visibility | ✅ Complete | [conflict](./phase-5-production/TRACKER-conflict-resolution.md) |
 | REQ-022 | Tag-Based Cache Invalidation | ✅ Complete | [cache](./phase-5-production/TRACKER-cache-invalidation.md) |
@@ -223,10 +223,11 @@ Documentation (depends on all above)
 - ✅ Key derivation (PBKDF2) implemented with 134 tests (KeyDerivationConfig, DerivedKey, KeyDeriver, Pbkdf2KeyDeriver, KeyDerivationService, SaltStorage)
 - ✅ Telemetry & metrics implemented with 180+ tests (MetricsReporter, OperationMetric, CacheMetric, SyncMetric, ErrorMetric, StoreStats, MetricsConfig, ConsoleMetricsReporter, BufferedMetricsReporter, NexusStore instrumentation)
 - ✅ Transaction support implemented with 28 tests (Transaction, TransactionContext, TransactionOperation, SaveOperation, DeleteOperation, nested transactions, savepoints, rollback)
+- ✅ Type-safe query builder implemented with 109 tests (Expression sealed classes, Field/ComparableField/StringField/ListField, Query extensions, InMemoryQueryEvaluator.matchesExpression())
 - All Phase 2 backend adapters are now complete
 - Phase 3 Flutter extension is now complete
 - Phase 4 Documentation is now complete
-- Phase 5: 8/9 production features complete (transactions, cursor pagination, batch streaming, cache invalidation, conflict resolution, enhanced GDPR, key derivation, telemetry)
+- Phase 5: 9/9 production features complete ✅ (transactions, cursor pagination, type-safe query builder, batch streaming, cache invalidation, conflict resolution, enhanced GDPR, key derivation, telemetry)
 - Melos workspace configured with shared scripts for analyze, test, format
 - Fixed bug in composite_backend.dart (missing await in fallback handling)
 - Added analysis_options.yaml with linting configuration

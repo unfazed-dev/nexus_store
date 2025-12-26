@@ -1,3 +1,4 @@
+import 'package:nexus_store/src/query/expression.dart';
 import 'package:nexus_store/src/query/query.dart';
 
 /// Function to extract a field value from an item.
@@ -103,5 +104,59 @@ class InMemoryQueryEvaluator<T> {
     }
 
     return a.toString().compareTo(b.toString());
+  }
+
+  // ---------------------------------------------------------------------------
+  // Expression-based evaluation (supports OR expressions)
+  // ---------------------------------------------------------------------------
+
+  /// Evaluates items using a type-safe expression.
+  ///
+  /// Unlike [evaluate] which only supports AND conditions via [Query],
+  /// this method fully supports OR expressions and complex nested conditions.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final expr = UserFields.age.greaterThan(18).or(
+  ///   UserFields.tags.arrayContains('admin'),
+  /// );
+  /// final adults = evaluator.evaluateWithExpression(users, expr);
+  /// ```
+  List<T> evaluateWithExpression(List<T> items, Expression<T> expression) {
+    return items.where((item) => matchesExpression(item, expression)).toList();
+  }
+
+  /// Returns true if the item matches the expression.
+  ///
+  /// Supports all expression types including [ComparisonExpression],
+  /// [AndExpression], [OrExpression], and [NotExpression].
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final expr = UserFields.status.equals('active').or(
+  ///   UserFields.status.equals('pending'),
+  /// );
+  /// if (evaluator.matchesExpression(user, expr)) {
+  ///   print('User is active or pending');
+  /// }
+  /// ```
+  bool matchesExpression(T item, Expression<T> expression) {
+    return switch (expression) {
+      ComparisonExpression<T> e => _matchesFilter(
+          item,
+          QueryFilter(
+            field: e.fieldName,
+            operator: e.operator,
+            value: e.value,
+          ),
+        ),
+      AndExpression<T> e =>
+        matchesExpression(item, e.left) && matchesExpression(item, e.right),
+      OrExpression<T> e =>
+        matchesExpression(item, e.left) || matchesExpression(item, e.right),
+      NotExpression<T> e => !matchesExpression(item, e.expression),
+    };
   }
 }
