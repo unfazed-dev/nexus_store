@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:nexus_store/src/pool/pool_metric.dart';
 import 'package:nexus_store/src/telemetry/cache_metric.dart';
 import 'package:nexus_store/src/telemetry/error_metric.dart';
 import 'package:nexus_store/src/telemetry/metrics_reporter.dart';
@@ -93,6 +94,11 @@ class BufferedMetricsReporter implements MetricsReporter {
   }
 
   @override
+  void reportPoolEvent(PoolMetric metric) {
+    _addToBuffer(metric);
+  }
+
+  @override
   Future<void> flush() async {
     if (_buffer.isEmpty) return;
 
@@ -113,6 +119,8 @@ class BufferedMetricsReporter implements MetricsReporter {
           delegate.reportSyncEvent(m);
         case final ErrorMetric m:
           delegate.reportError(m);
+        case final PoolMetric m:
+          delegate.reportPoolEvent(m);
       }
     }
 

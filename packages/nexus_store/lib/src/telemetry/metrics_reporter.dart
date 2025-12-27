@@ -1,3 +1,4 @@
+import 'package:nexus_store/src/pool/pool_metric.dart';
 import 'package:nexus_store/src/telemetry/cache_metric.dart';
 import 'package:nexus_store/src/telemetry/error_metric.dart';
 import 'package:nexus_store/src/telemetry/operation_metric.dart';
@@ -47,6 +48,11 @@ abstract interface class MetricsReporter {
   ///
   /// Called when errors occur during store operations.
   void reportError(ErrorMetric metric);
+
+  /// Reports a pool event metric.
+  ///
+  /// Called for connection pool events (acquire, release, timeout, etc.).
+  void reportPoolEvent(PoolMetric metric);
 
   /// Flushes any buffered metrics.
   ///
@@ -100,6 +106,11 @@ final class NoOpMetricsReporter implements MetricsReporter {
 
   @override
   void reportError(ErrorMetric metric) {
+    // Intentionally empty - zero overhead
+  }
+
+  @override
+  void reportPoolEvent(PoolMetric metric) {
     // Intentionally empty - zero overhead
   }
 

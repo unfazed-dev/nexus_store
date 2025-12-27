@@ -81,6 +81,16 @@ export 'src/pagination/paged_result.dart';
 export 'src/pagination/pagination_controller.dart';
 export 'src/pagination/pagination_state.dart';
 export 'src/pagination/streaming_config.dart';
+// Pool
+export 'src/pool/connection_factory.dart';
+export 'src/pool/connection_health_check.dart';
+export 'src/pool/connection_pool.dart';
+export 'src/pool/connection_pool_config.dart';
+export 'src/pool/connection_scope.dart';
+export 'src/pool/pool_errors.dart';
+export 'src/pool/pool_metric.dart';
+export 'src/pool/pool_metrics.dart';
+export 'src/pool/pooled_connection.dart';
 // Policy handlers
 export 'src/policy/fetch_policy_handler.dart';
 export 'src/policy/write_policy_handler.dart';

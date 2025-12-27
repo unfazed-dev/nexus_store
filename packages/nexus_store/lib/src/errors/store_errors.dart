@@ -347,3 +347,129 @@ class QuotaExceededError extends StoreError {
   @override
   String get errorName => 'QuotaExceededError';
 }
+
+// ============================================================================
+// Pool Errors
+// ============================================================================
+
+/// Base class for all connection pool errors.
+///
+/// All pool-specific errors extend this class for consistent error handling.
+sealed class PoolError extends StoreError {
+  /// Creates a pool error.
+  const PoolError({
+    required super.message,
+    super.code,
+    super.cause,
+    super.stackTrace,
+  });
+
+  @override
+  String get errorName => 'PoolError';
+}
+
+/// Error thrown when attempting to use a pool that hasn't been initialized.
+///
+/// Call [ConnectionPool.initialize] before using the pool.
+class PoolNotInitializedError extends PoolError {
+  /// Creates a pool not initialized error.
+  const PoolNotInitializedError({
+    required super.message,
+    super.cause,
+    super.stackTrace,
+  }) : super(code: 'POOL_NOT_INITIALIZED');
+
+  @override
+  String get errorName => 'PoolNotInitializedError';
+}
+
+/// Error thrown when attempting to use a pool that has been disposed.
+///
+/// A disposed pool cannot be reused. Create a new pool instance.
+class PoolDisposedError extends PoolError {
+  /// Creates a pool disposed error.
+  const PoolDisposedError({
+    required super.message,
+    super.cause,
+    super.stackTrace,
+  }) : super(code: 'POOL_DISPOSED');
+
+  @override
+  String get errorName => 'PoolDisposedError';
+}
+
+/// Error thrown when acquiring a connection times out.
+///
+/// This occurs when the pool is exhausted and no connection becomes
+/// available within the configured acquire timeout.
+///
+/// This error is retryable as the situation may resolve when
+/// connections are released back to the pool.
+class PoolAcquireTimeoutError extends PoolError {
+  /// Creates a pool acquire timeout error.
+  const PoolAcquireTimeoutError({
+    required super.message,
+    super.cause,
+    super.stackTrace,
+  }) : super(code: 'POOL_ACQUIRE_TIMEOUT');
+
+  @override
+  bool get isRetryable => true;
+
+  @override
+  String get errorName => 'PoolAcquireTimeoutError';
+}
+
+/// Error thrown when the pool is closing or has been closed.
+///
+/// Occurs when attempting to acquire a connection from a pool
+/// that is in the process of closing.
+class PoolClosedError extends PoolError {
+  /// Creates a pool closed error.
+  const PoolClosedError({
+    required super.message,
+    super.cause,
+    super.stackTrace,
+  }) : super(code: 'POOL_CLOSED');
+
+  @override
+  String get errorName => 'PoolClosedError';
+}
+
+/// Error thrown when the connection pool is exhausted.
+///
+/// All connections are in use and the pool has reached its maximum size.
+/// This error is retryable as connections may become available.
+class PoolExhaustedError extends PoolError {
+  /// Creates a pool exhausted error.
+  const PoolExhaustedError({
+    required super.message,
+    super.cause,
+    super.stackTrace,
+  }) : super(code: 'POOL_EXHAUSTED');
+
+  @override
+  bool get isRetryable => true;
+
+  @override
+  String get errorName => 'PoolExhaustedError';
+}
+
+/// Error thrown when a connection operation fails.
+///
+/// This can occur during connection creation, validation, or destruction.
+/// This error is retryable as the underlying issue may be transient.
+class PoolConnectionError extends PoolError {
+  /// Creates a pool connection error.
+  const PoolConnectionError({
+    required super.message,
+    super.cause,
+    super.stackTrace,
+  }) : super(code: 'POOL_CONNECTION_ERROR');
+
+  @override
+  bool get isRetryable => true;
+
+  @override
+  String get errorName => 'PoolConnectionError';
+}

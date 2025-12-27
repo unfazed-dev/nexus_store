@@ -1,4 +1,5 @@
 import 'package:logging/logging.dart';
+import 'package:nexus_store/src/pool/pool_metric.dart';
 import 'package:nexus_store/src/telemetry/cache_metric.dart';
 import 'package:nexus_store/src/telemetry/error_metric.dart';
 import 'package:nexus_store/src/telemetry/metrics_reporter.dart';
@@ -74,6 +75,22 @@ class ConsoleMetricsReporter implements MetricsReporter {
       'in ${metric.operation ?? "unknown"} '
       '(${metric.recoverable ? "recoverable" : "fatal"})',
     );
+  }
+
+  @override
+  void reportPoolEvent(PoolMetric metric) {
+    final parts = <String>[
+      '$prefix Pool: ${metric.event.name}',
+      if (metric.poolName != null) 'pool=${metric.poolName}',
+      if (metric.duration != null)
+        'took ${metric.duration!.inMilliseconds}ms',
+      if (metric.activeConnections != null)
+        'active=${metric.activeConnections}',
+      if (metric.idleConnections != null) 'idle=${metric.idleConnections}',
+      if (metric.waitingRequests != null && metric.waitingRequests! > 0)
+        'waiting=${metric.waitingRequests}',
+    ];
+    _logger.info(parts.join(' '));
   }
 
   @override
