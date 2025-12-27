@@ -117,8 +117,15 @@ export 'src/security/salt_storage.dart';
 // Sync
 export 'src/sync/conflict_action.dart';
 export 'src/sync/conflict_details.dart';
+export 'src/sync/delta_change.dart';
+export 'src/sync/delta_merge_strategy.dart';
+export 'src/sync/delta_merger.dart';
+export 'src/sync/delta_sync_config.dart';
+export 'src/sync/delta_tracker.dart';
+export 'src/sync/field_change.dart';
 export 'src/sync/pending_change.dart';
 export 'src/sync/pending_changes_manager.dart';
+export 'src/sync/tracked_entity.dart';
 // Transaction
 export 'src/transaction/transaction.dart';
 export 'src/transaction/transaction_context.dart';

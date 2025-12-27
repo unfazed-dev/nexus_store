@@ -66,6 +66,12 @@ mixin _$StoreConfig {
   /// automatically rolled back with a [TransactionError].
   Duration get transactionTimeout;
 
+  /// Delta sync configuration for field-level change tracking.
+  ///
+  /// When enabled, only changed fields are synced instead of entire entities,
+  /// reducing bandwidth usage. See [DeltaSyncConfig] for options.
+  DeltaSyncConfig? get deltaSync;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -106,7 +112,9 @@ mixin _$StoreConfig {
             (identical(other.metricsConfig, metricsConfig) ||
                 other.metricsConfig == metricsConfig) &&
             (identical(other.transactionTimeout, transactionTimeout) ||
-                other.transactionTimeout == transactionTimeout));
+                other.transactionTimeout == transactionTimeout) &&
+            (identical(other.deltaSync, deltaSync) ||
+                other.deltaSync == deltaSync));
   }
 
   @override
@@ -126,11 +134,12 @@ mixin _$StoreConfig {
       tableName,
       metricsReporter,
       metricsConfig,
-      transactionTimeout);
+      transactionTimeout,
+      deltaSync);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync)';
   }
 }
 
@@ -155,11 +164,13 @@ abstract mixin class $StoreConfigCopyWith<$Res> {
       String? tableName,
       MetricsReporter metricsReporter,
       MetricsConfig metricsConfig,
-      Duration transactionTimeout});
+      Duration transactionTimeout,
+      DeltaSyncConfig? deltaSync});
 
   $EncryptionConfigCopyWith<$Res> get encryption;
   $GdprConfigCopyWith<$Res>? get gdpr;
   $MetricsConfigCopyWith<$Res> get metricsConfig;
+  $DeltaSyncConfigCopyWith<$Res>? get deltaSync;
 }
 
 /// @nodoc
@@ -189,6 +200,7 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
     Object? metricsReporter = null,
     Object? metricsConfig = null,
     Object? transactionTimeout = null,
+    Object? deltaSync = freezed,
   }) {
     return _then(_self.copyWith(
       fetchPolicy: null == fetchPolicy
@@ -251,6 +263,10 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
           ? _self.transactionTimeout
           : transactionTimeout // ignore: cast_nullable_to_non_nullable
               as Duration,
+      deltaSync: freezed == deltaSync
+          ? _self.deltaSync
+          : deltaSync // ignore: cast_nullable_to_non_nullable
+              as DeltaSyncConfig?,
     ));
   }
 
@@ -285,6 +301,20 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
   $MetricsConfigCopyWith<$Res> get metricsConfig {
     return $MetricsConfigCopyWith<$Res>(_self.metricsConfig, (value) {
       return _then(_self.copyWith(metricsConfig: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $DeltaSyncConfigCopyWith<$Res>? get deltaSync {
+    if (_self.deltaSync == null) {
+      return null;
+    }
+
+    return $DeltaSyncConfigCopyWith<$Res>(_self.deltaSync!, (value) {
+      return _then(_self.copyWith(deltaSync: value));
     });
   }
 }
@@ -397,7 +427,8 @@ extension StoreConfigPatterns on StoreConfig {
             String? tableName,
             MetricsReporter metricsReporter,
             MetricsConfig metricsConfig,
-            Duration transactionTimeout)?
+            Duration transactionTimeout,
+            DeltaSyncConfig? deltaSync)?
         $default, {
     required TResult orElse(),
   }) {
@@ -419,7 +450,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.tableName,
             _that.metricsReporter,
             _that.metricsConfig,
-            _that.transactionTimeout);
+            _that.transactionTimeout,
+            _that.deltaSync);
       case _:
         return orElse();
     }
@@ -455,7 +487,8 @@ extension StoreConfigPatterns on StoreConfig {
             String? tableName,
             MetricsReporter metricsReporter,
             MetricsConfig metricsConfig,
-            Duration transactionTimeout)
+            Duration transactionTimeout,
+            DeltaSyncConfig? deltaSync)
         $default,
   ) {
     final _that = this;
@@ -476,7 +509,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.tableName,
             _that.metricsReporter,
             _that.metricsConfig,
-            _that.transactionTimeout);
+            _that.transactionTimeout,
+            _that.deltaSync);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -511,7 +545,8 @@ extension StoreConfigPatterns on StoreConfig {
             String? tableName,
             MetricsReporter metricsReporter,
             MetricsConfig metricsConfig,
-            Duration transactionTimeout)?
+            Duration transactionTimeout,
+            DeltaSyncConfig? deltaSync)?
         $default,
   ) {
     final _that = this;
@@ -532,7 +567,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.tableName,
             _that.metricsReporter,
             _that.metricsConfig,
-            _that.transactionTimeout);
+            _that.transactionTimeout,
+            _that.deltaSync);
       case _:
         return null;
     }
@@ -557,7 +593,8 @@ class _StoreConfig extends StoreConfig {
       this.tableName,
       this.metricsReporter = const NoOpMetricsReporter(),
       this.metricsConfig = MetricsConfig.defaults,
-      this.transactionTimeout = const Duration(seconds: 30)})
+      this.transactionTimeout = const Duration(seconds: 30),
+      this.deltaSync})
       : super._();
 
   /// Default fetch policy for read operations.
@@ -638,6 +675,13 @@ class _StoreConfig extends StoreConfig {
   @JsonKey()
   final Duration transactionTimeout;
 
+  /// Delta sync configuration for field-level change tracking.
+  ///
+  /// When enabled, only changed fields are synced instead of entire entities,
+  /// reducing bandwidth usage. See [DeltaSyncConfig] for options.
+  @override
+  final DeltaSyncConfig? deltaSync;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -679,7 +723,9 @@ class _StoreConfig extends StoreConfig {
             (identical(other.metricsConfig, metricsConfig) ||
                 other.metricsConfig == metricsConfig) &&
             (identical(other.transactionTimeout, transactionTimeout) ||
-                other.transactionTimeout == transactionTimeout));
+                other.transactionTimeout == transactionTimeout) &&
+            (identical(other.deltaSync, deltaSync) ||
+                other.deltaSync == deltaSync));
   }
 
   @override
@@ -699,11 +745,12 @@ class _StoreConfig extends StoreConfig {
       tableName,
       metricsReporter,
       metricsConfig,
-      transactionTimeout);
+      transactionTimeout,
+      deltaSync);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync)';
   }
 }
 
@@ -730,7 +777,8 @@ abstract mixin class _$StoreConfigCopyWith<$Res>
       String? tableName,
       MetricsReporter metricsReporter,
       MetricsConfig metricsConfig,
-      Duration transactionTimeout});
+      Duration transactionTimeout,
+      DeltaSyncConfig? deltaSync});
 
   @override
   $EncryptionConfigCopyWith<$Res> get encryption;
@@ -738,6 +786,8 @@ abstract mixin class _$StoreConfigCopyWith<$Res>
   $GdprConfigCopyWith<$Res>? get gdpr;
   @override
   $MetricsConfigCopyWith<$Res> get metricsConfig;
+  @override
+  $DeltaSyncConfigCopyWith<$Res>? get deltaSync;
 }
 
 /// @nodoc
@@ -767,6 +817,7 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
     Object? metricsReporter = null,
     Object? metricsConfig = null,
     Object? transactionTimeout = null,
+    Object? deltaSync = freezed,
   }) {
     return _then(_StoreConfig(
       fetchPolicy: null == fetchPolicy
@@ -829,6 +880,10 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
           ? _self.transactionTimeout
           : transactionTimeout // ignore: cast_nullable_to_non_nullable
               as Duration,
+      deltaSync: freezed == deltaSync
+          ? _self.deltaSync
+          : deltaSync // ignore: cast_nullable_to_non_nullable
+              as DeltaSyncConfig?,
     ));
   }
 
@@ -863,6 +918,20 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
   $MetricsConfigCopyWith<$Res> get metricsConfig {
     return $MetricsConfigCopyWith<$Res>(_self.metricsConfig, (value) {
       return _then(_self.copyWith(metricsConfig: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $DeltaSyncConfigCopyWith<$Res>? get deltaSync {
+    if (_self.deltaSync == null) {
+      return null;
+    }
+
+    return $DeltaSyncConfigCopyWith<$Res>(_self.deltaSync!, (value) {
+      return _then(_self.copyWith(deltaSync: value));
     });
   }
 }

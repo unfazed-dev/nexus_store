@@ -3,6 +3,7 @@ import 'package:nexus_store/src/compliance/gdpr_config.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/retry_config.dart';
 import 'package:nexus_store/src/security/encryption_config.dart';
+import 'package:nexus_store/src/sync/delta_sync_config.dart';
 import 'package:nexus_store/src/telemetry/metrics_config.dart';
 import 'package:nexus_store/src/telemetry/metrics_reporter.dart';
 
@@ -79,6 +80,12 @@ abstract class StoreConfig with _$StoreConfig {
     /// If a transaction takes longer than this duration, it will be
     /// automatically rolled back with a [TransactionError].
     @Default(Duration(seconds: 30)) Duration transactionTimeout,
+
+    /// Delta sync configuration for field-level change tracking.
+    ///
+    /// When enabled, only changed fields are synced instead of entire entities,
+    /// reducing bandwidth usage. See [DeltaSyncConfig] for options.
+    DeltaSyncConfig? deltaSync,
   }) = _StoreConfig;
 
   const StoreConfig._();
