@@ -68,6 +68,16 @@ export 'src/config/policies.dart';
 export 'src/config/retry_config.dart';
 // Config
 export 'src/config/store_config.dart';
+// Interceptors
+export 'src/interceptors/caching_interceptor.dart';
+export 'src/interceptors/interceptor_chain.dart';
+export 'src/interceptors/interceptor_context.dart';
+export 'src/interceptors/interceptor_result.dart';
+export 'src/interceptors/logging_interceptor.dart';
+export 'src/interceptors/store_interceptor.dart';
+export 'src/interceptors/store_operation.dart';
+export 'src/interceptors/timing_interceptor.dart';
+export 'src/interceptors/validation_interceptor.dart';
 export 'src/core/composite_backend.dart';
 // Core
 export 'src/core/nexus_store.dart';

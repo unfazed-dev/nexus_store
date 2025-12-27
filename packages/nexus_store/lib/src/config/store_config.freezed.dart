@@ -72,6 +72,24 @@ mixin _$StoreConfig {
   /// reducing bandwidth usage. See [DeltaSyncConfig] for options.
   DeltaSyncConfig? get deltaSync;
 
+  /// Interceptors for pre/post processing of store operations.
+  ///
+  /// Interceptors are called in order for requests (first to last) and
+  /// in reverse order for responses/errors (last to first).
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   interceptors: [
+  ///     LoggingInterceptor(),
+  ///     AuthInterceptor(authService),
+  ///     CachingInterceptor(cache),
+  ///   ],
+  /// );
+  /// ```
+  List<StoreInterceptor> get interceptors;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -114,7 +132,9 @@ mixin _$StoreConfig {
             (identical(other.transactionTimeout, transactionTimeout) ||
                 other.transactionTimeout == transactionTimeout) &&
             (identical(other.deltaSync, deltaSync) ||
-                other.deltaSync == deltaSync));
+                other.deltaSync == deltaSync) &&
+            const DeepCollectionEquality()
+                .equals(other.interceptors, interceptors));
   }
 
   @override
@@ -135,11 +155,12 @@ mixin _$StoreConfig {
       metricsReporter,
       metricsConfig,
       transactionTimeout,
-      deltaSync);
+      deltaSync,
+      const DeepCollectionEquality().hash(interceptors));
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync, interceptors: $interceptors)';
   }
 }
 
@@ -165,7 +186,8 @@ abstract mixin class $StoreConfigCopyWith<$Res> {
       MetricsReporter metricsReporter,
       MetricsConfig metricsConfig,
       Duration transactionTimeout,
-      DeltaSyncConfig? deltaSync});
+      DeltaSyncConfig? deltaSync,
+      List<StoreInterceptor> interceptors});
 
   $EncryptionConfigCopyWith<$Res> get encryption;
   $GdprConfigCopyWith<$Res>? get gdpr;
@@ -201,6 +223,7 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
     Object? metricsConfig = null,
     Object? transactionTimeout = null,
     Object? deltaSync = freezed,
+    Object? interceptors = null,
   }) {
     return _then(_self.copyWith(
       fetchPolicy: null == fetchPolicy
@@ -267,6 +290,10 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
           ? _self.deltaSync
           : deltaSync // ignore: cast_nullable_to_non_nullable
               as DeltaSyncConfig?,
+      interceptors: null == interceptors
+          ? _self.interceptors
+          : interceptors // ignore: cast_nullable_to_non_nullable
+              as List<StoreInterceptor>,
     ));
   }
 
@@ -428,7 +455,8 @@ extension StoreConfigPatterns on StoreConfig {
             MetricsReporter metricsReporter,
             MetricsConfig metricsConfig,
             Duration transactionTimeout,
-            DeltaSyncConfig? deltaSync)?
+            DeltaSyncConfig? deltaSync,
+            List<StoreInterceptor> interceptors)?
         $default, {
     required TResult orElse(),
   }) {
@@ -451,7 +479,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.metricsReporter,
             _that.metricsConfig,
             _that.transactionTimeout,
-            _that.deltaSync);
+            _that.deltaSync,
+            _that.interceptors);
       case _:
         return orElse();
     }
@@ -488,7 +517,8 @@ extension StoreConfigPatterns on StoreConfig {
             MetricsReporter metricsReporter,
             MetricsConfig metricsConfig,
             Duration transactionTimeout,
-            DeltaSyncConfig? deltaSync)
+            DeltaSyncConfig? deltaSync,
+            List<StoreInterceptor> interceptors)
         $default,
   ) {
     final _that = this;
@@ -510,7 +540,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.metricsReporter,
             _that.metricsConfig,
             _that.transactionTimeout,
-            _that.deltaSync);
+            _that.deltaSync,
+            _that.interceptors);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -546,7 +577,8 @@ extension StoreConfigPatterns on StoreConfig {
             MetricsReporter metricsReporter,
             MetricsConfig metricsConfig,
             Duration transactionTimeout,
-            DeltaSyncConfig? deltaSync)?
+            DeltaSyncConfig? deltaSync,
+            List<StoreInterceptor> interceptors)?
         $default,
   ) {
     final _that = this;
@@ -568,7 +600,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.metricsReporter,
             _that.metricsConfig,
             _that.transactionTimeout,
-            _that.deltaSync);
+            _that.deltaSync,
+            _that.interceptors);
       case _:
         return null;
     }
@@ -594,8 +627,10 @@ class _StoreConfig extends StoreConfig {
       this.metricsReporter = const NoOpMetricsReporter(),
       this.metricsConfig = MetricsConfig.defaults,
       this.transactionTimeout = const Duration(seconds: 30),
-      this.deltaSync})
-      : super._();
+      this.deltaSync,
+      final List<StoreInterceptor> interceptors = const []})
+      : _interceptors = interceptors,
+        super._();
 
   /// Default fetch policy for read operations.
   @override
@@ -682,6 +717,48 @@ class _StoreConfig extends StoreConfig {
   @override
   final DeltaSyncConfig? deltaSync;
 
+  /// Interceptors for pre/post processing of store operations.
+  ///
+  /// Interceptors are called in order for requests (first to last) and
+  /// in reverse order for responses/errors (last to first).
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   interceptors: [
+  ///     LoggingInterceptor(),
+  ///     AuthInterceptor(authService),
+  ///     CachingInterceptor(cache),
+  ///   ],
+  /// );
+  /// ```
+  final List<StoreInterceptor> _interceptors;
+
+  /// Interceptors for pre/post processing of store operations.
+  ///
+  /// Interceptors are called in order for requests (first to last) and
+  /// in reverse order for responses/errors (last to first).
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   interceptors: [
+  ///     LoggingInterceptor(),
+  ///     AuthInterceptor(authService),
+  ///     CachingInterceptor(cache),
+  ///   ],
+  /// );
+  /// ```
+  @override
+  @JsonKey()
+  List<StoreInterceptor> get interceptors {
+    if (_interceptors is EqualUnmodifiableListView) return _interceptors;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_interceptors);
+  }
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -725,7 +802,9 @@ class _StoreConfig extends StoreConfig {
             (identical(other.transactionTimeout, transactionTimeout) ||
                 other.transactionTimeout == transactionTimeout) &&
             (identical(other.deltaSync, deltaSync) ||
-                other.deltaSync == deltaSync));
+                other.deltaSync == deltaSync) &&
+            const DeepCollectionEquality()
+                .equals(other._interceptors, _interceptors));
   }
 
   @override
@@ -746,11 +825,12 @@ class _StoreConfig extends StoreConfig {
       metricsReporter,
       metricsConfig,
       transactionTimeout,
-      deltaSync);
+      deltaSync,
+      const DeepCollectionEquality().hash(_interceptors));
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync, interceptors: $interceptors)';
   }
 }
 
@@ -778,7 +858,8 @@ abstract mixin class _$StoreConfigCopyWith<$Res>
       MetricsReporter metricsReporter,
       MetricsConfig metricsConfig,
       Duration transactionTimeout,
-      DeltaSyncConfig? deltaSync});
+      DeltaSyncConfig? deltaSync,
+      List<StoreInterceptor> interceptors});
 
   @override
   $EncryptionConfigCopyWith<$Res> get encryption;
@@ -818,6 +899,7 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
     Object? metricsConfig = null,
     Object? transactionTimeout = null,
     Object? deltaSync = freezed,
+    Object? interceptors = null,
   }) {
     return _then(_StoreConfig(
       fetchPolicy: null == fetchPolicy
@@ -884,6 +966,10 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
           ? _self.deltaSync
           : deltaSync // ignore: cast_nullable_to_non_nullable
               as DeltaSyncConfig?,
+      interceptors: null == interceptors
+          ? _self._interceptors
+          : interceptors // ignore: cast_nullable_to_non_nullable
+              as List<StoreInterceptor>,
     ));
   }
 

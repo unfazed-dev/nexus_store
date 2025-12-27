@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nexus_store/src/compliance/gdpr_config.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/retry_config.dart';
+import 'package:nexus_store/src/interceptors/store_interceptor.dart';
 import 'package:nexus_store/src/security/encryption_config.dart';
 import 'package:nexus_store/src/sync/delta_sync_config.dart';
 import 'package:nexus_store/src/telemetry/metrics_config.dart';
@@ -86,6 +87,24 @@ abstract class StoreConfig with _$StoreConfig {
     /// When enabled, only changed fields are synced instead of entire entities,
     /// reducing bandwidth usage. See [DeltaSyncConfig] for options.
     DeltaSyncConfig? deltaSync,
+
+    /// Interceptors for pre/post processing of store operations.
+    ///
+    /// Interceptors are called in order for requests (first to last) and
+    /// in reverse order for responses/errors (last to first).
+    ///
+    /// ## Example
+    ///
+    /// ```dart
+    /// final config = StoreConfig(
+    ///   interceptors: [
+    ///     LoggingInterceptor(),
+    ///     AuthInterceptor(authService),
+    ///     CachingInterceptor(cache),
+    ///   ],
+    /// );
+    /// ```
+    @Default([]) List<StoreInterceptor> interceptors,
   }) = _StoreConfig;
 
   const StoreConfig._();

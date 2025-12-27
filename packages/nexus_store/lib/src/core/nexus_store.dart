@@ -10,6 +10,8 @@ import 'package:nexus_store/src/compliance/gdpr_service.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/store_config.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
+import 'package:nexus_store/src/interceptors/interceptor_chain.dart';
+import 'package:nexus_store/src/interceptors/store_operation.dart';
 import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:nexus_store/src/pagination/pagination_controller.dart';
 import 'package:nexus_store/src/pagination/pagination_state.dart';
@@ -106,6 +108,7 @@ class NexusStore<T, ID> {
         _idExtractor = idExtractor,
         _onConflict = onConflict {
     _logger = Logger('NexusStore<$T, $ID>');
+    _interceptorChain = InterceptorChain(_config.interceptors);
 
     _fetchHandler = FetchPolicyHandler(
       backend: _backend,
@@ -138,6 +141,7 @@ class NexusStore<T, ID> {
   late final Logger _logger;
   late final FetchPolicyHandler<T, ID> _fetchHandler;
   late final WritePolicyHandler<T, ID> _writeHandler;
+  late final InterceptorChain _interceptorChain;
   GdprService<T, ID>? _gdprService;
 
   bool _initialized = false;
@@ -232,24 +236,30 @@ class NexusStore<T, ID> {
     _ensureInitialized();
 
     return _trackOperation(OperationType.get, () async {
-      final result = await _fetchHandler.get(id, policy: policy);
+      return _interceptorChain.execute<ID, T?>(
+        operation: StoreOperation.get,
+        request: id,
+        execute: () async {
+          final result = await _fetchHandler.get(id, policy: policy);
 
-      // Track cache hit/miss
-      if (result != null) {
-        _recordCacheHit(itemId: id.toString());
-      } else {
-        _recordCacheMiss(itemId: id.toString());
-      }
+          // Track cache hit/miss
+          if (result != null) {
+            _recordCacheHit(itemId: id.toString());
+          } else {
+            _recordCacheMiss(itemId: id.toString());
+          }
 
-      if (_config.enableAuditLogging && result != null) {
-        await _auditService?.log(
-          action: AuditAction.read,
-          entityType: T.toString(),
-          entityId: id.toString(),
-        );
-      }
+          if (_config.enableAuditLogging && result != null) {
+            await _auditService?.log(
+              action: AuditAction.read,
+              entityType: T.toString(),
+              entityId: id.toString(),
+            );
+          }
 
-      return result;
+          return result;
+        },
+      );
     });
   }
 
@@ -260,18 +270,25 @@ class NexusStore<T, ID> {
     _ensureInitialized();
 
     return _trackOperation(OperationType.getAll, () async {
-      final results = await _fetchHandler.getAll(query: query, policy: policy);
+      return _interceptorChain.execute<Query<T>?, List<T>>(
+        operation: StoreOperation.getAll,
+        request: query,
+        execute: () async {
+          final results =
+              await _fetchHandler.getAll(query: query, policy: policy);
 
-      if (_config.enableAuditLogging && results.isNotEmpty) {
-        await _auditService?.log(
-          action: AuditAction.list,
-          entityType: T.toString(),
-          entityId: 'query:${query?.hashCode ?? 'all'}',
-          metadata: {'count': results.length},
-        );
-      }
+          if (_config.enableAuditLogging && results.isNotEmpty) {
+            await _auditService?.log(
+              action: AuditAction.list,
+              entityType: T.toString(),
+              entityId: 'query:${query?.hashCode ?? 'all'}',
+              metadata: {'count': results.length},
+            );
+          }
 
-      return results;
+          return results;
+        },
+      );
     }, itemCount: 0); // itemCount updated after fetch
   }
 
@@ -419,28 +436,34 @@ class NexusStore<T, ID> {
     _ensureInitialized();
 
     return _trackOperation(OperationType.save, () async {
-      // Encrypt fields if configured
-      // Note: For proper implementation, T should be serializable to Map
-      // This is a simplified version - full implementation would use
-      // a serializer interface
+      return _interceptorChain.execute<T, T>(
+        operation: StoreOperation.save,
+        request: item,
+        execute: () async {
+          // Encrypt fields if configured
+          // Note: For proper implementation, T should be serializable to Map
+          // This is a simplified version - full implementation would use
+          // a serializer interface
 
-      final result = await _writeHandler.save(item, policy: policy);
+          final result = await _writeHandler.save(item, policy: policy);
 
-      // Record in cache with tags if idExtractor is available
-      if (_idExtractor != null) {
-        final id = _idExtractor(result);
-        _fetchHandler.recordCachedItem(id, tags: tags);
-      }
+          // Record in cache with tags if idExtractor is available
+          if (_idExtractor != null) {
+            final id = _idExtractor(result);
+            _fetchHandler.recordCachedItem(id, tags: tags);
+          }
 
-      if (_config.enableAuditLogging) {
-        await _auditService?.log(
-          action: AuditAction.update,
-          entityType: T.toString(),
-          entityId: result.toString(),
-        );
-      }
+          if (_config.enableAuditLogging) {
+            await _auditService?.log(
+              action: AuditAction.update,
+              entityType: T.toString(),
+              entityId: result.toString(),
+            );
+          }
 
-      return result;
+          return result;
+        },
+      );
     });
   }
 
@@ -455,26 +478,32 @@ class NexusStore<T, ID> {
     _ensureInitialized();
 
     return _trackOperation(OperationType.saveAll, () async {
-      final results = await _writeHandler.saveAll(items, policy: policy);
+      return _interceptorChain.execute<List<T>, List<T>>(
+        operation: StoreOperation.saveAll,
+        request: items,
+        execute: () async {
+          final results = await _writeHandler.saveAll(items, policy: policy);
 
-      // Record each item in cache with tags if idExtractor is available
-      if (_idExtractor != null) {
-        for (final result in results) {
-          final id = _idExtractor(result);
-          _fetchHandler.recordCachedItem(id, tags: tags);
-        }
-      }
+          // Record each item in cache with tags if idExtractor is available
+          if (_idExtractor != null) {
+            for (final result in results) {
+              final id = _idExtractor(result);
+              _fetchHandler.recordCachedItem(id, tags: tags);
+            }
+          }
 
-      if (_config.enableAuditLogging && results.isNotEmpty) {
-        await _auditService?.log(
-          action: AuditAction.update,
-          entityType: T.toString(),
-          entityId: 'batch',
-          metadata: {'count': results.length},
-        );
-      }
+          if (_config.enableAuditLogging && results.isNotEmpty) {
+            await _auditService?.log(
+              action: AuditAction.update,
+              entityType: T.toString(),
+              entityId: 'batch',
+              metadata: {'count': results.length},
+            );
+          }
 
-      return results;
+          return results;
+        },
+      );
     }, itemCount: items.length);
   }
 
@@ -485,17 +514,23 @@ class NexusStore<T, ID> {
     _ensureInitialized();
 
     return _trackOperation(OperationType.delete, () async {
-      final result = await _writeHandler.delete(id, policy: policy);
+      return _interceptorChain.execute<ID, bool>(
+        operation: StoreOperation.delete,
+        request: id,
+        execute: () async {
+          final result = await _writeHandler.delete(id, policy: policy);
 
-      if (_config.enableAuditLogging && result) {
-        await _auditService?.log(
-          action: AuditAction.delete,
-          entityType: T.toString(),
-          entityId: id.toString(),
-        );
-      }
+          if (_config.enableAuditLogging && result) {
+            await _auditService?.log(
+              action: AuditAction.delete,
+              entityType: T.toString(),
+              entityId: id.toString(),
+            );
+          }
 
-      return result;
+          return result;
+        },
+      );
     });
   }
 
@@ -506,23 +541,29 @@ class NexusStore<T, ID> {
     _ensureInitialized();
 
     return _trackOperation(OperationType.deleteAll, () async {
-      var count = 0;
-      for (final id in ids) {
-        if (await _writeHandler.delete(id, policy: policy)) {
-          count++;
-        }
-      }
+      return _interceptorChain.execute<List<ID>, int>(
+        operation: StoreOperation.deleteAll,
+        request: ids,
+        execute: () async {
+          var count = 0;
+          for (final id in ids) {
+            if (await _writeHandler.delete(id, policy: policy)) {
+              count++;
+            }
+          }
 
-      if (_config.enableAuditLogging && count > 0) {
-        await _auditService?.log(
-          action: AuditAction.delete,
-          entityType: T.toString(),
-          entityId: 'batch',
-          metadata: {'count': count},
-        );
-      }
+          if (_config.enableAuditLogging && count > 0) {
+            await _auditService?.log(
+              action: AuditAction.delete,
+              entityType: T.toString(),
+              entityId: 'batch',
+              metadata: {'count': count},
+            );
+          }
 
-      return count;
+          return count;
+        },
+      );
     }, itemCount: ids.length);
   }
 
@@ -775,7 +816,13 @@ class NexusStore<T, ID> {
     stopwatch?.start();
 
     try {
-      await _backend.sync();
+      await _interceptorChain.execute<void, void>(
+        operation: StoreOperation.sync,
+        request: null,
+        execute: () async {
+          await _backend.sync();
+        },
+      );
       stopwatch?.stop();
       _recordSyncSuccess(duration: stopwatch?.elapsed);
     } catch (e) {
