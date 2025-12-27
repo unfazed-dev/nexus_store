@@ -8,6 +8,7 @@
 /// - **Providers**: InheritedWidget-based dependency injection
 /// - **Extensions**: BuildContext extensions for convenient store access
 /// - **Utilities**: Lifecycle observers for background sync management
+/// - **Background Sync**: Platform-specific background sync services
 ///
 /// ## Quick Start
 ///
@@ -31,6 +32,7 @@
 /// ```
 library;
 
+export 'src/background/background.dart';
 export 'src/extensions/build_context_extensions.dart';
 export 'src/providers/multi_nexus_store_provider.dart';
 export 'src/providers/nexus_store_provider.dart';

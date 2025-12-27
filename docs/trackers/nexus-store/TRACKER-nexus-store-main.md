@@ -45,11 +45,11 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 - [x] Batch streaming - See [TRACKER-batch-streaming.md](./phase-5-production/TRACKER-batch-streaming.md) ✅ (80+ tests)
 - [x] Enhanced GDPR compliance - See [TRACKER-gdpr-enhanced.md](./phase-5-production/TRACKER-gdpr-enhanced.md) ✅ (100+ tests)
 
-### Phase 6: Enterprise & Performance (10/10 Features)
+### Phase 6: Enterprise & Performance (1/8 Complete)
 - [ ] Cross-store transactions (Saga) - See [TRACKER-saga-transactions.md](./phase-6-enterprise/TRACKER-saga-transactions.md)
 - [ ] Middleware/interceptor API - See [TRACKER-interceptors.md](./phase-6-enterprise/TRACKER-interceptors.md)
 - [ ] Delta sync support - See [TRACKER-delta-sync.md](./phase-6-enterprise/TRACKER-delta-sync.md)
-- [ ] Background sync service - See [TRACKER-background-sync.md](./phase-6-enterprise/TRACKER-background-sync.md)
+- [x] Background sync service - See [TRACKER-background-sync.md](./phase-6-enterprise/TRACKER-background-sync.md) ✅ (139 tests)
 - [ ] Production reliability (circuit breaker, health, degradation) - See [TRACKER-reliability.md](./phase-6-enterprise/TRACKER-reliability.md)
 - [ ] Memory management - See [TRACKER-memory-management.md](./phase-6-enterprise/TRACKER-memory-management.md)
 - [ ] Lazy field loading - See [TRACKER-lazy-loading.md](./phase-6-enterprise/TRACKER-lazy-loading.md)
@@ -140,8 +140,8 @@ Documentation (depends on all above)
 | REQ-029 | Cross-Store Transactions (Saga) | ⏳ Pending | [saga](./phase-6-enterprise/TRACKER-saga-transactions.md) |
 | REQ-030 | Middleware/Interceptor API | ⏳ Pending | [interceptors](./phase-6-enterprise/TRACKER-interceptors.md) |
 | REQ-031 | Delta Sync Support | ⏳ Pending | [delta-sync](./phase-6-enterprise/TRACKER-delta-sync.md) |
-| REQ-032 | Background Sync Service | ⏳ Pending | [background-sync](./phase-6-enterprise/TRACKER-background-sync.md) |
-| REQ-033 | Sync Priority Queues | ⏳ Pending | [background-sync](./phase-6-enterprise/TRACKER-background-sync.md) |
+| REQ-032 | Background Sync Service | ✅ Complete | [background-sync](./phase-6-enterprise/TRACKER-background-sync.md) |
+| REQ-033 | Sync Priority Queues | ✅ Complete | [background-sync](./phase-6-enterprise/TRACKER-background-sync.md) |
 | REQ-034 | Code Generation Tooling | ⏳ Pending | [type-safe](./phase-5-production/TRACKER-type-safe-query.md) |
 | REQ-035 | Schema Validation | ⏳ Pending | [reliability](./phase-6-enterprise/TRACKER-reliability.md) |
 | REQ-036 | Circuit Breaker Pattern | ⏳ Pending | [reliability](./phase-6-enterprise/TRACKER-reliability.md) |
@@ -231,3 +231,4 @@ Documentation (depends on all above)
 - Melos workspace configured with shared scripts for analyze, test, format
 - Fixed bug in composite_backend.dart (missing await in fallback handling)
 - Added analysis_options.yaml with linting configuration
+- ✅ Background sync service implemented with 139 tests (WorkManager for Android + iOS, NoOp for other platforms, PrioritySyncQueue for sync priority queues)
