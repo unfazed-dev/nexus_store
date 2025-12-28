@@ -34,6 +34,8 @@ library;
 
 export 'src/background/background.dart';
 export 'src/extensions/build_context_extensions.dart';
+export 'src/lazy/lazy_list_view.dart';
+export 'src/lazy/visibility_loader.dart';
 export 'src/providers/multi_nexus_store_provider.dart';
 export 'src/providers/nexus_store_provider.dart';
 export 'src/types/store_result.dart';

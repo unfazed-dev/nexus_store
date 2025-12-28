@@ -1,0 +1,7 @@
+builders:
+  lazy:
+    import: "package:nexus_store_generator/builder.dart"
+    builder_factories: ["lazyBuilder"]
+    build_extensions: {".dart": [".lazy.dart"]}
+    auto_apply: dependents
+    build_to: source

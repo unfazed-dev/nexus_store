@@ -85,6 +85,7 @@ export 'src/core/store_backend.dart';
 // Errors
 export 'src/errors/store_errors.dart';
 // Lazy Loading
+export 'src/lazy/annotations.dart';
 export 'src/lazy/field_loader.dart';
 export 'src/lazy/lazy_entity.dart';
 export 'src/lazy/lazy_field.dart';

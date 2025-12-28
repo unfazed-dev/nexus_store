@@ -109,12 +109,31 @@ Implement on-demand loading for heavy fields (blobs, large text) to improve init
   - [x] Included in equality/hashCode/toString
 
 ### Code Generation (Optional)
-- [ ] Create `@NexusEntity` annotation enhancements (future)
-- [ ] Generate accessor methods (future)
+- [x] Create annotations for lazy field code generation
+  - [x] `@Lazy` annotation for marking lazy fields
+  - [x] `@NexusLazy` annotation for class-level code generation
+  - [x] `@LazyAccessor` annotation for generated methods
+- [x] Create `nexus_store_generator` package
+  - [x] `LazyGenerator` using source_gen
+  - [x] Generates accessor mixins with typed methods
+  - [x] Generates wrapper classes extending `LazyEntity`
+  - [x] build.yaml configuration for build_runner
 
 ### Visibility-based Loading (Optional)
-- [ ] Implement visibility-based loading (future)
-  - [ ] For Flutter ListView integration
+- [x] Create `VisibilityLoader` widget
+  - [x] On-demand loading when visible
+  - [x] Placeholder while loading
+  - [x] Error handling with retry
+  - [x] Controller for manual control
+  - [x] `loadOnce` parameter
+- [x] Create `LazyListView` widget
+  - [x] ListView with lazy field loading support
+  - [x] `lazyFieldLoader` for item data
+  - [x] `lazyPlaceholder` builder
+  - [x] `lazyErrorBuilder` with retry
+  - [x] `onItemVisible` callback
+  - [x] Separator, padding, physics support
+  - [x] Builder mode for index-based items
 
 ### Unit Tests
 - [x] `test/src/lazy/lazy_field_state_test.dart` - 5 tests
@@ -123,16 +142,25 @@ Implement on-demand loading for heavy fields (blobs, large text) to improve init
 - [x] `test/src/lazy/lazy_field_registry_test.dart` - 10 tests
 - [x] `test/src/lazy/field_loader_test.dart` - 14 tests
 - [x] `test/src/lazy/lazy_entity_test.dart` - 13 tests
+- [x] `test/src/lazy/annotations_test.dart` - 11 tests
 - [x] `test/src/core/nexus_store_lazy_loading_test.dart` - 22 tests
 - [x] `test/src/query/query_preload_test.dart` - 11 tests
 
-**Total: 118 tests**
+### Generator Tests (nexus_store_generator)
+- [x] `test/lazy_generator_test.dart` - 4 tests
+
+### Flutter Tests (nexus_store_flutter)
+- [x] `test/src/lazy/visibility_loader_test.dart` - 14 tests
+- [x] `test/src/lazy/lazy_list_view_test.dart` - 12 tests
+
+**Total: 159 tests**
 
 ## Files
 
 **Source Files:**
 ```
 packages/nexus_store/lib/src/lazy/
+├── annotations.dart            # @Lazy, @NexusLazy, @LazyAccessor
 ├── field_loader.dart           # FieldLoader<T, ID> service
 ├── lazy_entity.dart            # LazyEntity<T, ID> wrapper
 ├── lazy_field.dart             # LazyField<T> wrapper
@@ -149,11 +177,24 @@ packages/nexus_store/lib/src/core/
 
 packages/nexus_store/lib/src/query/
 └── query.dart                  # Updated with preload methods
+
+packages/nexus_store_generator/
+├── lib/
+│   ├── builder.dart            # Builder entry point
+│   └── src/
+│       └── lazy_generator.dart # LazyGenerator implementation
+├── build.yaml                  # Builder configuration
+└── pubspec.yaml                # Package configuration
+
+packages/nexus_store_flutter/lib/src/lazy/
+├── visibility_loader.dart      # VisibilityLoader widget
+└── lazy_list_view.dart         # LazyListView widget
 ```
 
 **Test Files:**
 ```
 packages/nexus_store/test/src/lazy/
+├── annotations_test.dart
 ├── field_loader_test.dart
 ├── lazy_entity_test.dart
 ├── lazy_field_registry_test.dart
@@ -166,6 +207,13 @@ packages/nexus_store/test/src/core/
 
 packages/nexus_store/test/src/query/
 └── query_preload_test.dart
+
+packages/nexus_store_generator/test/
+└── lazy_generator_test.dart
+
+packages/nexus_store_flutter/test/src/lazy/
+├── visibility_loader_test.dart
+└── lazy_list_view_test.dart
 ```
 
 ## Dependencies
