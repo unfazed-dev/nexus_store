@@ -32,7 +32,8 @@ class Query<T> {
         _afterCursor = null,
         _beforeCursor = null,
         _first = null,
-        _last = null;
+        _last = null,
+        _preloadFields = const {};
 
   const Query._({
     required List<QueryFilter> filters,
@@ -43,6 +44,7 @@ class Query<T> {
     Cursor? beforeCursor,
     int? first,
     int? last,
+    Set<String> preloadFields = const {},
   })  : _filters = filters,
         _orderBy = orderBy,
         _limit = limit,
@@ -50,7 +52,8 @@ class Query<T> {
         _afterCursor = afterCursor,
         _beforeCursor = beforeCursor,
         _first = first,
-        _last = last;
+        _last = last,
+        _preloadFields = preloadFields;
 
   final List<QueryFilter> _filters;
   final List<QueryOrderBy> _orderBy;
@@ -60,6 +63,7 @@ class Query<T> {
   final Cursor? _beforeCursor;
   final int? _first;
   final int? _last;
+  final Set<String> _preloadFields;
 
   /// The filter conditions for this query.
   List<QueryFilter> get filters => List.unmodifiable(_filters);
@@ -84,6 +88,12 @@ class Query<T> {
 
   /// Number of items to fetch backward from cursor.
   int? get lastCount => _last;
+
+  /// Fields to preload when executing this query.
+  ///
+  /// These fields will be eagerly loaded alongside the main query results,
+  /// useful for lazy fields that are known to be needed.
+  Set<String> get preloadFields => Set.unmodifiable(_preloadFields);
 
   // ---------------------------------------------------------------------------
   // Filter Methods
@@ -215,6 +225,7 @@ class Query<T> {
       beforeCursor: _beforeCursor,
       first: _first,
       last: _last,
+      preloadFields: _preloadFields,
     );
   }
 
@@ -236,6 +247,7 @@ class Query<T> {
       beforeCursor: _beforeCursor,
       first: _first,
       last: _last,
+      preloadFields: _preloadFields,
     );
   }
 
@@ -255,6 +267,7 @@ class Query<T> {
       beforeCursor: _beforeCursor,
       first: _first,
       last: _last,
+      preloadFields: _preloadFields,
     );
   }
 
@@ -270,6 +283,7 @@ class Query<T> {
       beforeCursor: _beforeCursor,
       first: _first,
       last: _last,
+      preloadFields: _preloadFields,
     );
   }
 
@@ -298,6 +312,7 @@ class Query<T> {
       beforeCursor: _beforeCursor,
       first: _first,
       last: _last,
+      preloadFields: _preloadFields,
     );
   }
 
@@ -322,6 +337,7 @@ class Query<T> {
       beforeCursor: cursor,
       first: _first,
       last: _last,
+      preloadFields: _preloadFields,
     );
   }
 
@@ -346,6 +362,7 @@ class Query<T> {
       beforeCursor: _beforeCursor,
       first: count,
       last: _last,
+      preloadFields: _preloadFields,
     );
   }
 
@@ -371,6 +388,60 @@ class Query<T> {
       beforeCursor: _beforeCursor,
       first: _first,
       last: count,
+      preloadFields: _preloadFields,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Preload Methods (Lazy Loading)
+  // ---------------------------------------------------------------------------
+
+  /// Specifies fields to preload with query results.
+  ///
+  /// These fields will be eagerly loaded alongside the main query results.
+  /// Useful for lazy fields that are known to be needed.
+  ///
+  /// Example:
+  /// ```dart
+  /// final query = Query<User>()
+  ///   .where('status', isEqualTo: 'active')
+  ///   .preload({'thumbnail', 'avatar'});
+  /// ```
+  Query<T> preload(Set<String> fields) {
+    return Query._(
+      filters: _filters,
+      orderBy: _orderBy,
+      limit: _limit,
+      offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
+      preloadFields: {..._preloadFields, ...fields},
+    );
+  }
+
+  /// Specifies a single field to preload with query results.
+  ///
+  /// Convenience method for preloading a single field.
+  ///
+  /// Example:
+  /// ```dart
+  /// final query = Query<User>()
+  ///   .where('status', isEqualTo: 'active')
+  ///   .preloadField('thumbnail');
+  /// ```
+  Query<T> preloadField(String field) {
+    return Query._(
+      filters: _filters,
+      orderBy: _orderBy,
+      limit: _limit,
+      offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
+      preloadFields: {..._preloadFields, field},
     );
   }
 
@@ -378,7 +449,7 @@ class Query<T> {
   // Query Composition
   // ---------------------------------------------------------------------------
 
-  /// Returns `true` if this query has no filters, ordering, or pagination.
+  /// Returns `true` if this query has no filters, ordering, pagination, or preloads.
   bool get isEmpty =>
       _filters.isEmpty &&
       _orderBy.isEmpty &&
@@ -387,7 +458,8 @@ class Query<T> {
       _afterCursor == null &&
       _beforeCursor == null &&
       _first == null &&
-      _last == null;
+      _last == null &&
+      _preloadFields.isEmpty;
 
   /// Returns `true` if this query has any conditions.
   bool get isNotEmpty => !isEmpty;
@@ -402,6 +474,7 @@ class Query<T> {
     Cursor? beforeCursor,
     int? first,
     int? last,
+    Set<String>? preloadFields,
   }) =>
       Query._(
         filters: filters ?? _filters,
@@ -412,6 +485,7 @@ class Query<T> {
         beforeCursor: beforeCursor ?? _beforeCursor,
         first: first ?? _first,
         last: last ?? _last,
+        preloadFields: preloadFields ?? _preloadFields,
       );
 
   @override
@@ -426,7 +500,8 @@ class Query<T> {
           _afterCursor == other._afterCursor &&
           _beforeCursor == other._beforeCursor &&
           _first == other._first &&
-          _last == other._last;
+          _last == other._last &&
+          _setsEqual(_preloadFields, other._preloadFields);
 
   @override
   int get hashCode => Object.hash(
@@ -438,6 +513,7 @@ class Query<T> {
         _beforeCursor,
         _first,
         _last,
+        Object.hashAll(_preloadFields),
       );
 
   @override
@@ -449,7 +525,8 @@ class Query<T> {
       'afterCursor: $_afterCursor, '
       'beforeCursor: $_beforeCursor, '
       'first: $_first, '
-      'last: $_last)';
+      'last: $_last, '
+      'preloadFields: $_preloadFields)';
 
   static bool _listsEqual<E>(List<E> a, List<E> b) {
     if (identical(a, b)) return true;
@@ -458,6 +535,12 @@ class Query<T> {
       if (a[i] != b[i]) return false;
     }
     return true;
+  }
+
+  static bool _setsEqual<E>(Set<E> a, Set<E> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    return a.containsAll(b);
   }
 }
 

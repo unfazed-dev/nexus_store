@@ -1,6 +1,6 @@
 # TRACKER: Lazy Field Loading
 
-## Status: PENDING
+## Status: COMPLETE
 
 ## Overview
 
@@ -12,138 +12,170 @@ Implement on-demand loading for heavy fields (blobs, large text) to improve init
 ## Tasks
 
 ### Data Models
-- [ ] Create `@LazyLoad()` annotation
-  - [ ] `placeholder: dynamic` - Value before loading
-  - [ ] `eager: bool` - Load immediately in getAll (default false)
+- [x] Create `LazyFieldState` enum
+  - [x] `notLoaded` - Initial state
+  - [x] `loading` - Currently loading
+  - [x] `loaded` - Successfully loaded
+  - [x] `error` - Load failed
 
-- [ ] Create `LazyField<T>` wrapper class
-  - [ ] `isLoaded: bool`
-  - [ ] `value: T?` - Null if not loaded
-  - [ ] `Future<T> load()` - Load the field
-  - [ ] `placeholder: T?` - Default value
+- [x] Create `LazyField<T>` wrapper class
+  - [x] `isLoaded: bool`
+  - [x] `value: T?` - Null if not loaded
+  - [x] `Future<T> load()` - Load the field
+  - [x] `placeholder: T?` - Default value
+  - [x] `reset()` - Reset to initial state
+  - [x] `hasError: bool` - Check for error state
+  - [x] `errorMessage: String?` - Error message if failed
+  - [x] Concurrent load deduplication
 
-- [ ] Create `LazyLoadConfig` class
-  - [ ] `lazyFields: Set<String>` - Fields to lazy load
-  - [ ] `batchSize: int` - Batch load limit
-  - [ ] `preloadOnWatch: bool` - Auto-load when watched
+- [x] Create `LazyLoadConfig` (@freezed)
+  - [x] `lazyFields: Set<String>` - Fields to lazy load
+  - [x] `batchSize: int` - Batch load limit
+  - [x] `batchDelay: Duration` - Batching window
+  - [x] `preloadOnWatch: bool` - Auto-load when watched
+  - [x] `placeholders: Map<String, dynamic>` - Default values
+  - [x] `isLazyField(String)` method
+  - [x] `getPlaceholder(String)` method
+  - [x] `hasLazyFields` getter
+  - [x] Presets: `off`, `media`
 
 ### Field Loader
-- [ ] Create `FieldLoader<T, ID>` class
-  - [ ] `Future<T> loadField(ID id, String fieldName)`
-  - [ ] `Future<Map<ID, T>> loadFieldBatch(List<ID> ids, String fieldName)`
-  - [ ] Track loading state per field
+- [x] Create `FieldLoader<T, ID>` class
+  - [x] `Future<dynamic> loadField(ID id, String fieldName)`
+  - [x] `Future<Map<ID, dynamic>> loadFieldBatch(List<ID> ids, String fieldName)`
+  - [x] `LazyFieldState getFieldState(ID id, String fieldName)`
+  - [x] `Future<void> preloadFields(List<ID> ids, Set<String> fieldNames)`
+  - [x] `void clearCache()`
+  - [x] `void clearCacheForEntity(ID id)`
+  - [x] `Future<void> dispose()`
+  - [x] Concurrent request deduplication
+  - [x] Caching of loaded values
 
-- [ ] Implement batch loading
-  - [ ] Collect pending field requests
-  - [ ] Execute in single backend call
-  - [ ] Distribute results to waiters
-
-- [ ] Create `LazyFieldRegistry`
-  - [ ] Register lazy fields per entity type
-  - [ ] Configure per-field loading behavior
+- [x] Create `LazyFieldRegistry`
+  - [x] Register lazy fields per entity type
+  - [x] `register<T>(LazyLoadConfig config)`
+  - [x] `getConfig<T>()` returns config or null
+  - [x] `isLazy<T>(String fieldName)` check
+  - [x] `clear()` method
 
 ### Backend Integration
-- [ ] Update `StoreBackend` interface
-  - [ ] `Future<dynamic> getField(ID id, String fieldName)`
-  - [ ] `Future<Map<ID, dynamic>> getFieldBatch(List<ID> ids, String fieldName)`
+- [x] Update `StoreBackend` interface
+  - [x] `Future<dynamic> getField(ID id, String fieldName)`
+  - [x] `Future<Map<ID, dynamic>> getFieldBatch(List<ID> ids, String fieldName)`
+  - [x] `bool get supportsFieldOperations`
 
-- [ ] Implement in adapters
-  - [ ] SQL: SELECT specific column
-  - [ ] Document support requirements
+- [x] Add defaults in `StoreBackendDefaults` mixin
+  - [x] Default implementations that throw UnsupportedError
+  - [x] Fallback batch implementation using getField
+
+- [x] Update `CompositeBackend`
+  - [x] Implement new interface methods
+
+- [x] Update test fixtures
+  - [x] `FakeStoreBackend` with field storage support
 
 ### Entity Wrapper
-- [ ] Create `LazyEntity<T>` wrapper
-  - [ ] Wraps entity with lazy field support
-  - [ ] Proxies field access
-  - [ ] Tracks loaded state
-
-- [ ] Implement lazy property access
-  - [ ] Return placeholder if not loaded
-  - [ ] Track which fields accessed
-  - [ ] Provide `loadAll()` method
-
-### Code Generation (Optional)
-- [ ] Create `@NexusEntity` annotation enhancements
-  - [ ] Recognize `@LazyLoad()` on fields
-  - [ ] Generate lazy wrapper class
-
-- [ ] Generate accessor methods
-  - [ ] Async getter for lazy fields
-  - [ ] Sync getter returns placeholder
+- [x] Create `LazyEntity<T, ID>` wrapper
+  - [x] Wraps entity with lazy field support
+  - [x] `T get entity` - Access underlying entity
+  - [x] `ID get id` - Entity identifier
+  - [x] `dynamic getField(String fieldName)`
+  - [x] `bool isFieldLoaded(String fieldName)`
+  - [x] `Future<dynamic> loadField(String fieldName)`
+  - [x] `Future<void> loadFields(Set<String> fieldNames)`
+  - [x] `Future<void> loadAllLazyFields()`
+  - [x] `Set<String> get unloadedFields`
+  - [x] `Stream<String> get fieldLoadedStream`
+  - [x] `Future<void> dispose()`
 
 ### NexusStore Integration
-- [ ] Add `lazyLoad` config to `StoreConfig`
-- [ ] Modify `get()` to respect lazy config
-- [ ] Add `loadField(id, fieldName)` method
-- [ ] Add `loadFields(id, fieldNames)` method
+- [x] Add `lazyLoad` config to `StoreConfig`
+- [x] Initialize `FieldLoader` when lazyLoad configured
+- [x] Add `loadField(id, fieldName)` method
+- [x] Add `loadFieldBatch(ids, fieldName)` method
+- [x] Add `preloadFields(ids, fieldNames)` method
+- [x] Add `getFieldState(id, fieldName)` method
+- [x] Add `clearFieldCache()` method
+- [x] Add `clearFieldCacheForEntity(id)` method
+- [x] Dispose FieldLoader in store.dispose()
 
 ### Preloading Strategies
-- [ ] Implement `preload` query modifier
-  - [ ] `Query<T>().preload(['thumbnail'])`
-  - [ ] Load specified lazy fields with query
+- [x] Implement `preload` query modifier
+  - [x] `Query<T>().preload({'thumbnail'})`
+  - [x] `Query<T>().preloadField('thumbnail')`
+  - [x] Cumulative field addition
+  - [x] `preloadFields` getter
+  - [x] Preserved across all Query methods
+  - [x] Included in equality/hashCode/toString
 
-- [ ] Implement visibility-based loading
-  - [ ] Load when item becomes visible
+### Code Generation (Optional)
+- [ ] Create `@NexusEntity` annotation enhancements (future)
+- [ ] Generate accessor methods (future)
+
+### Visibility-based Loading (Optional)
+- [ ] Implement visibility-based loading (future)
   - [ ] For Flutter ListView integration
 
 ### Unit Tests
-- [ ] `test/src/core/lazy_field_test.dart`
-  - [ ] Lazy fields not loaded initially
-  - [ ] Load on demand works
-  - [ ] Batch loading works
-  - [ ] Placeholder values correct
+- [x] `test/src/lazy/lazy_field_state_test.dart` - 5 tests
+- [x] `test/src/lazy/lazy_field_test.dart` - 23 tests
+- [x] `test/src/lazy/lazy_load_config_test.dart` - 20 tests
+- [x] `test/src/lazy/lazy_field_registry_test.dart` - 10 tests
+- [x] `test/src/lazy/field_loader_test.dart` - 14 tests
+- [x] `test/src/lazy/lazy_entity_test.dart` - 13 tests
+- [x] `test/src/core/nexus_store_lazy_loading_test.dart` - 22 tests
+- [x] `test/src/query/query_preload_test.dart` - 11 tests
+
+**Total: 118 tests**
 
 ## Files
 
 **Source Files:**
 ```
-packages/nexus_store/lib/src/core/
-├── lazy_field.dart           # LazyField<T> wrapper
-├── lazy_load_annotation.dart # @LazyLoad() annotation
-├── field_loader.dart         # FieldLoader service
-├── lazy_entity.dart          # LazyEntity<T> wrapper
-└── lazy_field_registry.dart  # Field configuration
+packages/nexus_store/lib/src/lazy/
+├── field_loader.dart           # FieldLoader<T, ID> service
+├── lazy_entity.dart            # LazyEntity<T, ID> wrapper
+├── lazy_field.dart             # LazyField<T> wrapper
+├── lazy_field_registry.dart    # Per-type field configuration
+├── lazy_field_state.dart       # LazyFieldState enum
+└── lazy_load_config.dart       # LazyLoadConfig (@freezed)
 
 packages/nexus_store/lib/src/config/
-└── lazy_load_config.dart     # LazyLoadConfig
+└── store_config.dart           # Updated with lazyLoad field
+
+packages/nexus_store/lib/src/core/
+├── nexus_store.dart            # Updated with lazy loading methods
+└── store_backend.dart          # Updated with field operations
+
+packages/nexus_store/lib/src/query/
+└── query.dart                  # Updated with preload methods
 ```
 
 **Test Files:**
 ```
-packages/nexus_store/test/src/core/
-├── lazy_field_test.dart
+packages/nexus_store/test/src/lazy/
 ├── field_loader_test.dart
-└── lazy_entity_test.dart
+├── lazy_entity_test.dart
+├── lazy_field_registry_test.dart
+├── lazy_field_state_test.dart
+├── lazy_field_test.dart
+└── lazy_load_config_test.dart
+
+packages/nexus_store/test/src/core/
+└── nexus_store_lazy_loading_test.dart
+
+packages/nexus_store/test/src/query/
+└── query_preload_test.dart
 ```
 
 ## Dependencies
 
 - Core package (Task 1, complete)
-- Code generation (Task 18, optional) - for annotations
 
-## API Preview
+## API Example
 
 ```dart
-// Define model with lazy fields
-@freezed
-class MediaItem with _$MediaItem {
-  const factory MediaItem({
-    required String id,
-    required String name,
-    required String thumbnailUrl, // Always loaded
-
-    @LazyLoad(placeholder: null)
-    Uint8List? thumbnail, // Lazy - loaded on demand
-
-    @LazyLoad(placeholder: '')
-    String? fullDescription, // Lazy
-
-    @LazyLoad(placeholder: null)
-    Uint8List? fullResolutionImage, // Lazy - large blob
-  }) = _MediaItem;
-}
-
-// Configure store
+// Configure store with lazy loading
 final store = NexusStore<MediaItem, String>(
   backend: backend,
   config: StoreConfig(
@@ -154,64 +186,54 @@ final store = NexusStore<MediaItem, String>(
   ),
 );
 
-// Get item - lazy fields not loaded
-final item = await store.get('item-123');
-print(item!.name); // "My Photo"
-print(item.thumbnail); // null (placeholder)
-print(item.fullDescription); // "" (placeholder)
-
 // Load specific field
-final thumbnail = await store.loadField<Uint8List>('item-123', 'thumbnail');
-// OR
-final thumbnailLoaded = await item.loadField('thumbnail');
-
-// Load multiple fields at once
-final loaded = await store.loadFields('item-123', ['thumbnail', 'fullDescription']);
+final thumbnail = await store.loadField('item-123', 'thumbnail');
 
 // Batch load for multiple items
-final items = await store.getAll();
 final thumbnails = await store.loadFieldBatch(
-  items.map((i) => i.id).toList(),
+  ['item-1', 'item-2', 'item-3'],
   'thumbnail',
 );
-// Returns Map<String, Uint8List>
+// Returns Map<String, dynamic>
 
-// Preload in query
-final itemsWithThumbnails = await store.getAll(
-  query: Query<MediaItem>()
-    .where('album', albumId)
-    .preload(['thumbnail']), // Load thumbnails with items
-);
+// Preload fields
+await store.preloadFields(['item-1', 'item-2'], {'thumbnail', 'fullImage'});
 
-// Flutter integration - load on visibility
-NexusLazyImage(
-  store: mediaStore,
-  itemId: item.id,
-  field: 'thumbnail',
-  placeholder: ShimmerPlaceholder(),
-  builder: (context, bytes) => Image.memory(bytes),
-);
-
-// Using LazyField wrapper directly
-class DetailScreen extends StatefulWidget {
-  final MediaItem item;
-
-  @override
-  void initState() {
-    super.initState();
-    // Load lazy fields when screen opens
-    mediaStore.loadFields(item.id, ['fullDescription', 'fullResolutionImage']);
-  }
+// Check field state
+final state = store.getFieldState('item-123', 'thumbnail');
+if (state == LazyFieldState.loaded) {
+  // Field is available
 }
+
+// Clear cache
+store.clearFieldCache(); // All fields
+store.clearFieldCacheForEntity('item-123'); // Specific entity
+
+// Query with preloaded fields
+final items = await store.getAll(
+  query: Query<MediaItem>()
+    .where('album', isEqualTo: albumId)
+    .preload({'thumbnail', 'preview'}),
+);
+
+// Using LazyEntity wrapper
+final lazyItem = LazyEntity<MediaItem, String>(
+  item,
+  idExtractor: (i) => i.id,
+  fieldLoader: fieldLoader,
+  config: LazyLoadConfig(lazyFields: {'thumbnail'}),
+);
+
+await lazyItem.loadField('thumbnail');
+print(lazyItem.isFieldLoaded('thumbnail')); // true
 ```
 
 ## Notes
 
 - Lazy loading trades latency for initial load speed
+- Field caching prevents redundant backend calls
+- Concurrent request deduplication prevents duplicate loads
+- Backend must support field-level queries for optimal performance
 - Consider preloading for predictable access patterns
-- Batch loading significantly reduces network calls
-- Backend must support field-level queries
-- Not all backends support efficient partial loading
-- Consider caching loaded fields separately
-- Document memory implications of loading large blobs
-- Placeholder values should be type-appropriate
+- Query preload allows eager loading specific fields
+- All components properly dispose resources

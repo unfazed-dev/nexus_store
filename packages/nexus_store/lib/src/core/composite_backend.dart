@@ -334,6 +334,54 @@ class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
   @override
   bool get supportsTransactions => primary.supportsTransactions;
 
+  @override
+  bool get supportsFieldOperations =>
+      primary.supportsFieldOperations || (fallback?.supportsFieldOperations ?? false);
+
+  // ---------------------------------------------------------------------------
+  // Field Operations (Lazy Loading)
+  // ---------------------------------------------------------------------------
+
+  @override
+  Future<dynamic> getField(ID id, String fieldName) async {
+    try {
+      return await primary.getField(id, fieldName);
+    } on Object {
+      // Primary failed, try fallback
+    }
+
+    if (fallback != null) {
+      try {
+        return await fallback!.getField(id, fieldName);
+      } on Object {
+        // Fallback also failed
+      }
+    }
+
+    // Try cache as last resort
+    return cache?.getField(id, fieldName);
+  }
+
+  @override
+  Future<Map<ID, dynamic>> getFieldBatch(List<ID> ids, String fieldName) async {
+    try {
+      return await primary.getFieldBatch(ids, fieldName);
+    } on Object {
+      // Primary failed, try fallback
+    }
+
+    if (fallback != null) {
+      try {
+        return await fallback!.getFieldBatch(ids, fieldName);
+      } on Object {
+        // Fallback also failed
+      }
+    }
+
+    // Try cache as last resort
+    return cache?.getFieldBatch(ids, fieldName) ?? {};
+  }
+
   // ---------------------------------------------------------------------------
   // Transaction Operations
   // ---------------------------------------------------------------------------

@@ -12,6 +12,8 @@ import 'package:nexus_store/src/config/store_config.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/interceptors/interceptor_chain.dart';
 import 'package:nexus_store/src/interceptors/store_operation.dart';
+import 'package:nexus_store/src/lazy/field_loader.dart';
+import 'package:nexus_store/src/lazy/lazy_field_state.dart';
 import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:nexus_store/src/pagination/pagination_controller.dart';
 import 'package:nexus_store/src/pagination/pagination_state.dart';
@@ -129,6 +131,14 @@ class NexusStore<T, ID> {
       );
     }
 
+    // Initialize field loader if lazy loading is configured
+    if (_config.lazyLoad != null) {
+      _fieldLoader = FieldLoader<T, ID>(
+        backend: _backend,
+        config: _config.lazyLoad!,
+      );
+    }
+
     _metricsReporter = _config.metricsReporter;
   }
 
@@ -143,6 +153,7 @@ class NexusStore<T, ID> {
   late final WritePolicyHandler<T, ID> _writeHandler;
   late final InterceptorChain _interceptorChain;
   GdprService<T, ID>? _gdprService;
+  FieldLoader<T, ID>? _fieldLoader;
 
   bool _initialized = false;
   bool _disposed = false;
@@ -207,6 +218,7 @@ class NexusStore<T, ID> {
     if (_disposed) return;
 
     _logger.fine('Disposing store');
+    await _fieldLoader?.dispose();
     await _metricsReporter.flush();
     await _metricsReporter.dispose();
     await _backend.close();
@@ -965,6 +977,109 @@ class NexusStore<T, ID> {
   /// Returns cache statistics.
   CacheStats getCacheStats() {
     return _fetchHandler.getCacheStats();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Lazy Field Loading
+  // ---------------------------------------------------------------------------
+
+  /// Loads a specific field value for an entity.
+  ///
+  /// Returns the field value if the entity exists, or `null` if the entity
+  /// or field doesn't exist. Results are cached for subsequent calls.
+  ///
+  /// Throws [StateError] if lazy loading is not configured.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final thumbnail = await store.loadField('user-123', 'thumbnail');
+  /// ```
+  Future<dynamic> loadField(ID id, String fieldName) async {
+    _ensureInitialized();
+    _ensureLazyLoadingConfigured();
+    return _fieldLoader!.loadField(id, fieldName);
+  }
+
+  /// Loads a specific field value for multiple entities.
+  ///
+  /// Returns a map of entity ID to field value. Entities that don't have
+  /// the field are omitted from the result.
+  ///
+  /// Throws [StateError] if lazy loading is not configured.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final thumbnails = await store.loadFieldBatch(
+  ///   ['user-1', 'user-2', 'user-3'],
+  ///   'thumbnail',
+  /// );
+  /// ```
+  Future<Map<ID, dynamic>> loadFieldBatch(
+    List<ID> ids,
+    String fieldName,
+  ) async {
+    _ensureInitialized();
+    _ensureLazyLoadingConfigured();
+    return _fieldLoader!.loadFieldBatch(ids, fieldName);
+  }
+
+  /// Preloads multiple fields for multiple entities.
+  ///
+  /// Useful for preloading fields that will be needed soon.
+  ///
+  /// Throws [StateError] if lazy loading is not configured.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await store.preloadFields(
+  ///   ['user-1', 'user-2'],
+  ///   {'thumbnail', 'fullImage'},
+  /// );
+  /// ```
+  Future<void> preloadFields(
+    List<ID> ids,
+    Set<String> fieldNames,
+  ) async {
+    _ensureInitialized();
+    _ensureLazyLoadingConfigured();
+    await _fieldLoader!.preloadFields(ids, fieldNames);
+  }
+
+  /// Returns the current loading state for a field.
+  ///
+  /// Returns [LazyFieldState.notLoaded] if lazy loading is not configured
+  /// or if the field hasn't been loaded.
+  LazyFieldState getFieldState(ID id, String fieldName) {
+    if (_fieldLoader == null) {
+      return LazyFieldState.notLoaded;
+    }
+    return _fieldLoader!.getFieldState(id, fieldName);
+  }
+
+  /// Clears all cached field values.
+  ///
+  /// This is a no-op if lazy loading is not configured.
+  void clearFieldCache() {
+    _fieldLoader?.clearCache();
+  }
+
+  /// Clears cached field values for a specific entity.
+  ///
+  /// This is a no-op if lazy loading is not configured.
+  void clearFieldCacheForEntity(ID id) {
+    _fieldLoader?.clearCacheForEntity(id);
+  }
+
+  void _ensureLazyLoadingConfigured() {
+    if (_fieldLoader == null) {
+      throw StateError(
+        'Lazy loading is not configured. '
+        'Add lazyLoad to StoreConfig to enable lazy field loading.',
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------

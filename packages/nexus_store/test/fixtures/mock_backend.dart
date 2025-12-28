@@ -25,6 +25,9 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
   /// In-memory storage.
   final Map<ID, T> _storage = {};
 
+  /// Field-level storage for lazy loading tests.
+  final Map<ID, Map<String, dynamic>> _fieldStorage = {};
+
   /// BehaviorSubjects for watching individual items.
   final Map<ID, BehaviorSubject<T?>> _watchers = {};
 
@@ -419,6 +422,54 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
     }
 
     return a.toString().compareTo(b.toString());
+  }
+
+  // ---------------------------------------------------------------------------
+  // Field Operations (Lazy Loading)
+  // ---------------------------------------------------------------------------
+
+  @override
+  bool get supportsFieldOperations => true;
+
+  @override
+  Future<dynamic> getField(ID id, String fieldName) async {
+    if (shouldFailOnGet) {
+      throw errorToThrow ?? Exception('GetField failed');
+    }
+    return _fieldStorage[id]?[fieldName];
+  }
+
+  @override
+  Future<Map<ID, dynamic>> getFieldBatch(
+    List<ID> ids,
+    String fieldName,
+  ) async {
+    if (shouldFailOnGet) {
+      throw errorToThrow ?? Exception('GetFieldBatch failed');
+    }
+    final results = <ID, dynamic>{};
+    for (final id in ids) {
+      final value = _fieldStorage[id]?[fieldName];
+      if (value != null) {
+        results[id] = value;
+      }
+    }
+    return results;
+  }
+
+  /// Add a field value to storage for testing lazy loading.
+  void addFieldToStorage(ID id, String fieldName, dynamic value) {
+    _fieldStorage[id] ??= {};
+    _fieldStorage[id]![fieldName] = value;
+  }
+
+  /// Get field storage contents for verification.
+  Map<ID, Map<String, dynamic>> get fieldStorage =>
+      Map.unmodifiable(_fieldStorage);
+
+  /// Clear field storage.
+  void clearFieldStorage() {
+    _fieldStorage.clear();
   }
 
   // ---------------------------------------------------------------------------

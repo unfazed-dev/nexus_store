@@ -84,6 +84,13 @@ export 'src/core/nexus_store.dart';
 export 'src/core/store_backend.dart';
 // Errors
 export 'src/errors/store_errors.dart';
+// Lazy Loading
+export 'src/lazy/field_loader.dart';
+export 'src/lazy/lazy_entity.dart';
+export 'src/lazy/lazy_field.dart';
+export 'src/lazy/lazy_field_registry.dart';
+export 'src/lazy/lazy_field_state.dart';
+export 'src/lazy/lazy_load_config.dart';
 // Pagination
 export 'src/pagination/cursor.dart';
 export 'src/pagination/page_info.dart';

@@ -164,6 +164,49 @@ abstract interface class StoreBackend<T, ID> {
   /// Returns `true` if this backend supports cursor-based pagination.
   bool get supportsPagination;
 
+  /// Returns `true` if this backend supports field-level operations.
+  ///
+  /// When `true`, [getField] and [getFieldBatch] can be used for lazy loading.
+  bool get supportsFieldOperations;
+
+  // ---------------------------------------------------------------------------
+  // Field Operations (Lazy Loading)
+  // ---------------------------------------------------------------------------
+
+  /// Retrieves a specific field value for an entity.
+  ///
+  /// Returns the field value if the entity exists, or `null` if the entity
+  /// or field doesn't exist.
+  ///
+  /// Backends that don't support field-level access can throw
+  /// [UnsupportedError] or load the full entity and extract the field.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Load just the thumbnail field
+  /// final thumbnail = await backend.getField('user-123', 'thumbnail');
+  /// ```
+  Future<dynamic> getField(ID id, String fieldName);
+
+  /// Retrieves a specific field value for multiple entities.
+  ///
+  /// Returns a map of ID to field value. Entities that don't exist or don't
+  /// have the field are omitted from the result.
+  ///
+  /// More efficient than calling [getField] multiple times for batch operations.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Load thumbnails for multiple users
+  /// final thumbnails = await backend.getFieldBatch(
+  ///   ['user-1', 'user-2', 'user-3'],
+  ///   'thumbnail',
+  /// );
+  /// ```
+  Future<Map<ID, dynamic>> getFieldBatch(List<ID> ids, String fieldName);
+
   // ---------------------------------------------------------------------------
   // Transaction Operations
   // ---------------------------------------------------------------------------
@@ -252,6 +295,38 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
 
   @override
   bool get supportsPagination => false;
+
+  @override
+  bool get supportsFieldOperations => false;
+
+  @override
+  Future<dynamic> getField(ID id, String fieldName) async {
+    throw UnsupportedError(
+      'Field-level operations not supported by this backend. '
+      'Use get() and extract the field manually, or use a backend that '
+      'supports field operations.',
+    );
+  }
+
+  @override
+  Future<Map<ID, dynamic>> getFieldBatch(
+    List<ID> ids,
+    String fieldName,
+  ) async {
+    // Default implementation: call getField for each ID
+    final results = <ID, dynamic>{};
+    for (final id in ids) {
+      try {
+        final value = await getField(id, fieldName);
+        if (value != null) {
+          results[id] = value;
+        }
+      } catch (_) {
+        // Skip entities that fail to load
+      }
+    }
+    return results;
+  }
 
   @override
   Future<String> beginTransaction() async {

@@ -3,6 +3,7 @@ import 'package:nexus_store/src/compliance/gdpr_config.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/retry_config.dart';
 import 'package:nexus_store/src/interceptors/store_interceptor.dart';
+import 'package:nexus_store/src/lazy/lazy_load_config.dart';
 import 'package:nexus_store/src/security/encryption_config.dart';
 import 'package:nexus_store/src/sync/delta_sync_config.dart';
 import 'package:nexus_store/src/telemetry/metrics_config.dart';
@@ -105,6 +106,23 @@ abstract class StoreConfig with _$StoreConfig {
     /// );
     /// ```
     @Default([]) List<StoreInterceptor> interceptors,
+
+    /// Lazy loading configuration for heavy fields.
+    ///
+    /// When configured, enables on-demand loading for specified fields
+    /// (e.g., images, blobs, large text) to improve initial load performance.
+    ///
+    /// ## Example
+    ///
+    /// ```dart
+    /// final config = StoreConfig(
+    ///   lazyLoad: LazyLoadConfig(
+    ///     lazyFields: {'thumbnail', 'fullImage', 'video'},
+    ///     batchSize: 10,
+    ///   ),
+    /// );
+    /// ```
+    LazyLoadConfig? lazyLoad,
   }) = _StoreConfig;
 
   const StoreConfig._();
