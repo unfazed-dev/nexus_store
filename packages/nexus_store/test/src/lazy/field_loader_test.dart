@@ -1,9 +1,6 @@
 import 'dart:async';
 
 import 'package:nexus_store/nexus_store.dart';
-import 'package:nexus_store/src/lazy/field_loader.dart';
-import 'package:nexus_store/src/lazy/lazy_field_state.dart';
-import 'package:nexus_store/src/lazy/lazy_load_config.dart';
 import 'package:test/test.dart';
 
 import '../../fixtures/mock_backend.dart';

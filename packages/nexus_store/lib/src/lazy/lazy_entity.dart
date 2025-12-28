@@ -85,7 +85,7 @@ class LazyEntity<T, ID> {
 
     // Non-lazy field - extract from entity
     if (_fieldGetter != null) {
-      return _fieldGetter!(_entity, fieldName);
+      return _fieldGetter(_entity, fieldName);
     }
 
     return null;
