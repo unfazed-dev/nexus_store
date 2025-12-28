@@ -14,6 +14,7 @@ dependencies:
     sdk: flutter
   nexus_store:
     path: ../nexus_store
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:

@@ -33,6 +33,7 @@
 library;
 
 export 'src/background/background.dart';
+export 'src/cache/flutter_memory_pressure_handler.dart';
 export 'src/extensions/build_context_extensions.dart';
 export 'src/lazy/lazy_list_view.dart';
 export 'src/lazy/visibility_loader.dart';

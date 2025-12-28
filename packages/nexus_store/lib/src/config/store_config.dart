@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:nexus_store/src/cache/memory_config.dart';
 import 'package:nexus_store/src/compliance/gdpr_config.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/retry_config.dart';
@@ -123,6 +124,25 @@ abstract class StoreConfig with _$StoreConfig {
     /// );
     /// ```
     LazyLoadConfig? lazyLoad,
+
+    /// Memory management configuration for cache eviction.
+    ///
+    /// When configured, enables automatic cache eviction under memory pressure
+    /// with configurable thresholds, eviction strategies, and pinned items.
+    ///
+    /// ## Example
+    ///
+    /// ```dart
+    /// final config = StoreConfig(
+    ///   memory: MemoryConfig(
+    ///     maxCacheBytes: 50 * 1024 * 1024, // 50MB
+    ///     moderateThreshold: 0.7,
+    ///     criticalThreshold: 0.9,
+    ///     strategy: EvictionStrategy.lru,
+    ///   ),
+    /// );
+    /// ```
+    MemoryConfig? memory,
   }) = _StoreConfig;
 
   const StoreConfig._();

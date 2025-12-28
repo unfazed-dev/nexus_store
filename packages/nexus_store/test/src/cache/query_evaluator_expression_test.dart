@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:nexus_store/src/cache/query_evaluator.dart';
 import 'package:nexus_store/src/query/field.dart';
 import 'package:nexus_store/src/query/fields.dart';

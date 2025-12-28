@@ -50,7 +50,15 @@ library;
 export 'src/cache/cache_entry.dart';
 export 'src/cache/cache_stats.dart';
 export 'src/cache/cache_tag_index.dart';
+export 'src/cache/eviction_strategy.dart';
+export 'src/cache/lru_tracker.dart';
+export 'src/cache/memory_config.dart';
+export 'src/cache/memory_manager.dart';
+export 'src/cache/memory_metrics.dart';
+export 'src/cache/memory_pressure_handler.dart';
+export 'src/cache/memory_pressure_level.dart';
 export 'src/cache/query_evaluator.dart';
+export 'src/cache/size_estimator.dart';
 export 'src/compliance/audit_log_entry.dart';
 // Compliance
 export 'src/compliance/audit_service.dart';

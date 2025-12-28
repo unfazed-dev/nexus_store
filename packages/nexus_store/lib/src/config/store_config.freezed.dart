@@ -107,6 +107,25 @@ mixin _$StoreConfig {
   /// ```
   LazyLoadConfig? get lazyLoad;
 
+  /// Memory management configuration for cache eviction.
+  ///
+  /// When configured, enables automatic cache eviction under memory pressure
+  /// with configurable thresholds, eviction strategies, and pinned items.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   memory: MemoryConfig(
+  ///     maxCacheBytes: 50 * 1024 * 1024, // 50MB
+  ///     moderateThreshold: 0.7,
+  ///     criticalThreshold: 0.9,
+  ///     strategy: EvictionStrategy.lru,
+  ///   ),
+  /// );
+  /// ```
+  MemoryConfig? get memory;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -153,34 +172,37 @@ mixin _$StoreConfig {
             const DeepCollectionEquality()
                 .equals(other.interceptors, interceptors) &&
             (identical(other.lazyLoad, lazyLoad) ||
-                other.lazyLoad == lazyLoad));
+                other.lazyLoad == lazyLoad) &&
+            (identical(other.memory, memory) || other.memory == memory));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      fetchPolicy,
-      writePolicy,
-      syncMode,
-      conflictResolution,
-      retryConfig,
-      encryption,
-      enableAuditLogging,
-      enableGdpr,
-      gdpr,
-      staleDuration,
-      syncInterval,
-      tableName,
-      metricsReporter,
-      metricsConfig,
-      transactionTimeout,
-      deltaSync,
-      const DeepCollectionEquality().hash(interceptors),
-      lazyLoad);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        fetchPolicy,
+        writePolicy,
+        syncMode,
+        conflictResolution,
+        retryConfig,
+        encryption,
+        enableAuditLogging,
+        enableGdpr,
+        gdpr,
+        staleDuration,
+        syncInterval,
+        tableName,
+        metricsReporter,
+        metricsConfig,
+        transactionTimeout,
+        deltaSync,
+        const DeepCollectionEquality().hash(interceptors),
+        lazyLoad,
+        memory
+      ]);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync, interceptors: $interceptors, lazyLoad: $lazyLoad)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync, interceptors: $interceptors, lazyLoad: $lazyLoad, memory: $memory)';
   }
 }
 
@@ -208,13 +230,15 @@ abstract mixin class $StoreConfigCopyWith<$Res> {
       Duration transactionTimeout,
       DeltaSyncConfig? deltaSync,
       List<StoreInterceptor> interceptors,
-      LazyLoadConfig? lazyLoad});
+      LazyLoadConfig? lazyLoad,
+      MemoryConfig? memory});
 
   $EncryptionConfigCopyWith<$Res> get encryption;
   $GdprConfigCopyWith<$Res>? get gdpr;
   $MetricsConfigCopyWith<$Res> get metricsConfig;
   $DeltaSyncConfigCopyWith<$Res>? get deltaSync;
   $LazyLoadConfigCopyWith<$Res>? get lazyLoad;
+  $MemoryConfigCopyWith<$Res>? get memory;
 }
 
 /// @nodoc
@@ -247,6 +271,7 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
     Object? deltaSync = freezed,
     Object? interceptors = null,
     Object? lazyLoad = freezed,
+    Object? memory = freezed,
   }) {
     return _then(_self.copyWith(
       fetchPolicy: null == fetchPolicy
@@ -321,6 +346,10 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
           ? _self.lazyLoad
           : lazyLoad // ignore: cast_nullable_to_non_nullable
               as LazyLoadConfig?,
+      memory: freezed == memory
+          ? _self.memory
+          : memory // ignore: cast_nullable_to_non_nullable
+              as MemoryConfig?,
     ));
   }
 
@@ -383,6 +412,20 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
 
     return $LazyLoadConfigCopyWith<$Res>(_self.lazyLoad!, (value) {
       return _then(_self.copyWith(lazyLoad: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $MemoryConfigCopyWith<$Res>? get memory {
+    if (_self.memory == null) {
+      return null;
+    }
+
+    return $MemoryConfigCopyWith<$Res>(_self.memory!, (value) {
+      return _then(_self.copyWith(memory: value));
     });
   }
 }
@@ -498,7 +541,8 @@ extension StoreConfigPatterns on StoreConfig {
             Duration transactionTimeout,
             DeltaSyncConfig? deltaSync,
             List<StoreInterceptor> interceptors,
-            LazyLoadConfig? lazyLoad)?
+            LazyLoadConfig? lazyLoad,
+            MemoryConfig? memory)?
         $default, {
     required TResult orElse(),
   }) {
@@ -523,7 +567,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.transactionTimeout,
             _that.deltaSync,
             _that.interceptors,
-            _that.lazyLoad);
+            _that.lazyLoad,
+            _that.memory);
       case _:
         return orElse();
     }
@@ -562,7 +607,8 @@ extension StoreConfigPatterns on StoreConfig {
             Duration transactionTimeout,
             DeltaSyncConfig? deltaSync,
             List<StoreInterceptor> interceptors,
-            LazyLoadConfig? lazyLoad)
+            LazyLoadConfig? lazyLoad,
+            MemoryConfig? memory)
         $default,
   ) {
     final _that = this;
@@ -586,7 +632,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.transactionTimeout,
             _that.deltaSync,
             _that.interceptors,
-            _that.lazyLoad);
+            _that.lazyLoad,
+            _that.memory);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -624,7 +671,8 @@ extension StoreConfigPatterns on StoreConfig {
             Duration transactionTimeout,
             DeltaSyncConfig? deltaSync,
             List<StoreInterceptor> interceptors,
-            LazyLoadConfig? lazyLoad)?
+            LazyLoadConfig? lazyLoad,
+            MemoryConfig? memory)?
         $default,
   ) {
     final _that = this;
@@ -648,7 +696,8 @@ extension StoreConfigPatterns on StoreConfig {
             _that.transactionTimeout,
             _that.deltaSync,
             _that.interceptors,
-            _that.lazyLoad);
+            _that.lazyLoad,
+            _that.memory);
       case _:
         return null;
     }
@@ -676,7 +725,8 @@ class _StoreConfig extends StoreConfig {
       this.transactionTimeout = const Duration(seconds: 30),
       this.deltaSync,
       final List<StoreInterceptor> interceptors = const [],
-      this.lazyLoad})
+      this.lazyLoad,
+      this.memory})
       : _interceptors = interceptors,
         super._();
 
@@ -825,6 +875,26 @@ class _StoreConfig extends StoreConfig {
   @override
   final LazyLoadConfig? lazyLoad;
 
+  /// Memory management configuration for cache eviction.
+  ///
+  /// When configured, enables automatic cache eviction under memory pressure
+  /// with configurable thresholds, eviction strategies, and pinned items.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   memory: MemoryConfig(
+  ///     maxCacheBytes: 50 * 1024 * 1024, // 50MB
+  ///     moderateThreshold: 0.7,
+  ///     criticalThreshold: 0.9,
+  ///     strategy: EvictionStrategy.lru,
+  ///   ),
+  /// );
+  /// ```
+  @override
+  final MemoryConfig? memory;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -872,34 +942,37 @@ class _StoreConfig extends StoreConfig {
             const DeepCollectionEquality()
                 .equals(other._interceptors, _interceptors) &&
             (identical(other.lazyLoad, lazyLoad) ||
-                other.lazyLoad == lazyLoad));
+                other.lazyLoad == lazyLoad) &&
+            (identical(other.memory, memory) || other.memory == memory));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      fetchPolicy,
-      writePolicy,
-      syncMode,
-      conflictResolution,
-      retryConfig,
-      encryption,
-      enableAuditLogging,
-      enableGdpr,
-      gdpr,
-      staleDuration,
-      syncInterval,
-      tableName,
-      metricsReporter,
-      metricsConfig,
-      transactionTimeout,
-      deltaSync,
-      const DeepCollectionEquality().hash(_interceptors),
-      lazyLoad);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        fetchPolicy,
+        writePolicy,
+        syncMode,
+        conflictResolution,
+        retryConfig,
+        encryption,
+        enableAuditLogging,
+        enableGdpr,
+        gdpr,
+        staleDuration,
+        syncInterval,
+        tableName,
+        metricsReporter,
+        metricsConfig,
+        transactionTimeout,
+        deltaSync,
+        const DeepCollectionEquality().hash(_interceptors),
+        lazyLoad,
+        memory
+      ]);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync, interceptors: $interceptors, lazyLoad: $lazyLoad)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync, interceptors: $interceptors, lazyLoad: $lazyLoad, memory: $memory)';
   }
 }
 
@@ -929,7 +1002,8 @@ abstract mixin class _$StoreConfigCopyWith<$Res>
       Duration transactionTimeout,
       DeltaSyncConfig? deltaSync,
       List<StoreInterceptor> interceptors,
-      LazyLoadConfig? lazyLoad});
+      LazyLoadConfig? lazyLoad,
+      MemoryConfig? memory});
 
   @override
   $EncryptionConfigCopyWith<$Res> get encryption;
@@ -941,6 +1015,8 @@ abstract mixin class _$StoreConfigCopyWith<$Res>
   $DeltaSyncConfigCopyWith<$Res>? get deltaSync;
   @override
   $LazyLoadConfigCopyWith<$Res>? get lazyLoad;
+  @override
+  $MemoryConfigCopyWith<$Res>? get memory;
 }
 
 /// @nodoc
@@ -973,6 +1049,7 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
     Object? deltaSync = freezed,
     Object? interceptors = null,
     Object? lazyLoad = freezed,
+    Object? memory = freezed,
   }) {
     return _then(_StoreConfig(
       fetchPolicy: null == fetchPolicy
@@ -1047,6 +1124,10 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
           ? _self.lazyLoad
           : lazyLoad // ignore: cast_nullable_to_non_nullable
               as LazyLoadConfig?,
+      memory: freezed == memory
+          ? _self.memory
+          : memory // ignore: cast_nullable_to_non_nullable
+              as MemoryConfig?,
     ));
   }
 
@@ -1109,6 +1190,20 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
 
     return $LazyLoadConfigCopyWith<$Res>(_self.lazyLoad!, (value) {
       return _then(_self.copyWith(lazyLoad: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $MemoryConfigCopyWith<$Res>? get memory {
+    if (_self.memory == null) {
+      return null;
+    }
+
+    return $MemoryConfigCopyWith<$Res>(_self.memory!, (value) {
+      return _then(_self.copyWith(memory: value));
     });
   }
 }

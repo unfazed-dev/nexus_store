@@ -3,7 +3,11 @@ import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:nexus_store/src/cache/cache_stats.dart';
+import 'package:nexus_store/src/cache/memory_manager.dart';
+import 'package:nexus_store/src/cache/memory_metrics.dart';
+import 'package:nexus_store/src/cache/memory_pressure_level.dart';
 import 'package:nexus_store/src/cache/query_evaluator.dart';
+import 'package:nexus_store/src/cache/size_estimator.dart';
 import 'package:nexus_store/src/compliance/audit_log_entry.dart';
 import 'package:nexus_store/src/compliance/audit_service.dart';
 import 'package:nexus_store/src/compliance/gdpr_service.dart';
@@ -104,11 +108,13 @@ class NexusStore<T, ID> {
     String? subjectIdField,
     ID Function(T)? idExtractor,
     ConflictResolver<T>? onConflict,
+    SizeEstimator<T>? sizeEstimator,
   })  : _backend = backend,
         _config = config ?? StoreConfig.defaults,
         _auditService = auditService,
         _idExtractor = idExtractor,
-        _onConflict = onConflict {
+        _onConflict = onConflict,
+        _sizeEstimator = sizeEstimator {
     _logger = Logger('NexusStore<$T, $ID>');
     _interceptorChain = InterceptorChain(_config.interceptors);
 
@@ -139,6 +145,19 @@ class NexusStore<T, ID> {
       );
     }
 
+    // Initialize memory manager if memory management is configured
+    if (_config.memory != null) {
+      _memoryManager = MemoryManager<T, ID>(
+        config: _config.memory!,
+        sizeEstimator: _sizeEstimator ?? FixedSizeEstimator<T>(1024),
+        onEviction: (ids) {
+          for (final id in ids) {
+            _fetchHandler.removeEntry(id);
+          }
+        },
+      );
+    }
+
     _metricsReporter = _config.metricsReporter;
   }
 
@@ -147,6 +166,7 @@ class NexusStore<T, ID> {
   final AuditService? _auditService;
   final ID Function(T)? _idExtractor;
   final ConflictResolver<T>? _onConflict;
+  final SizeEstimator<T>? _sizeEstimator;
 
   late final Logger _logger;
   late final FetchPolicyHandler<T, ID> _fetchHandler;
@@ -154,6 +174,7 @@ class NexusStore<T, ID> {
   late final InterceptorChain _interceptorChain;
   GdprService<T, ID>? _gdprService;
   FieldLoader<T, ID>? _fieldLoader;
+  MemoryManager<T, ID>? _memoryManager;
 
   bool _initialized = false;
   bool _disposed = false;
@@ -218,6 +239,7 @@ class NexusStore<T, ID> {
     if (_disposed) return;
 
     _logger.fine('Disposing store');
+    _memoryManager?.dispose();
     await _fieldLoader?.dispose();
     await _metricsReporter.flush();
     await _metricsReporter.dispose();
@@ -254,9 +276,11 @@ class NexusStore<T, ID> {
         execute: () async {
           final result = await _fetchHandler.get(id, policy: policy);
 
-          // Track cache hit/miss
+          // Track cache hit/miss and access
           if (result != null) {
             _recordCacheHit(itemId: id.toString());
+            // Record access in memory manager for LRU tracking
+            _memoryManager?.recordAccess(id);
           } else {
             _recordCacheMiss(itemId: id.toString());
           }
@@ -463,6 +487,8 @@ class NexusStore<T, ID> {
           if (_idExtractor != null) {
             final id = _idExtractor(result);
             _fetchHandler.recordCachedItem(id, tags: tags);
+            // Record in memory manager for eviction tracking
+            _memoryManager?.recordItem(id, result);
           }
 
           if (_config.enableAuditLogging) {
@@ -501,6 +527,8 @@ class NexusStore<T, ID> {
             for (final result in results) {
               final id = _idExtractor(result);
               _fetchHandler.recordCachedItem(id, tags: tags);
+              // Record in memory manager for eviction tracking
+              _memoryManager?.recordItem(id, result);
             }
           }
 
@@ -532,6 +560,11 @@ class NexusStore<T, ID> {
         execute: () async {
           final result = await _writeHandler.delete(id, policy: policy);
 
+          if (result) {
+            // Remove from memory manager tracking
+            _memoryManager?.removeItem(id);
+          }
+
           if (_config.enableAuditLogging && result) {
             await _auditService?.log(
               action: AuditAction.delete,
@@ -561,6 +594,8 @@ class NexusStore<T, ID> {
           for (final id in ids) {
             if (await _writeHandler.delete(id, policy: policy)) {
               count++;
+              // Remove from memory manager tracking
+              _memoryManager?.removeItem(id);
             }
           }
 
@@ -1080,6 +1115,105 @@ class NexusStore<T, ID> {
         'Add lazyLoad to StoreConfig to enable lazy field loading.',
       );
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Memory Management
+  // ---------------------------------------------------------------------------
+
+  /// Pins an item to protect it from eviction.
+  ///
+  /// Pinned items will not be evicted during memory pressure, even when
+  /// [evictCache] or automatic eviction is triggered.
+  ///
+  /// This is a no-op if memory management is not configured.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Pin the current user to prevent eviction
+  /// store.pin(currentUserId);
+  /// ```
+  void pin(ID id) {
+    _memoryManager?.pin(id);
+  }
+
+  /// Unpins an item, making it eligible for eviction.
+  ///
+  /// This is a no-op if memory management is not configured.
+  void unpin(ID id) {
+    _memoryManager?.unpin(id);
+  }
+
+  /// Returns `true` if the item with [id] is pinned.
+  ///
+  /// Returns `false` if memory management is not configured.
+  bool isPinned(ID id) {
+    return _memoryManager?.isPinned(id) ?? false;
+  }
+
+  /// Returns all pinned item IDs.
+  ///
+  /// Returns an empty set if memory management is not configured.
+  Set<ID> get pinnedIds {
+    return _memoryManager?.pinnedIds ?? {};
+  }
+
+  /// Returns the current memory metrics.
+  ///
+  /// Returns `null` if memory management is not configured.
+  MemoryMetrics? get memoryMetrics {
+    return _memoryManager?.currentMetrics;
+  }
+
+  /// Returns a stream of memory metrics updates.
+  ///
+  /// Returns an empty stream if memory management is not configured.
+  Stream<MemoryMetrics> get memoryMetricsStream {
+    return _memoryManager?.metricsStream ?? const Stream.empty();
+  }
+
+  /// Returns the current memory pressure level.
+  ///
+  /// Returns [MemoryPressureLevel.none] if memory management is not configured.
+  MemoryPressureLevel get memoryPressure {
+    return _memoryManager?.currentLevel ?? MemoryPressureLevel.none;
+  }
+
+  /// Returns a stream of memory pressure level changes.
+  ///
+  /// Returns an empty stream if memory management is not configured.
+  Stream<MemoryPressureLevel> get memoryPressureStream {
+    return _memoryManager?.pressureStream ?? const Stream.empty();
+  }
+
+  /// Manually triggers cache eviction.
+  ///
+  /// [count] specifies the number of items to evict. If not specified,
+  /// uses the configured [MemoryConfig.evictionBatchSize].
+  ///
+  /// Returns the list of evicted IDs, or an empty list if memory management
+  /// is not configured.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Evict 10 least recently used items
+  /// final evictedIds = store.evictCache(count: 10);
+  /// print('Evicted ${evictedIds.length} items');
+  /// ```
+  List<ID> evictCache({int? count}) {
+    return _memoryManager?.evict(count: count) ?? [];
+  }
+
+  /// Evicts all non-pinned items from the cache.
+  ///
+  /// This is useful for emergency memory pressure situations.
+  /// Pinned items are preserved.
+  ///
+  /// This is a no-op if memory management is not configured.
+  void evictUnpinnedCache() {
+    _memoryManager?.evictUnpinned();
   }
 
   // ---------------------------------------------------------------------------
