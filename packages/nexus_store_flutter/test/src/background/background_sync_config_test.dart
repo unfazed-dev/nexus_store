@@ -76,7 +76,7 @@ void main() {
       });
 
       test('updates enabled when provided', () {
-        const original = BackgroundSyncConfig(enabled: true);
+        const original = BackgroundSyncConfig();
         final copy = original.copyWith(enabled: false);
 
         expect(copy.enabled, isFalse);
@@ -92,21 +92,21 @@ void main() {
       });
 
       test('updates requiresNetwork when provided', () {
-        const original = BackgroundSyncConfig(requiresNetwork: true);
+        const original = BackgroundSyncConfig();
         final copy = original.copyWith(requiresNetwork: false);
 
         expect(copy.requiresNetwork, isFalse);
       });
 
       test('updates requiresCharging when provided', () {
-        const original = BackgroundSyncConfig(requiresCharging: false);
+        const original = BackgroundSyncConfig();
         final copy = original.copyWith(requiresCharging: true);
 
         expect(copy.requiresCharging, isTrue);
       });
 
       test('updates requiresBatteryNotLow when provided', () {
-        const original = BackgroundSyncConfig(requiresBatteryNotLow: true);
+        const original = BackgroundSyncConfig();
         final copy = original.copyWith(requiresBatteryNotLow: false);
 
         expect(copy.requiresBatteryNotLow, isFalse);
@@ -122,7 +122,7 @@ void main() {
       });
 
       test('two configs with different values are not equal', () {
-        const config1 = BackgroundSyncConfig(enabled: true);
+        const config1 = BackgroundSyncConfig();
         const config2 = BackgroundSyncConfig(enabled: false);
 
         expect(config1, isNot(equals(config2)));

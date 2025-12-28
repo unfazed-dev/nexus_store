@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'background_sync_config.dart';
-import 'background_sync_service.dart';
-import 'background_sync_status.dart';
-import 'background_sync_task.dart';
+import 'package:nexus_store_flutter/src/background/background_sync_config.dart';
+import 'package:nexus_store_flutter/src/background/background_sync_service.dart';
+import 'package:nexus_store_flutter/src/background/background_sync_status.dart';
+import 'package:nexus_store_flutter/src/background/background_sync_task.dart';
 
 /// A no-operation implementation of [BackgroundSyncService].
 ///

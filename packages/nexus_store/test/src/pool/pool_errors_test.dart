@@ -1,5 +1,4 @@
 import 'package:nexus_store/src/errors/store_errors.dart';
-import 'package:nexus_store/src/pool/pool_errors.dart';
 import 'package:test/test.dart';
 
 void main() {

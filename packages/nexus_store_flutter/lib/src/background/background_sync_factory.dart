@@ -1,8 +1,8 @@
 import 'dart:io' show Platform;
 
-import 'background_sync_service.dart';
-import 'no_op_sync_service.dart';
-import 'work_manager_sync_service.dart';
+import 'package:nexus_store_flutter/src/background/background_sync_service.dart';
+import 'package:nexus_store_flutter/src/background/no_op_sync_service.dart';
+import 'package:nexus_store_flutter/src/background/work_manager_sync_service.dart';
 
 /// Factory for creating platform-appropriate [BackgroundSyncService] instances.
 ///

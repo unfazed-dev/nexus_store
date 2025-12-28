@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nexus_store_flutter/src/background/background_sync_config.dart';
@@ -219,8 +218,8 @@ void main() {
       });
 
       test('returns true if all tasks succeed', () async {
-        final task1 = TestSyncTask(taskId: 'task-1', shouldSucceed: true);
-        final task2 = TestSyncTask(taskId: 'task-2', shouldSucceed: true);
+        final task1 = TestSyncTask(taskId: 'task-1');
+        final task2 = TestSyncTask(taskId: 'task-2');
 
         await service.registerTask(task1);
         await service.registerTask(task2);
@@ -231,7 +230,7 @@ void main() {
       });
 
       test('returns false if any task fails', () async {
-        final task1 = TestSyncTask(taskId: 'task-1', shouldSucceed: true);
+        final task1 = TestSyncTask(taskId: 'task-1');
         final task2 = TestSyncTask(taskId: 'task-2', shouldSucceed: false);
 
         await service.registerTask(task1);

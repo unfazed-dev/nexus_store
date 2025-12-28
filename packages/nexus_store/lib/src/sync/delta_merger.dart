@@ -1,7 +1,6 @@
 import 'package:nexus_store/src/sync/delta_change.dart';
 import 'package:nexus_store/src/sync/delta_merge_strategy.dart';
 import 'package:nexus_store/src/sync/delta_sync_config.dart';
-import 'package:nexus_store/src/sync/field_change.dart';
 
 /// Represents a conflict between local and remote changes.
 class FieldConflict {

@@ -237,7 +237,7 @@ void main() {
         expect(queue.length, equals(1000));
 
         // Verify all critical items come first
-        var lastPriority = SyncPriority.critical;
+        const lastPriority = SyncPriority.critical;
         while (queue.isNotEmpty) {
           queue.dequeue();
         }

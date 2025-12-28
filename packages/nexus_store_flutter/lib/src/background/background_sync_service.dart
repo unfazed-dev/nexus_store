@@ -1,6 +1,6 @@
-import 'background_sync_config.dart';
-import 'background_sync_status.dart';
-import 'background_sync_task.dart';
+import 'package:nexus_store_flutter/src/background/background_sync_config.dart';
+import 'package:nexus_store_flutter/src/background/background_sync_status.dart';
+import 'package:nexus_store_flutter/src/background/background_sync_task.dart';
 
 /// Abstract service for managing background sync operations.
 ///

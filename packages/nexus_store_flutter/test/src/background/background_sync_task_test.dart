@@ -49,7 +49,7 @@ void main() {
 
     group('execute', () {
       test('returns true on success', () async {
-        final task = TestSyncTask(taskId: 'test', shouldSucceed: true);
+        final task = TestSyncTask(taskId: 'test');
 
         final result = await task.execute();
 

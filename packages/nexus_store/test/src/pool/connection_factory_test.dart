@@ -1,4 +1,3 @@
-import 'package:nexus_store/src/pool/connection_factory.dart';
 import 'package:test/test.dart';
 
 import '../../fixtures/fake_connection.dart';

@@ -7,11 +7,11 @@ void main() {
       expect(BackgroundSyncStatus.values, hasLength(5));
       expect(BackgroundSyncStatus.values, contains(BackgroundSyncStatus.idle));
       expect(
-          BackgroundSyncStatus.values, contains(BackgroundSyncStatus.scheduled));
+          BackgroundSyncStatus.values, contains(BackgroundSyncStatus.scheduled),);
       expect(
-          BackgroundSyncStatus.values, contains(BackgroundSyncStatus.running));
+          BackgroundSyncStatus.values, contains(BackgroundSyncStatus.running),);
       expect(
-          BackgroundSyncStatus.values, contains(BackgroundSyncStatus.completed));
+          BackgroundSyncStatus.values, contains(BackgroundSyncStatus.completed),);
       expect(BackgroundSyncStatus.values, contains(BackgroundSyncStatus.failed));
     });
 

@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nexus_store/src/cache/query_evaluator.dart';
-import 'package:nexus_store/src/query/expression.dart';
 import 'package:nexus_store/src/query/field.dart';
 import 'package:nexus_store/src/query/fields.dart';
-import 'package:nexus_store/src/query/query.dart';
 
 // Test entity
 class User {

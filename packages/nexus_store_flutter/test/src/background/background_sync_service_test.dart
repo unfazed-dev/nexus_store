@@ -88,7 +88,7 @@ void main() {
     group('isSupported', () {
       test('returns true when platform is supported', () {
         final supportedService = TestBackgroundSyncService(
-          platformSupported: true,
+          
         );
 
         expect(supportedService.isSupported, isTrue);
@@ -130,7 +130,7 @@ void main() {
 
         expect(service.currentConfig?.minInterval, equals(
           const Duration(hours: 1),
-        ));
+        ),);
         expect(service.currentConfig?.requiresCharging, isTrue);
       });
     });

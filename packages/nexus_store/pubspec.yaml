@@ -10,7 +10,6 @@ issue_tracker: https://github.com/user/nexus_store/issues
 environment:
   sdk: ^3.5.0
 
-resolution: workspace
 
 dependencies:
   rxdart: ^0.28.0
@@ -30,3 +29,5 @@ dev_dependencies:
   test: ^1.25.0
   mocktail: ^1.0.4
   lints: ^5.1.0
+  flutter_test:
+    sdk: flutter

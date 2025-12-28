@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'sync_priority.dart';
+import 'package:nexus_store_flutter/src/background/sync_priority.dart';
 
 /// A priority queue for sync operations.
 ///
