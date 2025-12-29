@@ -473,3 +473,34 @@ class PoolConnectionError extends PoolError {
   @override
   String get errorName => 'PoolConnectionError';
 }
+
+// ============================================================================
+// Reliability Errors
+// ============================================================================
+
+/// Error thrown when a circuit breaker is open.
+///
+/// Indicates that the operation was rejected because the circuit breaker
+/// detected too many failures and is protecting the system.
+///
+/// This error is retryable after the [retryAfter] duration.
+class CircuitBreakerOpenException extends StoreError {
+  /// Creates a circuit breaker open exception.
+  const CircuitBreakerOpenException({
+    required this.retryAfter,
+    super.cause,
+    super.stackTrace,
+  }) : super(
+          message: 'Circuit breaker is open',
+          code: 'CIRCUIT_BREAKER_OPEN',
+        );
+
+  /// Suggested duration to wait before retrying.
+  final Duration retryAfter;
+
+  @override
+  bool get isRetryable => true;
+
+  @override
+  String get errorName => 'CircuitBreakerOpenException';
+}

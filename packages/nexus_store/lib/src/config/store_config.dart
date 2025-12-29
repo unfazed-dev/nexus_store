@@ -5,6 +5,10 @@ import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/retry_config.dart';
 import 'package:nexus_store/src/interceptors/store_interceptor.dart';
 import 'package:nexus_store/src/lazy/lazy_load_config.dart';
+import 'package:nexus_store/src/reliability/circuit_breaker_config.dart';
+import 'package:nexus_store/src/reliability/degradation_config.dart';
+import 'package:nexus_store/src/reliability/health_check_config.dart';
+import 'package:nexus_store/src/reliability/schema_validation_config.dart';
 import 'package:nexus_store/src/security/encryption_config.dart';
 import 'package:nexus_store/src/sync/delta_sync_config.dart';
 import 'package:nexus_store/src/telemetry/metrics_config.dart';
@@ -143,6 +147,77 @@ abstract class StoreConfig with _$StoreConfig {
     /// );
     /// ```
     MemoryConfig? memory,
+
+    /// Circuit breaker configuration for preventing cascade failures.
+    ///
+    /// When configured, enables automatic circuit breaker protection for
+    /// backend operations to prevent overwhelming a failing service.
+    ///
+    /// ## Example
+    ///
+    /// ```dart
+    /// final config = StoreConfig(
+    ///   circuitBreaker: CircuitBreakerConfig(
+    ///     failureThreshold: 5,
+    ///     successThreshold: 2,
+    ///     openDuration: Duration(seconds: 30),
+    ///   ),
+    /// );
+    /// ```
+    CircuitBreakerConfig? circuitBreaker,
+
+    /// Health check configuration for system health monitoring.
+    ///
+    /// When configured, enables periodic health checks of store components
+    /// with configurable intervals and thresholds.
+    ///
+    /// ## Example
+    ///
+    /// ```dart
+    /// final config = StoreConfig(
+    ///   healthCheck: HealthCheckConfig(
+    ///     checkInterval: Duration(seconds: 30),
+    ///     timeout: Duration(seconds: 10),
+    ///     failureThreshold: 3,
+    ///   ),
+    /// );
+    /// ```
+    HealthCheckConfig? healthCheck,
+
+    /// Schema validation configuration for entity validation.
+    ///
+    /// When configured, enables validation of entities against schemas
+    /// before save operations.
+    ///
+    /// ## Example
+    ///
+    /// ```dart
+    /// final config = StoreConfig(
+    ///   schemaValidation: SchemaValidationConfig(
+    ///     mode: SchemaValidationMode.strict,
+    ///     validateOnSave: true,
+    ///   ),
+    /// );
+    /// ```
+    SchemaValidationConfig? schemaValidation,
+
+    /// Degradation configuration for graceful degradation behavior.
+    ///
+    /// When configured, enables automatic degradation when components
+    /// become unavailable, with configurable fallback modes.
+    ///
+    /// ## Example
+    ///
+    /// ```dart
+    /// final config = StoreConfig(
+    ///   degradation: DegradationConfig(
+    ///     autoDegradation: true,
+    ///     fallbackMode: DegradationMode.cacheOnly,
+    ///     cooldown: Duration(seconds: 60),
+    ///   ),
+    /// );
+    /// ```
+    DegradationConfig? degradation,
   }) = _StoreConfig;
 
   const StoreConfig._();

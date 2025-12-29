@@ -166,3 +166,17 @@ export 'src/telemetry/metrics_reporter.dart';
 export 'src/telemetry/operation_metric.dart';
 export 'src/telemetry/store_stats.dart';
 export 'src/telemetry/sync_metric.dart';
+// Reliability
+export 'src/reliability/circuit_breaker.dart';
+export 'src/reliability/circuit_breaker_config.dart';
+export 'src/reliability/circuit_breaker_metrics.dart';
+export 'src/reliability/circuit_breaker_state.dart';
+export 'src/reliability/component_health.dart';
+export 'src/reliability/degradation_config.dart';
+export 'src/reliability/degradation_manager.dart';
+export 'src/reliability/degradation_mode.dart';
+export 'src/reliability/health_check_config.dart';
+export 'src/reliability/health_check_service.dart';
+export 'src/reliability/health_status.dart';
+export 'src/reliability/schema_definition.dart';
+export 'src/reliability/schema_validation_config.dart';

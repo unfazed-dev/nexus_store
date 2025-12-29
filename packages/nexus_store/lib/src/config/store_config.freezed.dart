@@ -126,6 +126,77 @@ mixin _$StoreConfig {
   /// ```
   MemoryConfig? get memory;
 
+  /// Circuit breaker configuration for preventing cascade failures.
+  ///
+  /// When configured, enables automatic circuit breaker protection for
+  /// backend operations to prevent overwhelming a failing service.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   circuitBreaker: CircuitBreakerConfig(
+  ///     failureThreshold: 5,
+  ///     successThreshold: 2,
+  ///     openDuration: Duration(seconds: 30),
+  ///   ),
+  /// );
+  /// ```
+  CircuitBreakerConfig? get circuitBreaker;
+
+  /// Health check configuration for system health monitoring.
+  ///
+  /// When configured, enables periodic health checks of store components
+  /// with configurable intervals and thresholds.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   healthCheck: HealthCheckConfig(
+  ///     checkInterval: Duration(seconds: 30),
+  ///     timeout: Duration(seconds: 10),
+  ///     failureThreshold: 3,
+  ///   ),
+  /// );
+  /// ```
+  HealthCheckConfig? get healthCheck;
+
+  /// Schema validation configuration for entity validation.
+  ///
+  /// When configured, enables validation of entities against schemas
+  /// before save operations.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   schemaValidation: SchemaValidationConfig(
+  ///     mode: SchemaValidationMode.strict,
+  ///     validateOnSave: true,
+  ///   ),
+  /// );
+  /// ```
+  SchemaValidationConfig? get schemaValidation;
+
+  /// Degradation configuration for graceful degradation behavior.
+  ///
+  /// When configured, enables automatic degradation when components
+  /// become unavailable, with configurable fallback modes.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   degradation: DegradationConfig(
+  ///     autoDegradation: true,
+  ///     fallbackMode: DegradationMode.cacheOnly,
+  ///     cooldown: Duration(seconds: 60),
+  ///   ),
+  /// );
+  /// ```
+  DegradationConfig? get degradation;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -173,7 +244,15 @@ mixin _$StoreConfig {
                 .equals(other.interceptors, interceptors) &&
             (identical(other.lazyLoad, lazyLoad) ||
                 other.lazyLoad == lazyLoad) &&
-            (identical(other.memory, memory) || other.memory == memory));
+            (identical(other.memory, memory) || other.memory == memory) &&
+            (identical(other.circuitBreaker, circuitBreaker) ||
+                other.circuitBreaker == circuitBreaker) &&
+            (identical(other.healthCheck, healthCheck) ||
+                other.healthCheck == healthCheck) &&
+            (identical(other.schemaValidation, schemaValidation) ||
+                other.schemaValidation == schemaValidation) &&
+            (identical(other.degradation, degradation) ||
+                other.degradation == degradation));
   }
 
   @override
@@ -197,12 +276,16 @@ mixin _$StoreConfig {
         deltaSync,
         const DeepCollectionEquality().hash(interceptors),
         lazyLoad,
-        memory
+        memory,
+        circuitBreaker,
+        healthCheck,
+        schemaValidation,
+        degradation
       ]);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync, interceptors: $interceptors, lazyLoad: $lazyLoad, memory: $memory)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync, interceptors: $interceptors, lazyLoad: $lazyLoad, memory: $memory, circuitBreaker: $circuitBreaker, healthCheck: $healthCheck, schemaValidation: $schemaValidation, degradation: $degradation)';
   }
 }
 
@@ -231,7 +314,11 @@ abstract mixin class $StoreConfigCopyWith<$Res> {
       DeltaSyncConfig? deltaSync,
       List<StoreInterceptor> interceptors,
       LazyLoadConfig? lazyLoad,
-      MemoryConfig? memory});
+      MemoryConfig? memory,
+      CircuitBreakerConfig? circuitBreaker,
+      HealthCheckConfig? healthCheck,
+      SchemaValidationConfig? schemaValidation,
+      DegradationConfig? degradation});
 
   $EncryptionConfigCopyWith<$Res> get encryption;
   $GdprConfigCopyWith<$Res>? get gdpr;
@@ -239,6 +326,10 @@ abstract mixin class $StoreConfigCopyWith<$Res> {
   $DeltaSyncConfigCopyWith<$Res>? get deltaSync;
   $LazyLoadConfigCopyWith<$Res>? get lazyLoad;
   $MemoryConfigCopyWith<$Res>? get memory;
+  $CircuitBreakerConfigCopyWith<$Res>? get circuitBreaker;
+  $HealthCheckConfigCopyWith<$Res>? get healthCheck;
+  $SchemaValidationConfigCopyWith<$Res>? get schemaValidation;
+  $DegradationConfigCopyWith<$Res>? get degradation;
 }
 
 /// @nodoc
@@ -272,6 +363,10 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
     Object? interceptors = null,
     Object? lazyLoad = freezed,
     Object? memory = freezed,
+    Object? circuitBreaker = freezed,
+    Object? healthCheck = freezed,
+    Object? schemaValidation = freezed,
+    Object? degradation = freezed,
   }) {
     return _then(_self.copyWith(
       fetchPolicy: null == fetchPolicy
@@ -350,6 +445,22 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
           ? _self.memory
           : memory // ignore: cast_nullable_to_non_nullable
               as MemoryConfig?,
+      circuitBreaker: freezed == circuitBreaker
+          ? _self.circuitBreaker
+          : circuitBreaker // ignore: cast_nullable_to_non_nullable
+              as CircuitBreakerConfig?,
+      healthCheck: freezed == healthCheck
+          ? _self.healthCheck
+          : healthCheck // ignore: cast_nullable_to_non_nullable
+              as HealthCheckConfig?,
+      schemaValidation: freezed == schemaValidation
+          ? _self.schemaValidation
+          : schemaValidation // ignore: cast_nullable_to_non_nullable
+              as SchemaValidationConfig?,
+      degradation: freezed == degradation
+          ? _self.degradation
+          : degradation // ignore: cast_nullable_to_non_nullable
+              as DegradationConfig?,
     ));
   }
 
@@ -426,6 +537,63 @@ class _$StoreConfigCopyWithImpl<$Res> implements $StoreConfigCopyWith<$Res> {
 
     return $MemoryConfigCopyWith<$Res>(_self.memory!, (value) {
       return _then(_self.copyWith(memory: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $CircuitBreakerConfigCopyWith<$Res>? get circuitBreaker {
+    if (_self.circuitBreaker == null) {
+      return null;
+    }
+
+    return $CircuitBreakerConfigCopyWith<$Res>(_self.circuitBreaker!, (value) {
+      return _then(_self.copyWith(circuitBreaker: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $HealthCheckConfigCopyWith<$Res>? get healthCheck {
+    if (_self.healthCheck == null) {
+      return null;
+    }
+
+    return $HealthCheckConfigCopyWith<$Res>(_self.healthCheck!, (value) {
+      return _then(_self.copyWith(healthCheck: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SchemaValidationConfigCopyWith<$Res>? get schemaValidation {
+    if (_self.schemaValidation == null) {
+      return null;
+    }
+
+    return $SchemaValidationConfigCopyWith<$Res>(_self.schemaValidation!,
+        (value) {
+      return _then(_self.copyWith(schemaValidation: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $DegradationConfigCopyWith<$Res>? get degradation {
+    if (_self.degradation == null) {
+      return null;
+    }
+
+    return $DegradationConfigCopyWith<$Res>(_self.degradation!, (value) {
+      return _then(_self.copyWith(degradation: value));
     });
   }
 }
@@ -542,7 +710,11 @@ extension StoreConfigPatterns on StoreConfig {
             DeltaSyncConfig? deltaSync,
             List<StoreInterceptor> interceptors,
             LazyLoadConfig? lazyLoad,
-            MemoryConfig? memory)?
+            MemoryConfig? memory,
+            CircuitBreakerConfig? circuitBreaker,
+            HealthCheckConfig? healthCheck,
+            SchemaValidationConfig? schemaValidation,
+            DegradationConfig? degradation)?
         $default, {
     required TResult orElse(),
   }) {
@@ -568,7 +740,11 @@ extension StoreConfigPatterns on StoreConfig {
             _that.deltaSync,
             _that.interceptors,
             _that.lazyLoad,
-            _that.memory);
+            _that.memory,
+            _that.circuitBreaker,
+            _that.healthCheck,
+            _that.schemaValidation,
+            _that.degradation);
       case _:
         return orElse();
     }
@@ -608,7 +784,11 @@ extension StoreConfigPatterns on StoreConfig {
             DeltaSyncConfig? deltaSync,
             List<StoreInterceptor> interceptors,
             LazyLoadConfig? lazyLoad,
-            MemoryConfig? memory)
+            MemoryConfig? memory,
+            CircuitBreakerConfig? circuitBreaker,
+            HealthCheckConfig? healthCheck,
+            SchemaValidationConfig? schemaValidation,
+            DegradationConfig? degradation)
         $default,
   ) {
     final _that = this;
@@ -633,7 +813,11 @@ extension StoreConfigPatterns on StoreConfig {
             _that.deltaSync,
             _that.interceptors,
             _that.lazyLoad,
-            _that.memory);
+            _that.memory,
+            _that.circuitBreaker,
+            _that.healthCheck,
+            _that.schemaValidation,
+            _that.degradation);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -672,7 +856,11 @@ extension StoreConfigPatterns on StoreConfig {
             DeltaSyncConfig? deltaSync,
             List<StoreInterceptor> interceptors,
             LazyLoadConfig? lazyLoad,
-            MemoryConfig? memory)?
+            MemoryConfig? memory,
+            CircuitBreakerConfig? circuitBreaker,
+            HealthCheckConfig? healthCheck,
+            SchemaValidationConfig? schemaValidation,
+            DegradationConfig? degradation)?
         $default,
   ) {
     final _that = this;
@@ -697,7 +885,11 @@ extension StoreConfigPatterns on StoreConfig {
             _that.deltaSync,
             _that.interceptors,
             _that.lazyLoad,
-            _that.memory);
+            _that.memory,
+            _that.circuitBreaker,
+            _that.healthCheck,
+            _that.schemaValidation,
+            _that.degradation);
       case _:
         return null;
     }
@@ -726,7 +918,11 @@ class _StoreConfig extends StoreConfig {
       this.deltaSync,
       final List<StoreInterceptor> interceptors = const [],
       this.lazyLoad,
-      this.memory})
+      this.memory,
+      this.circuitBreaker,
+      this.healthCheck,
+      this.schemaValidation,
+      this.degradation})
       : _interceptors = interceptors,
         super._();
 
@@ -895,6 +1091,81 @@ class _StoreConfig extends StoreConfig {
   @override
   final MemoryConfig? memory;
 
+  /// Circuit breaker configuration for preventing cascade failures.
+  ///
+  /// When configured, enables automatic circuit breaker protection for
+  /// backend operations to prevent overwhelming a failing service.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   circuitBreaker: CircuitBreakerConfig(
+  ///     failureThreshold: 5,
+  ///     successThreshold: 2,
+  ///     openDuration: Duration(seconds: 30),
+  ///   ),
+  /// );
+  /// ```
+  @override
+  final CircuitBreakerConfig? circuitBreaker;
+
+  /// Health check configuration for system health monitoring.
+  ///
+  /// When configured, enables periodic health checks of store components
+  /// with configurable intervals and thresholds.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   healthCheck: HealthCheckConfig(
+  ///     checkInterval: Duration(seconds: 30),
+  ///     timeout: Duration(seconds: 10),
+  ///     failureThreshold: 3,
+  ///   ),
+  /// );
+  /// ```
+  @override
+  final HealthCheckConfig? healthCheck;
+
+  /// Schema validation configuration for entity validation.
+  ///
+  /// When configured, enables validation of entities against schemas
+  /// before save operations.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   schemaValidation: SchemaValidationConfig(
+  ///     mode: SchemaValidationMode.strict,
+  ///     validateOnSave: true,
+  ///   ),
+  /// );
+  /// ```
+  @override
+  final SchemaValidationConfig? schemaValidation;
+
+  /// Degradation configuration for graceful degradation behavior.
+  ///
+  /// When configured, enables automatic degradation when components
+  /// become unavailable, with configurable fallback modes.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final config = StoreConfig(
+  ///   degradation: DegradationConfig(
+  ///     autoDegradation: true,
+  ///     fallbackMode: DegradationMode.cacheOnly,
+  ///     cooldown: Duration(seconds: 60),
+  ///   ),
+  /// );
+  /// ```
+  @override
+  final DegradationConfig? degradation;
+
   /// Create a copy of StoreConfig
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -943,7 +1214,15 @@ class _StoreConfig extends StoreConfig {
                 .equals(other._interceptors, _interceptors) &&
             (identical(other.lazyLoad, lazyLoad) ||
                 other.lazyLoad == lazyLoad) &&
-            (identical(other.memory, memory) || other.memory == memory));
+            (identical(other.memory, memory) || other.memory == memory) &&
+            (identical(other.circuitBreaker, circuitBreaker) ||
+                other.circuitBreaker == circuitBreaker) &&
+            (identical(other.healthCheck, healthCheck) ||
+                other.healthCheck == healthCheck) &&
+            (identical(other.schemaValidation, schemaValidation) ||
+                other.schemaValidation == schemaValidation) &&
+            (identical(other.degradation, degradation) ||
+                other.degradation == degradation));
   }
 
   @override
@@ -967,12 +1246,16 @@ class _StoreConfig extends StoreConfig {
         deltaSync,
         const DeepCollectionEquality().hash(_interceptors),
         lazyLoad,
-        memory
+        memory,
+        circuitBreaker,
+        healthCheck,
+        schemaValidation,
+        degradation
       ]);
 
   @override
   String toString() {
-    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync, interceptors: $interceptors, lazyLoad: $lazyLoad, memory: $memory)';
+    return 'StoreConfig(fetchPolicy: $fetchPolicy, writePolicy: $writePolicy, syncMode: $syncMode, conflictResolution: $conflictResolution, retryConfig: $retryConfig, encryption: $encryption, enableAuditLogging: $enableAuditLogging, enableGdpr: $enableGdpr, gdpr: $gdpr, staleDuration: $staleDuration, syncInterval: $syncInterval, tableName: $tableName, metricsReporter: $metricsReporter, metricsConfig: $metricsConfig, transactionTimeout: $transactionTimeout, deltaSync: $deltaSync, interceptors: $interceptors, lazyLoad: $lazyLoad, memory: $memory, circuitBreaker: $circuitBreaker, healthCheck: $healthCheck, schemaValidation: $schemaValidation, degradation: $degradation)';
   }
 }
 
@@ -1003,7 +1286,11 @@ abstract mixin class _$StoreConfigCopyWith<$Res>
       DeltaSyncConfig? deltaSync,
       List<StoreInterceptor> interceptors,
       LazyLoadConfig? lazyLoad,
-      MemoryConfig? memory});
+      MemoryConfig? memory,
+      CircuitBreakerConfig? circuitBreaker,
+      HealthCheckConfig? healthCheck,
+      SchemaValidationConfig? schemaValidation,
+      DegradationConfig? degradation});
 
   @override
   $EncryptionConfigCopyWith<$Res> get encryption;
@@ -1017,6 +1304,14 @@ abstract mixin class _$StoreConfigCopyWith<$Res>
   $LazyLoadConfigCopyWith<$Res>? get lazyLoad;
   @override
   $MemoryConfigCopyWith<$Res>? get memory;
+  @override
+  $CircuitBreakerConfigCopyWith<$Res>? get circuitBreaker;
+  @override
+  $HealthCheckConfigCopyWith<$Res>? get healthCheck;
+  @override
+  $SchemaValidationConfigCopyWith<$Res>? get schemaValidation;
+  @override
+  $DegradationConfigCopyWith<$Res>? get degradation;
 }
 
 /// @nodoc
@@ -1050,6 +1345,10 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
     Object? interceptors = null,
     Object? lazyLoad = freezed,
     Object? memory = freezed,
+    Object? circuitBreaker = freezed,
+    Object? healthCheck = freezed,
+    Object? schemaValidation = freezed,
+    Object? degradation = freezed,
   }) {
     return _then(_StoreConfig(
       fetchPolicy: null == fetchPolicy
@@ -1128,6 +1427,22 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
           ? _self.memory
           : memory // ignore: cast_nullable_to_non_nullable
               as MemoryConfig?,
+      circuitBreaker: freezed == circuitBreaker
+          ? _self.circuitBreaker
+          : circuitBreaker // ignore: cast_nullable_to_non_nullable
+              as CircuitBreakerConfig?,
+      healthCheck: freezed == healthCheck
+          ? _self.healthCheck
+          : healthCheck // ignore: cast_nullable_to_non_nullable
+              as HealthCheckConfig?,
+      schemaValidation: freezed == schemaValidation
+          ? _self.schemaValidation
+          : schemaValidation // ignore: cast_nullable_to_non_nullable
+              as SchemaValidationConfig?,
+      degradation: freezed == degradation
+          ? _self.degradation
+          : degradation // ignore: cast_nullable_to_non_nullable
+              as DegradationConfig?,
     ));
   }
 
@@ -1204,6 +1519,63 @@ class __$StoreConfigCopyWithImpl<$Res> implements _$StoreConfigCopyWith<$Res> {
 
     return $MemoryConfigCopyWith<$Res>(_self.memory!, (value) {
       return _then(_self.copyWith(memory: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $CircuitBreakerConfigCopyWith<$Res>? get circuitBreaker {
+    if (_self.circuitBreaker == null) {
+      return null;
+    }
+
+    return $CircuitBreakerConfigCopyWith<$Res>(_self.circuitBreaker!, (value) {
+      return _then(_self.copyWith(circuitBreaker: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $HealthCheckConfigCopyWith<$Res>? get healthCheck {
+    if (_self.healthCheck == null) {
+      return null;
+    }
+
+    return $HealthCheckConfigCopyWith<$Res>(_self.healthCheck!, (value) {
+      return _then(_self.copyWith(healthCheck: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SchemaValidationConfigCopyWith<$Res>? get schemaValidation {
+    if (_self.schemaValidation == null) {
+      return null;
+    }
+
+    return $SchemaValidationConfigCopyWith<$Res>(_self.schemaValidation!,
+        (value) {
+      return _then(_self.copyWith(schemaValidation: value));
+    });
+  }
+
+  /// Create a copy of StoreConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $DegradationConfigCopyWith<$Res>? get degradation {
+    if (_self.degradation == null) {
+      return null;
+    }
+
+    return $DegradationConfigCopyWith<$Res>(_self.degradation!, (value) {
+      return _then(_self.copyWith(degradation: value));
     });
   }
 }
