@@ -504,3 +504,70 @@ class CircuitBreakerOpenException extends StoreError {
   @override
   String get errorName => 'CircuitBreakerOpenException';
 }
+
+// ============================================================================
+// Saga Errors
+// ============================================================================
+
+/// Error thrown when a saga execution fails.
+///
+/// Contains information about which step failed and what compensations
+/// were attempted or failed.
+///
+/// ## Example
+///
+/// ```dart
+/// try {
+///   await saga.execute(steps);
+/// } on SagaError catch (e) {
+///   if (e.wasPartiallyCompensated) {
+///     // Critical: some compensations failed
+///     logger.critical('Saga ${e.failedStep} failed with incomplete rollback');
+///   }
+/// }
+/// ```
+class SagaError extends StoreError {
+  /// Creates a saga error.
+  const SagaError({
+    required super.message,
+    super.cause,
+    super.stackTrace,
+    this.failedStep,
+    this.compensatedSteps = const [],
+    this.failedCompensations = const [],
+  }) : super(code: 'SAGA_ERROR');
+
+  /// The name of the step that failed.
+  final String? failedStep;
+
+  /// Steps that were successfully compensated.
+  final List<String> compensatedSteps;
+
+  /// Steps whose compensations also failed.
+  final List<String> failedCompensations;
+
+  /// Whether some compensations failed, leaving data in an inconsistent state.
+  bool get wasPartiallyCompensated => failedCompensations.isNotEmpty;
+
+  /// Whether all compensations succeeded.
+  bool get wasFullyCompensated =>
+      compensatedSteps.isNotEmpty && failedCompensations.isEmpty;
+
+  @override
+  String get errorName => 'SagaError';
+
+  @override
+  String toString() {
+    final buffer = StringBuffer(super.toString());
+    if (failedStep != null) {
+      buffer.write('\nFailed step: $failedStep');
+    }
+    if (compensatedSteps.isNotEmpty) {
+      buffer.write('\nCompensated: $compensatedSteps');
+    }
+    if (failedCompensations.isNotEmpty) {
+      buffer.write('\nFailed compensations: $failedCompensations');
+    }
+    return buffer.toString();
+  }
+}

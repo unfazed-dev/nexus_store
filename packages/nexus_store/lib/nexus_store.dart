@@ -180,3 +180,12 @@ export 'src/reliability/health_check_service.dart';
 export 'src/reliability/health_status.dart';
 export 'src/reliability/schema_definition.dart';
 export 'src/reliability/schema_validation_config.dart';
+// Coordination (Saga Transactions)
+export 'src/coordination/nexus_store_coordinator.dart';
+export 'src/coordination/saga_context.dart';
+export 'src/coordination/saga_coordinator.dart';
+export 'src/coordination/saga_event.dart';
+export 'src/coordination/saga_persistence.dart';
+export 'src/coordination/saga_result.dart';
+export 'src/coordination/saga_state.dart';
+export 'src/coordination/saga_step.dart';
