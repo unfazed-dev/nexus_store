@@ -61,9 +61,9 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 - [x] UI State Containers - See [TRACKER-state-layer.md](./phase-7-state/TRACKER-state-layer.md)
 - [x] Selectors - See [TRACKER-state-layer.md](./phase-7-state/TRACKER-state-layer.md)
 
-### Phase 8: State Management Bindings (Optional)
+### Phase 8: State Management Bindings (Optional) - 1/3 Complete
 - [ ] Riverpod binding - See [TRACKER-riverpod-binding.md](./phase-8-bindings/TRACKER-riverpod-binding.md)
-- [ ] Bloc binding - See [TRACKER-bloc-binding.md](./phase-8-bindings/TRACKER-bloc-binding.md)
+- [x] Bloc binding - See [TRACKER-bloc-binding.md](./phase-8-bindings/TRACKER-bloc-binding.md) ✅ (183 tests)
 - [ ] Signals binding - See [TRACKER-signals-binding.md](./phase-8-bindings/TRACKER-signals-binding.md)
 
 ## Package Structure
@@ -79,7 +79,7 @@ nexus_store/
 │   ├── nexus_store_brick_adapter/        # Brick (✅ Complete with 51 tests)
 │   ├── nexus_store_crdt_adapter/         # CRDT (✅ Complete with 81 tests)
 │   ├── nexus_store_riverpod_binding/     # Riverpod integration (⏳ Planned)
-│   ├── nexus_store_bloc_binding/         # Bloc integration (⏳ Planned)
+│   ├── nexus_store_bloc_binding/         # Bloc integration (✅ Complete with 183 tests)
 │   └── nexus_store_signals_binding/      # Signals integration (⏳ Planned)
 └── docs/
     ├── specs/SPEC-nexus-store.md
@@ -155,7 +155,7 @@ Documentation (depends on all above)
 | REQ-044 | UI State Containers | ✅ Complete | [state-layer](./phase-7-state/TRACKER-state-layer.md) |
 | REQ-045 | Selectors | ✅ Complete | [state-layer](./phase-7-state/TRACKER-state-layer.md) |
 | REQ-046 | Riverpod Binding | ⏳ Pending | [riverpod-binding](./phase-8-bindings/TRACKER-riverpod-binding.md) |
-| REQ-047 | Bloc Binding | ⏳ Pending | [bloc-binding](./phase-8-bindings/TRACKER-bloc-binding.md) |
+| REQ-047 | Bloc Binding | ✅ Complete | [bloc-binding](./phase-8-bindings/TRACKER-bloc-binding.md) |
 | REQ-048 | Signals Binding | ⏳ Pending | [signals-binding](./phase-8-bindings/TRACKER-signals-binding.md) |
 
 ## Related Trackers
@@ -239,3 +239,4 @@ Documentation (depends on all above)
 - ✅ Memory management implemented with 170 tests (MemoryPressureLevel, EvictionStrategy, MemoryConfig, MemoryMetrics, SizeEstimator, LruTracker, MemoryPressureHandler, MemoryManager, FlutterMemoryPressureHandler, NexusStore integration with pin/unpin/evict)
 - ✅ Production reliability implemented with 270+ tests (CircuitBreaker, CircuitBreakerConfig, CircuitBreakerState, CircuitBreakerMetrics, HealthStatus, ComponentHealth, SystemHealth, HealthCheckConfig, HealthCheckService, HealthChecker, FieldType, FieldSchema, SchemaDefinition, SchemaValidationMode, SchemaValidationConfig, DegradationMode, DegradationConfig, DegradationMetrics, DegradationManager)
 - ✅ Built-in state layer implemented with 90 tests (NexusRegistry singleton, NexusState<T> UI state container, ComputedStore<T> derived stores, Selector<T, R> with memoization, NexusStore selector extensions: select, selectById, selectWhere, selectCount, selectFirst, selectLast)
+- ✅ Bloc binding implemented with 183 tests (NexusStoreCubit, NexusItemCubit, NexusStoreBloc, NexusItemBloc, sealed state classes with pattern matching, NexusStoreBlocObserver)
