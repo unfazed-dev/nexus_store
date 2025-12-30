@@ -1,6 +1,6 @@
 # TRACKER: Built-in State Layer
 
-## Status: PENDING
+## Status: COMPLETE (117 tests)
 
 ## Overview
 
@@ -14,109 +14,120 @@ Implement a lightweight built-in state management layer for nexus_store, making 
 ### Store Registry (REQ-042)
 
 #### Implementation
-- [ ] Create `NexusRegistry` singleton class
-  - [ ] `static void register<T>(NexusStore<T, dynamic> store, {String? scope})`
-  - [ ] `static NexusStore<T, ID> get<T, ID>({String? scope})`
-  - [ ] `static void dispose<T>({String? scope})`
-  - [ ] `static void reset()` - Clear all, for testing
+- [x] Create `NexusRegistry` singleton class
+  - [x] `static void register<T>(NexusStore<T, dynamic> store, {String? scope})`
+  - [x] `static NexusStore<T, ID> get<T, ID>({String? scope})`
+  - [x] `static void dispose<T>({String? scope})`
+  - [x] `static void reset()` - Clear all, for testing
 
-- [ ] Implement scoped registration
-  - [ ] Support multi-tenant scenarios
-  - [ ] Scope-based isolation
-  - [ ] Nested scopes (optional)
+- [x] Implement scoped registration
+  - [x] Support multi-tenant scenarios
+  - [x] Scope-based isolation
+  - [x] Nested scopes (optional)
 
-- [ ] Implement lifecycle management
-  - [ ] Auto-dispose on unregister
-  - [ ] Dispose callbacks
-  - [ ] Leak detection (debug mode)
+- [x] Implement lifecycle management
+  - [x] Auto-dispose on unregister
+  - [x] Dispose callbacks
+  - [x] Leak detection (debug mode)
 
 ### Computed Stores (REQ-043)
 
 #### Data Models
-- [ ] Create `ComputedStore<T>` class
-  - [ ] Generic over computed result type
-  - [ ] Accepts list of source stores
-  - [ ] Accepts compute function
+- [x] Create `ComputedStore<T>` class
+  - [x] Generic over computed result type
+  - [x] Accepts list of source stores
+  - [x] Accepts compute function
 
 #### Implementation
-- [ ] Implement stream combination
-  - [ ] Use `Rx.combineLatest` for multiple sources
-  - [ ] Map through compute function
-  - [ ] Apply `distinctUntilChanged`
+- [x] Implement stream combination
+  - [x] Use `Rx.combineLatest` for multiple sources
+  - [x] Map through compute function
+  - [x] Apply `distinctUntilChanged`
 
-- [ ] Implement BehaviorSubject backing
-  - [ ] Immediate emission on subscribe
-  - [ ] Cache last computed value
+- [x] Implement BehaviorSubject backing
+  - [x] Immediate emission on subscribe
+  - [x] Cache last computed value
 
-- [ ] Support various arities
-  - [ ] `ComputedStore.from2(store1, store2, (a, b) => ...)`
-  - [ ] `ComputedStore.from3(store1, store2, store3, (a, b, c) => ...)`
-  - [ ] `ComputedStore.fromList(stores, (values) => ...)`
+- [x] Support various arities
+  - [x] `ComputedStore.from2(store1, store2, (a, b) => ...)`
+  - [x] `ComputedStore.from3(store1, store2, store3, (a, b, c) => ...)`
+  - [x] `ComputedStore.fromList(stores, (values) => ...)`
 
 ### UI State Containers (REQ-044)
 
 #### Implementation
-- [ ] Create `NexusState<T>` class
-  - [ ] BehaviorSubject backing
-  - [ ] `T get value` - Current value
-  - [ ] `set value(T newValue)` - Update and emit
-  - [ ] `Stream<T> get stream` - Observable stream
+- [x] Create `NexusState<T>` class
+  - [x] BehaviorSubject backing
+  - [x] `T get value` - Current value
+  - [x] `set value(T newValue)` - Update and emit
+  - [x] `Stream<T> get stream` - Observable stream
 
-- [ ] Implement update methods
-  - [ ] `void update(T Function(T current) transform)`
-  - [ ] `void reset()` - Revert to initial value
-  - [ ] `void emit(T value)` - Direct emit (alias for setter)
+- [x] Implement update methods
+  - [x] `void update(T Function(T current) transform)`
+  - [x] `void reset()` - Revert to initial value
+  - [x] `void emit(T value)` - Direct emit (alias for setter)
 
-- [ ] Implement persistence (optional)
-  - [ ] `NexusState.persisted(key, initial, serializer)`
-  - [ ] Auto-save to SharedPreferences/Hive
-  - [ ] Restore on creation
+- [x] Implement persistence
+  - [x] `StateStorage` abstract interface (user provides SharedPreferences/Hive impl)
+  - [x] `PersistedState<T>` with async factory and auto-save
+  - [x] `NexusState.persisted()` static factory method
+  - [x] Auto-save on value change via stream subscription
+  - [x] Restore from storage on creation
+  - [x] Error handling (fallback to initial value)
 
 ### Selectors (REQ-045)
 
 #### Implementation
-- [ ] Create `Selector<T, R>` class
-  - [ ] Source stream
-  - [ ] Select function
-  - [ ] Equality function (optional)
+- [x] Create `Selector<T, R>` class
+  - [x] Source stream
+  - [x] Select function
+  - [x] Equality function (optional)
 
-- [ ] Add `select<R>()` to NexusStore
-  - [ ] `Stream<R> select<R>(R Function(List<T>) selector, {bool Function(R, R)? equals})`
-  - [ ] Apply distinctUntilChanged with custom equality
+- [x] Add `select<R>()` to NexusStore
+  - [x] `Stream<R> select<R>(R Function(List<T>) selector, {bool Function(R, R)? equals})`
+  - [x] Apply distinctUntilChanged with custom equality
 
-- [ ] Implement memoization
-  - [ ] Cache last input and output
-  - [ ] Skip computation if input unchanged
+- [x] Implement memoization
+  - [x] Cache last input and output
+  - [x] Skip computation if input unchanged
 
-- [ ] Create common selector utilities
-  - [ ] `selectById(ID id)` - Single item selector
-  - [ ] `selectWhere(bool Function(T) predicate)` - Filtered list
-  - [ ] `selectCount()` - Item count
-  - [ ] `selectFirst()` / `selectLast()`
+- [x] Create common selector utilities
+  - [x] `selectById(ID id)` - Single item selector
+  - [x] `selectWhere(bool Function(T) predicate)` - Filtered list
+  - [x] `selectCount()` - Item count
+  - [x] `selectFirst()` / `selectLast()`
 
 ### Unit Tests
-- [ ] `test/src/state/nexus_registry_test.dart`
-  - [ ] Registration and retrieval
-  - [ ] Scoped registration
-  - [ ] Disposal works
-  - [ ] Reset clears all
+- [x] `test/src/state/nexus_registry_test.dart` (29 tests)
+  - [x] Registration and retrieval
+  - [x] Scoped registration
+  - [x] Disposal works
+  - [x] Reset clears all
 
-- [ ] `test/src/state/computed_store_test.dart`
-  - [ ] Combines multiple stores
-  - [ ] Recomputes on source change
-  - [ ] distinctUntilChanged behavior
-  - [ ] Immediate emission
+- [x] `test/src/state/computed_store_test.dart` (17 tests)
+  - [x] Combines multiple stores
+  - [x] Recomputes on source change
+  - [x] distinctUntilChanged behavior
+  - [x] Immediate emission
 
-- [ ] `test/src/state/nexus_state_test.dart`
-  - [ ] Value updates emit
-  - [ ] Update transform works
-  - [ ] Reset reverts to initial
-  - [ ] Stream provides current value
+- [x] `test/src/state/nexus_state_test.dart` (27 tests)
+  - [x] Value updates emit
+  - [x] Update transform works
+  - [x] Reset reverts to initial
+  - [x] Stream provides current value
 
-- [ ] `test/src/state/selector_test.dart`
-  - [ ] Selects subset correctly
-  - [ ] Custom equality works
-  - [ ] Memoization prevents recomputation
+- [x] `test/src/state/selector_test.dart` (17 tests)
+  - [x] Selects subset correctly
+  - [x] Custom equality works
+  - [x] Memoization prevents recomputation
+
+- [x] `test/src/state/persisted_state_test.dart` (27 tests)
+  - [x] Create with initial/restored value
+  - [x] Auto-save on value change, emit(), update(), reset()
+  - [x] Error handling for storage failures
+  - [x] Stream behavior and multiple subscribers
+  - [x] Complex types (List, Map, JSON)
+  - [x] NexusState.persisted() factory
 
 ## Files
 
@@ -125,8 +136,10 @@ Implement a lightweight built-in state management layer for nexus_store, making 
 packages/nexus_store/lib/src/state/
 ├── nexus_registry.dart      # NexusRegistry singleton
 ├── computed_store.dart      # ComputedStore<T>
-├── nexus_state.dart         # NexusState<T>
+├── nexus_state.dart         # NexusState<T> + persisted() factory
+├── persisted_state.dart     # PersistedState<T> with auto-save
 ├── selector.dart            # Selector<T, R>
+├── state_storage.dart       # StateStorage abstract interface
 └── state.dart               # Barrel export
 ```
 
@@ -136,7 +149,14 @@ packages/nexus_store/test/src/state/
 ├── nexus_registry_test.dart
 ├── computed_store_test.dart
 ├── nexus_state_test.dart
+├── persisted_state_test.dart
 └── selector_test.dart
+```
+
+**Test Fixtures:**
+```
+packages/nexus_store/test/fixtures/
+└── fake_state_storage.dart   # FakeStateStorage + FailingStateStorage
 ```
 
 ## Dependencies
@@ -250,5 +270,6 @@ StreamBuilder<List<User>>(
 - ComputedStore uses RxDart's combineLatest internally
 - NexusState is similar to BehaviorSubject but with nicer API
 - Selectors are key for performance (avoid unnecessary rebuilds)
-- Consider adding `NexusState.persisted` for settings that survive restart
+- `NexusState.persisted()` enables settings that survive restart via abstract storage
 - All state primitives use BehaviorSubject for immediate value on subscribe
+- PersistedState uses async factory pattern since Dart constructors can't be async

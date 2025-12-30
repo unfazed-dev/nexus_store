@@ -55,11 +55,11 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 - [x] Lazy field loading - See [TRACKER-lazy-loading.md](./phase-6-enterprise/TRACKER-lazy-loading.md) ✅ (118 tests)
 - [x] Connection pooling - See [TRACKER-connection-pool.md](./phase-6-enterprise/TRACKER-connection-pool.md) ✅ (175 tests)
 
-### Phase 7: Built-in State Layer (Self-Sufficient)
-- [ ] Store Registry (DI) - See [TRACKER-state-layer.md](./phase-7-state/TRACKER-state-layer.md)
-- [ ] Computed Stores - See [TRACKER-state-layer.md](./phase-7-state/TRACKER-state-layer.md)
-- [ ] UI State Containers - See [TRACKER-state-layer.md](./phase-7-state/TRACKER-state-layer.md)
-- [ ] Selectors - See [TRACKER-state-layer.md](./phase-7-state/TRACKER-state-layer.md)
+### Phase 7: Built-in State Layer (Self-Sufficient) ✅ (90 tests)
+- [x] Store Registry (DI) - See [TRACKER-state-layer.md](./phase-7-state/TRACKER-state-layer.md)
+- [x] Computed Stores - See [TRACKER-state-layer.md](./phase-7-state/TRACKER-state-layer.md)
+- [x] UI State Containers - See [TRACKER-state-layer.md](./phase-7-state/TRACKER-state-layer.md)
+- [x] Selectors - See [TRACKER-state-layer.md](./phase-7-state/TRACKER-state-layer.md)
 
 ### Phase 8: State Management Bindings (Optional)
 - [ ] Riverpod binding - See [TRACKER-riverpod-binding.md](./phase-8-bindings/TRACKER-riverpod-binding.md)
@@ -150,10 +150,10 @@ Documentation (depends on all above)
 | REQ-039 | Memory Pressure Handling | ✅ Complete | [memory](./phase-6-enterprise/TRACKER-memory-management.md) |
 | REQ-040 | Lazy Field Loading | ✅ Complete | [lazy-loading](./phase-6-enterprise/TRACKER-lazy-loading.md) |
 | REQ-041 | Connection Pooling | ✅ Complete | [connection-pool](./phase-6-enterprise/TRACKER-connection-pool.md) |
-| REQ-042 | Store Registry (Built-in DI) | ⏳ Pending | [state-layer](./phase-7-state/TRACKER-state-layer.md) |
-| REQ-043 | Computed Stores | ⏳ Pending | [state-layer](./phase-7-state/TRACKER-state-layer.md) |
-| REQ-044 | UI State Containers | ⏳ Pending | [state-layer](./phase-7-state/TRACKER-state-layer.md) |
-| REQ-045 | Selectors | ⏳ Pending | [state-layer](./phase-7-state/TRACKER-state-layer.md) |
+| REQ-042 | Store Registry (Built-in DI) | ✅ Complete | [state-layer](./phase-7-state/TRACKER-state-layer.md) |
+| REQ-043 | Computed Stores | ✅ Complete | [state-layer](./phase-7-state/TRACKER-state-layer.md) |
+| REQ-044 | UI State Containers | ✅ Complete | [state-layer](./phase-7-state/TRACKER-state-layer.md) |
+| REQ-045 | Selectors | ✅ Complete | [state-layer](./phase-7-state/TRACKER-state-layer.md) |
 | REQ-046 | Riverpod Binding | ⏳ Pending | [riverpod-binding](./phase-8-bindings/TRACKER-riverpod-binding.md) |
 | REQ-047 | Bloc Binding | ⏳ Pending | [bloc-binding](./phase-8-bindings/TRACKER-bloc-binding.md) |
 | REQ-048 | Signals Binding | ⏳ Pending | [signals-binding](./phase-8-bindings/TRACKER-signals-binding.md) |
@@ -238,3 +238,4 @@ Documentation (depends on all above)
 - ✅ Lazy field loading implemented with 118 tests (LazyFieldState, LazyField, LazyLoadConfig, LazyFieldRegistry, FieldLoader, LazyEntity, Query.preload, NexusStore lazy methods)
 - ✅ Memory management implemented with 170 tests (MemoryPressureLevel, EvictionStrategy, MemoryConfig, MemoryMetrics, SizeEstimator, LruTracker, MemoryPressureHandler, MemoryManager, FlutterMemoryPressureHandler, NexusStore integration with pin/unpin/evict)
 - ✅ Production reliability implemented with 270+ tests (CircuitBreaker, CircuitBreakerConfig, CircuitBreakerState, CircuitBreakerMetrics, HealthStatus, ComponentHealth, SystemHealth, HealthCheckConfig, HealthCheckService, HealthChecker, FieldType, FieldSchema, SchemaDefinition, SchemaValidationMode, SchemaValidationConfig, DegradationMode, DegradationConfig, DegradationMetrics, DegradationManager)
+- ✅ Built-in state layer implemented with 90 tests (NexusRegistry singleton, NexusState<T> UI state container, ComputedStore<T> derived stores, Selector<T, R> with memoization, NexusStore selector extensions: select, selectById, selectWhere, selectCount, selectFirst, selectLast)

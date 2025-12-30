@@ -189,3 +189,5 @@ export 'src/coordination/saga_persistence.dart';
 export 'src/coordination/saga_result.dart';
 export 'src/coordination/saga_state.dart';
 export 'src/coordination/saga_step.dart';
+// State
+export 'src/state/state.dart';
