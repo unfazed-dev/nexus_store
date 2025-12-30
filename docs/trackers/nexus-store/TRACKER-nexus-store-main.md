@@ -80,7 +80,10 @@ nexus_store/
 │   ├── nexus_store_crdt_adapter/         # CRDT (✅ Complete with 81 tests)
 │   ├── nexus_store_riverpod_binding/     # Riverpod integration (✅ Complete with 29 tests)
 │   ├── nexus_store_bloc_binding/         # Bloc integration (✅ Complete with 183 tests)
-│   └── nexus_store_signals_binding/      # Signals integration (✅ Complete with 87 tests)
+│   ├── nexus_store_signals_binding/      # Signals integration (✅ Complete with 87 tests)
+│   ├── nexus_store_generator/            # Lazy field generator (✅ Complete)
+│   ├── nexus_store_entity_generator/     # Entity field generator (✅ Complete with 13 tests)
+│   └── nexus_store_riverpod_generator/   # Riverpod provider generator (✅ Complete)
 └── docs/
     ├── specs/SPEC-nexus-store.md
     └── trackers/nexus-store/             # This directory
@@ -142,7 +145,7 @@ Documentation (depends on all above)
 | REQ-031 | Delta Sync Support | ✅ Complete | [delta-sync](./phase-6-enterprise/TRACKER-delta-sync.md) |
 | REQ-032 | Background Sync Service | ✅ Complete | [background-sync](./phase-6-enterprise/TRACKER-background-sync.md) |
 | REQ-033 | Sync Priority Queues | ✅ Complete | [background-sync](./phase-6-enterprise/TRACKER-background-sync.md) |
-| REQ-034 | Code Generation Tooling | ⏳ Pending | [type-safe](./phase-5-production/TRACKER-type-safe-query.md) |
+| REQ-034 | Code Generation Tooling | ✅ Complete | [type-safe](./phase-5-production/TRACKER-type-safe-query.md) |
 | REQ-035 | Schema Validation | ✅ Complete | [reliability](./phase-6-enterprise/TRACKER-reliability.md) |
 | REQ-036 | Circuit Breaker Pattern | ✅ Complete | [reliability](./phase-6-enterprise/TRACKER-reliability.md) |
 | REQ-037 | Health Check API | ✅ Complete | [reliability](./phase-6-enterprise/TRACKER-reliability.md) |
@@ -242,3 +245,4 @@ Documentation (depends on all above)
 - ✅ Bloc binding implemented with 183 tests (NexusStoreCubit, NexusItemCubit, NexusStoreBloc, NexusItemBloc, sealed state classes with pattern matching, NexusStoreBlocObserver)
 - ✅ Riverpod binding implemented with 29 tests (createNexusStoreProvider, createWatchAllProvider, createWatchByIdProvider, NexusStoreListConsumer, NexusStoreItemConsumer, hooks, extensions, @riverpodNexusStore annotation)
 - ✅ Signals binding implemented with 87 tests (NexusSignalState sealed classes, NexusStoreSignalExtension, NexusSignal/NexusListSignal wrappers, computed utilities, SignalScope, NexusSignalsMixin)
+- ✅ Entity code generator implemented with 13 tests (NexusEntity annotation, EntityGenerator with source_gen, generates type-safe field accessors from annotated classes)

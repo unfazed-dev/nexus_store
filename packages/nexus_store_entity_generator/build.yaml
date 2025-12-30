@@ -1,0 +1,7 @@
+builders:
+  entity:
+    import: "package:nexus_store_entity_generator/builder.dart"
+    builder_factories: ["entityBuilder"]
+    build_extensions: {".dart": [".entity.dart"]}
+    auto_apply: dependents
+    build_to: source

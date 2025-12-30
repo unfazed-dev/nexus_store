@@ -98,11 +98,12 @@ Implement an optional type-safe query builder that provides compile-time validat
   - [x] Full support for AND/OR/NOT via pattern matching
   - [x] `evaluateWithExpression(List<T>, Expression<T>)` method
 
-### Code Generation (Optional - Deferred)
-- [ ] Create `nexus_store_generator` package
-  - [ ] Annotation: `@NexusEntity()`
-  - [ ] Generates `UserFields` from `User` class
-  - [ ] Uses build_runner
+### Code Generation ✅
+- [x] Create `nexus_store_entity_generator` package
+  - [x] Annotation: `@NexusEntity()` in core package
+  - [x] Generates `UserFields` from `User` class
+  - [x] Uses build_runner with source_gen
+  - [x] 13 comprehensive tests
 
 ### Manual Definition Support
 - [x] Manual Fields definition works
@@ -146,6 +147,7 @@ Implement an optional type-safe query builder that provides compile-time validat
 **Source Files:**
 ```
 packages/nexus_store/lib/src/query/
+├── annotations.dart             # ✅ @NexusEntity annotation
 ├── expression.dart              # ✅ Sealed expression class hierarchy
 ├── field.dart                   # ✅ Field, ComparableField, StringField, ListField
 ├── fields.dart                  # ✅ Fields<T> base class
@@ -153,6 +155,15 @@ packages/nexus_store/lib/src/query/
 
 packages/nexus_store/lib/src/cache/
 └── query_evaluator.dart         # ✅ Updated with matchesExpression()
+
+packages/nexus_store_entity_generator/
+├── lib/
+│   ├── builder.dart             # ✅ build_runner entry point
+│   └── src/
+│       └── entity_generator.dart # ✅ Main generator logic
+├── test/
+│   └── entity_generator_test.dart # ✅ 13 tests
+└── build.yaml                    # ✅ Builder configuration
 ```
 
 **Test Files:**
@@ -220,7 +231,7 @@ final matches = evaluator.evaluateWithExpression(
 ## Notes
 
 - Type-safe queries are opt-in, string-based remains default
-- Code generation (nexus_store_generator) is deferred to a future task
+- Code generation package `nexus_store_entity_generator` is complete with 13 tests
 - OR expressions require direct expression evaluation (not toFilters())
 - All existing string-based queries remain fully functional
 - Expression trees allow for powerful query composition

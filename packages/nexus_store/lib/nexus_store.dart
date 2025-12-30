@@ -121,6 +121,7 @@ export 'src/pool/pooled_connection.dart';
 export 'src/policy/fetch_policy_handler.dart';
 export 'src/policy/write_policy_handler.dart';
 // Query
+export 'src/query/annotations.dart';
 export 'src/query/expression.dart';
 export 'src/query/field.dart';
 export 'src/query/fields.dart';
