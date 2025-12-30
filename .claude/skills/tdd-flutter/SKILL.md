@@ -364,6 +364,31 @@ For detailed test syntax, mocking patterns, and matchers, invoke the `dart-testi
 
 This TDD skill defines the METHODOLOGY; `dart-testing` provides the TOOLING.
 
+## Integration with dart-analyzer-fixer Skill
+
+During the **REFACTOR** phase, use the `dart-analyzer-fixer` skill to maintain code quality:
+
+```bash
+# Run analysis hook during refactor phase
+dart run .claude/skills/dart-analyzer-fixer/scripts/tdd_analysis_hook.dart refactor --strict
+```
+
+### TDD + Analyzer Workflow
+
+| Phase | Analyzer Action | Command |
+|-------|-----------------|---------|
+| RED | Skip (test failing) | `dart run tdd_analysis_hook.dart red` |
+| GREEN | Check for new issues | `dart run tdd_analysis_hook.dart green --save-baseline` |
+| REFACTOR | Auto-fix + regression check | `dart run tdd_analysis_hook.dart refactor --strict` |
+
+The analyzer hook:
+- Tracks baseline issues at GREEN phase
+- Auto-fixes style issues during REFACTOR
+- Blocks if new issues are introduced
+- Reports improvements made
+
+For manual issue fixes and configuration, invoke the `dart-analyzer-fixer` skill.
+
 ## Enforcement
 
 Claude MUST:
