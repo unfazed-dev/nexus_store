@@ -11,14 +11,12 @@ import 'helpers/mocks.dart';
 import 'helpers/test_fixtures.dart';
 
 void main() {
-  setUpAll(() {
-    registerFallbackValues();
-  });
+  setUpAll(registerFallbackValues);
 
   group('createNexusStoreProvider', () {
     test('creates a provider that returns the store', () {
       final store = MockNexusStore<TestUser, String>();
-      when(() => store.dispose()).thenAnswer((_) async {});
+      when(store.dispose).thenAnswer((_) async {});
 
       final provider = createNexusStoreProvider<TestUser, String>(
         (ref) => store,
@@ -33,7 +31,7 @@ void main() {
 
     test('disposes store when autoDispose is true (default)', () async {
       final store = MockNexusStore<TestUser, String>();
-      when(() => store.dispose()).thenAnswer((_) async {});
+      when(store.dispose).thenAnswer((_) async {});
 
       final provider = createNexusStoreProvider<TestUser, String>(
         (ref) => store,
@@ -45,12 +43,12 @@ void main() {
 
       container.dispose();
 
-      verify(() => store.dispose()).called(1);
+      verify(store.dispose).called(1);
     });
 
     test('does not dispose store when autoDispose is false', () async {
       final store = MockNexusStore<TestUser, String>();
-      when(() => store.dispose()).thenAnswer((_) async {});
+      when(store.dispose).thenAnswer((_) async {});
 
       final provider = createNexusStoreProvider<TestUser, String>(
         (ref) => store,
@@ -62,14 +60,14 @@ void main() {
 
       container.dispose();
 
-      verifyNever(() => store.dispose());
+      verifyNever(store.dispose);
     });
   });
 
   group('createAutoDisposeNexusStoreProvider', () {
     test('creates an auto-dispose provider', () {
       final store = MockNexusStore<TestUser, String>();
-      when(() => store.dispose()).thenAnswer((_) async {});
+      when(store.dispose).thenAnswer((_) async {});
 
       final provider = createAutoDisposeNexusStoreProvider<TestUser, String>(
         (ref) => store,
@@ -84,7 +82,7 @@ void main() {
 
     test('disposes store on container dispose', () async {
       final store = MockNexusStore<TestUser, String>();
-      when(() => store.dispose()).thenAnswer((_) async {});
+      when(store.dispose).thenAnswer((_) async {});
 
       final provider = createAutoDisposeNexusStoreProvider<TestUser, String>(
         (ref) => store,
@@ -95,7 +93,7 @@ void main() {
 
       container.dispose();
 
-      verify(() => store.dispose()).called(1);
+      verify(store.dispose).called(1);
     });
   });
 
@@ -123,7 +121,7 @@ void main() {
 
     test('applies query parameter to watchAll', () async {
       final store = MockNexusStore<TestUser, String>();
-      final query = Query<TestUser>();
+      const query = Query<TestUser>();
 
       when(() => store.watchAll(query: query))
           .thenAnswer((_) => Stream.value([]));

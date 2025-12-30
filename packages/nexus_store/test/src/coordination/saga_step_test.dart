@@ -1,4 +1,3 @@
-import 'package:nexus_store/src/coordination/saga_coordinator.dart';
 import 'package:nexus_store/src/coordination/saga_step.dart';
 import 'package:test/test.dart';
 

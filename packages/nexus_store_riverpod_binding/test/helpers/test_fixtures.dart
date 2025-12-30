@@ -1,4 +1,5 @@
 /// Test entities for Riverpod binding tests.
+library;
 
 /// A simple test entity for testing store operations.
 class TestUser {

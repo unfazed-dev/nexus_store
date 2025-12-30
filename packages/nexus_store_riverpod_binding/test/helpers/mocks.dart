@@ -32,7 +32,7 @@ class MockStoreHelper {
     final store = MockNexusStore<TestUser, String>();
     when(() => store.watchAll(query: any(named: 'query')))
         .thenAnswer((_) => Stream.value(users));
-    when(() => store.dispose()).thenAnswer((_) async {});
+    when(store.dispose).thenAnswer((_) async {});
     return store;
   }
 
@@ -43,7 +43,7 @@ class MockStoreHelper {
     final store = MockNexusStore<TestUser, String>();
     when(() => store.watchAll(query: any(named: 'query')))
         .thenAnswer((_) => stream);
-    when(() => store.dispose()).thenAnswer((_) async {});
+    when(store.dispose).thenAnswer((_) async {});
     return store;
   }
 
@@ -54,7 +54,7 @@ class MockStoreHelper {
   ) {
     final store = MockNexusStore<TestUser, String>();
     when(() => store.watch(id)).thenAnswer((_) => Stream.value(user));
-    when(() => store.dispose()).thenAnswer((_) async {});
+    when(store.dispose).thenAnswer((_) async {});
     return store;
   }
 
@@ -63,7 +63,7 @@ class MockStoreHelper {
     final store = MockNexusStore<TestUser, String>();
     when(() => store.watchAll(query: any(named: 'query')))
         .thenAnswer((_) => Stream.error(error));
-    when(() => store.dispose()).thenAnswer((_) async {});
+    when(store.dispose).thenAnswer((_) async {});
     return store;
   }
 
@@ -74,7 +74,7 @@ class MockStoreHelper {
     final controller = StreamController<List<TestUser>>.broadcast();
     when(() => store.watchAll(query: any(named: 'query')))
         .thenAnswer((_) => controller.stream);
-    when(() => store.dispose()).thenAnswer((_) async {
+    when(store.dispose).thenAnswer((_) async {
       await controller.close();
     });
     return (store, controller);

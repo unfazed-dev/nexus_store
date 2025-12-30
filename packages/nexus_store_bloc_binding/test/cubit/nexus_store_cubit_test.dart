@@ -13,9 +13,7 @@ void main() {
   late MockNexusStore<TestUser, String> mockStore;
   late StreamController<List<TestUser>> watchAllController;
 
-  setUpAll(() {
-    registerFallbackValues();
-  });
+  setUpAll(registerFallbackValues);
 
   setUp(() {
     mockStore = MockNexusStore<TestUser, String>();

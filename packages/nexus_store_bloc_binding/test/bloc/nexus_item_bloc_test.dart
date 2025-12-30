@@ -211,7 +211,7 @@ void main() {
           // Refresh
           bloc.add(const RefreshItem<TestUser, String>());
           await Future<void>.delayed(Duration.zero);
-          final updatedUser = TestUser(
+          const updatedUser = TestUser(
             id: 'user-1',
             name: 'Refreshed User',
             email: 'refreshed@test.com',
@@ -319,7 +319,7 @@ void main() {
           await Future<void>.delayed(Duration.zero);
           watchController.add(TestFixtures.sampleUser);
           await Future<void>.delayed(Duration.zero);
-          final updatedUser = TestUser(
+          const updatedUser = TestUser(
             id: 'user-1',
             name: 'Updated User',
             email: 'updated@test.com',

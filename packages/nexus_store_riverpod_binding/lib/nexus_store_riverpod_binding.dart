@@ -40,7 +40,7 @@
 ///     ..bindToRef(ref);
 /// });
 /// ```
-library nexus_store_riverpod_binding;
+library;
 
 // Annotations
 export 'src/annotations/riverpod_nexus_store.dart';

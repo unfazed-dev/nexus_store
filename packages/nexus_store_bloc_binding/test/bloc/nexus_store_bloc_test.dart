@@ -106,7 +106,7 @@ void main() {
         'passes query to watchAll',
         build: () => NexusStoreBloc<TestUser, String>(mockStore),
         act: (bloc) async {
-          final query = Query<TestUser>();
+          const query = Query<TestUser>();
           bloc.add(LoadAll<TestUser, String>(query: query));
           await Future<void>.delayed(Duration.zero);
         },

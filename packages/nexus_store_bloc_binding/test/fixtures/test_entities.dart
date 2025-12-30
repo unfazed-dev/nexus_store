@@ -1,4 +1,5 @@
 /// Test entities for bloc binding tests.
+library;
 
 class TestUser {
   const TestUser({

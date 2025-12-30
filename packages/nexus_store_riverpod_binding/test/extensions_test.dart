@@ -11,15 +11,13 @@ import 'helpers/mocks.dart';
 import 'helpers/test_fixtures.dart';
 
 void main() {
-  setUpAll(() {
-    registerFallbackValues();
-  });
+  setUpAll(registerFallbackValues);
 
   group('NexusStoreRiverpodX', () {
     group('bindToRef', () {
       test('disposes store when ref is disposed', () async {
         final store = MockNexusStore<TestUser, String>();
-        when(() => store.dispose()).thenAnswer((_) async {});
+        when(store.dispose).thenAnswer((_) async {});
 
         final provider = Provider<NexusStore<TestUser, String>>((ref) {
           store.bindToRef(ref);
@@ -31,12 +29,12 @@ void main() {
 
         container.dispose();
 
-        verify(() => store.dispose()).called(1);
+        verify(store.dispose).called(1);
       });
 
       test('can be chained with cascade', () async {
         final store = MockNexusStore<TestUser, String>();
-        when(() => store.dispose()).thenAnswer((_) async {});
+        when(store.dispose).thenAnswer((_) async {});
         when(() => store.watchAll(query: any(named: 'query')))
             .thenAnswer((_) => Stream.value([]));
 
@@ -50,14 +48,14 @@ void main() {
         expect(result, same(store));
 
         container.dispose();
-        verify(() => store.dispose()).called(1);
+        verify(store.dispose).called(1);
       });
     });
 
     group('bindToAutoDisposeRef', () {
       test('disposes store when auto-dispose ref is disposed', () async {
         final store = MockNexusStore<TestUser, String>();
-        when(() => store.dispose()).thenAnswer((_) async {});
+        when(store.dispose).thenAnswer((_) async {});
 
         final provider =
             Provider.autoDispose<NexusStore<TestUser, String>>((ref) {
@@ -70,7 +68,7 @@ void main() {
 
         container.dispose();
 
-        verify(() => store.dispose()).called(1);
+        verify(store.dispose).called(1);
       });
     });
   });
@@ -99,7 +97,7 @@ void main() {
 
       test('applies query parameter', () async {
         final store = MockNexusStore<TestUser, String>();
-        final query = Query<TestUser>();
+        const query = Query<TestUser>();
 
         when(() => store.watchAll(query: query))
             .thenAnswer((_) => Stream.value([]));
@@ -172,7 +170,7 @@ void main() {
   group('NexusStoreKeepAlive', () {
     test('prevents auto-disposal with keepAlive', () async {
       final store = MockNexusStore<TestUser, String>();
-      when(() => store.dispose()).thenAnswer((_) async {});
+      when(store.dispose).thenAnswer((_) async {});
 
       late NexusStoreKeepAlive<TestUser, String> keepAlive;
 
@@ -185,17 +183,17 @@ void main() {
       container.read(provider);
 
       // Store should not be disposed yet due to keepAlive
-      verifyNever(() => store.dispose());
+      verifyNever(store.dispose);
 
       container.dispose();
 
       // Now it should be disposed
-      verify(() => store.dispose()).called(1);
+      verify(store.dispose).called(1);
     });
 
     test('allowDispose closes keepAlive link', () async {
       final store = MockNexusStore<TestUser, String>();
-      when(() => store.dispose()).thenAnswer((_) async {});
+      when(store.dispose).thenAnswer((_) async {});
 
       late NexusStoreKeepAlive<TestUser, String> keepAlive;
 
@@ -210,10 +208,10 @@ void main() {
       result.allowDispose();
 
       // Verify keepAlive link is closed but store isn't disposed yet
-      verifyNever(() => store.dispose());
+      verifyNever(store.dispose);
 
       container.dispose();
-      verify(() => store.dispose()).called(1);
+      verify(store.dispose).called(1);
     });
   });
 
@@ -222,8 +220,8 @@ void main() {
       final store1 = MockNexusStore<TestUser, String>();
       final store2 = MockNexusStore<TestUser, String>();
 
-      when(() => store1.dispose()).thenAnswer((_) async {});
-      when(() => store2.dispose()).thenAnswer((_) async {});
+      when(store1.dispose).thenAnswer((_) async {});
+      when(store2.dispose).thenAnswer((_) async {});
 
       final manager = StoreDisposalManager();
       manager.register(store1);
@@ -231,13 +229,13 @@ void main() {
 
       await manager.disposeAll();
 
-      verify(() => store1.dispose()).called(1);
-      verify(() => store2.dispose()).called(1);
+      verify(store1.dispose).called(1);
+      verify(store2.dispose).called(1);
     });
 
     test('forRef creates manager bound to ref lifecycle', () async {
       final store = MockNexusStore<TestUser, String>();
-      when(() => store.dispose()).thenAnswer((_) async {});
+      when(store.dispose).thenAnswer((_) async {});
 
       final provider = Provider<StoreDisposalManager>((ref) {
         final manager = StoreDisposalManager.forRef(ref);
@@ -248,11 +246,11 @@ void main() {
       final container = ProviderContainer();
       container.read(provider);
 
-      verifyNever(() => store.dispose());
+      verifyNever(store.dispose);
 
       container.dispose();
 
-      verify(() => store.dispose()).called(1);
+      verify(store.dispose).called(1);
     });
   });
 

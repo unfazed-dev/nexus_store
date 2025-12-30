@@ -13,9 +13,7 @@ void main() {
   late MockNexusStore<TestUser, String> mockStore;
   late StreamController<TestUser?> watchController;
 
-  setUpAll(() {
-    registerFallbackValues();
-  });
+  setUpAll(registerFallbackValues);
 
   setUp(() {
     mockStore = MockNexusStore<TestUser, String>();
@@ -122,7 +120,7 @@ void main() {
           await cubit.load();
           watchController.add(TestFixtures.sampleUser);
           await Future<void>.delayed(Duration.zero);
-          final updatedUser = TestUser(
+          const updatedUser = TestUser(
             id: 'user-1',
             name: 'Updated User',
             email: 'updated@test.com',
@@ -276,7 +274,7 @@ void main() {
 
           // Refresh
           await cubit.refresh();
-          final updatedUser = TestUser(
+          const updatedUser = TestUser(
             id: 'user-1',
             name: 'Refreshed User',
             email: 'refreshed@test.com',

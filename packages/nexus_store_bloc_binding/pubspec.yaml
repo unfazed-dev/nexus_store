@@ -11,6 +11,7 @@ dependencies:
     path: ../nexus_store
   meta: ^1.16.0
 
+  collection: any
 dev_dependencies:
   test: ^1.25.0
   mocktail: ^1.0.4
