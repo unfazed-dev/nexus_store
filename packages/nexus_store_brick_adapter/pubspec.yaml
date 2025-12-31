@@ -2,15 +2,12 @@ name: nexus_store_brick_adapter
 description: Brick adapter for nexus_store with offline-first capabilities.
 version: 0.1.0
 repository: https://github.com/user/nexus_store
-publish_to: none
 
 environment:
   sdk: ^3.5.0
 
-
 dependencies:
-  nexus_store:
-    path: ../nexus_store
+  nexus_store: ^0.1.0
   brick_offline_first_with_supabase: ^2.1.0
   brick_offline_first: ^4.0.0
   brick_core: ^2.0.0

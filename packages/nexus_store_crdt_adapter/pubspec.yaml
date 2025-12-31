@@ -2,15 +2,12 @@ name: nexus_store_crdt_adapter
 description: CRDT adapter for nexus_store with conflict-free replicated data types.
 version: 0.1.0
 repository: https://github.com/user/nexus_store
-publish_to: none
 
 environment:
   sdk: ^3.5.0
 
-
 dependencies:
-  nexus_store:
-    path: ../nexus_store
+  nexus_store: ^0.1.0
   sqlite_crdt: ^3.0.4
   crdt: ^5.1.3
   rxdart: ^0.28.0

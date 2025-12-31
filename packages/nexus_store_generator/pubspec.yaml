@@ -1,7 +1,7 @@
 name: nexus_store_generator
 description: Code generator for nexus_store lazy field accessors.
 version: 0.1.0
-publish_to: none
+repository: https://github.com/user/nexus_store
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -9,8 +9,7 @@ environment:
 dependencies:
   analyzer: ^6.0.0
   build: ^2.4.0
-  nexus_store:
-    path: ../nexus_store
+  nexus_store: ^0.1.0
   source_gen: ^1.5.0
 
 dev_dependencies:

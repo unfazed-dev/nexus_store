@@ -2,15 +2,12 @@ name: nexus_store_powersync_adapter
 description: PowerSync adapter for nexus_store with offline-first sync and SQLCipher support.
 version: 0.1.0
 repository: https://github.com/user/nexus_store
-publish_to: none
 
 environment:
   sdk: ^3.5.0
 
-
 dependencies:
-  nexus_store:
-    path: ../nexus_store
+  nexus_store: ^0.1.0
   powersync: ^1.17.0
   rxdart: ^0.28.0
   sqlite3: ^2.4.0

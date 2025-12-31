@@ -1,7 +1,7 @@
 name: nexus_store_riverpod_binding
 description: Riverpod integration for NexusStore reactive data store. Provides providers, extensions, widgets, and hooks for seamless Riverpod integration.
 version: 0.1.0
-publish_to: none
+repository: https://github.com/user/nexus_store
 
 environment:
   sdk: ^3.5.0
@@ -12,10 +12,8 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
-  nexus_store:
-    path: ../nexus_store
-  nexus_store_flutter:
-    path: ../nexus_store_flutter
+  nexus_store: ^0.1.0
+  nexus_store_flutter: ^0.1.0
   flutter_hooks: ^0.20.5
   hooks_riverpod: ^2.6.1
   meta: ^1.16.0

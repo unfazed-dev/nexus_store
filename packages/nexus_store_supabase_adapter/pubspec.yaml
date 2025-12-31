@@ -2,15 +2,12 @@ name: nexus_store_supabase_adapter
 description: Supabase adapter for nexus_store with real-time subscriptions.
 version: 0.1.0
 repository: https://github.com/user/nexus_store
-publish_to: none
 
 environment:
   sdk: ^3.5.0
 
-
 dependencies:
-  nexus_store:
-    path: ../nexus_store
+  nexus_store: ^0.1.0
   supabase: ^2.8.0
   rxdart: ^0.28.0
 

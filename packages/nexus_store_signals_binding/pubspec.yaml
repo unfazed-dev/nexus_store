@@ -1,7 +1,7 @@
 name: nexus_store_signals_binding
 description: Signals integration for NexusStore - provides fine-grained reactive signals with NexusStore data.
 version: 0.1.0
-publish_to: none
+repository: https://github.com/user/nexus_store
 
 environment:
   sdk: ^3.5.0
@@ -12,8 +12,7 @@ dependencies:
     sdk: flutter
   signals: ^6.3.0
   signals_flutter: ^6.3.0
-  nexus_store:
-    path: ../nexus_store
+  nexus_store: ^0.1.0
   collection: ^1.19.0
   meta: ^1.16.0
 
