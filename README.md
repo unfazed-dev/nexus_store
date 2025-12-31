@@ -259,7 +259,7 @@ See the [example](example/) directory for complete working examples:
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+BSD 3 License - see [LICENSE](LICENSE) for details.
 
 ## Contributing
 
