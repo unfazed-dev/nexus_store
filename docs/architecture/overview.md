@@ -24,6 +24,11 @@ nexus_store/
 │   │   │   ├── reactive/               # RxDart integration
 │   │   │   ├── security/               # Encryption
 │   │   │   ├── compliance/             # Audit, GDPR
+│   │   │   ├── lazy/                   # Lazy field loading
+│   │   │   ├── interceptors/           # Middleware API
+│   │   │   ├── transactions/           # Saga support
+│   │   │   ├── sync/                   # Delta sync
+│   │   │   ├── pool/                   # Connection pooling
 │   │   │   └── errors/                 # Error types
 │   │   └── test/
 │   │
@@ -34,10 +39,20 @@ nexus_store/
 │   │       ├── types/                  # StoreResult
 │   │       └── extensions/             # BuildContext extensions
 │   │
-│   └── nexus_store_*_adapter/          # Backend adapters
-│       └── lib/src/
-│           ├── *_backend.dart          # Backend implementation
-│           └── *_query_translator.dart # Query translation
+│   ├── nexus_store_*_adapter/          # Backend adapters
+│   │   └── lib/src/
+│   │       ├── *_backend.dart          # Backend implementation
+│   │       └── *_query_translator.dart # Query translation
+│   │
+│   ├── nexus_store_*_binding/          # State management bindings
+│   │   ├── nexus_store_riverpod_binding/   # Riverpod integration
+│   │   ├── nexus_store_bloc_binding/       # Bloc/Cubit integration
+│   │   └── nexus_store_signals_binding/    # Signals integration
+│   │
+│   └── nexus_store_*_generator/        # Code generators
+│       ├── nexus_store_generator/          # Lazy field accessors
+│       ├── nexus_store_entity_generator/   # Type-safe field accessors
+│       └── nexus_store_riverpod_generator/ # Riverpod providers
 ```
 
 ## Component Diagram
@@ -53,6 +68,16 @@ nexus_store/
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
+│                 State Management Bindings                    │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │   Riverpod   │  │     Bloc     │  │   Signals    │       │
+│  │  - Providers │  │  - Cubits    │  │  - Signals   │       │
+│  │  - Hooks     │  │  - Events    │  │  - Computed  │       │
+│  └──────────────┘  └──────────────┘  └──────────────┘       │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
 │                       NexusStore<T, ID>                      │
 │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐ │
 │  │  StoreConfig   │  │ PolicyEngine   │  │ ReactiveState  │ │
@@ -64,6 +89,11 @@ nexus_store/
 │  │  - Hash chain  │  │  - Erasure     │  │ - Field-level  │ │
 │  │  - Query       │  │  - Export      │  │ - SQLCipher    │ │
 │  └────────────────┘  └────────────────┘  └────────────────┘ │
+│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐ │
+│  │  Interceptors  │  │   Lazy Load    │  │  Transactions  │ │
+│  │  - Pre/Post    │  │  - On-demand   │  │  - Sagas       │ │
+│  │  - Middleware  │  │  - Caching     │  │  - Rollback    │ │
+│  └────────────────┘  └────────────────┘  └────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -72,21 +102,15 @@ nexus_store/
 │                    (Abstract Interface)                       │
 └─────────────────────────────────────────────────────────────┘
                               │
-        ┌─────────────────────┼─────────────────────┐
-        │                     │                     │
-        ▼                     ▼                     ▼
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│ PowerSync    │    │   Supabase   │    │    Drift     │
-│ Backend      │    │   Backend    │    │   Backend    │
-│ - Offline    │    │ - Realtime   │    │ - Local-only │
-│ - Sync       │    │ - RLS        │    │ - SQLite     │
-└──────────────┘    └──────────────┘    └──────────────┘
-        │                     │                     │
-        ▼                     ▼                     ▼
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│  PostgreSQL  │    │   Supabase   │    │   SQLite     │
-│  + PowerSync │    │   Cloud      │    │   Local      │
-└──────────────┘    └──────────────┘    └──────────────┘
+    ┌───────────┬─────────────┼─────────────┬───────────┐
+    │           │             │             │           │
+    ▼           ▼             ▼             ▼           ▼
+┌────────┐ ┌────────┐   ┌────────┐   ┌────────┐ ┌────────┐
+│PowerSync│ │Supabase│   │ Drift  │   │ Brick  │ │  CRDT  │
+│Backend │ │Backend │   │Backend │   │Backend │ │Backend │
+│-Offline│ │-Realtime│  │-Local  │   │-Multi  │ │-P2P    │
+│-Sync   │ │-RLS    │   │-SQLite │   │-Sources│ │-LWW    │
+└────────┘ └────────┘   └────────┘   └────────┘ └────────┘
 ```
 
 ## Data Flow

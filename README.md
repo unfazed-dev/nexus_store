@@ -1,7 +1,7 @@
 # nexus_store
 
 [![Pub Version](https://img.shields.io/pub/v/nexus_store)](https://pub.dev/packages/nexus_store)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Dart](https://img.shields.io/badge/Dart-3.5+-blue.svg)](https://dart.dev)
 [![Flutter](https://img.shields.io/badge/Flutter-3.10+-blue.svg)](https://flutter.dev)
 
@@ -137,6 +137,14 @@ Choose the right backend for your use case:
 | [nexus_store_bloc_binding](packages/nexus_store_bloc_binding/) | Bloc/Cubit integration |
 | [nexus_store_signals_binding](packages/nexus_store_signals_binding/) | Signals fine-grained reactivity |
 
+### Code Generation
+
+| Package | Description |
+|---------|-------------|
+| [nexus_store_generator](packages/nexus_store_generator/) | Lazy field accessor generator |
+| [nexus_store_entity_generator](packages/nexus_store_entity_generator/) | Type-safe entity field generator |
+| [nexus_store_riverpod_generator](packages/nexus_store_riverpod_generator/) | Riverpod provider generator |
+
 ## Installation
 
 Add the core package and your preferred backend adapter:
@@ -217,11 +225,30 @@ final store = NexusStore<Patient, String>(
 
 ## Documentation
 
-- [Core Package Documentation](packages/nexus_store/README.md)
-- [Flutter Extension Documentation](packages/nexus_store_flutter/README.md)
+### Package Documentation
+- [Core Package](packages/nexus_store/README.md)
+- [Flutter Extension](packages/nexus_store_flutter/README.md)
+
+### Architecture
 - [Architecture Overview](docs/architecture/overview.md)
-- [Compliance Guide](docs/architecture/compliance.md)
+- [Policy Engine](docs/architecture/policy-engine.md)
+- [Reactive Layer](docs/architecture/reactive-layer.md)
+- [Backend Interface](docs/architecture/backend-interface.md)
+
+### Security & Compliance
 - [Encryption Guide](docs/architecture/encryption.md)
+- [Compliance Guide](docs/architecture/compliance.md)
+
+### Migration Guides
+- [From Raw PowerSync](docs/migration/from-raw-powersync.md)
+- [From Drift](docs/migration/from-drift.md)
+- [From Supabase](docs/migration/from-supabase.md)
+- [Version Upgrades](docs/migration/version-upgrades.md)
+
+### Code Generation
+- [Entity Generator](packages/nexus_store_entity_generator/README.md)
+- [Lazy Field Generator](packages/nexus_store_generator/README.md)
+- [Riverpod Generator](packages/nexus_store_riverpod_generator/README.md)
 
 ## Examples
 

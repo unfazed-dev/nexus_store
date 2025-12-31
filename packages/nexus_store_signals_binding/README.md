@@ -1,4 +1,7 @@
-# NexusStore Signals Binding
+# nexus_store_signals_binding
+
+[![Pub Version](https://img.shields.io/pub/v/nexus_store_signals_binding)](https://pub.dev/packages/nexus_store_signals_binding)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Signals integration for NexusStore - provides fine-grained reactive signals for efficient UI updates.
 

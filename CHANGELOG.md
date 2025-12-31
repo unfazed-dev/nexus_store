@@ -5,7 +5,24 @@ All notable changes to nexus_store packages will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2024-01-XX
+## [Unreleased]
+
+### Added
+- Integration tests for Supabase backend functionality
+- Dart analyzer fixer skill with auto-fix scripts and TDD integration
+
+### Fixed
+- Resolved 49 dart analyzer issues in PowerSync integration tests
+- Resolved all 173 dart analyzer issues across monorepo
+
+### Changed
+- Prepared packages for pub.dev publishing
+- Removed generated files from version control
+- Added gitignore and updated documentation
+
+---
+
+## [0.1.0] - 2024-12-31
 
 ### Initial Release
 
@@ -127,10 +144,10 @@ This is the first public release of nexus_store, a unified reactive data store a
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2024-01-XX | Initial release |
+| 0.1.0 | 2024-12-31 | Initial release |
 
 ## Links
 
-- [GitHub Repository](https://github.com/user/nexus_store)
-- [Documentation](https://github.com/user/nexus_store/tree/main/docs)
-- [Issues](https://github.com/user/nexus_store/issues)
+- [GitHub Repository](https://github.com/unfazed-dev/nexus_store)
+- [Documentation](https://github.com/unfazed-dev/nexus_store/tree/main/docs)
+- [Issues](https://github.com/unfazed-dev/nexus_store/issues)

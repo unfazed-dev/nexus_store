@@ -1,7 +1,7 @@
 name: nexus_store_signals_binding
 description: Signals integration for NexusStore - provides fine-grained reactive signals with NexusStore data.
 version: 0.1.0
-repository: https://github.com/user/nexus_store
+repository: https://github.com/unfazed-dev/nexus_store
 
 environment:
   sdk: ^3.5.0

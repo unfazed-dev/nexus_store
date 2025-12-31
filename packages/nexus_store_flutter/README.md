@@ -1,7 +1,7 @@
 # nexus_store_flutter
 
 [![Pub Version](https://img.shields.io/pub/v/nexus_store_flutter)](https://pub.dev/packages/nexus_store_flutter)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Flutter extension for nexus_store with StreamBuilder widgets and providers.
 

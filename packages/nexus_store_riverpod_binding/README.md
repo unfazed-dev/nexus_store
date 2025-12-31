@@ -1,5 +1,8 @@
 # nexus_store_riverpod_binding
 
+[![Pub Version](https://img.shields.io/pub/v/nexus_store_riverpod_binding)](https://pub.dev/packages/nexus_store_riverpod_binding)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
 Riverpod integration for NexusStore - provides first-class Riverpod support with providers, extensions, widgets, and hooks for reactive data management.
 
 ## Features

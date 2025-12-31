@@ -1,5 +1,8 @@
 # nexus_store_entity_generator
 
+[![Pub Version](https://img.shields.io/pub/v/nexus_store_entity_generator)](https://pub.dev/packages/nexus_store_entity_generator)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
 Code generator for nexus_store type-safe entity field accessors.
 
 ## Installation

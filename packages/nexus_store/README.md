@@ -1,7 +1,7 @@
 # nexus_store
 
 [![Pub Version](https://img.shields.io/pub/v/nexus_store)](https://pub.dev/packages/nexus_store)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 A unified reactive data store abstraction providing a single consistent API across multiple storage backends with policy-based fetching, RxDart streams, and optional compliance features.
 

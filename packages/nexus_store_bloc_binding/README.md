@@ -1,4 +1,7 @@
-# NexusStore Bloc Binding
+# nexus_store_bloc_binding
+
+[![Pub Version](https://img.shields.io/pub/v/nexus_store_bloc_binding)](https://pub.dev/packages/nexus_store_bloc_binding)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 Bloc/Cubit bindings for NexusStore, enabling familiar Bloc patterns with NexusStore data.
 

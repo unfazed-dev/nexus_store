@@ -40,7 +40,7 @@ This project follows a standard code of conduct. Please be respectful and constr
 
 ```bash
 # Clone the repository
-git clone https://github.com/user/nexus_store.git
+git clone https://github.com/unfazed-dev/nexus_store.git
 cd nexus_store
 
 # Install melos globally
@@ -374,8 +374,8 @@ Error message here
 
 ## Questions?
 
-- Open a [GitHub Discussion](https://github.com/user/nexus_store/discussions)
-- Check existing [Issues](https://github.com/user/nexus_store/issues)
+- Open a [GitHub Discussion](https://github.com/unfazed-dev/nexus_store/discussions)
+- Check existing [Issues](https://github.com/unfazed-dev/nexus_store/issues)
 - Review [Documentation](./docs/)
 
 Thank you for contributing!

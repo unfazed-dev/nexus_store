@@ -1,7 +1,7 @@
 name: nexus_store_bloc_binding
 description: Bloc/Cubit bindings for NexusStore - provides familiar Bloc patterns with NexusStore data.
 version: 0.1.0
-repository: https://github.com/user/nexus_store
+repository: https://github.com/unfazed-dev/nexus_store
 
 environment:
   sdk: ^3.5.0

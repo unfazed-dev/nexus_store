@@ -4,8 +4,8 @@ description: >-
   across multiple storage backends with policy-based fetching, RxDart streams,
   and optional compliance features.
 version: 0.1.0
-repository: https://github.com/user/nexus_store
-issue_tracker: https://github.com/user/nexus_store/issues
+repository: https://github.com/unfazed-dev/nexus_store
+issue_tracker: https://github.com/unfazed-dev/nexus_store/issues
 
 environment:
   sdk: ^3.5.0

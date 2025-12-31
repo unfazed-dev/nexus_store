@@ -1,7 +1,7 @@
 name: nexus_store_riverpod_generator
 description: Code generator for nexus_store_riverpod_binding. Generates Riverpod providers from @riverpodNexusStore annotations.
 version: 0.1.0
-repository: https://github.com/user/nexus_store
+repository: https://github.com/unfazed-dev/nexus_store
 
 environment:
   sdk: ^3.5.0
