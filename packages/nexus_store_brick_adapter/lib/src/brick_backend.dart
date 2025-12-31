@@ -27,6 +27,7 @@ import 'package:rxdart/rxdart.dart';
 /// final users = await backend.getAll();
 /// ```
 class BrickBackend<T extends OfflineFirstModel, ID>
+    with nexus.StoreBackendDefaults<T, ID>
     implements nexus.StoreBackend<T, ID> {
   /// Creates a [BrickBackend] with the specified repository and converters.
   ///

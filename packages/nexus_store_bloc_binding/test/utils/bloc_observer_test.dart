@@ -30,11 +30,11 @@ void main() {
         final logs = <String>[];
         final observer = NexusStoreBlocObserver(
           logTransitions: true,
-          onLog: (message) => logs.add(message),
+          onLog: logs.add,
         );
 
         final bloc = _TestBloc();
-        final transition = Transition<String, int>(
+        const transition = Transition<String, int>(
           currentState: 0,
           event: 'event',
           nextState: 1,
@@ -53,11 +53,11 @@ void main() {
         final logs = <String>[];
         final observer = NexusStoreBlocObserver(
           logTransitions: false,
-          onLog: (message) => logs.add(message),
+          onLog: logs.add,
         );
 
         final bloc = _TestBloc();
-        final transition = Transition<String, int>(
+        const transition = Transition<String, int>(
           currentState: 0,
           event: 'event',
           nextState: 1,
@@ -76,7 +76,7 @@ void main() {
         final logs = <String>[];
         final observer = NexusStoreBlocObserver(
           logEvents: true,
-          onLog: (message) => logs.add(message),
+          onLog: logs.add,
         );
 
         final bloc = _TestBloc();
@@ -95,7 +95,7 @@ void main() {
         final logs = <String>[];
         final observer = NexusStoreBlocObserver(
           logEvents: false,
-          onLog: (message) => logs.add(message),
+          onLog: logs.add,
         );
 
         final bloc = _TestBloc();
@@ -113,7 +113,7 @@ void main() {
         final logs = <String>[];
         final observer = NexusStoreBlocObserver(
           logErrors: true,
-          onLog: (message) => logs.add(message),
+          onLog: logs.add,
         );
 
         final bloc = _TestBloc();
@@ -134,7 +134,7 @@ void main() {
         final logs = <String>[];
         final observer = NexusStoreBlocObserver(
           logErrors: false,
-          onLog: (message) => logs.add(message),
+          onLog: logs.add,
         );
 
         final bloc = _TestBloc();
@@ -153,7 +153,7 @@ void main() {
       test('should call onLog with creation message', () {
         final logs = <String>[];
         final observer = NexusStoreBlocObserver(
-          onLog: (message) => logs.add(message),
+          onLog: logs.add,
         );
 
         final bloc = _TestBloc();
@@ -172,7 +172,7 @@ void main() {
       test('should call onLog with close message', () {
         final logs = <String>[];
         final observer = NexusStoreBlocObserver(
-          onLog: (message) => logs.add(message),
+          onLog: logs.add,
         );
 
         final bloc = _TestBloc();
@@ -192,11 +192,11 @@ void main() {
         final logs = <String>[];
         final observer = NexusStoreBlocObserver(
           logTransitions: true,
-          onLog: (message) => logs.add(message),
+          onLog: logs.add,
         );
 
         final cubit = _TestCubit();
-        final change = Change<int>(currentState: 0, nextState: 1);
+        const change = Change<int>(currentState: 0, nextState: 1);
 
         observer.onChange(cubit, change);
 

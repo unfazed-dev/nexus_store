@@ -88,7 +88,9 @@ class InMemoryKeyProvider implements EncryptionKeyProvider {
 /// Note: Requires the `powersync_sqlcipher` package for actual encryption.
 /// Without it, this backend operates identically to [PowerSyncBackend]
 /// but tracks encryption state.
-class PowerSyncEncryptedBackend<T, ID> implements nexus.StoreBackend<T, ID> {
+class PowerSyncEncryptedBackend<T, ID>
+    with nexus.StoreBackendDefaults<T, ID>
+    implements nexus.StoreBackend<T, ID> {
   /// Creates an encrypted PowerSync backend.
   ///
   /// - [db]: The PowerSync database instance

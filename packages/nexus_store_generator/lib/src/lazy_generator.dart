@@ -68,8 +68,7 @@ class LazyGenerator extends GeneratorForAnnotation<NexusLazy> {
         final reader = ConstantReader(annotation);
         lazyFields.add(_LazyFieldInfo(
           name: field.name,
-          // ignore: deprecated_member_use
-          typeName: field.type.getDisplayString(),
+          typeName: field.type.getDisplayString(withNullability: true),
           placeholder: reader.read('placeholder').isNull
               ? null
               : reader.read('placeholder').literalValue,

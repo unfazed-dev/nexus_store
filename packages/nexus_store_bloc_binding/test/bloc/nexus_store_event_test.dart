@@ -14,14 +14,14 @@ void main() {
 
       test('should create with query', () {
         const query = Query<TestUser>();
-        final event = LoadAll<TestUser, String>(query: query);
+        const event = LoadAll<TestUser, String>(query: query);
         expect(event.query, equals(query));
       });
 
       test('should have value equality with same query', () {
         const query = Query<TestUser>();
-        final event1 = LoadAll<TestUser, String>(query: query);
-        final event2 = LoadAll<TestUser, String>(query: query);
+        const event1 = LoadAll<TestUser, String>(query: query);
+        const event2 = LoadAll<TestUser, String>(query: query);
         expect(event1, equals(event2));
       });
 

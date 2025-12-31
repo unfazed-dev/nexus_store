@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:nexus_store/nexus_store.dart';
 import 'package:nexus_store_bloc_binding/nexus_store_bloc_binding.dart';
 import 'package:test/test.dart';
 

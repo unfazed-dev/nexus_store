@@ -31,7 +31,9 @@ import 'package:supabase/supabase.dart';
 /// This backend is online-only - it does not support offline operations.
 /// For offline-first capabilities, consider using the PowerSync or Brick
 /// adapters instead.
-class SupabaseBackend<T, ID> implements nexus.StoreBackend<T, ID> {
+class SupabaseBackend<T, ID>
+    with nexus.StoreBackendDefaults<T, ID>
+    implements nexus.StoreBackend<T, ID> {
   /// Creates a [SupabaseBackend] with the specified client and converters.
   ///
   /// - [client]: The Supabase client to use for database operations.

@@ -31,7 +31,9 @@ import 'package:rxdart/rxdart.dart';
 ///   cache: InMemoryCacheBackend(),
 /// );
 /// ```
-class CompositeBackend<T, ID> implements StoreBackend<T, ID> {
+class CompositeBackend<T, ID>
+    with StoreBackendDefaults<T, ID>
+    implements StoreBackend<T, ID> {
   /// Creates a composite backend.
   CompositeBackend({
     required this.primary,

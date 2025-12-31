@@ -24,7 +24,9 @@ import 'package:sqlite3/common.dart' as sqlite;
 /// await backend.initialize();
 /// final users = await backend.getAll();
 /// ```
-class PowerSyncBackend<T, ID> implements nexus.StoreBackend<T, ID> {
+class PowerSyncBackend<T, ID>
+    with nexus.StoreBackendDefaults<T, ID>
+    implements nexus.StoreBackend<T, ID> {
   /// Creates a PowerSync backend adapter.
   ///
   /// [db] - The PowerSync database instance.

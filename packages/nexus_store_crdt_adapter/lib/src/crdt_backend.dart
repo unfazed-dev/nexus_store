@@ -33,7 +33,9 @@ import 'package:sqlite_crdt/sqlite_crdt.dart';
 /// final changeset = await backend.getChangeset();
 /// await otherBackend.applyChangeset(changeset);
 /// ```
-class CrdtBackend<T, ID> implements nexus.StoreBackend<T, ID> {
+class CrdtBackend<T, ID>
+    with nexus.StoreBackendDefaults<T, ID>
+    implements nexus.StoreBackend<T, ID> {
   /// Creates a [CrdtBackend] with the specified configuration.
   ///
   /// - [tableName]: The name of the SQLite table.

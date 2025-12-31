@@ -62,7 +62,9 @@ class User {
 }
 
 /// Simple in-memory backend for demonstration.
-class InMemoryBackend<T, ID> implements StoreBackend<T, ID> {
+class InMemoryBackend<T, ID>
+    with StoreBackendDefaults<T, ID>
+    implements StoreBackend<T, ID> {
 
   InMemoryBackend({
     required this.getId,

@@ -107,7 +107,7 @@ void main() {
         build: () => NexusStoreBloc<TestUser, String>(mockStore),
         act: (bloc) async {
           const query = Query<TestUser>();
-          bloc.add(LoadAll<TestUser, String>(query: query));
+          bloc.add(const LoadAll<TestUser, String>(query: query));
           await Future<void>.delayed(Duration.zero);
         },
         verify: (_) {

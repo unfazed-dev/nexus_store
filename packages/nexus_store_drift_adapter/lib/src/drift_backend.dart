@@ -29,7 +29,9 @@ import 'package:rxdart/rxdart.dart';
 /// // Perform operations
 /// final users = await backend.getAll();
 /// ```
-class DriftBackend<T, ID> implements nexus.StoreBackend<T, ID> {
+class DriftBackend<T, ID>
+    with nexus.StoreBackendDefaults<T, ID>
+    implements nexus.StoreBackend<T, ID> {
   /// Creates a [DriftBackend] with the specified configuration.
   ///
   /// - [tableName]: The name of the SQLite table.

@@ -1,3 +1,4 @@
+import 'package:nexus_store/src/pool/pool_metric.dart';
 import 'package:nexus_store/src/telemetry/buffered_metrics_reporter.dart';
 import 'package:nexus_store/src/telemetry/cache_metric.dart';
 import 'package:nexus_store/src/telemetry/error_metric.dart';
@@ -26,6 +27,9 @@ class MockMetricsReporter implements MetricsReporter {
 
   @override
   void reportError(ErrorMetric metric) => errors.add(metric);
+
+  @override
+  void reportPoolEvent(PoolMetric metric) {}
 
   @override
   Future<void> flush() async => flushCount++;
