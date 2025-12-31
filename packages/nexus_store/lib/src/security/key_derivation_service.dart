@@ -73,7 +73,8 @@ class KeyDerivationService {
   /// Creates the appropriate key deriver based on configuration.
   KeyDeriver? _createDeriver() {
     return switch (config) {
-      KeyDerivationPbkdf2 pbkdf2Config => Pbkdf2KeyDeriver(config: pbkdf2Config),
+      KeyDerivationPbkdf2 pbkdf2Config =>
+        Pbkdf2KeyDeriver(config: pbkdf2Config),
       KeyDerivationRaw() => null, // No deriver needed for raw keys
     };
   }

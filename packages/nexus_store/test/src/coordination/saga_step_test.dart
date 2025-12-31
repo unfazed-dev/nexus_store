@@ -131,7 +131,8 @@ void main() {
         final nestedStep = SagaStep<int>.nested(
           name: 'nested-saga',
           subSteps: subSteps,
-          onNestedSuccess: (results) => results.fold<int>(0, (a, b) => a + (b as int)),
+          onNestedSuccess: (results) =>
+              results.fold<int>(0, (a, b) => a + (b as int)),
           compensation: (result) async {},
         );
 
@@ -178,7 +179,8 @@ void main() {
 
         await nestedStep.action();
 
-        expect(executedSteps, equals(['sub-step-1', 'sub-step-2', 'sub-step-3']));
+        expect(
+            executedSteps, equals(['sub-step-1', 'sub-step-2', 'sub-step-3']));
       });
 
       test('nested step returns extracted result on success', () async {
@@ -198,7 +200,8 @@ void main() {
         final nestedStep = SagaStep<int>.nested(
           name: 'nested-saga',
           subSteps: subSteps,
-          onNestedSuccess: (results) => results.fold<int>(0, (a, b) => a + (b as int)),
+          onNestedSuccess: (results) =>
+              results.fold<int>(0, (a, b) => a + (b as int)),
           compensation: (result) async {},
         );
 

@@ -60,8 +60,7 @@ abstract class DeltaChange<ID> with _$DeltaChange<ID> {
   int get fieldCount => changes.length;
 
   /// Returns a set of all changed field names.
-  Set<String> get changedFields =>
-      changes.map((c) => c.fieldName).toSet();
+  Set<String> get changedFields => changes.map((c) => c.fieldName).toSet();
 
   /// Gets the change for a specific field, or null if not changed.
   FieldChange? getChange(String fieldName) {

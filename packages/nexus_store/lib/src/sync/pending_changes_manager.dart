@@ -57,7 +57,8 @@ class PendingChangesManager<T, ID> {
       _changesSubject.stream;
 
   /// Current list of pending changes.
-  List<PendingChange<T>> get pendingChanges => List.unmodifiable(_changes.values.toList());
+  List<PendingChange<T>> get pendingChanges =>
+      List.unmodifiable(_changes.values.toList());
 
   /// Number of pending changes.
   int get pendingCount => _changes.length;

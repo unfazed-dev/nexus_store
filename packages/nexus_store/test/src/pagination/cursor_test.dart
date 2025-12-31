@@ -19,10 +19,12 @@ void main() {
           'createdAt': '2024-01-15T10:30:00Z',
         });
 
-        expect(cursor.toValues(), equals({
-          'id': 'user-123',
-          'createdAt': '2024-01-15T10:30:00Z',
-        }));
+        expect(
+            cursor.toValues(),
+            equals({
+              'id': 'user-123',
+              'createdAt': '2024-01-15T10:30:00Z',
+            }));
       });
 
       test('creates cursor with numeric values', () {
@@ -31,10 +33,12 @@ void main() {
           'score': 99.5,
         });
 
-        expect(cursor.toValues(), equals({
-          'id': 123,
-          'score': 99.5,
-        }));
+        expect(
+            cursor.toValues(),
+            equals({
+              'id': 123,
+              'score': 99.5,
+            }));
       });
 
       test('creates cursor with null values', () {
@@ -43,10 +47,12 @@ void main() {
           'deletedAt': null,
         });
 
-        expect(cursor.toValues(), equals({
-          'id': 'user-123',
-          'deletedAt': null,
-        }));
+        expect(
+            cursor.toValues(),
+            equals({
+              'id': 'user-123',
+              'deletedAt': null,
+            }));
       });
 
       test('creates cursor with boolean values', () {
@@ -55,10 +61,12 @@ void main() {
           'isActive': true,
         });
 
-        expect(cursor.toValues(), equals({
-          'id': 'user-123',
-          'isActive': true,
-        }));
+        expect(
+            cursor.toValues(),
+            equals({
+              'id': 'user-123',
+              'isActive': true,
+            }));
       });
     });
 

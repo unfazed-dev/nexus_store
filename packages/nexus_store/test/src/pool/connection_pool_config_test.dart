@@ -120,7 +120,9 @@ void main() {
         expect(config.isValid, isTrue);
       });
 
-      test('isValid should return true when minConnections equals maxConnections', () {
+      test(
+          'isValid should return true when minConnections equals maxConnections',
+          () {
         const config = ConnectionPoolConfig(
           minConnections: 5,
           maxConnections: 5,
@@ -128,7 +130,8 @@ void main() {
         expect(config.isValid, isTrue);
       });
 
-      test('isValid should return false when minConnections > maxConnections', () {
+      test('isValid should return false when minConnections > maxConnections',
+          () {
         const config = ConnectionPoolConfig(
           minConnections: 20,
           maxConnections: 10,

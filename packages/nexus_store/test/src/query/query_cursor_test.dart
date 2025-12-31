@@ -34,10 +34,8 @@ void main() {
 
       test('can be chained with other methods', () {
         final cursor = Cursor.fromValues({'id': 'user-123'});
-        final query = const Query<String>()
-            .after(cursor)
-            .first(10)
-            .orderByField('name');
+        final query =
+            const Query<String>().after(cursor).first(10).orderByField('name');
 
         expect(query.afterCursor, equals(cursor));
         expect(query.firstCount, equals(10));

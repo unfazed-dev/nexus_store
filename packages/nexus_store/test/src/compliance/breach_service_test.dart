@@ -378,7 +378,8 @@ void main() {
         );
 
         expect(affected.length, equals(1));
-        expect(affected.first.affectedFields, containsAll(['email', 'password', 'ssn']));
+        expect(affected.first.affectedFields,
+            containsAll(['email', 'password', 'ssn']));
       });
     });
 
@@ -402,7 +403,8 @@ void main() {
 
         expect(report.id, isNotEmpty);
         expect(report.affectedUsers, containsAll(['user-1', 'user-2']));
-        expect(report.affectedDataCategories, containsAll(['email', 'name', 'address']));
+        expect(report.affectedDataCategories,
+            containsAll(['email', 'name', 'address']));
         expect(report.description, equals('Unauthorized database access'));
       });
 

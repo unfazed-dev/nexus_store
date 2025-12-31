@@ -42,7 +42,7 @@ extension NexusStoreRiverpodX<T, ID> on NexusStore<T, ID> {
   ///     ..bindToAutoDisposeRef(ref);
   /// });
   /// ```
-  void bindToAutoDisposeRef(AutoDisposeRef<Object?> ref) {
+  void bindToAutoDisposeRef(Ref<Object?> ref) {
     ref.onDispose(dispose);
   }
 }

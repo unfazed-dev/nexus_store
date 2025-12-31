@@ -50,8 +50,8 @@ sealed class InterceptorResult<R> {
   ///
   /// Error interceptors will be called in reverse order.
   /// The [stackTrace] is optional but recommended for debugging.
-  const factory InterceptorResult.error(Object error, [StackTrace? stackTrace]) =
-      InterceptorError<R>;
+  const factory InterceptorResult.error(Object error,
+      [StackTrace? stackTrace]) = InterceptorError<R>;
 }
 
 /// Continue execution with optional response modification.

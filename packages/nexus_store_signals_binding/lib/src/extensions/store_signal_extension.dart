@@ -147,7 +147,8 @@ extension NexusStoreSignalExtension<T, ID> on NexusStore<T, ID> {
   /// });
   /// ```
   Signal<NexusItemSignalState<T>> toItemStateSignal(ID id) {
-    final signal = Signal<NexusItemSignalState<T>>(const NexusItemSignalInitial());
+    final signal =
+        Signal<NexusItemSignalState<T>>(const NexusItemSignalInitial());
     StreamSubscription<T?>? subscription;
     T? previousData;
 

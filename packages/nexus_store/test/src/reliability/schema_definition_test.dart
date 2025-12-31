@@ -345,7 +345,8 @@ void main() {
           name: 'User',
           fields: [
             FieldSchema(name: 'id', type: FieldType.string, isRequired: true),
-            FieldSchema(name: 'email', type: FieldType.string, isRequired: true),
+            FieldSchema(
+                name: 'email', type: FieldType.string, isRequired: true),
             FieldSchema(name: 'nickname', type: FieldType.string),
           ],
         );

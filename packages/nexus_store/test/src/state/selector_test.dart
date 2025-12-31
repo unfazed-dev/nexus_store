@@ -44,9 +44,10 @@ void main() {
       });
 
       test('should apply select function correctly', () async {
-        await store.save(
-            TestFixtures.createUser(id: 'u1', name: 'Alice', age: 25));
-        await store.save(TestFixtures.createUser(id: 'u2', name: 'Bob', age: 30));
+        await store
+            .save(TestFixtures.createUser(id: 'u1', name: 'Alice', age: 25));
+        await store
+            .save(TestFixtures.createUser(id: 'u2', name: 'Bob', age: 30));
 
         final selector = Selector<TestUser, List<String>>(
           store.watchAll(),

@@ -26,7 +26,8 @@ void main() {
         const plainName = 'John Doe';
 
         final encryptedSsn = await encryptor.encrypt(ssnValue, 'ssn');
-        final encryptedCard = await encryptor.encrypt(creditCardValue, 'creditCard');
+        final encryptedCard =
+            await encryptor.encrypt(creditCardValue, 'creditCard');
         final name = await encryptor.encrypt(plainName, 'name');
 
         // Verify encryption happened
@@ -36,7 +37,8 @@ void main() {
 
         // Decrypt and verify
         final decryptedSsn = await encryptor.decrypt(encryptedSsn, 'ssn');
-        final decryptedCard = await encryptor.decrypt(encryptedCard, 'creditCard');
+        final decryptedCard =
+            await encryptor.decrypt(encryptedCard, 'creditCard');
 
         expect(decryptedSsn, equals(ssnValue));
         expect(decryptedCard, equals(creditCardValue));
@@ -291,7 +293,8 @@ void main() {
         final newEncrypted = await encryptor.encrypt(original, 'field');
 
         // Should decrypt with new key
-        expect(await encryptor.decrypt(newEncrypted, 'field'), equals(original));
+        expect(
+            await encryptor.decrypt(newEncrypted, 'field'), equals(original));
 
         // Old encrypted data cannot be decrypted (different key now)
         expect(
@@ -319,7 +322,8 @@ void main() {
         expect(decrypted, equals(original));
       });
 
-      test('encryptor without keyDerivation still works with 32-byte keys', () async {
+      test('encryptor without keyDerivation still works with 32-byte keys',
+          () async {
         final encryptor = DefaultFieldEncryptor(
           config: EncryptionConfig.fieldLevel(
             keyProvider: () async => 'exactly-32-bytes-for-aes-256!!',

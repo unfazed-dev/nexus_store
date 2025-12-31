@@ -245,8 +245,7 @@ void main() {
       });
 
       test('handles ORDER BY ascending', () {
-        final query =
-            const Query<Map<String, dynamic>>().orderByField('name');
+        final query = const Query<Map<String, dynamic>>().orderByField('name');
         final (sql, args) = translator.toSelectSql(
           tableName: 'users',
           query: query,

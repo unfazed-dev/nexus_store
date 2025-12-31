@@ -15,7 +15,8 @@ void main() {
         const result = InterceptorResult<String>.continue_('modified');
 
         expect(result, isA<Continue<String>>());
-        expect((result as Continue<String>).modifiedResponse, equals('modified'));
+        expect(
+            (result as Continue<String>).modifiedResponse, equals('modified'));
       });
 
       test('should support equality without response', () {
@@ -81,7 +82,8 @@ void main() {
         const result = InterceptorResult<String>.error('Something failed');
 
         expect(result, isA<InterceptorError<String>>());
-        expect((result as InterceptorError<String>).error, equals('Something failed'));
+        expect((result as InterceptorError<String>).error,
+            equals('Something failed'));
       });
 
       test('should create with exception', () {

@@ -148,8 +148,7 @@ extension StoreResultWidgetExtensions<T> on StoreResult<T> {
     required BuildContext context,
     Widget Function(BuildContext context)? idle,
     Widget Function(BuildContext context, T? previousData)? pending,
-    Widget Function(BuildContext context, Object error, T? previousData)?
-        error,
+    Widget Function(BuildContext context, Object error, T? previousData)? error,
   }) =>
       StoreResultBuilder<T>(
         result: this,

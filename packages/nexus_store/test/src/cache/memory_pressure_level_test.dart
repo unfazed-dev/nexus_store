@@ -66,8 +66,7 @@ void main() {
       });
 
       test('none is not at least moderate', () {
-        expect(
-            MemoryPressureLevel.none.isAtLeast(MemoryPressureLevel.moderate),
+        expect(MemoryPressureLevel.none.isAtLeast(MemoryPressureLevel.moderate),
             isFalse);
       });
 

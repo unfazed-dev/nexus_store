@@ -20,11 +20,12 @@ void main() {
     watchController = StreamController<TestUser?>.broadcast();
 
     // Default stubs
-    when(() => mockStore.watch(any())).thenAnswer((_) => watchController.stream);
-    when(() => mockStore.save(any(),
-            policy: any(named: 'policy'), tags: any(named: 'tags')))
-        .thenAnswer(
-            (invocation) async => invocation.positionalArguments[0] as TestUser);
+    when(() => mockStore.watch(any()))
+        .thenAnswer((_) => watchController.stream);
+    when(() =>
+        mockStore.save(any(),
+            policy: any(named: 'policy'), tags: any(named: 'tags'))).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as TestUser);
     when(() => mockStore.delete(any(), policy: any(named: 'policy')))
         .thenAnswer((_) async => true);
   });
@@ -94,8 +95,8 @@ void main() {
         },
         expect: () => [
           isA<NexusItemLoading<TestUser>>(),
-          isA<NexusItemError<TestUser>>()
-              .having((s) => s.error.toString(), 'error', contains('Network error')),
+          isA<NexusItemError<TestUser>>().having(
+              (s) => s.error.toString(), 'error', contains('Network error')),
         ],
       );
 
@@ -287,8 +288,8 @@ void main() {
           isA<NexusItemLoading<TestUser>>(),
           isA<NexusItemLoaded<TestUser>>()
               .having((s) => s.data.name, 'data.name', 'John Doe'),
-          isA<NexusItemLoading<TestUser>>()
-              .having((s) => s.previousData?.name, 'previousData.name', 'John Doe'),
+          isA<NexusItemLoading<TestUser>>().having(
+              (s) => s.previousData?.name, 'previousData.name', 'John Doe'),
           isA<NexusItemLoaded<TestUser>>()
               .having((s) => s.data.name, 'data.name', 'Refreshed User'),
         ],
@@ -318,8 +319,8 @@ void main() {
         'emits error state on save failure',
         build: () {
           when(() => mockStore.save(any(),
-                  policy: any(named: 'policy'), tags: any(named: 'tags')))
-              .thenThrow(Exception('Save failed'));
+              policy: any(named: 'policy'),
+              tags: any(named: 'tags'))).thenThrow(Exception('Save failed'));
           return NexusItemCubit<TestUser, String>(mockStore, 'user-1');
         },
         seed: () => NexusItemLoaded<TestUser>(data: TestFixtures.sampleUser),
@@ -361,8 +362,8 @@ void main() {
         'rethrows error after emitting error state on save',
         build: () {
           when(() => mockStore.save(any(),
-                  policy: any(named: 'policy'), tags: any(named: 'tags')))
-              .thenThrow(Exception('Save failed'));
+              policy: any(named: 'policy'),
+              tags: any(named: 'tags'))).thenThrow(Exception('Save failed'));
           return NexusItemCubit<TestUser, String>(mockStore, 'user-1');
         },
         act: (cubit) async {

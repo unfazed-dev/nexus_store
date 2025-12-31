@@ -8,7 +8,9 @@ void main() {
       test('should create with required fields', () {
         final stats = StoreStats(
           operationCounts: {OperationType.get: 10},
-          totalDurations: {OperationType.get: const Duration(milliseconds: 500)},
+          totalDurations: {
+            OperationType.get: const Duration(milliseconds: 500)
+          },
           cacheHits: 80,
           cacheMisses: 20,
           syncSuccessCount: 5,
@@ -235,8 +237,10 @@ void main() {
 
         final averages = stats.averageDurations;
 
-        expect(averages[OperationType.get], equals(const Duration(milliseconds: 100)));
-        expect(averages[OperationType.save], equals(const Duration(milliseconds: 100)));
+        expect(averages[OperationType.get],
+            equals(const Duration(milliseconds: 100)));
+        expect(averages[OperationType.save],
+            equals(const Duration(milliseconds: 100)));
       });
 
       test('should return empty map when no operations', () {

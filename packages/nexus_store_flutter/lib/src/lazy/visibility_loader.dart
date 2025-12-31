@@ -70,6 +70,7 @@ class VisibilityLoaderController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ignore: use_setters_to_change_properties
   void _setState(VisibilityLoaderState state) {
     _state = state;
   }
@@ -83,10 +84,11 @@ class VisibilityLoaderController extends ChangeNotifier {
 
 enum _ControllerAction { load, reload, reset }
 
-/// A widget that loads data on-demand with support for visibility-based triggering.
+/// A widget that loads data on-demand with visibility-based triggering.
 ///
-/// This widget provides a flexible way to load data asynchronously with built-in
-/// support for loading states, error handling, and retry functionality.
+/// This widget provides a flexible way to load data asynchronously with
+/// built-in support for loading states, error handling, and retry
+/// functionality.
 ///
 /// Example:
 /// ```dart
@@ -210,7 +212,9 @@ class _VisibilityLoaderState<T> extends State<VisibilityLoader<T>> {
 
   Future<void> _load() async {
     // Skip if loadOnce is true and we've already loaded
-    if (widget.loadOnce && _hasLoadedOnce && _state == VisibilityLoaderState.loaded) {
+    if (widget.loadOnce &&
+        _hasLoadedOnce &&
+        _state == VisibilityLoaderState.loaded) {
       return;
     }
 
@@ -233,7 +237,7 @@ class _VisibilityLoaderState<T> extends State<VisibilityLoader<T>> {
         _hasLoadedOnce = true;
       });
       widget.controller?._setState(VisibilityLoaderState.loaded);
-    } catch (e) {
+    } on Exception catch (e) {
       if (!mounted) return;
 
       setState(() {

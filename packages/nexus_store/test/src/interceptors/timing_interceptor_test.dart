@@ -227,8 +227,8 @@ void main() {
         await interceptor.onRequest(context);
         await interceptor.onResponse(context.withResponse('result'));
 
-        expect(
-            reporter.reportedMetrics.first.operation, equals(OperationType.get));
+        expect(reporter.reportedMetrics.first.operation,
+            equals(OperationType.get));
       });
 
       test('should map getAll operation', () async {

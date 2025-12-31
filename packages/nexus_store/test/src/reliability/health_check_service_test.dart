@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nexus_store/src/reliability/component_health.dart';
 import 'package:nexus_store/src/reliability/health_check_config.dart';
@@ -84,24 +83,25 @@ void main() {
       test('can register multiple checkers', () {
         service.registerChecker(
             _TestHealthChecker('backend', HealthStatus.healthy));
-        service.registerChecker(
-            _TestHealthChecker('cache', HealthStatus.healthy));
+        service
+            .registerChecker(_TestHealthChecker('cache', HealthStatus.healthy));
         expect(service.checkerNames, containsAll(['backend', 'cache']));
       });
 
       test('replaces existing checker with same name', () {
-        service.registerChecker(
-            _TestHealthChecker('test', HealthStatus.healthy));
+        service
+            .registerChecker(_TestHealthChecker('test', HealthStatus.healthy));
         service.registerChecker(
             _TestHealthChecker('test', HealthStatus.unhealthy));
-        expect(service.checkerNames.where((n) => n == 'test').length, equals(1));
+        expect(
+            service.checkerNames.where((n) => n == 'test').length, equals(1));
       });
     });
 
     group('unregisterChecker', () {
       test('removes a registered checker', () {
-        service.registerChecker(
-            _TestHealthChecker('test', HealthStatus.healthy));
+        service
+            .registerChecker(_TestHealthChecker('test', HealthStatus.healthy));
         expect(service.checkerNames, contains('test'));
         service.unregisterChecker('test');
         expect(service.checkerNames, isNot(contains('test')));
@@ -179,16 +179,16 @@ void main() {
 
     group('healthStream', () {
       test('emits initial health on subscription', () async {
-        service.registerChecker(
-            _TestHealthChecker('test', HealthStatus.healthy));
+        service
+            .registerChecker(_TestHealthChecker('test', HealthStatus.healthy));
         await service.checkHealth(); // Populate initial state
         final health = await service.healthStream.first;
         expect(health.overallStatus, equals(HealthStatus.healthy));
       });
 
       test('emits health updates after checkHealth', () async {
-        service.registerChecker(
-            _TestHealthChecker('test', HealthStatus.healthy));
+        service
+            .registerChecker(_TestHealthChecker('test', HealthStatus.healthy));
         final healthFuture = service.healthStream.take(2).toList();
         await service.checkHealth();
         await service.checkHealth();
@@ -203,11 +203,12 @@ void main() {
       });
 
       test('returns last health after check', () async {
-        service.registerChecker(
-            _TestHealthChecker('test', HealthStatus.healthy));
+        service
+            .registerChecker(_TestHealthChecker('test', HealthStatus.healthy));
         await service.checkHealth();
         expect(service.currentHealth, isNotNull);
-        expect(service.currentHealth!.overallStatus, equals(HealthStatus.healthy));
+        expect(
+            service.currentHealth!.overallStatus, equals(HealthStatus.healthy));
       });
     });
 
@@ -219,8 +220,8 @@ void main() {
             autoStart: false,
           ),
         );
-        service.registerChecker(
-            _TestHealthChecker('test', HealthStatus.healthy));
+        service
+            .registerChecker(_TestHealthChecker('test', HealthStatus.healthy));
 
         final healthList = <SystemHealth>[];
         final sub = service.healthStream.listen(healthList.add);
@@ -240,8 +241,8 @@ void main() {
             autoStart: false,
           ),
         );
-        service.registerChecker(
-            _TestHealthChecker('test', HealthStatus.healthy));
+        service
+            .registerChecker(_TestHealthChecker('test', HealthStatus.healthy));
 
         service.start();
         await Future.delayed(const Duration(milliseconds: 30));
@@ -279,8 +280,9 @@ void main() {
       test('checks single component by name', () async {
         service.registerChecker(
             _TestHealthChecker('backend', HealthStatus.healthy));
-        service.registerChecker(
-            _TestHealthChecker('cache', HealthStatus.degraded, message: 'Slow'));
+        service.registerChecker(_TestHealthChecker(
+            'cache', HealthStatus.degraded,
+            message: 'Slow'));
 
         final health = await service.checkComponent('backend');
         expect(health, isNotNull);

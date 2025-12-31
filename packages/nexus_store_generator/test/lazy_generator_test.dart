@@ -5,8 +5,9 @@ import 'package:test/test.dart';
 
 void main() {
   group('LazyGenerator', () {
-    test('generates accessor mixin for class with @NexusLazy annotation', () async {
-      final result = await testBuilder(
+    test('generates accessor mixin for class with @NexusLazy annotation',
+        () async {
+      await testBuilder(
         lazyBuilder(BuilderOptions.empty),
         {
           'a|lib/user.dart': '''
@@ -43,7 +44,7 @@ class User {
     });
 
     test('generates wrapper class when generateWrapper is true', () async {
-      final result = await testBuilder(
+      await testBuilder(
         lazyBuilder(BuilderOptions.empty),
         {
           'a|lib/item.dart': '''
@@ -73,7 +74,7 @@ class Item {
     });
 
     test('skips classes without @NexusLazy annotation', () async {
-      final result = await testBuilder(
+      await testBuilder(
         lazyBuilder(BuilderOptions.empty),
         {
           'a|lib/plain.dart': '''
@@ -88,8 +89,9 @@ class PlainClass {
       );
     });
 
-    test('does not generate accessors when generateAccessors is false', () async {
-      final result = await testBuilder(
+    test('does not generate accessors when generateAccessors is false',
+        () async {
+      await testBuilder(
         lazyBuilder(BuilderOptions.empty),
         {
           'a|lib/no_accessors.dart': '''

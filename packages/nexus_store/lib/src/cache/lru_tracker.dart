@@ -86,7 +86,8 @@ class LruTracker<ID> {
     final candidates = _entries.entries
         .where((e) => excludeIds == null || !excludeIds.contains(e.key))
         .toList()
-      ..sort((a, b) => a.value.lastAccessTime.compareTo(b.value.lastAccessTime));
+      ..sort(
+          (a, b) => a.value.lastAccessTime.compareTo(b.value.lastAccessTime));
 
     return candidates.take(count).map((e) => e.key).toList();
   }

@@ -59,8 +59,7 @@ void main() {
       });
 
       test('generates SELECT with ORDER BY', () {
-        final query = const Query<Map<String, dynamic>>()
-            .orderByField('name');
+        final query = const Query<Map<String, dynamic>>().orderByField('name');
 
         final (sql, args) = translator.toSelectSql(
           tableName: 'users',
@@ -176,8 +175,8 @@ void main() {
       });
 
       test('lessThan generates < ?', () {
-        final query = const Query<Map<String, dynamic>>()
-            .where('age', isLessThan: 18);
+        final query =
+            const Query<Map<String, dynamic>>().where('age', isLessThan: 18);
 
         final (sql, args) = translator.toSelectSql(
           tableName: 'users',
@@ -202,8 +201,8 @@ void main() {
       });
 
       test('greaterThan generates > ?', () {
-        final query = const Query<Map<String, dynamic>>()
-            .where('age', isGreaterThan: 18);
+        final query =
+            const Query<Map<String, dynamic>>().where('age', isGreaterThan: 18);
 
         final (sql, args) = translator.toSelectSql(
           tableName: 'users',

@@ -198,9 +198,10 @@ void main() {
           timestamp: testTimestamp,
         );
 
-        original.copyWith(event: SyncEvent.failed);
+        final copy = original.copyWith(event: SyncEvent.failed);
 
         expect(original.event, equals(SyncEvent.started));
+        expect(copy.event, equals(SyncEvent.failed));
       });
     });
 

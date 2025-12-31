@@ -52,7 +52,8 @@ typedef OnItemVisible<T> = void Function(T item, int index);
 ///     user: user,
 ///     profileImage: lazyData,
 ///   ),
-///   lazyPlaceholder: (context, user, index) => UserTilePlaceholder(user: user),
+///   lazyPlaceholder: (context, user, index) =>
+///       UserTilePlaceholder(user: user),
 /// )
 /// ```
 class LazyListView<T, L extends Object?> extends StatelessWidget {
@@ -231,8 +232,7 @@ class LazyListView<T, L extends Object?> extends StatelessWidget {
       return emptyBuilder?.call(context) ?? const SizedBox.shrink();
     }
 
-    final effectiveItemCount =
-        separatorBuilder != null ? count * 2 - 1 : count;
+    final effectiveItemCount = separatorBuilder != null ? count * 2 - 1 : count;
 
     return ListView.builder(
       controller: controller,
@@ -289,4 +289,3 @@ class LazyListView<T, L extends Object?> extends StatelessWidget {
     );
   }
 }
-

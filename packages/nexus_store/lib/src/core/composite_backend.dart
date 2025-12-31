@@ -284,7 +284,8 @@ class CompositeBackend<T, ID>
       streams.add(fallback!.pendingChangesStream);
     }
     // Merge and combine pending changes from all backends
-    return Rx.combineLatest(streams, (lists) => lists.expand((l) => l).toList());
+    return Rx.combineLatest(
+        streams, (lists) => lists.expand((l) => l).toList());
   }
 
   @override
@@ -338,7 +339,8 @@ class CompositeBackend<T, ID>
 
   @override
   bool get supportsFieldOperations =>
-      primary.supportsFieldOperations || (fallback?.supportsFieldOperations ?? false);
+      primary.supportsFieldOperations ||
+      (fallback?.supportsFieldOperations ?? false);
 
   // ---------------------------------------------------------------------------
   // Field Operations (Lazy Loading)

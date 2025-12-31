@@ -58,8 +58,8 @@ class Pbkdf2KeyDeriver implements KeyDeriver {
   /// - 16-byte salt length
   Pbkdf2KeyDeriver({
     KeyDerivationPbkdf2? config,
-  }) : config = config ??
-            const KeyDerivationConfig.pbkdf2() as KeyDerivationPbkdf2;
+  }) : config =
+            config ?? const KeyDerivationConfig.pbkdf2() as KeyDerivationPbkdf2;
 
   @override
   Future<DerivedKey> deriveKey({

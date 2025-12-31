@@ -72,8 +72,8 @@ class NexusStoreProvider<T, ID> extends InheritedWidget {
   /// }
   /// ```
   static NexusStore<T, ID>? maybeOf<T, ID>(BuildContext context) {
-    final provider = context
-        .dependOnInheritedWidgetOfExactType<NexusStoreProvider<T, ID>>();
+    final provider =
+        context.dependOnInheritedWidgetOfExactType<NexusStoreProvider<T, ID>>();
     return provider?.store;
   }
 

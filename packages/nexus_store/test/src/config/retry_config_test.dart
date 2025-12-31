@@ -143,7 +143,8 @@ void main() {
     });
 
     group('shouldRetry', () {
-      test('should return true for any exception when retryableExceptions is '
+      test(
+          'should return true for any exception when retryableExceptions is '
           'empty', () {
         const config = RetryConfig();
 

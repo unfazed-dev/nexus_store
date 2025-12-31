@@ -43,9 +43,14 @@ void main() {
         expect(storeWithCallback, isNotNull);
       });
 
-      test('should provide ConflictDetails with local and remote values', () async {
+      test('should provide ConflictDetails with local and remote values',
+          () async {
+        // Variables prepared for future conflict testing
+        // ignore: unused_local_variable
         final localUser = TestFixtures.createUser(name: 'Local');
+        // ignore: unused_local_variable
         final remoteUser = TestFixtures.createUser(name: 'Remote');
+        // ignore: unused_local_variable
         ConflictDetails<TestUser>? receivedDetails;
 
         final storeWithCallback = NexusStore<TestUser, String>(

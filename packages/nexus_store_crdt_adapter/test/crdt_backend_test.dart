@@ -11,10 +11,10 @@ class TestModel {
   });
 
   factory TestModel.fromJson(Map<String, dynamic> json) => TestModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      age: json['age'] as int? ?? 0,
-    );
+        id: json['id'] as String,
+        name: json['name'] as String,
+        age: json['age'] as int? ?? 0,
+      );
 
   final String id;
   final String name;
@@ -161,8 +161,7 @@ void main() {
           await backend.save(TestModel(id: '$i', name: 'User$i', age: 20 + i));
         }
 
-        final query =
-            const nexus.Query<TestModel>().limitTo(5).offsetBy(5);
+        final query = const nexus.Query<TestModel>().limitTo(5).offsetBy(5);
         final result = await backend.getAll(query: query);
         expect(result.length, equals(5));
       });
@@ -172,8 +171,7 @@ void main() {
         await backend.save(TestModel(id: '2', name: 'Alice', age: 25));
         await backend.save(TestModel(id: '3', name: 'Bob', age: 28));
 
-        final query =
-            const nexus.Query<TestModel>().orderByField('name');
+        final query = const nexus.Query<TestModel>().orderByField('name');
         final result = await backend.getAll(query: query);
         expect(
           result.map((m) => m.name).toList(),

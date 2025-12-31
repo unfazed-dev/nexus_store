@@ -50,9 +50,10 @@ void main() {
       final levels = <MemoryPressureLevel>[];
       final subscription = handler.pressureStream.listen(levels.add);
 
-      handler.setLevel(MemoryPressureLevel.moderate);
-      handler.setLevel(MemoryPressureLevel.critical);
-      handler.setLevel(MemoryPressureLevel.emergency);
+      handler
+        ..setLevel(MemoryPressureLevel.moderate)
+        ..setLevel(MemoryPressureLevel.critical)
+        ..setLevel(MemoryPressureLevel.emergency);
 
       await Future<void>.delayed(Duration.zero);
 
@@ -73,10 +74,11 @@ void main() {
       final levels = <MemoryPressureLevel>[];
       final subscription = handler.pressureStream.listen(levels.add);
 
-      handler.setLevel(MemoryPressureLevel.moderate);
-      handler.setLevel(MemoryPressureLevel.moderate);
-      handler.setLevel(MemoryPressureLevel.critical);
-      handler.setLevel(MemoryPressureLevel.critical);
+      handler
+        ..setLevel(MemoryPressureLevel.moderate)
+        ..setLevel(MemoryPressureLevel.moderate)
+        ..setLevel(MemoryPressureLevel.critical)
+        ..setLevel(MemoryPressureLevel.critical);
 
       await Future<void>.delayed(Duration.zero);
 

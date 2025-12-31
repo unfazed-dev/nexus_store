@@ -73,7 +73,8 @@ class CircuitBreaker {
   /// Stream of state changes.
   ///
   /// Emits distinct state changes only.
-  Stream<CircuitBreakerState> get stateStream => _stateSubject.stream.distinct();
+  Stream<CircuitBreakerState> get stateStream =>
+      _stateSubject.stream.distinct();
 
   /// Current metrics snapshot.
   CircuitBreakerMetrics get currentMetrics => _buildMetrics();

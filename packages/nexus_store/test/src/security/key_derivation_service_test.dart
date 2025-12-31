@@ -65,7 +65,8 @@ void main() {
         expect(result.salt, equals(salt));
       });
 
-      test('should produce consistent keys for same password and salt', () async {
+      test('should produce consistent keys for same password and salt',
+          () async {
         final salt = Uint8List.fromList(List.generate(16, (i) => i));
 
         final result1 = await service.deriveKey(

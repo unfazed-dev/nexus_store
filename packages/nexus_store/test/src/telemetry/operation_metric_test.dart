@@ -236,9 +236,10 @@ void main() {
           timestamp: testTimestamp,
         );
 
-        original.copyWith(operation: OperationType.delete);
+        final copy = original.copyWith(operation: OperationType.delete);
 
         expect(original.operation, equals(OperationType.get));
+        expect(copy.operation, equals(OperationType.delete));
       });
     });
 

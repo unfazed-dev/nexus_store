@@ -283,7 +283,8 @@ class SagaTransactionContext {
     return _executedSteps.map((executed) {
       return SagaStep<dynamic>(
         name: executed.name,
-        action: () async => executed.result, // Already executed, just return result
+        action: () async =>
+            executed.result, // Already executed, just return result
         compensation: executed.compensation,
       );
     }).toList();

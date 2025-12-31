@@ -5,10 +5,10 @@ import 'package:meta/meta.dart';
 /// When applied to a function that returns a NexusStore, the generator will
 /// create the following providers:
 ///
-/// - `{name}StoreProvider` - Provider<NexusStore<T, ID>>
-/// - `{name}Provider` - StreamProvider<List<T>> (from watchAll)
-/// - `{name}ByIdProvider` - StreamProvider.family<T?, ID> (from watch)
-/// - `{name}StatusProvider` - StreamProvider<StoreResult<List<T>>>
+/// - `{name}StoreProvider` - `Provider<NexusStore<T, ID>>`
+/// - `{name}Provider` - `StreamProvider<List<T>>` (from watchAll)
+/// - `{name}ByIdProvider` - `StreamProvider.family<T?, ID>` (from watch)
+/// - `{name}StatusProvider` - `StreamProvider<StoreResult<List<T>>>`
 ///
 /// ## Example
 ///

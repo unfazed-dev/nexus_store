@@ -18,7 +18,7 @@ import 'package:nexus_store_flutter/nexus_store_flutter.dart';
 
 /// Simple Task model for the example.
 class Task {
-
+  /// Creates a new Task with the given properties.
   Task({
     required this.id,
     required this.title,
@@ -27,6 +27,7 @@ class Task {
     required this.createdAt,
   });
 
+  /// Creates a Task from a JSON map.
   factory Task.fromJson(Map<String, dynamic> json) => Task(
         id: json['id'] as String,
         title: json['title'] as String,
@@ -34,12 +35,23 @@ class Task {
         isCompleted: json['isCompleted'] as bool,
         createdAt: DateTime.parse(json['createdAt'] as String),
       );
+
+  /// The unique identifier for this task.
   final String id;
+
+  /// The title of the task.
   final String title;
+
+  /// A detailed description of the task.
   final String description;
+
+  /// Whether the task has been completed.
   final bool isCompleted;
+
+  /// When the task was created.
   final DateTime createdAt;
 
+  /// Converts this Task to a JSON map.
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
@@ -48,6 +60,7 @@ class Task {
         'createdAt': createdAt.toIso8601String(),
       };
 
+  /// Creates a copy of this Task with the given fields replaced.
   Task copyWith({
     String? title,
     String? description,
@@ -70,14 +83,21 @@ class Task {
 class InMemoryBackend<T, ID>
     with StoreBackendDefaults<T, ID>
     implements StoreBackend<T, ID> {
-
+  /// Creates an in-memory backend with the required serialization functions.
   InMemoryBackend({
     required this.getId,
     required this.fromJson,
     required this.toJson,
   });
+
+  /// Function to extract the ID from an entity.
   final ID Function(T) getId;
+
+  /// Function to deserialize an entity from JSON.
+  // ignore: unreachable_from_main
   final T Function(Map<String, dynamic>) fromJson;
+
+  /// Function to serialize an entity to JSON.
   final Map<String, dynamic> Function(T) toJson;
   final Map<ID, T> _data = {};
 
@@ -181,8 +201,41 @@ class InMemoryBackend<T, ID>
             return value == filter.value;
           case FilterOperator.notEquals:
             return value != filter.value;
-          default:
-            return true;
+          case FilterOperator.greaterThan:
+            return (value as Comparable)
+                    .compareTo(filter.value! as Comparable) >
+                0;
+          case FilterOperator.lessThan:
+            return (value as Comparable)
+                    .compareTo(filter.value! as Comparable) <
+                0;
+          case FilterOperator.greaterThanOrEquals:
+            return (value as Comparable)
+                    .compareTo(filter.value! as Comparable) >=
+                0;
+          case FilterOperator.lessThanOrEquals:
+            return (value as Comparable)
+                    .compareTo(filter.value! as Comparable) <=
+                0;
+          case FilterOperator.whereIn:
+            return (filter.value! as List).contains(value);
+          case FilterOperator.whereNotIn:
+            return !(filter.value! as List).contains(value);
+          case FilterOperator.contains:
+            return (value as String).contains(filter.value! as String);
+          case FilterOperator.startsWith:
+            return (value as String).startsWith(filter.value! as String);
+          case FilterOperator.endsWith:
+            return (value as String).endsWith(filter.value! as String);
+          case FilterOperator.isNull:
+            return value == null;
+          case FilterOperator.isNotNull:
+            return value != null;
+          case FilterOperator.arrayContains:
+            return (value as List).contains(filter.value);
+          case FilterOperator.arrayContainsAny:
+            final list = value as List;
+            return (filter.value! as List).any(list.contains);
         }
       }).toList();
     }
@@ -221,6 +274,7 @@ class InMemoryBackend<T, ID>
 // App Entry Point
 // ============================================================================
 
+/// Global task store instance for the example app.
 late NexusStore<Task, String> taskStore;
 
 Future<void> main() async {
@@ -277,25 +331,29 @@ Future<void> main() async {
 // App Widget
 // ============================================================================
 
+/// Main application widget that sets up MaterialApp with theme and home screen.
 class TaskApp extends StatelessWidget {
+  /// Creates the TaskApp widget.
   const TaskApp({super.key});
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-      title: 'nexus_store Flutter Example',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const TaskListScreen(),
-    );
+        title: 'nexus_store Flutter Example',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        home: const TaskListScreen(),
+      );
 }
 
 // ============================================================================
 // Task List Screen - Using NexusStoreBuilder
 // ============================================================================
 
+/// Main screen showing a list of tasks with filter options.
 class TaskListScreen extends StatefulWidget {
+  /// Creates the TaskListScreen widget.
   const TaskListScreen({super.key});
 
   @override
@@ -307,71 +365,83 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(
-        title: const Text('Tasks'),
-        actions: [
-          IconButton(
-            icon: Icon(_showCompleted
-                ? Icons.visibility
-                : Icons.visibility_off,),
-            tooltip: _showCompleted ? 'Hide completed' : 'Show completed',
-            onPressed: () => setState(() => _showCompleted = !_showCompleted),
-          ),
-        ],
-      ),
-      body: NexusStoreBuilder<Task, String>(
-        store: context.nexusStore<Task, String>(),
-        query: _showCompleted
-            ? null
-            : const Query<Task>().where('isCompleted', isEqualTo: false),
-        builder: (context, tasks) {
-          if (tasks.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.check_circle_outline, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No tasks', style: TextStyle(color: Colors.grey)),
-                ],
+        appBar: AppBar(
+          title: const Text('Tasks'),
+          actions: [
+            IconButton(
+              icon: Icon(
+                _showCompleted ? Icons.visibility : Icons.visibility_off,
               ),
-            );
-          }
-          return ListView.builder(
-            itemCount: tasks.length,
-            itemBuilder: (context, index) {
-              final task = tasks[index];
-              return TaskListTile(
-                task: task,
-                onTap: () => _navigateToDetail(context, task.id),
-                onToggle: () => _toggleTask(task),
-                onDelete: () => _deleteTask(task.id),
+              tooltip: _showCompleted ? 'Hide completed' : 'Show completed',
+              onPressed: () => setState(() => _showCompleted = !_showCompleted),
+            ),
+            IconButton(
+              icon: const Icon(Icons.science_outlined),
+              tooltip: 'StoreResult Example',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (context) => const StoreResultExample(),
+                ),
+              ),
+            ),
+          ],
+        ),
+        body: NexusStoreBuilder<Task, String>(
+          store: context.nexusStore<Task, String>(),
+          query: _showCompleted
+              ? null
+              : const Query<Task>().where('isCompleted', isEqualTo: false),
+          builder: (context, tasks) {
+            if (tasks.isEmpty) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                        Icons.check_circle_outline,
+                        size: 64,
+                        color: Colors.grey,),
+                    SizedBox(height: 16),
+                    Text('No tasks', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
               );
-            },
-          );
-        },
-        loading: const Center(child: CircularProgressIndicator()),
-        error: (context, error) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Error: $error'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => setState(() {}),
-                child: const Text('Retry'),
-              ),
-            ],
+            }
+            return ListView.builder(
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                return TaskListTile(
+                  task: task,
+                  onTap: () => _navigateToDetail(context, task.id),
+                  onToggle: () => _toggleTask(task),
+                  onDelete: () => _deleteTask(task.id),
+                );
+              },
+            );
+          },
+          loading: const Center(child: CircularProgressIndicator()),
+          error: (context, error) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text('Error: $error'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => setState(() {}),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _addTask(context),
-        child: const Icon(Icons.add),
-      ),
-    );
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _addTask(context),
+          child: const Icon(Icons.add),
+        ),
+      );
 
   void _navigateToDetail(BuildContext context, String taskId) {
     Navigator.of(context).push(
@@ -411,8 +481,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
 // Task List Tile
 // ============================================================================
 
+/// A list tile widget for displaying a single task with actions.
 class TaskListTile extends StatelessWidget {
-
+  /// Creates a TaskListTile with the required callbacks.
   const TaskListTile({
     super.key,
     required this.task,
@@ -420,97 +491,109 @@ class TaskListTile extends StatelessWidget {
     required this.onToggle,
     required this.onDelete,
   });
+
+  /// The task to display.
   final Task task;
+
+  /// Callback when the tile is tapped.
   final VoidCallback onTap;
+
+  /// Callback when the completion status is toggled.
   final VoidCallback onToggle;
+
+  /// Callback when the delete button is pressed.
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) => ListTile(
-      leading: IconButton(
-        icon: Icon(
-          task.isCompleted ? Icons.check_circle : Icons.circle_outlined,
-          color: task.isCompleted ? Colors.green : null,
+        leading: IconButton(
+          icon: Icon(
+            task.isCompleted ? Icons.check_circle : Icons.circle_outlined,
+            color: task.isCompleted ? Colors.green : null,
+          ),
+          onPressed: onToggle,
         ),
-        onPressed: onToggle,
-      ),
-      title: Text(
-        task.title,
-        style: TextStyle(
-          decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+        title: Text(
+          task.title,
+          style: TextStyle(
+            decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+          ),
         ),
-      ),
-      subtitle: Text(
-        task.description,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline),
-        onPressed: onDelete,
-      ),
-      onTap: onTap,
-    );
+        subtitle: Text(
+          task.description,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete_outline),
+          onPressed: onDelete,
+        ),
+        onTap: onTap,
+      );
 }
 
 // ============================================================================
 // Task Detail Screen - Using NexusStoreItemBuilder
 // ============================================================================
 
+/// Screen showing the details of a single task.
 class TaskDetailScreen extends StatelessWidget {
-
+  /// Creates a TaskDetailScreen for the given task ID.
   const TaskDetailScreen({super.key, required this.taskId});
+
+  /// The ID of the task to display.
   final String taskId;
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(
-        title: const Text('Task Details'),
-      ),
-      body: NexusStoreItemBuilder<Task, String>(
-        store: context.nexusStore<Task, String>(),
-        id: taskId,
-        builder: (context, task) {
-          if (task == null) {
-            return const Center(
-              child: Text('Task not found'),
+        appBar: AppBar(
+          title: const Text('Task Details'),
+        ),
+        body: NexusStoreItemBuilder<Task, String>(
+          store: context.nexusStore<Task, String>(),
+          id: taskId,
+          builder: (context, task) {
+            if (task == null) {
+              return const Center(
+                child: Text('Task not found'),
+              );
+            }
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    task.title,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Chip(
+                    label: Text(task.isCompleted ? 'Completed' : 'Pending'),
+                    backgroundColor: task.isCompleted
+                        ? Colors.green[100]
+                        : Colors.orange[100],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Description',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(task.description),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Created: ${task.createdAt.toString().split('.')[0]}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
             );
-          }
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  task.title,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 8),
-                Chip(
-                  label: Text(task.isCompleted ? 'Completed' : 'Pending'),
-                  backgroundColor:
-                      task.isCompleted ? Colors.green[100] : Colors.orange[100],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Description',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(task.description),
-                const SizedBox(height: 16),
-                Text(
-                  'Created: ${task.createdAt.toString().split('.')[0]}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
-          );
-        },
-        loading: const Center(child: CircularProgressIndicator()),
-        error: (context, error) => Center(child: Text('Error: $error')),
-      ),
-    );
+          },
+          loading: const Center(child: CircularProgressIndicator()),
+          error: (context, error) => Center(child: Text('Error: $error')),
+        ),
+      );
 }
 
 // ============================================================================
@@ -519,6 +602,7 @@ class TaskDetailScreen extends StatelessWidget {
 
 /// Example showing how to use StoreResultBuilder for manual state handling.
 class StoreResultExample extends StatefulWidget {
+  /// Creates the StoreResultExample widget.
   const StoreResultExample({super.key});
 
   @override
@@ -540,47 +624,47 @@ class _StoreResultExampleState extends State<StoreResultExample> {
     try {
       final tasks = await taskStore.getAll();
       setState(() => _result = StoreResult.success(tasks));
-    } catch (e) {
+    } on Exception catch (e) {
       setState(() => _result = StoreResult.error(e));
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(
-        title: const Text('StoreResult Example'),
-      ),
-      body: StoreResultBuilder<List<Task>>(
-        result: _result,
-        builder: (context, tasks) => ListView.builder(
-          itemCount: tasks.length,
-          itemBuilder: (context, index) => ListTile(
-            title: Text(tasks[index].title),
+        appBar: AppBar(
+          title: const Text('StoreResult Example'),
+        ),
+        body: StoreResultBuilder<List<Task>>(
+          result: _result,
+          builder: (context, tasks) => ListView.builder(
+            itemCount: tasks.length,
+            itemBuilder: (context, index) => ListTile(
+              title: Text(tasks[index].title),
+            ),
+          ),
+          idle: (context) => const Center(
+            child: Text('Tap the refresh button to load tasks'),
+          ),
+          pending: (context, previousTasks) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          error: (context, error, previousTasks) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Error: $error'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadTasks,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
-        idle: (context) => const Center(
-          child: Text('Tap the refresh button to load tasks'),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _loadTasks,
+          child: const Icon(Icons.refresh),
         ),
-        pending: (context, previousTasks) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (context, error, previousTasks) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Error: $error'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loadTasks,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _loadTasks,
-        child: const Icon(Icons.refresh),
-      ),
-    );
+      );
 }

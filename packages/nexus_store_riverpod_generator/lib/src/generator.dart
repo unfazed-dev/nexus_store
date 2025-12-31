@@ -9,10 +9,10 @@ import 'package:source_gen/source_gen.dart';
 /// Generator for `@riverpodNexusStore` annotated functions.
 ///
 /// Generates the following providers for each annotated function:
-/// - `{name}StoreProvider` - Provider<NexusStore<T, ID>>
-/// - `{name}Provider` - StreamProvider<List<T>> (from watchAll)
-/// - `{name}ByIdProvider` - StreamProvider.family<T?, ID> (from watch)
-/// - `{name}StatusProvider` - StreamProvider<StoreResult<List<T>>>
+/// - `{name}StoreProvider` - `Provider<NexusStore<T, ID>>`
+/// - `{name}Provider` - `StreamProvider<List<T>>` (from watchAll)
+/// - `{name}ByIdProvider` - `StreamProvider.family<T?, ID>` (from watch)
+/// - `{name}StatusProvider` - `StreamProvider<StoreResult<List<T>>>`
 class NexusStoreRiverpodGenerator
     extends GeneratorForAnnotation<RiverpodNexusStore> {
   @override
@@ -116,8 +116,6 @@ class NexusStoreRiverpodGenerator
     required bool keepAlive,
   }) {
     final providerModifier = keepAlive ? '' : '.autoDispose';
-    final refType =
-        keepAlive ? '${baseName.capitalize()}StoreRef' : 'AutoDisposeRef';
 
     return '''
 // **************************************************************************
@@ -149,12 +147,5 @@ final ${pluralName}StatusProvider = StreamProvider$providerModifier<StoreResult<
   return store.watchAll().map(StoreResult.success);
 });
 ''';
-  }
-}
-
-extension on String {
-  String capitalize() {
-    if (isEmpty) return this;
-    return '${this[0].toUpperCase()}${substring(1)}';
   }
 }

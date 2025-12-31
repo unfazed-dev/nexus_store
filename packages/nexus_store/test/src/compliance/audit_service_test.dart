@@ -117,8 +117,8 @@ void main() {
       test('should emit entry to stream', () async {
         // Skip the initial empty seed value and wait for first
         // non-empty emission
-        final entriesFuture = service.entries
-            .firstWhere((entries) => entries.isNotEmpty);
+        final entriesFuture =
+            service.entries.firstWhere((entries) => entries.isNotEmpty);
 
         await service.log(
           action: AuditAction.read,
@@ -320,30 +320,36 @@ void main() {
 
     group('query', () {
       setUp(() async {
-        await storage.append(AuditLogEntry(
-          id: 'entry-1',
-          timestamp: DateTime(2024),
-          action: AuditAction.create,
-          entityType: 'User',
-          entityId: 'user-1',
-          actorId: 'actor-1',
-        ),);
-        await storage.append(AuditLogEntry(
-          id: 'entry-2',
-          timestamp: DateTime(2024, 1, 2),
-          action: AuditAction.read,
-          entityType: 'User',
-          entityId: 'user-1',
-          actorId: 'actor-2',
-        ),);
-        await storage.append(AuditLogEntry(
-          id: 'entry-3',
-          timestamp: DateTime(2024, 1, 3),
-          action: AuditAction.read,
-          entityType: 'Product',
-          entityId: 'product-1',
-          actorId: 'actor-1',
-        ),);
+        await storage.append(
+          AuditLogEntry(
+            id: 'entry-1',
+            timestamp: DateTime(2024),
+            action: AuditAction.create,
+            entityType: 'User',
+            entityId: 'user-1',
+            actorId: 'actor-1',
+          ),
+        );
+        await storage.append(
+          AuditLogEntry(
+            id: 'entry-2',
+            timestamp: DateTime(2024, 1, 2),
+            action: AuditAction.read,
+            entityType: 'User',
+            entityId: 'user-1',
+            actorId: 'actor-2',
+          ),
+        );
+        await storage.append(
+          AuditLogEntry(
+            id: 'entry-3',
+            timestamp: DateTime(2024, 1, 3),
+            action: AuditAction.read,
+            entityType: 'Product',
+            entityId: 'product-1',
+            actorId: 'actor-1',
+          ),
+        );
       });
 
       test('should filter by date range', () async {
@@ -375,22 +381,26 @@ void main() {
       });
 
       test('should return last entry', () async {
-        await storage.append(AuditLogEntry(
-          id: 'entry-1',
-          timestamp: DateTime.now(),
-          action: AuditAction.read,
-          entityType: 'User',
-          entityId: 'user-1',
-          actorId: 'actor-1',
-        ),);
-        await storage.append(AuditLogEntry(
-          id: 'entry-2',
-          timestamp: DateTime.now(),
-          action: AuditAction.read,
-          entityType: 'User',
-          entityId: 'user-2',
-          actorId: 'actor-1',
-        ),);
+        await storage.append(
+          AuditLogEntry(
+            id: 'entry-1',
+            timestamp: DateTime.now(),
+            action: AuditAction.read,
+            entityType: 'User',
+            entityId: 'user-1',
+            actorId: 'actor-1',
+          ),
+        );
+        await storage.append(
+          AuditLogEntry(
+            id: 'entry-2',
+            timestamp: DateTime.now(),
+            action: AuditAction.read,
+            entityType: 'User',
+            entityId: 'user-2',
+            actorId: 'actor-1',
+          ),
+        );
 
         final last = await storage.getLastEntry();
         expect(last?.id, equals('entry-2'));

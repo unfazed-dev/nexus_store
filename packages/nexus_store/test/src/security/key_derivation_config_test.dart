@@ -93,9 +93,9 @@ void main() {
         const config2 = KeyDerivationConfig.raw();
 
         String getType(KeyDerivationConfig config) => switch (config) {
-          KeyDerivationPbkdf2() => 'pbkdf2',
-          KeyDerivationRaw() => 'raw',
-        };
+              KeyDerivationPbkdf2() => 'pbkdf2',
+              KeyDerivationRaw() => 'raw',
+            };
 
         expect(getType(config1), equals('pbkdf2'));
         expect(getType(config2), equals('raw'));

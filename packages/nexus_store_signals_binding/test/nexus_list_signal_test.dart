@@ -78,7 +78,8 @@ void main() {
 
       final signal = NexusListSignal<TestUser, String>.fromStore(mockStore);
 
-      await signal.update('nonexistent', (user) => user.copyWith(name: 'Updated'));
+      await signal.update(
+          'nonexistent', (user) => user.copyWith(name: 'Updated'));
 
       verify(() => mockStore.get('nonexistent')).called(1);
       verifyNever(() => mockStore.save(any()));

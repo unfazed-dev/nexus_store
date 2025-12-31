@@ -174,8 +174,10 @@ void main() {
 
         final after = DateTime.now();
 
-        expect(delta.timestamp.isAfter(before) || delta.timestamp == before, isTrue);
-        expect(delta.timestamp.isBefore(after) || delta.timestamp == after, isTrue);
+        expect(delta.timestamp.isAfter(before) || delta.timestamp == before,
+            isTrue);
+        expect(delta.timestamp.isBefore(after) || delta.timestamp == after,
+            isTrue);
       });
     });
 
@@ -295,8 +297,12 @@ void main() {
     group('nested object comparison', () {
       test('should detect changes in nested map values', () {
         // Using raw maps to test nested comparison
-        final original = {'metadata': {'key': 'value1'}};
-        final modified = {'metadata': {'key': 'value2'}};
+        final original = {
+          'metadata': {'key': 'value1'}
+        };
+        final modified = {
+          'metadata': {'key': 'value2'}
+        };
 
         final delta = tracker.trackChangesFromJson(
           original: original,
@@ -308,8 +314,12 @@ void main() {
       });
 
       test('should not detect changes when nested maps are equal', () {
-        final original = {'metadata': {'key': 'value'}};
-        final modified = {'metadata': {'key': 'value'}};
+        final original = {
+          'metadata': {'key': 'value'}
+        };
+        final modified = {
+          'metadata': {'key': 'value'}
+        };
 
         final delta = tracker.trackChangesFromJson(
           original: original,
@@ -323,8 +333,12 @@ void main() {
 
     group('collection comparison', () {
       test('should detect changes in list values', () {
-        final original = {'tags': ['a', 'b']};
-        final modified = {'tags': ['a', 'b', 'c']};
+        final original = {
+          'tags': ['a', 'b']
+        };
+        final modified = {
+          'tags': ['a', 'b', 'c']
+        };
 
         final delta = tracker.trackChangesFromJson(
           original: original,
@@ -339,8 +353,12 @@ void main() {
       });
 
       test('should not detect changes when lists are equal', () {
-        final original = {'tags': ['a', 'b']};
-        final modified = {'tags': ['a', 'b']};
+        final original = {
+          'tags': ['a', 'b']
+        };
+        final modified = {
+          'tags': ['a', 'b']
+        };
 
         final delta = tracker.trackChangesFromJson(
           original: original,
@@ -352,8 +370,12 @@ void main() {
       });
 
       test('should detect list reordering as change', () {
-        final original = {'tags': ['a', 'b']};
-        final modified = {'tags': ['b', 'a']};
+        final original = {
+          'tags': ['a', 'b']
+        };
+        final modified = {
+          'tags': ['b', 'a']
+        };
 
         final delta = tracker.trackChangesFromJson(
           original: original,

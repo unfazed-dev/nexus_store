@@ -78,7 +78,8 @@ void main() {
 
       test('should evaluate greaterThanOrEqualTo filter', () {
         final users = TestFixtures.createUsers(5); // ages 20-24
-        final query = Query<TestUser>().where('age', isGreaterThanOrEqualTo: 22);
+        final query =
+            Query<TestUser>().where('age', isGreaterThanOrEqualTo: 22);
 
         final matches = evaluator.evaluate(users, query);
 
@@ -110,7 +111,8 @@ void main() {
     group('whereIn filter', () {
       test('should evaluate whereIn filter', () {
         final users = TestFixtures.createUsers(5);
-        final query = Query<TestUser>().where('id', whereIn: ['user-0', 'user-2']);
+        final query =
+            Query<TestUser>().where('id', whereIn: ['user-0', 'user-2']);
 
         final matches = evaluator.evaluate(users, query);
 
@@ -242,7 +244,8 @@ void main() {
     group('unknown field', () {
       test('should handle unknown field gracefully', () {
         final users = [TestFixtures.createUser()];
-        final query = Query<TestUser>().where('unknownField', isEqualTo: 'value');
+        final query =
+            Query<TestUser>().where('unknownField', isEqualTo: 'value');
 
         final matches = evaluator.evaluate(users, query);
 

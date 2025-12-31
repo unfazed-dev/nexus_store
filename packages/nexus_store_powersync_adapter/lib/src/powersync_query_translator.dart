@@ -97,31 +97,34 @@ class PowerSyncQueryTranslator<T>
     String column,
     QueryFilter filter,
     List<Object?> args,
-  ) => switch (filter.operator) {
-      FilterOperator.equals => _equalCondition(column, filter.value, args),
-      FilterOperator.notEquals =>
-        _notEqualCondition(column, filter.value, args),
-      FilterOperator.lessThan =>
-        _comparisonCondition(column, '<', filter.value, args),
-      FilterOperator.lessThanOrEquals =>
-        _comparisonCondition(column, '<=', filter.value, args),
-      FilterOperator.greaterThan =>
-        _comparisonCondition(column, '>', filter.value, args),
-      FilterOperator.greaterThanOrEquals =>
-        _comparisonCondition(column, '>=', filter.value, args),
-      FilterOperator.whereIn => _inCondition(column, filter.value, args),
-      FilterOperator.whereNotIn => _notInCondition(column, filter.value, args),
-      FilterOperator.isNull => '$column IS NULL',
-      FilterOperator.isNotNull => '$column IS NOT NULL',
-      FilterOperator.contains => _likeCondition(column, filter.value, args),
-      FilterOperator.startsWith =>
-        _startsWithCondition(column, filter.value, args),
-      FilterOperator.endsWith => _endsWithCondition(column, filter.value, args),
-      FilterOperator.arrayContains =>
-        _likeCondition(column, filter.value, args),
-      FilterOperator.arrayContainsAny =>
-        _arrayContainsAnyCondition(column, filter.value, args),
-    };
+  ) =>
+      switch (filter.operator) {
+        FilterOperator.equals => _equalCondition(column, filter.value, args),
+        FilterOperator.notEquals =>
+          _notEqualCondition(column, filter.value, args),
+        FilterOperator.lessThan =>
+          _comparisonCondition(column, '<', filter.value, args),
+        FilterOperator.lessThanOrEquals =>
+          _comparisonCondition(column, '<=', filter.value, args),
+        FilterOperator.greaterThan =>
+          _comparisonCondition(column, '>', filter.value, args),
+        FilterOperator.greaterThanOrEquals =>
+          _comparisonCondition(column, '>=', filter.value, args),
+        FilterOperator.whereIn => _inCondition(column, filter.value, args),
+        FilterOperator.whereNotIn =>
+          _notInCondition(column, filter.value, args),
+        FilterOperator.isNull => '$column IS NULL',
+        FilterOperator.isNotNull => '$column IS NOT NULL',
+        FilterOperator.contains => _likeCondition(column, filter.value, args),
+        FilterOperator.startsWith =>
+          _startsWithCondition(column, filter.value, args),
+        FilterOperator.endsWith =>
+          _endsWithCondition(column, filter.value, args),
+        FilterOperator.arrayContains =>
+          _likeCondition(column, filter.value, args),
+        FilterOperator.arrayContainsAny =>
+          _arrayContainsAnyCondition(column, filter.value, args),
+      };
 
   String _equalCondition(String column, Object? value, List<Object?> args) {
     args.add(value);
@@ -196,10 +199,10 @@ class PowerSyncQueryTranslator<T>
   }
 
   String _buildOrderByClause(List<QueryOrderBy> orderBy) => orderBy.map((o) {
-      final column = _mapFieldName(o.field);
-      final direction = o.descending ? 'DESC' : 'ASC';
-      return '$column $direction';
-    }).join(', ');
+        final column = _mapFieldName(o.field);
+        final direction = o.descending ? 'DESC' : 'ASC';
+        return '$column $direction';
+      }).join(', ');
 
   String _mapFieldName(String field) => _fieldMapping[field] ?? field;
 

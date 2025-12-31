@@ -215,9 +215,10 @@ void main() {
           timestamp: testTimestamp,
         );
 
-        original.copyWith(operation: 'save');
+        final copy = original.copyWith(operation: 'save');
 
         expect(original.operation, equals('get'));
+        expect(copy.operation, equals('save'));
       });
     });
 

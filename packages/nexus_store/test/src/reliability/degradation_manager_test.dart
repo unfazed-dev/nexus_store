@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nexus_store/src/reliability/circuit_breaker.dart';
 import 'package:nexus_store/src/reliability/circuit_breaker_config.dart';
@@ -129,8 +128,8 @@ void main() {
         expect(lastChange, isNotNull);
         expect(lastChange!.isAfter(before.subtract(const Duration(seconds: 1))),
             isTrue);
-        expect(lastChange.isBefore(after.add(const Duration(seconds: 1))),
-            isTrue);
+        expect(
+            lastChange.isBefore(after.add(const Duration(seconds: 1))), isTrue);
       });
 
       test('can degrade to worse mode', () {

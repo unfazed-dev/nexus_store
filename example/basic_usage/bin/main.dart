@@ -8,12 +8,15 @@
 library;
 
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:nexus_store/nexus_store.dart';
 
+/// Logs a message for the example output.
+void log(String message) => developer.log(message, name: 'nexus_store');
+
 /// Simple User model for the example.
 class User {
-
   User({
     required this.id,
     required this.name,
@@ -65,13 +68,13 @@ class User {
 class InMemoryBackend<T, ID>
     with StoreBackendDefaults<T, ID>
     implements StoreBackend<T, ID> {
-
   InMemoryBackend({
     required this.getId,
     required this.fromJson,
     required this.toJson,
   });
   final ID Function(T) getId;
+  // ignore: unreachable_from_main
   final T Function(Map<String, dynamic>) fromJson;
   final Map<String, dynamic> Function(T) toJson;
   final Map<ID, T> _data = {};
@@ -166,8 +169,9 @@ class InMemoryBackend<T, ID>
   }
 
   List<T> _applyFilters(List<T> items, Query<T> query) {
+    var result = items;
     for (final filter in query.filters) {
-      items = items.where((item) {
+      result = result.where((item) {
         final json = toJson(item);
         final value = json[filter.field];
         switch (filter.operator) {
@@ -176,17 +180,44 @@ class InMemoryBackend<T, ID>
           case FilterOperator.notEquals:
             return value != filter.value;
           case FilterOperator.greaterThan:
-            return (value as Comparable).compareTo(filter.value! as Comparable) > 0;
+            return (value as Comparable)
+                    .compareTo(filter.value! as Comparable) >
+                0;
           case FilterOperator.lessThan:
-            return (value as Comparable).compareTo(filter.value! as Comparable) < 0;
+            return (value as Comparable)
+                    .compareTo(filter.value! as Comparable) <
+                0;
           case FilterOperator.whereIn:
             return (filter.value! as List).contains(value);
-          default:
-            return true;
+          case FilterOperator.whereNotIn:
+            return !(filter.value! as List).contains(value);
+          case FilterOperator.greaterThanOrEquals:
+            return (value as Comparable)
+                    .compareTo(filter.value! as Comparable) >=
+                0;
+          case FilterOperator.lessThanOrEquals:
+            return (value as Comparable)
+                    .compareTo(filter.value! as Comparable) <=
+                0;
+          case FilterOperator.contains:
+            return (value as String).contains(filter.value! as String);
+          case FilterOperator.startsWith:
+            return (value as String).startsWith(filter.value! as String);
+          case FilterOperator.endsWith:
+            return (value as String).endsWith(filter.value! as String);
+          case FilterOperator.isNull:
+            return value == null;
+          case FilterOperator.isNotNull:
+            return value != null;
+          case FilterOperator.arrayContains:
+            return (value as List).contains(filter.value);
+          case FilterOperator.arrayContainsAny:
+            final list = value as List;
+            return (filter.value! as List).any(list.contains);
         }
       }).toList();
     }
-    return items;
+    return result;
   }
 
   List<T> _applyOrdering(List<T> items, Query<T> query) {
@@ -204,18 +235,19 @@ class InMemoryBackend<T, ID>
   }
 
   List<T> _applyPagination(List<T> items, Query<T> query) {
+    var result = items;
     if (query.offset != null) {
-      items = items.skip(query.offset!).toList();
+      result = result.skip(query.offset!).toList();
     }
     if (query.limit != null) {
-      items = items.take(query.limit!).toList();
+      result = result.take(query.limit!).toList();
     }
-    return items;
+    return result;
   }
 }
 
 Future<void> main() async {
-  print('=== nexus_store Basic Usage Example ===\n');
+  log('=== nexus_store Basic Usage Example ===\n');
 
   // Create the backend and store
   final backend = InMemoryBackend<User, String>(
@@ -230,111 +262,132 @@ Future<void> main() async {
   );
 
   await userStore.initialize();
-  print('Store initialized.\n');
+  log('Store initialized.\n');
 
   // --- CRUD Operations ---
-  print('--- CRUD Operations ---\n');
+  log('--- CRUD Operations ---\n');
 
   // Create
-  print('Creating users...');
-  await userStore.save(User(
-    id: '1',
-    name: 'Alice',
-    email: 'alice@example.com',
-    status: 'active',
-    age: 28,
-  ),);
-  await userStore.save(User(
-    id: '2',
-    name: 'Bob',
-    email: 'bob@example.com',
-    status: 'active',
-    age: 35,
-  ),);
-  await userStore.save(User(
-    id: '3',
-    name: 'Charlie',
-    email: 'charlie@example.com',
-    status: 'inactive',
-    age: 42,
-  ),);
-  print('Created 3 users.\n');
+  log('Creating users...');
+  await userStore.save(
+    User(
+      id: '1',
+      name: 'Alice',
+      email: 'alice@example.com',
+      status: 'active',
+      age: 28,
+    ),
+  );
+  await userStore.save(
+    User(
+      id: '2',
+      name: 'Bob',
+      email: 'bob@example.com',
+      status: 'active',
+      age: 35,
+    ),
+  );
+  await userStore.save(
+    User(
+      id: '3',
+      name: 'Charlie',
+      email: 'charlie@example.com',
+      status: 'inactive',
+      age: 42,
+    ),
+  );
+  log('Created 3 users.\n');
 
   // Read single
   final alice = await userStore.get('1');
-  print('Get user 1: $alice\n');
+  log('Get user 1: $alice\n');
 
   // Read all
   final allUsers = await userStore.getAll();
-  print('All users (${allUsers.length}):');
+  log('All users (${allUsers.length}):');
   for (final user in allUsers) {
-    print('  - $user');
+    log('  - $user');
   }
-  print('');
+  log('');
 
   // Update
-  print('Updating Alice...');
+  log('Updating Alice...');
   final updatedAlice = alice!.copyWith(status: 'premium', age: 29);
   await userStore.save(updatedAlice);
   final refreshedAlice = await userStore.get('1');
-  print('Updated user 1: $refreshedAlice\n');
+  log('Updated user 1: $refreshedAlice\n');
 
   // Delete
-  print('Deleting Charlie (id: 3)...');
+  log('Deleting Charlie (id: 3)...');
   final deleted = await userStore.delete('3');
-  print('Deleted: $deleted');
+  log('Deleted: $deleted');
   final remaining = await userStore.getAll();
-  print('Remaining users: ${remaining.length}\n');
+  log('Remaining users: ${remaining.length}\n');
 
   // --- Query Builder ---
-  print('--- Query Builder ---\n');
+  log('--- Query Builder ---\n');
 
   // Add more users for querying
   await userStore.saveAll([
-    User(id: '4', name: 'Diana', email: 'diana@example.com', status: 'active', age: 25),
-    User(id: '5', name: 'Eve', email: 'eve@example.com', status: 'active', age: 31),
-    User(id: '6', name: 'Frank', email: 'frank@example.com', status: 'inactive', age: 45),
+    User(
+        id: '4',
+        name: 'Diana',
+        email: 'diana@example.com',
+        status: 'active',
+        age: 25,),
+    User(
+        id: '5',
+        name: 'Eve',
+        email: 'eve@example.com',
+        status: 'active',
+        age: 31,),
+    User(
+        id: '6',
+        name: 'Frank',
+        email: 'frank@example.com',
+        status: 'inactive',
+        age: 45,),
   ]);
 
   // Filter by status
   final activeUsers = await userStore.getAll(
     query: const Query<User>().where('status', isEqualTo: 'active'),
   );
-  print('Active users (${activeUsers.length}):');
+  log('Active users (${activeUsers.length}):');
   for (final user in activeUsers) {
-    print('  - $user');
+    log('  - $user');
   }
-  print('');
+  log('');
 
   // Filter with comparison
   final olderUsers = await userStore.getAll(
     query: const Query<User>().where('age', isGreaterThan: 30),
   );
-  print('Users older than 30 (${olderUsers.length}):');
+  log('Users older than 30 (${olderUsers.length}):');
   for (final user in olderUsers) {
-    print('  - $user');
+    log('  - $user');
   }
-  print('');
+  log('');
 
   // Order by age descending
   final orderedUsers = await userStore.getAll(
     query: const Query<User>().orderByField('age', descending: true),
   );
-  print('Users ordered by age (descending):');
+  log('Users ordered by age (descending):');
   for (final user in orderedUsers) {
-    print('  - $user');
+    log('  - $user');
   }
-  print('');
+  log('');
 
   // Pagination
   final pagedUsers = await userStore.getAll(
     query: const Query<User>().orderByField('name').limitTo(2).offsetBy(1),
   );
-  print('Page 2 (2 users, offset 1):');
+  log('Page 2 (2 users, offset 1):');
   for (final user in pagedUsers) {
-    print('  - $user');
+    log('  - $user');
   }
-  print('');
+  log('');
 
   // Combined query
   final complexQuery = await userStore.getAll(
@@ -344,38 +397,38 @@ Future<void> main() async {
         .orderByField('name')
         .limitTo(3),
   );
-  print('Active users > 25 years, sorted by name, limit 3:');
+  log('Active users > 25 years, sorted by name, limit 3:');
   for (final user in complexQuery) {
-    print('  - $user');
+    log('  - $user');
   }
-  print('');
+  log('');
 
   // --- Reactive Streams ---
-  print('--- Reactive Streams ---\n');
+  log('--- Reactive Streams ---\n');
 
   // Watch all users
-  print('Watching all users...');
+  log('Watching all users...');
   final subscription = userStore.watchAll().listen((users) {
-    print('  Stream update: ${users.length} users');
+    log('  Stream update: ${users.length} users');
   });
 
   // Give the stream time to emit
   await Future<void>.delayed(const Duration(milliseconds: 100));
 
   // Watch with query
-  print('Watching active users...');
+  log('Watching active users...');
   final activeSubscription = userStore
       .watchAll(query: const Query<User>().where('status', isEqualTo: 'active'))
       .listen((users) {
-    print('  Active stream: ${users.length} active users');
+    log('  Active stream: ${users.length} active users');
   });
 
   await Future<void>.delayed(const Duration(milliseconds: 100));
 
   // Watch single user
-  print('Watching user 1...');
+  log('Watching user 1...');
   final userSubscription = userStore.watch('1').listen((user) {
-    print('  User 1 stream: ${user?.name}');
+    log('  User 1 stream: ${user?.name}');
   });
 
   await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -386,12 +439,12 @@ Future<void> main() async {
   await userSubscription.cancel();
 
   // --- Sync Status ---
-  print('\n--- Sync Status ---\n');
+  log('\n--- Sync Status ---\n');
 
-  print('Sync status: ${userStore.syncStatus}');
-  print('Pending changes: ${await userStore.pendingChangesCount}');
+  log('Sync status: ${userStore.syncStatus}');
+  log('Pending changes: ${await userStore.pendingChangesCount}');
 
   // Clean up
   await userStore.dispose();
-  print('\nStore disposed. Example complete!');
+  log('\nStore disposed. Example complete!');
 }

@@ -215,16 +215,23 @@ void main() {
 
     group('error handling', () {
       test('throws TransactionError with wasRolledBack flag', () async {
-        try {
-          await store.transaction((tx) async {
+        await expectLater(
+          () => store.transaction((tx) async {
             await tx.save(TestFixtures.createUser());
             throw Exception('Test error');
-          });
-          fail('Should have thrown');
-        } on TransactionError catch (e) {
-          expect(e.wasRolledBack, isTrue);
-          expect(e.message, contains('Transaction failed'));
-        }
+          }),
+          throwsA(isA<TransactionError>()
+              .having(
+                (e) => e.wasRolledBack,
+                'wasRolledBack',
+                isTrue,
+              )
+              .having(
+                (e) => e.message,
+                'message',
+                contains('Transaction failed'),
+              )),
+        );
       });
 
       test('prevents operations on committed transaction', () async {

@@ -124,7 +124,8 @@ class EntityGenerator extends GeneratorForAnnotation<NexusEntity> {
       ..writeln()
       ..writeln('/// Type-safe field accessors for [$className].')
       ..writeln('///')
-      ..writeln('/// Use these fields with [Query<$className>] for compile-time')
+      ..writeln(
+          '/// Use these fields with [Query<$className>] for compile-time',)
       ..writeln('/// validated queries.')
       ..writeln('///')
       ..writeln('/// ## Example')

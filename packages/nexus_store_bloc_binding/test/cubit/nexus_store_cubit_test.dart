@@ -21,10 +21,14 @@ void main() {
     // Default stubs
     when(() => mockStore.watchAll(query: any(named: 'query')))
         .thenAnswer((_) => watchAllController.stream);
-    when(() => mockStore.save(any(), policy: any(named: 'policy'), tags: any(named: 'tags')))
-        .thenAnswer((invocation) async => invocation.positionalArguments[0] as TestUser);
-    when(() => mockStore.saveAll(any(), policy: any(named: 'policy'), tags: any(named: 'tags')))
-        .thenAnswer((invocation) async => invocation.positionalArguments[0] as List<TestUser>);
+    when(() =>
+        mockStore.save(any(),
+            policy: any(named: 'policy'), tags: any(named: 'tags'))).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as TestUser);
+    when(() => mockStore.saveAll(any(),
+            policy: any(named: 'policy'), tags: any(named: 'tags')))
+        .thenAnswer((invocation) async =>
+            invocation.positionalArguments[0] as List<TestUser>);
     when(() => mockStore.delete(any(), policy: any(named: 'policy')))
         .thenAnswer((_) async => true);
     when(() => mockStore.deleteAll(any(), policy: any(named: 'policy')))
@@ -70,8 +74,8 @@ void main() {
         },
         expect: () => [
           isA<NexusStoreLoading<TestUser>>(),
-          isA<NexusStoreError<TestUser>>()
-              .having((s) => s.error.toString(), 'error', contains('Network error')),
+          isA<NexusStoreError<TestUser>>().having(
+              (s) => s.error.toString(), 'error', contains('Network error')),
         ],
       );
 
@@ -118,10 +122,10 @@ void main() {
         },
         verify: (_) {
           verify(() => mockStore.save(
-            TestFixtures.sampleUser,
-            policy: any(named: 'policy'),
-            tags: any(named: 'tags'),
-          )).called(1);
+                TestFixtures.sampleUser,
+                policy: any(named: 'policy'),
+                tags: any(named: 'tags'),
+              )).called(1);
         },
       );
     });
@@ -135,10 +139,10 @@ void main() {
         },
         verify: (_) {
           verify(() => mockStore.saveAll(
-            TestFixtures.sampleUsers,
-            policy: any(named: 'policy'),
-            tags: any(named: 'tags'),
-          )).called(1);
+                TestFixtures.sampleUsers,
+                policy: any(named: 'policy'),
+                tags: any(named: 'tags'),
+              )).called(1);
         },
       );
     });
@@ -165,8 +169,8 @@ void main() {
           await cubit.deleteAll(['user-1', 'user-2']);
         },
         verify: (_) {
-          verify(() => mockStore.deleteAll(['user-1', 'user-2'], policy: any(named: 'policy')))
-              .called(1);
+          verify(() => mockStore.deleteAll(['user-1', 'user-2'],
+              policy: any(named: 'policy'))).called(1);
         },
       );
     });
@@ -220,8 +224,9 @@ void main() {
       blocTest<NexusStoreCubit<TestUser, String>, NexusStoreState<TestUser>>(
         'emits error state on save failure',
         build: () {
-          when(() => mockStore.save(any(), policy: any(named: 'policy'), tags: any(named: 'tags')))
-              .thenThrow(Exception('Save failed'));
+          when(() => mockStore.save(any(),
+              policy: any(named: 'policy'),
+              tags: any(named: 'tags'))).thenThrow(Exception('Save failed'));
           return NexusStoreCubit<TestUser, String>(mockStore);
         },
         seed: () => NexusStoreLoaded<TestUser>(data: TestFixtures.sampleUsers),

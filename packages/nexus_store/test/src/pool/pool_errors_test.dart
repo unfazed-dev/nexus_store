@@ -82,7 +82,8 @@ void main() {
         const error = PoolAcquireTimeoutError(
           message: 'Failed to acquire connection within 30s',
         );
-        expect(error.message, equals('Failed to acquire connection within 30s'));
+        expect(
+            error.message, equals('Failed to acquire connection within 30s'));
       });
 
       test('should have correct error code', () {

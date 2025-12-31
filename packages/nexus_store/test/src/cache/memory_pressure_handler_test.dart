@@ -80,8 +80,8 @@ void main() {
         await sub.cancel();
 
         // Should only emit one moderate
-        expect(
-            levels.where((l) => l == MemoryPressureLevel.moderate), hasLength(1));
+        expect(levels.where((l) => l == MemoryPressureLevel.moderate),
+            hasLength(1));
       });
 
       test('triggerEmergency sets emergency level', () {

@@ -44,7 +44,8 @@ void main() {
         expect(manager.pendingChanges, hasLength(1));
       });
 
-      test('should add pending change for update with original value', () async {
+      test('should add pending change for update with original value',
+          () async {
         final originalUser = TestFixtures.createUser(name: 'Original');
         final updatedUser = TestFixtures.createUser(name: 'Updated');
 
@@ -59,7 +60,8 @@ void main() {
         expect(change.originalValue, equals(originalUser));
       });
 
-      test('should add pending change for delete with original value', () async {
+      test('should add pending change for delete with original value',
+          () async {
         final user = TestFixtures.createUser();
 
         final change = await manager.addChange(

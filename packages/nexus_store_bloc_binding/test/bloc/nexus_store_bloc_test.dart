@@ -22,10 +22,10 @@ void main() {
     // Default stubs
     when(() => mockStore.watchAll(query: any(named: 'query')))
         .thenAnswer((_) => watchAllController.stream);
-    when(() => mockStore.save(any(),
-            policy: any(named: 'policy'), tags: any(named: 'tags')))
-        .thenAnswer(
-            (invocation) async => invocation.positionalArguments[0] as TestUser);
+    when(() =>
+        mockStore.save(any(),
+            policy: any(named: 'policy'), tags: any(named: 'tags'))).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as TestUser);
     when(() => mockStore.saveAll(any(),
             policy: any(named: 'policy'), tags: any(named: 'tags')))
         .thenAnswer((invocation) async =>
@@ -83,8 +83,8 @@ void main() {
         },
         expect: () => [
           isA<NexusStoreLoading<TestUser>>(),
-          isA<NexusStoreError<TestUser>>()
-              .having((s) => s.error.toString(), 'error', contains('Network error')),
+          isA<NexusStoreError<TestUser>>().having(
+              (s) => s.error.toString(), 'error', contains('Network error')),
         ],
       );
 
@@ -111,7 +111,8 @@ void main() {
           await Future<void>.delayed(Duration.zero);
         },
         verify: (_) {
-          verify(() => mockStore.watchAll(query: any(named: 'query'))).called(1);
+          verify(() => mockStore.watchAll(query: any(named: 'query')))
+              .called(1);
         },
       );
     });
@@ -197,7 +198,8 @@ void main() {
           await Future<void>.delayed(Duration.zero);
         },
         verify: (_) {
-          verify(() => mockStore.delete('user-1', policy: WritePolicy.cacheOnly))
+          verify(() =>
+                  mockStore.delete('user-1', policy: WritePolicy.cacheOnly))
               .called(1);
         },
       );
@@ -272,8 +274,8 @@ void main() {
         'emits error state on save failure',
         build: () {
           when(() => mockStore.save(any(),
-                  policy: any(named: 'policy'), tags: any(named: 'tags')))
-              .thenThrow(Exception('Save failed'));
+              policy: any(named: 'policy'),
+              tags: any(named: 'tags'))).thenThrow(Exception('Save failed'));
           return NexusStoreBloc<TestUser, String>(mockStore);
         },
         seed: () => NexusStoreLoaded<TestUser>(data: TestFixtures.sampleUsers),

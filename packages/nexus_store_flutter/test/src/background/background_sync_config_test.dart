@@ -72,7 +72,10 @@ void main() {
         expect(copy.minInterval, equals(original.minInterval));
         expect(copy.requiresNetwork, equals(original.requiresNetwork));
         expect(copy.requiresCharging, equals(original.requiresCharging));
-        expect(copy.requiresBatteryNotLow, equals(original.requiresBatteryNotLow));
+        expect(
+            copy.requiresBatteryNotLow,
+            equals(original.requiresBatteryNotLow),
+        );
       });
 
       test('updates enabled when provided', () {

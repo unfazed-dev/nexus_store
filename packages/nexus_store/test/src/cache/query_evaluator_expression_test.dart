@@ -177,7 +177,8 @@ void main() {
         );
 
         expect(
-          evaluator.matchesExpression(userWithStatus, UserFields.status.isNull()),
+          evaluator.matchesExpression(
+              userWithStatus, UserFields.status.isNull()),
           isFalse,
         );
         expect(
@@ -279,7 +280,8 @@ void main() {
           isTrue,
         );
         expect(
-          evaluator.matchesExpression(user, UserFields.name.startsWith('Smith')),
+          evaluator.matchesExpression(
+              user, UserFields.name.startsWith('Smith')),
           isFalse,
         );
       });
@@ -556,10 +558,30 @@ void main() {
     group('complex expressions', () {
       test('(age > 18 AND status = active) OR tags contains admin', () {
         final users = [
-          User(id: '1', name: 'Adult Active', age: 25, status: 'active', tags: []),
-          User(id: '2', name: 'Adult Inactive', age: 25, status: 'inactive', tags: []),
-          User(id: '3', name: 'Minor Admin', age: 15, status: 'inactive', tags: ['admin']),
-          User(id: '4', name: 'Minor NonAdmin', age: 15, status: 'inactive', tags: []),
+          User(
+              id: '1',
+              name: 'Adult Active',
+              age: 25,
+              status: 'active',
+              tags: []),
+          User(
+              id: '2',
+              name: 'Adult Inactive',
+              age: 25,
+              status: 'inactive',
+              tags: []),
+          User(
+              id: '3',
+              name: 'Minor Admin',
+              age: 15,
+              status: 'inactive',
+              tags: ['admin']),
+          User(
+              id: '4',
+              name: 'Minor NonAdmin',
+              age: 15,
+              status: 'inactive',
+              tags: []),
         ];
 
         // Creating a typed expression that can be cast
@@ -568,10 +590,12 @@ void main() {
         final hasAdmin = UserFields.tags.arrayContains('admin');
         final expr = ageGt18.and(statusActive).or(hasAdmin);
 
-        final matches = users.where((u) => evaluator.matchesExpression(u, expr)).toList();
+        final matches =
+            users.where((u) => evaluator.matchesExpression(u, expr)).toList();
 
         expect(matches, hasLength(2));
-        expect(matches.map((u) => u.name), containsAll(['Adult Active', 'Minor Admin']));
+        expect(matches.map((u) => u.name),
+            containsAll(['Adult Active', 'Minor Admin']));
       });
 
       test('deeply nested expressions', () {
@@ -615,7 +639,8 @@ void main() {
         final results = evaluator.evaluateWithExpression(users, expr);
 
         expect(results, hasLength(3));
-        expect(results.map((u) => u.name), containsAll(['John', 'Jane', 'Alice']));
+        expect(
+            results.map((u) => u.name), containsAll(['John', 'Jane', 'Alice']));
       });
 
       test('returns all items for empty/always-true expression', () {

@@ -15,7 +15,8 @@ sealed class NexusStoreState<T> {
     required R Function() initial,
     required R Function(List<T>? previousData) loading,
     required R Function(List<T> data) loaded,
-    required R Function(Object error, StackTrace? stackTrace, List<T>? previousData)
+    required R Function(
+            Object error, StackTrace? stackTrace, List<T>? previousData)
         error,
   });
 
@@ -57,7 +58,8 @@ final class NexusStoreInitial<T> extends NexusStoreState<T> {
     required R Function() initial,
     required R Function(List<T>? previousData) loading,
     required R Function(List<T> data) loaded,
-    required R Function(Object error, StackTrace? stackTrace, List<T>? previousData)
+    required R Function(
+            Object error, StackTrace? stackTrace, List<T>? previousData)
         error,
   }) =>
       initial();
@@ -115,7 +117,8 @@ final class NexusStoreLoading<T> extends NexusStoreState<T> {
     required R Function() initial,
     required R Function(List<T>? previousData) loading,
     required R Function(List<T> data) loaded,
-    required R Function(Object error, StackTrace? stackTrace, List<T>? previousData)
+    required R Function(
+            Object error, StackTrace? stackTrace, List<T>? previousData)
         error,
   }) =>
       loading(previousData);
@@ -159,7 +162,8 @@ final class NexusStoreLoading<T> extends NexusStoreState<T> {
           _listEquality.equals(previousData, other.previousData);
 
   @override
-  int get hashCode => Object.hash(runtimeType, _listEquality.hash(previousData));
+  int get hashCode =>
+      Object.hash(runtimeType, _listEquality.hash(previousData));
 
   @override
   String toString() => 'NexusStoreLoading<$T>(previousData: $previousData)';
@@ -177,7 +181,8 @@ final class NexusStoreLoaded<T> extends NexusStoreState<T> {
     required R Function() initial,
     required R Function(List<T>? previousData) loading,
     required R Function(List<T> data) loaded,
-    required R Function(Object error, StackTrace? stackTrace, List<T>? previousData)
+    required R Function(
+            Object error, StackTrace? stackTrace, List<T>? previousData)
         error,
   }) =>
       loaded(data);
@@ -251,7 +256,8 @@ final class NexusStoreError<T> extends NexusStoreState<T> {
     required R Function() initial,
     required R Function(List<T>? previousData) loading,
     required R Function(List<T> data) loaded,
-    required R Function(Object error, StackTrace? stackTrace, List<T>? previousData)
+    required R Function(
+            Object error, StackTrace? stackTrace, List<T>? previousData)
         error,
   }) =>
       error(this.error, stackTrace, previousData);

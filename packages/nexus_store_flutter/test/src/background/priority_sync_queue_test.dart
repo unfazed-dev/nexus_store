@@ -19,18 +19,20 @@ void main() {
       });
 
       test('can add multiple items', () {
-        queue.enqueue('item1', SyncPriority.normal);
-        queue.enqueue('item2', SyncPriority.high);
-        queue.enqueue('item3', SyncPriority.low);
+        queue
+          ..enqueue('item1', SyncPriority.normal)
+          ..enqueue('item2', SyncPriority.high)
+          ..enqueue('item3', SyncPriority.low);
 
         expect(queue.length, equals(3));
       });
 
       test('accepts all priority levels', () {
-        queue.enqueue('critical', SyncPriority.critical);
-        queue.enqueue('high', SyncPriority.high);
-        queue.enqueue('normal', SyncPriority.normal);
-        queue.enqueue('low', SyncPriority.low);
+        queue
+          ..enqueue('critical', SyncPriority.critical)
+          ..enqueue('high', SyncPriority.high)
+          ..enqueue('normal', SyncPriority.normal)
+          ..enqueue('low', SyncPriority.low);
 
         expect(queue.length, equals(4));
       });
@@ -42,9 +44,10 @@ void main() {
       });
 
       test('returns and removes highest priority item', () {
-        queue.enqueue('low', SyncPriority.low);
-        queue.enqueue('critical', SyncPriority.critical);
-        queue.enqueue('normal', SyncPriority.normal);
+        queue
+          ..enqueue('low', SyncPriority.low)
+          ..enqueue('critical', SyncPriority.critical)
+          ..enqueue('normal', SyncPriority.normal);
 
         final item = queue.dequeue();
 
@@ -53,10 +56,11 @@ void main() {
       });
 
       test('returns items in priority order', () {
-        queue.enqueue('low', SyncPriority.low);
-        queue.enqueue('critical', SyncPriority.critical);
-        queue.enqueue('high', SyncPriority.high);
-        queue.enqueue('normal', SyncPriority.normal);
+        queue
+          ..enqueue('low', SyncPriority.low)
+          ..enqueue('critical', SyncPriority.critical)
+          ..enqueue('high', SyncPriority.high)
+          ..enqueue('normal', SyncPriority.normal);
 
         expect(queue.dequeue(), equals('critical'));
         expect(queue.dequeue(), equals('high'));
@@ -68,24 +72,27 @@ void main() {
 
     group('priority ordering', () {
       test('critical items come before high', () {
-        queue.enqueue('high', SyncPriority.high);
-        queue.enqueue('critical', SyncPriority.critical);
+        queue
+          ..enqueue('high', SyncPriority.high)
+          ..enqueue('critical', SyncPriority.critical);
 
         expect(queue.dequeue(), equals('critical'));
         expect(queue.dequeue(), equals('high'));
       });
 
       test('high items come before normal', () {
-        queue.enqueue('normal', SyncPriority.normal);
-        queue.enqueue('high', SyncPriority.high);
+        queue
+          ..enqueue('normal', SyncPriority.normal)
+          ..enqueue('high', SyncPriority.high);
 
         expect(queue.dequeue(), equals('high'));
         expect(queue.dequeue(), equals('normal'));
       });
 
       test('normal items come before low', () {
-        queue.enqueue('low', SyncPriority.low);
-        queue.enqueue('normal', SyncPriority.normal);
+        queue
+          ..enqueue('low', SyncPriority.low)
+          ..enqueue('normal', SyncPriority.normal);
 
         expect(queue.dequeue(), equals('normal'));
         expect(queue.dequeue(), equals('low'));
@@ -94,9 +101,10 @@ void main() {
 
     group('FIFO within same priority', () {
       test('items with same priority are FIFO', () {
-        queue.enqueue('first', SyncPriority.normal);
-        queue.enqueue('second', SyncPriority.normal);
-        queue.enqueue('third', SyncPriority.normal);
+        queue
+          ..enqueue('first', SyncPriority.normal)
+          ..enqueue('second', SyncPriority.normal)
+          ..enqueue('third', SyncPriority.normal);
 
         expect(queue.dequeue(), equals('first'));
         expect(queue.dequeue(), equals('second'));
@@ -104,10 +112,11 @@ void main() {
       });
 
       test('FIFO is maintained for each priority level', () {
-        queue.enqueue('high1', SyncPriority.high);
-        queue.enqueue('normal1', SyncPriority.normal);
-        queue.enqueue('high2', SyncPriority.high);
-        queue.enqueue('normal2', SyncPriority.normal);
+        queue
+          ..enqueue('high1', SyncPriority.high)
+          ..enqueue('normal1', SyncPriority.normal)
+          ..enqueue('high2', SyncPriority.high)
+          ..enqueue('normal2', SyncPriority.normal);
 
         expect(queue.dequeue(), equals('high1'));
         expect(queue.dequeue(), equals('high2'));
@@ -122,8 +131,9 @@ void main() {
       });
 
       test('returns highest priority item without removing', () {
-        queue.enqueue('normal', SyncPriority.normal);
-        queue.enqueue('critical', SyncPriority.critical);
+        queue
+          ..enqueue('normal', SyncPriority.normal)
+          ..enqueue('critical', SyncPriority.critical);
 
         expect(queue.peek(), equals('critical'));
         expect(queue.length, equals(2));
@@ -133,11 +143,11 @@ void main() {
 
     group('clear', () {
       test('removes all items', () {
-        queue.enqueue('item1', SyncPriority.normal);
-        queue.enqueue('item2', SyncPriority.high);
-        queue.enqueue('item3', SyncPriority.low);
-
-        queue.clear();
+        queue
+          ..enqueue('item1', SyncPriority.normal)
+          ..enqueue('item2', SyncPriority.high)
+          ..enqueue('item3', SyncPriority.low)
+          ..clear();
 
         expect(queue.isEmpty, isTrue);
         expect(queue.length, equals(0));
@@ -158,8 +168,9 @@ void main() {
       });
 
       test('isEmpty is true after removing all items', () {
-        queue.enqueue('item', SyncPriority.normal);
-        queue.dequeue();
+        queue
+          ..enqueue('item', SyncPriority.normal)
+          ..dequeue();
 
         expect(queue.isEmpty, isTrue);
       });
@@ -188,9 +199,10 @@ void main() {
       });
 
       test('returns items in priority order', () {
-        queue.enqueue('low', SyncPriority.low);
-        queue.enqueue('critical', SyncPriority.critical);
-        queue.enqueue('high', SyncPriority.high);
+        queue
+          ..enqueue('low', SyncPriority.low)
+          ..enqueue('critical', SyncPriority.critical)
+          ..enqueue('high', SyncPriority.high);
 
         final list = queue.toList();
 
@@ -198,9 +210,9 @@ void main() {
       });
 
       test('does not modify the queue', () {
-        queue.enqueue('item', SyncPriority.normal);
-
-        queue.toList();
+        queue
+          ..enqueue('item', SyncPriority.normal)
+          ..toList();
 
         expect(queue.length, equals(1));
       });
@@ -208,20 +220,18 @@ void main() {
 
     group('type safety', () {
       test('works with custom types', () {
-        final customQueue = PrioritySyncQueue<Map<String, dynamic>>();
-
-        customQueue.enqueue({'id': 1}, SyncPriority.high);
-        customQueue.enqueue({'id': 2}, SyncPriority.normal);
+        final customQueue = PrioritySyncQueue<Map<String, dynamic>>()
+          ..enqueue({'id': 1}, SyncPriority.high)
+          ..enqueue({'id': 2}, SyncPriority.normal);
 
         final item = customQueue.dequeue();
         expect(item, equals({'id': 1}));
       });
 
       test('works with nullable types', () {
-        final nullableQueue = PrioritySyncQueue<String?>();
-
-        nullableQueue.enqueue(null, SyncPriority.normal);
-        nullableQueue.enqueue('value', SyncPriority.high);
+        final nullableQueue = PrioritySyncQueue<String?>()
+          ..enqueue(null, SyncPriority.normal)
+          ..enqueue('value', SyncPriority.high);
 
         expect(nullableQueue.dequeue(), equals('value'));
         expect(nullableQueue.dequeue(), isNull);
@@ -236,8 +246,7 @@ void main() {
 
         expect(queue.length, equals(1000));
 
-        // Verify all critical items come first
-        const lastPriority = SyncPriority.critical;
+        // Drain queue to verify no exceptions during dequeue
         while (queue.isNotEmpty) {
           queue.dequeue();
         }
@@ -249,8 +258,9 @@ void main() {
         queue.enqueue('a', SyncPriority.normal);
         expect(queue.dequeue(), equals('a'));
 
-        queue.enqueue('b', SyncPriority.high);
-        queue.enqueue('c', SyncPriority.critical);
+        queue
+          ..enqueue('b', SyncPriority.high)
+          ..enqueue('c', SyncPriority.critical);
         expect(queue.dequeue(), equals('c'));
 
         queue.enqueue('d', SyncPriority.low);

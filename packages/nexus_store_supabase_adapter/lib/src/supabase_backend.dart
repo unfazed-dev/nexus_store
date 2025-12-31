@@ -298,11 +298,8 @@ class SupabaseBackend<T, ID>
       _syncStatusSubject.add(nexus.SyncStatus.pending);
 
       final json = _toJson(item);
-      final response = await _client
-          .from(_tableName)
-          .upsert(json)
-          .select()
-          .single();
+      final response =
+          await _client.from(_tableName).upsert(json).select().single();
 
       final result = _fromJson(response);
 
@@ -324,10 +321,7 @@ class SupabaseBackend<T, ID>
       _syncStatusSubject.add(nexus.SyncStatus.pending);
 
       final jsonList = items.map(_toJson).toList();
-      final response = await _client
-          .from(_tableName)
-          .upsert(jsonList)
-          .select();
+      final response = await _client.from(_tableName).upsert(jsonList).select();
 
       final results = response.map(_fromJson).toList();
 

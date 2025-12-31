@@ -241,7 +241,8 @@ void main() {
         expect(fieldLevelConfig.hasKeyDerivation, isTrue);
       });
 
-      test('hasKeyDerivation should return false when keyDerivation is null', () {
+      test('hasKeyDerivation should return false when keyDerivation is null',
+          () {
         final config = EncryptionConfig.fieldLevel(
           encryptedFields: {'ssn'},
           keyProvider: () async => 'test-key',
@@ -263,10 +264,10 @@ void main() {
         );
 
         String getType(EncryptionConfig config) => switch (config) {
-            EncryptionNone() => 'none',
-            EncryptionSqlCipher() => 'sqlCipher',
-            EncryptionFieldLevel() => 'fieldLevel',
-          };
+              EncryptionNone() => 'none',
+              EncryptionSqlCipher() => 'sqlCipher',
+              EncryptionFieldLevel() => 'fieldLevel',
+            };
 
         expect(getType(config1), equals('none'));
         expect(getType(config2), equals('sqlCipher'));

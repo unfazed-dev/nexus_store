@@ -25,8 +25,7 @@ class TestBackgroundSyncService extends BackgroundSyncService {
   BackgroundSyncConfig? currentConfig;
   bool _initialized = false;
   bool _syncScheduled = false;
-  final _statusController =
-      StreamController<BackgroundSyncStatus>.broadcast();
+  final _statusController = StreamController<BackgroundSyncStatus>.broadcast();
 
   @override
   bool get isSupported => platformSupported;
@@ -87,9 +86,7 @@ void main() {
 
     group('isSupported', () {
       test('returns true when platform is supported', () {
-        final supportedService = TestBackgroundSyncService(
-          
-        );
+        final supportedService = TestBackgroundSyncService();
 
         expect(supportedService.isSupported, isTrue);
       });
@@ -128,9 +125,12 @@ void main() {
 
         await service.initialize(config);
 
-        expect(service.currentConfig?.minInterval, equals(
-          const Duration(hours: 1),
-        ),);
+        expect(
+          service.currentConfig?.minInterval,
+          equals(
+            const Duration(hours: 1),
+          ),
+        );
         expect(service.currentConfig?.requiresCharging, isTrue);
       });
     });
@@ -195,9 +195,10 @@ void main() {
         final statuses = <BackgroundSyncStatus>[];
         final subscription = service.statusStream.listen(statuses.add);
 
-        service.emitStatus(BackgroundSyncStatus.scheduled);
-        service.emitStatus(BackgroundSyncStatus.running);
-        service.emitStatus(BackgroundSyncStatus.completed);
+        service
+          ..emitStatus(BackgroundSyncStatus.scheduled)
+          ..emitStatus(BackgroundSyncStatus.running)
+          ..emitStatus(BackgroundSyncStatus.completed);
 
         await Future<void>.delayed(Duration.zero);
 

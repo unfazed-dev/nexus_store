@@ -39,14 +39,15 @@ class TestUser {
     int? age,
     DateTime? createdAt,
     bool? isActive,
-  }) => TestUser(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      email: email ?? this.email,
-      age: age ?? this.age,
-      createdAt: createdAt ?? this.createdAt,
-      isActive: isActive ?? this.isActive,
-    );
+  }) =>
+      TestUser(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        email: email ?? this.email,
+        age: age ?? this.age,
+        createdAt: createdAt ?? this.createdAt,
+        isActive: isActive ?? this.isActive,
+      );
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -103,13 +104,14 @@ class TestProduct {
     double? price,
     String? category,
     bool? inStock,
-  }) => TestProduct(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      price: price ?? this.price,
-      category: category ?? this.category,
-      inStock: inStock ?? this.inStock,
-    );
+  }) =>
+      TestProduct(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        price: price ?? this.price,
+        category: category ?? this.category,
+        inStock: inStock ?? this.inStock,
+      );
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -154,25 +156,26 @@ class TestFixtures {
     String email = 'john@example.com',
     int? age = 30,
     bool isActive = true,
-  }) => TestUser(
-      id: id,
-      name: name,
-      email: email,
-      age: age,
-      createdAt: DateTime(2024),
-      isActive: isActive,
-    );
+  }) =>
+      TestUser(
+        id: id,
+        name: name,
+        email: email,
+        age: age,
+        createdAt: DateTime(2024),
+        isActive: isActive,
+      );
 
   /// Creates a list of sample test users.
   static List<TestUser> createUsers(int count) => List.generate(
-      count,
-      (i) => createUser(
-        id: 'user-$i',
-        name: 'User $i',
-        email: 'user$i@example.com',
-        age: 20 + i,
-      ),
-    );
+        count,
+        (i) => createUser(
+          id: 'user-$i',
+          name: 'User $i',
+          email: 'user$i@example.com',
+          age: 20 + i,
+        ),
+      );
 
   /// Creates a sample test product.
   static TestProduct createProduct({
@@ -181,24 +184,25 @@ class TestFixtures {
     double price = 9.99,
     String? category = 'Electronics',
     bool inStock = true,
-  }) => TestProduct(
-      id: id,
-      name: name,
-      price: price,
-      category: category,
-      inStock: inStock,
-    );
+  }) =>
+      TestProduct(
+        id: id,
+        name: name,
+        price: price,
+        category: category,
+        inStock: inStock,
+      );
 
   /// Creates a list of sample test products.
   static List<TestProduct> createProducts(int count) => List.generate(
-      count,
-      (i) => createProduct(
-        id: i,
-        name: 'Product $i',
-        price: 9.99 + i,
-        category: i.isEven ? 'Electronics' : 'Books',
-      ),
-    );
+        count,
+        (i) => createProduct(
+          id: i,
+          name: 'Product $i',
+          price: 9.99 + i,
+          category: i.isEven ? 'Electronics' : 'Books',
+        ),
+      );
 
   /// Sample user for basic tests.
   static TestUser get sampleUser => createUser();

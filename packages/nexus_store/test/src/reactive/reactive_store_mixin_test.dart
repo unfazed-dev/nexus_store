@@ -4,7 +4,6 @@ import 'package:nexus_store/nexus_store.dart';
 import 'package:test/test.dart';
 
 class TestStore with ReactiveStoreMixin {
-
   TestStore() {
     counter = createReactiveState(0);
     name = createReactiveState('initial');

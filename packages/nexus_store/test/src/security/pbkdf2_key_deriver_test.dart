@@ -104,7 +104,8 @@ void main() {
         expect(result.algorithm, equals('pbkdf2-sha256'));
       });
 
-      test('should produce consistent output for same password and salt', () async {
+      test('should produce consistent output for same password and salt',
+          () async {
         final salt = Uint8List.fromList(List.generate(16, (i) => i));
 
         final result1 = await deriver.deriveKey(
@@ -234,7 +235,8 @@ void main() {
         expect(result.params['iterations'], equals(100000));
       });
 
-      test('different iteration counts should produce different keys', () async {
+      test('different iteration counts should produce different keys',
+          () async {
         final salt = Uint8List.fromList(List.generate(16, (i) => i));
 
         const config100k = KeyDerivationConfig.pbkdf2(iterations: 100000);

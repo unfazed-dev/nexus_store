@@ -130,8 +130,7 @@ final class StoreResultIdle<T> extends StoreResult<T> {
       idle?.call() ?? orElse();
 
   @override
-  StoreResult<R> map<R>(R Function(T data) transform) =>
-      StoreResult<R>.idle();
+  StoreResult<R> map<R>(R Function(T data) transform) => StoreResult<R>.idle();
 
   @override
   StoreResult<T> copyWith({T? data, Object? error}) {

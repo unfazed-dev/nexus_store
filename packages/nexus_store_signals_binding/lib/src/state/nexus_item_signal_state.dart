@@ -171,7 +171,8 @@ final class NexusItemSignalLoading<T> extends NexusItemSignalState<T> {
   int get hashCode => Object.hash(runtimeType, previousData);
 
   @override
-  String toString() => 'NexusItemSignalLoading<$T>(previousData: $previousData)';
+  String toString() =>
+      'NexusItemSignalLoading<$T>(previousData: $previousData)';
 }
 
 /// Data state with loaded data.

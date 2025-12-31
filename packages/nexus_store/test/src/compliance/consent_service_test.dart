@@ -43,10 +43,12 @@ void main() {
 
   group('ConsentAction', () {
     test('has all required values', () {
-      expect(ConsentAction.values, containsAll([
-        ConsentAction.granted,
-        ConsentAction.withdrawn,
-      ]));
+      expect(
+          ConsentAction.values,
+          containsAll([
+            ConsentAction.granted,
+            ConsentAction.withdrawn,
+          ]));
     });
 
     test('has exactly 2 values', () {
@@ -427,7 +429,8 @@ void main() {
       });
 
       test('returns false for non-existent user', () async {
-        final hasConsent = await service.hasConsent('non-existent', 'marketing');
+        final hasConsent =
+            await service.hasConsent('non-existent', 'marketing');
 
         expect(hasConsent, isFalse);
       });

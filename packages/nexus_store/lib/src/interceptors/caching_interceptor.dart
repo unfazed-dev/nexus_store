@@ -6,7 +6,8 @@ import 'store_interceptor.dart';
 import 'store_operation.dart';
 
 /// Type definition for custom cache key generator.
-typedef CacheKeyGenerator = String Function(StoreOperation operation, Object? request);
+typedef CacheKeyGenerator = String Function(
+    StoreOperation operation, Object? request);
 
 /// An interceptor that deduplicates concurrent identical requests.
 ///
@@ -118,7 +119,8 @@ class CachingInterceptor extends StoreInterceptor {
   }
 
   /// Default key generator that combines operation and request.
-  static String _defaultKeyGenerator(StoreOperation operation, Object? request) {
+  static String _defaultKeyGenerator(
+      StoreOperation operation, Object? request) {
     return '${operation.name}:${request?.hashCode ?? 'null'}';
   }
 }

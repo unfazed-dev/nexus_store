@@ -44,8 +44,7 @@ void main() {
 
     group('filter translation', () {
       test('translates equals filter', () {
-        final query =
-            const Query<TestModel>().where('name', isEqualTo: 'John');
+        final query = const Query<TestModel>().where('name', isEqualTo: 'John');
 
         final (sql, args) = translator.toSelectSql(
           tableName: 'users',
@@ -374,8 +373,7 @@ void main() {
 
     group('toDeleteSql', () {
       test('generates DELETE with WHERE clause', () {
-        final query =
-            const Query<TestModel>().where('name', isEqualTo: 'John');
+        final query = const Query<TestModel>().where('name', isEqualTo: 'John');
 
         final (sql, args) = translator.toDeleteSql(
           tableName: 'users',

@@ -66,14 +66,16 @@ class LazyGenerator extends GeneratorForAnnotation<NexusLazy> {
       final annotation = _lazyChecker.firstAnnotationOf(field);
       if (annotation != null) {
         final reader = ConstantReader(annotation);
-        lazyFields.add(_LazyFieldInfo(
-          name: field.name,
-          typeName: field.type.getDisplayString(withNullability: true),
-          placeholder: reader.read('placeholder').isNull
-              ? null
-              : reader.read('placeholder').literalValue,
-          preloadOnWatch: reader.read('preloadOnWatch').boolValue,
-        ),);
+        lazyFields.add(
+          _LazyFieldInfo(
+            name: field.name,
+            typeName: field.type.getDisplayString(withNullability: true),
+            placeholder: reader.read('placeholder').isNull
+                ? null
+                : reader.read('placeholder').literalValue,
+            preloadOnWatch: reader.read('preloadOnWatch').boolValue,
+          ),
+        );
       }
     }
 

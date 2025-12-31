@@ -179,9 +179,10 @@ void main() {
           timestamp: testTimestamp,
         );
 
-        original.copyWith(event: CacheEvent.eviction);
+        final copy = original.copyWith(event: CacheEvent.eviction);
 
         expect(original.event, equals(CacheEvent.hit));
+        expect(copy.event, equals(CacheEvent.eviction));
       });
     });
 

@@ -27,7 +27,8 @@ void main() {
         final nullableEstimator = JsonSizeEstimator<Map<String, dynamic>?>(
           toJson: (item) => item,
         );
-        expect(nullableEstimator.estimateSize(null), equals(4)); // 'null' is 4 bytes
+        expect(nullableEstimator.estimateSize(null),
+            equals(4)); // 'null' is 4 bytes
       });
 
       test('larger objects have larger estimates', () {

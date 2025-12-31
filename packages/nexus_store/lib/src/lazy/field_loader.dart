@@ -33,12 +33,11 @@ class FieldLoader<T, ID> {
   /// Creates a field loader.
   FieldLoader({
     required StoreBackend<T, ID> backend,
+    // ignore: unused_element - reserved for future batching configuration
     LazyLoadConfig config = const LazyLoadConfig(),
-  })  : _backend = backend,
-        _config = config;
+  }) : _backend = backend;
 
   final StoreBackend<T, ID> _backend;
-  final LazyLoadConfig _config;
 
   /// Cache of loaded field values: entityId -> fieldName -> value
   final Map<ID, Map<String, dynamic>> _cache = {};

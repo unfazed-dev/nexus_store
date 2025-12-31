@@ -91,7 +91,8 @@ void main() {
       expect(error.isRetryable, isTrue);
     });
 
-    test('should not be retryable when statusCode is 4xx '
+    test(
+        'should not be retryable when statusCode is 4xx '
         '(except 408, 429)', () {
       const error400 = NetworkError(message: 'test', statusCode: 400);
       const error404 = NetworkError(message: 'test', statusCode: 404);

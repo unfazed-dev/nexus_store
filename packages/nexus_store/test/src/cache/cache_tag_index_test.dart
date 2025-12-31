@@ -28,7 +28,8 @@ void main() {
         index.addTags('user-1', {'premium'});
         index.addTags('user-1', {'active'});
 
-        expect(index.getTagsForId('user-1'), containsAll(['premium', 'active']));
+        expect(
+            index.getTagsForId('user-1'), containsAll(['premium', 'active']));
       });
 
       test('should handle empty tags set', () {
@@ -42,7 +43,8 @@ void main() {
       test('should get tags for ID', () {
         index.addTags('user-1', {'premium', 'active'});
 
-        expect(index.getTagsForId('user-1'), containsAll(['premium', 'active']));
+        expect(
+            index.getTagsForId('user-1'), containsAll(['premium', 'active']));
       });
 
       test('should return empty set for unknown ID', () {

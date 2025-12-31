@@ -117,14 +117,16 @@ void main() {
 
   group('SagaStatus', () {
     test('has all expected values', () {
-      expect(SagaStatus.values, containsAll([
-        SagaStatus.pending,
-        SagaStatus.executing,
-        SagaStatus.compensating,
-        SagaStatus.completed,
-        SagaStatus.failed,
-        SagaStatus.partiallyFailed,
-      ]));
+      expect(
+          SagaStatus.values,
+          containsAll([
+            SagaStatus.pending,
+            SagaStatus.executing,
+            SagaStatus.compensating,
+            SagaStatus.completed,
+            SagaStatus.failed,
+            SagaStatus.partiallyFailed,
+          ]));
     });
 
     test('isTerminal returns true for completed states', () {

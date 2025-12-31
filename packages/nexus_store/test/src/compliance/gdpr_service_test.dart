@@ -159,8 +159,7 @@ void main() {
 
       test('should accept optional parameters', () {
         final auditService = MockAuditService();
-        final serviceWithOptions =
-            GdprService<Map<String, dynamic>, String>(
+        final serviceWithOptions = GdprService<Map<String, dynamic>, String>(
           backend: backend,
           subjectIdField: 'userId',
           auditService: auditService,
@@ -230,8 +229,7 @@ void main() {
           ),
         ).thenAnswer((_) async => mockEntry);
 
-        final serviceWithAudit =
-            GdprService<Map<String, dynamic>, String>(
+        final serviceWithAudit = GdprService<Map<String, dynamic>, String>(
           backend: backend,
           subjectIdField: 'userId',
           auditService: auditService,
@@ -287,8 +285,7 @@ void main() {
       });
 
       test('should pseudonymize when configured', () async {
-        final pseudonymService =
-            GdprService<Map<String, dynamic>, String>(
+        final pseudonymService = GdprService<Map<String, dynamic>, String>(
           backend: backend,
           subjectIdField: 'userId',
           pseudonymizeFields: ['name', 'email'],
@@ -315,8 +312,7 @@ void main() {
       });
 
       test('should retain specified fields during pseudonymization', () async {
-        final pseudonymService =
-            GdprService<Map<String, dynamic>, String>(
+        final pseudonymService = GdprService<Map<String, dynamic>, String>(
           backend: backend,
           subjectIdField: 'userId',
           pseudonymizeFields: ['name', 'email', 'createdAt'],

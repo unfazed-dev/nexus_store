@@ -350,7 +350,8 @@ void main() {
         expect(state1, equals(state2));
       });
 
-      test('NexusStoreLoading instances with different data should not be equal',
+      test(
+          'NexusStoreLoading instances with different data should not be equal',
           () {
         const state1 = NexusStoreLoading<String>(previousData: ['a']);
         const state2 = NexusStoreLoading<String>(previousData: ['b']);
@@ -377,7 +378,8 @@ void main() {
         expect(state1, equals(state2));
       });
 
-      test('NexusStoreError instances with different errors should not be equal',
+      test(
+          'NexusStoreError instances with different errors should not be equal',
           () {
         final state1 = NexusStoreError<String>(error: Exception('test1'));
         final state2 = NexusStoreError<String>(error: Exception('test2'));
@@ -406,7 +408,8 @@ void main() {
         expect(state1.hashCode, equals(state2.hashCode));
       });
 
-      test('NexusStoreLoaded instances with same data should have same hashCode',
+      test(
+          'NexusStoreLoaded instances with same data should have same hashCode',
           () {
         const state1 = NexusStoreLoaded<String>(data: ['a', 'b']);
         const state2 = NexusStoreLoaded<String>(data: ['a', 'b']);

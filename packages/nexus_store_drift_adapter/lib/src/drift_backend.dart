@@ -149,12 +149,10 @@ class DriftBackend<T, ID>
         query: query,
       );
 
-      final results = await _executor!
-          .customSelect(
-            sql,
-            variables: [for (final arg in args) Variable(arg)],
-          )
-          .get();
+      final results = await _executor!.customSelect(
+        sql,
+        variables: [for (final arg in args) Variable(arg)],
+      ).get();
 
       if (results.isEmpty) {
         return null;
@@ -176,12 +174,10 @@ class DriftBackend<T, ID>
         query: query,
       );
 
-      final results = await _executor!
-          .customSelect(
-            sql,
-            variables: [for (final arg in args) Variable(arg)],
-          )
-          .get();
+      final results = await _executor!.customSelect(
+        sql,
+        variables: [for (final arg in args) Variable(arg)],
+      ).get();
 
       return results.map((row) => _fromJson(row.data)).toList();
     } catch (e, stackTrace) {
@@ -640,8 +636,7 @@ class DriftBackend<T, ID>
       );
     }
 
-    if (message.contains('database is locked') ||
-        message.contains('busy')) {
+    if (message.contains('database is locked') || message.contains('busy')) {
       return nexus.TransactionError(
         message: 'Database is locked',
         cause: error,

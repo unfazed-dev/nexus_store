@@ -58,7 +58,8 @@ void main() {
         );
         final after = DateTime.now();
 
-        expect(ctx.timestamp.isAfter(before) || ctx.timestamp == before, isTrue);
+        expect(
+            ctx.timestamp.isAfter(before) || ctx.timestamp == before, isTrue);
         expect(
           ctx.timestamp.isBefore(after) || ctx.timestamp == after,
           isTrue,

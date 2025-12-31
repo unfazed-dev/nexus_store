@@ -10,7 +10,8 @@ import 'package:nexus_store/src/query/query.dart';
 // Mock classes
 class MockAuditService extends Mock implements AuditService {}
 
-class MockStoreBackend extends Mock implements StoreBackend<TestEntity, String> {}
+class MockStoreBackend extends Mock
+    implements StoreBackend<TestEntity, String> {}
 
 // Test entity class
 class TestEntity {

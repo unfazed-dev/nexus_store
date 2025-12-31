@@ -60,7 +60,8 @@ class ValidationInterceptor<T> extends StoreInterceptor {
     required this.validate,
     Set<StoreOperation>? operations,
     this.errorFactory,
-  }) : _operations = operations ?? {StoreOperation.save, StoreOperation.saveAll};
+  }) : _operations =
+            operations ?? {StoreOperation.save, StoreOperation.saveAll};
 
   /// The validation function.
   final Validator<T> validate;

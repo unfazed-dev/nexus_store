@@ -19,8 +19,7 @@ import 'src/generator.dart';
 /// ```
 ///
 /// Then run `dart run build_runner build` to generate providers.
-Builder nexusStoreRiverpodBuilder(BuilderOptions options) =>
-    SharedPartBuilder(
+Builder nexusStoreRiverpodBuilder(BuilderOptions options) => SharedPartBuilder(
       [NexusStoreRiverpodGenerator()],
       'nexus_store_riverpod',
     );

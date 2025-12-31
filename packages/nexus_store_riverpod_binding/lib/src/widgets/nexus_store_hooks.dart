@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nexus_store/nexus_store.dart';
 
@@ -232,7 +231,7 @@ R Function(A) useStoreCallback<T, ID, A, R>(
   final debouncedValue = useState(initialValue);
 
   useEffect(() {
-    final timer = Future.delayed(duration, () {
+    Future.delayed(duration, () {
       if (debouncedValue.value != searchTerm.value) {
         debouncedValue.value = searchTerm.value;
       }

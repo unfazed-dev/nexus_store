@@ -367,8 +367,7 @@ void main() {
         final ageField = ComparableField<TestUser, int>('age');
         final statusField = Field<TestUser, String>('status');
 
-        final expr =
-            ageField.greaterThan(18).and(statusField.equals('active'));
+        final expr = ageField.greaterThan(18).and(statusField.equals('active'));
         final filters = expr.toFilters();
 
         expect(filters, hasLength(2));

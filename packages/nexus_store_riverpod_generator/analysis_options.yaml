@@ -1,4 +1,4 @@
-include: package:lints/recommended.yaml
+include: ../nexus_store/analysis_options.yaml
 
 linter:
   rules:

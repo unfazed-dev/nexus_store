@@ -319,8 +319,7 @@ void main() {
         await backend.save(TestModel(id: '2', name: 'Bob'));
         await backend.save(TestModel(id: '3', name: 'Charlie'));
 
-        final query =
-            const nexus.Query<TestModel>().where('age', isNull: true);
+        final query = const nexus.Query<TestModel>().where('age', isNull: true);
         final results = await backend.getAll(query: query);
 
         expect(results.length, equals(2));
@@ -360,8 +359,8 @@ void main() {
         await backend.save(TestModel(id: 'unique-1', name: 'Test', age: 99));
 
         // Using a unique query ensures no caching interference
-        final query = const nexus.Query<TestModel>()
-            .where('age', isEqualTo: 99);
+        final query =
+            const nexus.Query<TestModel>().where('age', isEqualTo: 99);
         final stream = backend.watchAll(query: query);
         final results = await stream.first;
 

@@ -26,7 +26,8 @@ void main() {
 
     group('pendingChanges stream', () {
       test('should expose pending changes stream from backend', () {
-        expect(store.pendingChanges, isA<Stream<List<PendingChange<TestUser>>>>());
+        expect(
+            store.pendingChanges, isA<Stream<List<PendingChange<TestUser>>>>());
       });
     });
 

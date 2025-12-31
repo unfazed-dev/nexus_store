@@ -230,7 +230,8 @@ class SagaFailure<T> extends SagaResult<T> {
           _listEquals(compensatedSteps, other.compensatedSteps);
 
   @override
-  int get hashCode => Object.hash(error, failedStep, Object.hashAll(compensatedSteps));
+  int get hashCode =>
+      Object.hash(error, failedStep, Object.hashAll(compensatedSteps));
 
   @override
   String toString() => 'SagaFailure<$T>('

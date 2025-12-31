@@ -4,9 +4,10 @@ import 'package:nexus_store_flutter/src/background/background_sync_service.dart'
 import 'package:nexus_store_flutter/src/background/no_op_sync_service.dart';
 import 'package:nexus_store_flutter/src/background/work_manager_sync_service.dart';
 
-/// Factory for creating platform-appropriate [BackgroundSyncService] instances.
+/// Factory for creating platform-appropriate [BackgroundSyncService].
 ///
-/// Automatically detects the platform and returns the appropriate implementation:
+/// Automatically detects the platform and returns the appropriate
+/// implementation:
 /// - Android/iOS: [WorkManagerSyncService] using the workmanager plugin
 /// - Other platforms: [NoOpSyncService] that does nothing
 ///
@@ -52,8 +53,9 @@ class BackgroundSyncServiceFactory {
   static bool get _isAndroid {
     try {
       return Platform.isAndroid;
-    } catch (_) {
-      // Platform not available (e.g., web)
+      // ignore: avoid_catching_errors
+    } on UnsupportedError catch (_) {
+      // Platform throws UnsupportedError on web - intentionally catching
       return false;
     }
   }
@@ -62,8 +64,9 @@ class BackgroundSyncServiceFactory {
   static bool get _isIOS {
     try {
       return Platform.isIOS;
-    } catch (_) {
-      // Platform not available (e.g., web)
+      // ignore: avoid_catching_errors
+    } on UnsupportedError catch (_) {
+      // Platform throws UnsupportedError on web - intentionally catching
       return false;
     }
   }

@@ -153,7 +153,8 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         expect(signal.value, isA<NexusSignalData<TestUser>>());
-        expect((signal.value as NexusSignalData<TestUser>).data, equals(testUsers));
+        expect((signal.value as NexusSignalData<TestUser>).data,
+            equals(testUsers));
 
         controller.close();
       });
@@ -169,7 +170,8 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         expect(signal.value, isA<NexusSignalError<TestUser>>());
-        expect((signal.value as NexusSignalError<TestUser>).error, isA<Exception>());
+        expect((signal.value as NexusSignalError<TestUser>).error,
+            isA<Exception>());
 
         controller.close();
       });
@@ -220,7 +222,8 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         expect(signal.value, isA<NexusItemSignalData<TestUser>>());
-        expect((signal.value as NexusItemSignalData<TestUser>).data, equals(testUser1));
+        expect((signal.value as NexusItemSignalData<TestUser>).data,
+            equals(testUser1));
 
         controller.close();
       });

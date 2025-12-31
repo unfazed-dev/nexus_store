@@ -73,7 +73,8 @@ void main() {
         expect(readOps, hasLength(4));
       });
 
-      test('write operations should include save, saveAll, delete, deleteAll', () {
+      test('write operations should include save, saveAll, delete, deleteAll',
+          () {
         final writeOps = {
           StoreOperation.save,
           StoreOperation.saveAll,
@@ -111,9 +112,10 @@ void main() {
       final ops = <StoreOperation>{
         StoreOperation.get,
         StoreOperation.save,
-        StoreOperation.get, // Duplicate
       };
-      expect(ops, hasLength(2));
+      // Adding duplicate should not increase size (set semantics)
+      final opsWithDuplicate = {...ops, StoreOperation.get};
+      expect(opsWithDuplicate, hasLength(2));
       expect(ops, contains(StoreOperation.get));
       expect(ops, contains(StoreOperation.save));
     });

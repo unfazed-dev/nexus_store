@@ -436,8 +436,9 @@ class CrdtBackend<T, ID>
     _ensureInitialized();
     // Manual sync trigger - actual implementation depends on transport layer
     // sqlite_crdt doesn't include transport, so this is a no-op placeholder
-    _syncStatusSubject.add(nexus.SyncStatus.syncing);
-    _syncStatusSubject.add(nexus.SyncStatus.synced);
+    _syncStatusSubject
+      ..add(nexus.SyncStatus.syncing)
+      ..add(nexus.SyncStatus.synced);
   }
 
   @override
@@ -687,6 +688,7 @@ class CrdtBackend<T, ID>
   void _refreshAllWatchers() {
     for (final entry in _watchAllSubjects.entries) {
       final queryKey = entry.key;
+      // ignore: close_sinks - subject is managed by _watchAllSubjects map
       final subject = entry.value;
 
       // For simplicity, refresh all watchAll with null query

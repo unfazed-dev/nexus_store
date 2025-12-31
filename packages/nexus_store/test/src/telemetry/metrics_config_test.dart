@@ -178,9 +178,10 @@ void main() {
       test('should preserve original when copying', () {
         const original = MetricsConfig(sampleRate: 1.0);
 
-        original.copyWith(sampleRate: 0.5);
+        final copy = original.copyWith(sampleRate: 0.5);
 
         expect(original.sampleRate, equals(1.0));
+        expect(copy.sampleRate, equals(0.5));
       });
     });
 

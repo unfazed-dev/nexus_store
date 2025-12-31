@@ -7,9 +7,12 @@ void main() {
   group('PendingChangeOperation', () {
     test('should have create, update, delete values', () {
       expect(PendingChangeOperation.values, hasLength(3));
-      expect(PendingChangeOperation.values, contains(PendingChangeOperation.create));
-      expect(PendingChangeOperation.values, contains(PendingChangeOperation.update));
-      expect(PendingChangeOperation.values, contains(PendingChangeOperation.delete));
+      expect(PendingChangeOperation.values,
+          contains(PendingChangeOperation.create));
+      expect(PendingChangeOperation.values,
+          contains(PendingChangeOperation.update));
+      expect(PendingChangeOperation.values,
+          contains(PendingChangeOperation.delete));
     });
   });
 

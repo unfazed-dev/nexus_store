@@ -358,7 +358,8 @@ void main() {
         coordinator.events.listen(events.add);
 
         await coordinator.transaction((ctx) async {
-          await ctx.save(userStore, TestFixtures.createUser(), idExtractor: (u) => u.id);
+          await ctx.save(userStore, TestFixtures.createUser(),
+              idExtractor: (u) => u.id);
         });
 
         await Future.delayed(Duration(milliseconds: 10));
@@ -371,7 +372,8 @@ void main() {
 
       test('handles failure and returns failure result', () async {
         final result = await coordinator.transaction((ctx) async {
-          await ctx.save(userStore, TestFixtures.createUser(), idExtractor: (u) => u.id);
+          await ctx.save(userStore, TestFixtures.createUser(),
+              idExtractor: (u) => u.id);
           throw Exception('Fail');
         });
 
@@ -395,7 +397,8 @@ void main() {
         final c = NexusStoreCoordinator(persistence: persistence);
 
         await c.transaction((ctx) async {
-          await ctx.save(userStore, TestFixtures.createUser(), idExtractor: (u) => u.id);
+          await ctx.save(userStore, TestFixtures.createUser(),
+              idExtractor: (u) => u.id);
         });
 
         // After successful completion, state should be cleaned up
@@ -414,7 +417,8 @@ void main() {
 
         await coordinator.transaction(
           (ctx) async {
-            await ctx.save(userStore, TestFixtures.createUser(), idExtractor: (u) => u.id);
+            await ctx.save(userStore, TestFixtures.createUser(),
+                idExtractor: (u) => u.id);
           },
           sagaId: 'custom-saga-id',
         );

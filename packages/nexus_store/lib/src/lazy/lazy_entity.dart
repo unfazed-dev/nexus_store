@@ -44,14 +44,12 @@ class LazyEntity<T, ID> {
     required FieldLoader<T, ID> fieldLoader,
     LazyLoadConfig config = const LazyLoadConfig(),
     dynamic Function(T entity, String fieldName)? fieldGetter,
-  })  : _idExtractor = idExtractor,
-        _fieldLoader = fieldLoader,
+  })  : _fieldLoader = fieldLoader,
         _config = config,
         _fieldGetter = fieldGetter,
         _id = idExtractor(_entity);
 
   final T _entity;
-  final ID Function(T) _idExtractor;
   final FieldLoader<T, ID> _fieldLoader;
   final LazyLoadConfig _config;
   final dynamic Function(T entity, String fieldName)? _fieldGetter;
@@ -130,9 +128,7 @@ class LazyEntity<T, ID> {
 
   /// Returns the set of lazy field names that are not yet loaded.
   Set<String> get unloadedFields {
-    return _config.lazyFields
-        .where((field) => !isFieldLoaded(field))
-        .toSet();
+    return _config.lazyFields.where((field) => !isFieldLoaded(field)).toSet();
   }
 
   /// Stream that emits field names when they are loaded.

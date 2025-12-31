@@ -20,7 +20,8 @@ void main() {
         expect(result, isTrue);
       });
 
-      test('should return true for isHealthy even when connection is closed', () async {
+      test('should return true for isHealthy even when connection is closed',
+          () async {
         final connection = FakeConnection();
         connection.close();
 
@@ -71,7 +72,8 @@ void main() {
           expect(result, isFalse);
         });
 
-        test('should return false when shouldFailHealthCheck is true', () async {
+        test('should return false when shouldFailHealthCheck is true',
+            () async {
           final connection = FakeConnection();
           healthCheck.shouldFailHealthCheck = true;
 

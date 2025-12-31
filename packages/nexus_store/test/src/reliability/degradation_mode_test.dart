@@ -145,10 +145,10 @@ void main() {
             isFalse);
         expect(DegradationMode.normal.isWorseThan(DegradationMode.cacheOnly),
             isFalse);
-        expect(
-            DegradationMode.normal.isWorseThan(DegradationMode.readOnly), isFalse);
-        expect(
-            DegradationMode.normal.isWorseThan(DegradationMode.offline), isFalse);
+        expect(DegradationMode.normal.isWorseThan(DegradationMode.readOnly),
+            isFalse);
+        expect(DegradationMode.normal.isWorseThan(DegradationMode.offline),
+            isFalse);
       });
 
       test('cacheOnly is worse than normal', () {
@@ -201,7 +201,8 @@ void main() {
 
       test('returns normal when all normal', () {
         expect(
-          DegradationMode.worst([DegradationMode.normal, DegradationMode.normal]),
+          DegradationMode.worst(
+              [DegradationMode.normal, DegradationMode.normal]),
           equals(DegradationMode.normal),
         );
       });

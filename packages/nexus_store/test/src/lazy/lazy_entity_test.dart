@@ -272,7 +272,8 @@ void main() {
         );
 
         final loadedFields = <String>[];
-        final subscription = lazyEntity.fieldLoadedStream.listen(loadedFields.add);
+        final subscription =
+            lazyEntity.fieldLoadedStream.listen(loadedFields.add);
 
         await lazyEntity.loadField('avatar');
 

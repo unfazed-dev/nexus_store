@@ -108,8 +108,7 @@ void main() {
             initial: () => const Text('Initial'),
             loading: (_) => const Text('Loading'),
             loadingMore: (_, __) => const Text('Loading More'),
-            data: (items, pageInfo) =>
-                Text('Data: ${items.length}'),
+            data: (items, pageInfo) => Text('Data: ${items.length}'),
             error: (_, __, ___) => const Text('Error'),
           ),
         ),
@@ -131,8 +130,7 @@ void main() {
             loading: (_) => const Text('Loading'),
             loadingMore: (_, __) => const Text('Loading More'),
             data: (_, __) => const Text('Data'),
-            error: (error, previousItems, pageInfo) =>
-                Text('Error: $error'),
+            error: (error, previousItems, pageInfo) => Text('Error: $error'),
           ),
         ),
       );
@@ -171,31 +169,31 @@ void main() {
         MaterialApp(
           home: StatefulBuilder(
             builder: (context, setState) => Column(
-                children: [
-                  PaginationStateBuilder<String>(
-                    state: state,
-                    initial: () => const Text('Initial'),
-                    loading: (_) => const Text('Loading'),
-                    loadingMore: (_, __) => const Text('Loading More'),
-                    data: (items, _) => Text('Data: ${items.length}'),
-                    error: (_, __, ___) => const Text('Error'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        state = PaginationState<String>.data(
-                          items: const ['x', 'y'],
-                          pageInfo: const PageInfo(
-                            hasNextPage: false,
-                            hasPreviousPage: false,
-                          ),
-                        );
-                      });
-                    },
-                    child: const Text('Change State'),
-                  ),
-                ],
-              ),
+              children: [
+                PaginationStateBuilder<String>(
+                  state: state,
+                  initial: () => const Text('Initial'),
+                  loading: (_) => const Text('Loading'),
+                  loadingMore: (_, __) => const Text('Loading More'),
+                  data: (items, _) => Text('Data: ${items.length}'),
+                  error: (_, __, ___) => const Text('Error'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      state = PaginationState<String>.data(
+                        items: const ['x', 'y'],
+                        pageInfo: const PageInfo(
+                          hasNextPage: false,
+                          hasPreviousPage: false,
+                        ),
+                      );
+                    });
+                  },
+                  child: const Text('Change State'),
+                ),
+              ],
+            ),
           ),
         ),
       );

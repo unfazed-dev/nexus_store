@@ -106,8 +106,7 @@ void main() {
         expect(config.hasValidThresholds, isFalse);
       });
 
-      test('hasValidThresholds returns false when thresholds out of range',
-          () {
+      test('hasValidThresholds returns false when thresholds out of range', () {
         const configNegative = MemoryConfig(moderateThreshold: -0.1);
         expect(configNegative.hasValidThresholds, isFalse);
 

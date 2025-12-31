@@ -374,7 +374,8 @@ void main() {
         expect(values, equals([0, 1]));
 
         // Update user (but count stays same)
-        await userStore.save(TestFixtures.createUser(id: 'u1', name: 'Updated'));
+        await userStore
+            .save(TestFixtures.createUser(id: 'u1', name: 'Updated'));
         await Future<void>.delayed(Duration.zero);
 
         // Count is still 1, so distinctUntilChanged should prevent duplicate

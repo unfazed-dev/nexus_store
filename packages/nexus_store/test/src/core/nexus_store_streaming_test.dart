@@ -73,7 +73,8 @@ void main() {
       final states = <PaginationState<_TestUser>>[];
       final subscription = store
           .watchAllPaginated(
-            query: const Query<_TestUser>().where('status', isEqualTo: 'active'),
+            query:
+                const Query<_TestUser>().where('status', isEqualTo: 'active'),
           )
           .listen(states.add);
 
@@ -220,13 +221,11 @@ void main() {
         backend.errorToThrow = Exception('Database error');
 
         final states = <PaginationState<_TestUser>>[];
-        final subscription = store
-            .watchAllPaginated(
-              onController: (controller) {
-                controller.refresh();
-              },
-            )
-            .listen(states.add);
+        final subscription = store.watchAllPaginated(
+          onController: (controller) {
+            controller.refresh();
+          },
+        ).listen(states.add);
 
         await Future<void>.delayed(const Duration(milliseconds: 100));
         await subscription.cancel();
@@ -241,14 +240,12 @@ void main() {
         late void Function() retry;
         final states = <PaginationState<_TestUser>>[];
 
-        final subscription = store
-            .watchAllPaginated(
-              onController: (controller) {
-                controller.refresh();
-                retry = controller.retry;
-              },
-            )
-            .listen(states.add);
+        final subscription = store.watchAllPaginated(
+          onController: (controller) {
+            controller.refresh();
+            retry = controller.retry;
+          },
+        ).listen(states.add);
 
         await Future<void>.delayed(const Duration(milliseconds: 100));
 

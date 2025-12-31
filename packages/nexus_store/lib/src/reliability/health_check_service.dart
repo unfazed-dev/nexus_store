@@ -178,12 +178,12 @@ class HealthCheckService {
   Future<ComponentHealth> _checkWithTimeout(HealthChecker checker) async {
     try {
       return await checker.check().timeout(
-        _config.timeout,
-        onTimeout: () => ComponentHealth.unhealthy(
-          checker.name,
-          'Health check timeout after ${_config.timeout.inSeconds}s',
-        ),
-      );
+            _config.timeout,
+            onTimeout: () => ComponentHealth.unhealthy(
+              checker.name,
+              'Health check timeout after ${_config.timeout.inSeconds}s',
+            ),
+          );
     } catch (e) {
       return ComponentHealth.unhealthy(
         checker.name,

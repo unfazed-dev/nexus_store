@@ -394,8 +394,8 @@ void main() {
         expect(NexusRegistry.isRegistered<TestUser>(), isTrue);
         expect(
             NexusRegistry.isRegistered<TestUser>(scope: 'tenant-a'), isFalse);
-        expect(
-            NexusRegistry.isRegistered<TestProduct>(scope: 'tenant-a'), isFalse);
+        expect(NexusRegistry.isRegistered<TestProduct>(scope: 'tenant-a'),
+            isFalse);
 
         await userScopedStore.dispose();
         await productScopedStore.dispose();

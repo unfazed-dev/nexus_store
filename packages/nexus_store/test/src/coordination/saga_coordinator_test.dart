@@ -418,7 +418,8 @@ void main() {
         final compEvents = events.where((e) => e.isCompensationEvent);
         expect(compEvents.any((e) => e.event == SagaEvent.compensationStarted),
             isTrue);
-        expect(compEvents.any((e) => e.event == SagaEvent.compensationCompleted),
+        expect(
+            compEvents.any((e) => e.event == SagaEvent.compensationCompleted),
             isTrue);
       });
 
@@ -568,7 +569,6 @@ void main() {
         expect(result.isSuccess, isTrue);
         expect(result.results, equals([42, 'hello', true]));
       });
-
     });
 
     group('nested sagas', () {
@@ -621,8 +621,8 @@ void main() {
         final result = await coordinator.execute(steps);
 
         expect(result.isSuccess, isTrue);
-        expect(executed,
-            equals(['step-1', 'sub-step-a', 'sub-step-b', 'step-3']));
+        expect(
+            executed, equals(['step-1', 'sub-step-a', 'sub-step-b', 'step-3']));
       });
 
       test('nested saga success contributes to parent results', () async {
@@ -874,8 +874,7 @@ void main() {
         final result = await coordinator.execute(steps);
 
         expect(result.isSuccess, isTrue);
-        expect(executed,
-            equals(['outer-sub-1', 'deep-step-1', 'deep-step-2']));
+        expect(executed, equals(['outer-sub-1', 'deep-step-1', 'deep-step-2']));
         expect(result.results, equals([301])); // 1 + 100 + 200
       });
     });

@@ -402,7 +402,8 @@ void main() {
     });
 
     group('validation', () {
-      test('should validate connection on borrow when testOnBorrow is true', () async {
+      test('should validate connection on borrow when testOnBorrow is true',
+          () async {
         pool = ConnectionPool<FakeConnection>(
           factory: factory,
           healthCheck: healthCheck,

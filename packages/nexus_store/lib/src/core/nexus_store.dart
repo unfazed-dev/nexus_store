@@ -377,7 +377,8 @@ class NexusStore<T, ID> {
   ///   );
   /// }
   /// ```
-  Future<PagedResult<T>> getAllPaged({Query<T>? query, FetchPolicy? policy}) async {
+  Future<PagedResult<T>> getAllPaged(
+      {Query<T>? query, FetchPolicy? policy}) async {
     _ensureInitialized();
 
     final result = await _backend.getAllPaged(query: query);
@@ -824,7 +825,8 @@ class NexusStore<T, ID> {
   }
 
   /// Notifies cache of changes from transaction operations.
-  void _notifyTransactionComplete(List<TransactionOperation<T, ID>> operations) {
+  void _notifyTransactionComplete(
+      List<TransactionOperation<T, ID>> operations) {
     for (final op in operations) {
       switch (op) {
         case SaveOperation<T, ID>(:final id):
@@ -1291,8 +1293,7 @@ class NexusStore<T, ID> {
     int itemCount,
   ) {
     _operationCounts[type] = (_operationCounts[type] ?? 0) + 1;
-    _totalDurations[type] =
-        (_totalDurations[type] ?? Duration.zero) + duration;
+    _totalDurations[type] = (_totalDurations[type] ?? Duration.zero) + duration;
     _lastUpdated = DateTime.now();
 
     _metricsReporter.reportOperation(OperationMetric(
@@ -1311,8 +1312,7 @@ class NexusStore<T, ID> {
     StackTrace stack,
   ) {
     _operationCounts[type] = (_operationCounts[type] ?? 0) + 1;
-    _totalDurations[type] =
-        (_totalDurations[type] ?? Duration.zero) + duration;
+    _totalDurations[type] = (_totalDurations[type] ?? Duration.zero) + duration;
     _errorCount++;
     _lastUpdated = DateTime.now();
 

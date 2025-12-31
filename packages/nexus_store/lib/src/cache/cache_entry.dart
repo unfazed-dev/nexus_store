@@ -33,7 +33,8 @@ class CacheEntry<ID> {
 
   /// Returns a new entry marked as immediately stale.
   CacheEntry<ID> markStale() {
-    return copyWith(staleAt: DateTime.now().subtract(const Duration(seconds: 1)));
+    return copyWith(
+        staleAt: DateTime.now().subtract(const Duration(seconds: 1)));
   }
 
   /// Creates a copy with the given fields replaced.

@@ -4,17 +4,19 @@ import 'package:test/test.dart';
 void main() {
   group('SagaEvent', () {
     test('has all expected values', () {
-      expect(SagaEvent.values, containsAll([
-        SagaEvent.sagaStarted,
-        SagaEvent.sagaCompleted,
-        SagaEvent.sagaFailed,
-        SagaEvent.stepStarted,
-        SagaEvent.stepCompleted,
-        SagaEvent.stepFailed,
-        SagaEvent.compensationStarted,
-        SagaEvent.compensationCompleted,
-        SagaEvent.compensationFailed,
-      ]));
+      expect(
+          SagaEvent.values,
+          containsAll([
+            SagaEvent.sagaStarted,
+            SagaEvent.sagaCompleted,
+            SagaEvent.sagaFailed,
+            SagaEvent.stepStarted,
+            SagaEvent.stepCompleted,
+            SagaEvent.stepFailed,
+            SagaEvent.compensationStarted,
+            SagaEvent.compensationCompleted,
+            SagaEvent.compensationFailed,
+          ]));
     });
   });
 

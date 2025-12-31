@@ -91,30 +91,30 @@ class PaginationStateBuilder<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => state.when(
-      initial: () {
-        if (initial != null) return initial!();
-        if (_orElse != null) return _orElse();
-        return const SizedBox.shrink();
-      },
-      loading: (previousItems) {
-        if (loading != null) return loading!(previousItems);
-        if (_orElse != null) return _orElse();
-        return const SizedBox.shrink();
-      },
-      loadingMore: (items, pageInfo) {
-        if (loadingMore != null) return loadingMore!(items, pageInfo);
-        if (_orElse != null) return _orElse();
-        return const SizedBox.shrink();
-      },
-      data: (items, pageInfo) {
-        if (data != null) return data!(items, pageInfo);
-        if (_orElse != null) return _orElse();
-        return const SizedBox.shrink();
-      },
-      error: (err, previousItems, pageInfo) {
-        if (error != null) return error!(err, previousItems, pageInfo);
-        if (_orElse != null) return _orElse();
-        return const SizedBox.shrink();
-      },
-    );
+        initial: () {
+          if (initial != null) return initial!();
+          if (_orElse != null) return _orElse();
+          return const SizedBox.shrink();
+        },
+        loading: (previousItems) {
+          if (loading != null) return loading!(previousItems);
+          if (_orElse != null) return _orElse();
+          return const SizedBox.shrink();
+        },
+        loadingMore: (items, pageInfo) {
+          if (loadingMore != null) return loadingMore!(items, pageInfo);
+          if (_orElse != null) return _orElse();
+          return const SizedBox.shrink();
+        },
+        data: (items, pageInfo) {
+          if (data != null) return data!(items, pageInfo);
+          if (_orElse != null) return _orElse();
+          return const SizedBox.shrink();
+        },
+        error: (err, previousItems, pageInfo) {
+          if (error != null) return error!(err, previousItems, pageInfo);
+          if (_orElse != null) return _orElse();
+          return const SizedBox.shrink();
+        },
+      );
 }

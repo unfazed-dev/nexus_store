@@ -60,8 +60,7 @@ class ConsoleMetricsReporter implements MetricsReporter {
   void reportSyncEvent(SyncMetric metric) {
     final parts = <String>[
       '$prefix Sync: ${metric.event.name}',
-      if (metric.duration != null)
-        'took ${metric.duration!.inMilliseconds}ms',
+      if (metric.duration != null) 'took ${metric.duration!.inMilliseconds}ms',
       if (metric.itemsSynced > 0) 'items=${metric.itemsSynced}',
       if (metric.error != null) 'error=${metric.error}',
     ];
@@ -82,8 +81,7 @@ class ConsoleMetricsReporter implements MetricsReporter {
     final parts = <String>[
       '$prefix Pool: ${metric.event.name}',
       if (metric.poolName != null) 'pool=${metric.poolName}',
-      if (metric.duration != null)
-        'took ${metric.duration!.inMilliseconds}ms',
+      if (metric.duration != null) 'took ${metric.duration!.inMilliseconds}ms',
       if (metric.activeConnections != null)
         'active=${metric.activeConnections}',
       if (metric.idleConnections != null) 'idle=${metric.idleConnections}',

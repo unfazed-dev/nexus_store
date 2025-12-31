@@ -63,8 +63,10 @@ class TrackedEntity<T, ID> {
   /// The current value of the entity.
   ///
   /// Set this to track changes from the original.
+  // ignore: unnecessary_getters_setters
   T get current => _current;
 
+  // ignore: unnecessary_getters_setters
   set current(T value) {
     _current = value;
   }

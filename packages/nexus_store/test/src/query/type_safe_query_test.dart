@@ -41,12 +41,13 @@ void main() {
   group('QueryExpressionExtension', () {
     group('whereExpression', () {
       test('adds single expression filter to empty query', () {
-        final query = const Query<User>()
-            .whereExpression(UserFields.age.greaterThan(18));
+        final query =
+            const Query<User>().whereExpression(UserFields.age.greaterThan(18));
 
         expect(query.filters, hasLength(1));
         expect(query.filters.first.field, equals('age'));
-        expect(query.filters.first.operator, equals(FilterOperator.greaterThan));
+        expect(
+            query.filters.first.operator, equals(FilterOperator.greaterThan));
         expect(query.filters.first.value, equals(18));
       });
 
@@ -74,7 +75,9 @@ void main() {
 
       test('handles AND expression by flattening to multiple filters', () {
         final query = const Query<User>().whereExpression(
-          UserFields.age.greaterThan(18).and(UserFields.status.equals('active')),
+          UserFields.age
+              .greaterThan(18)
+              .and(UserFields.status.equals('active')),
         );
 
         expect(query.filters, hasLength(2));
@@ -96,7 +99,9 @@ void main() {
       test('throws for OR expression (not supported via toFilters)', () {
         expect(
           () => const Query<User>().whereExpression(
-            UserFields.status.equals('active').or(UserFields.status.equals('pending')),
+            UserFields.status
+                .equals('active')
+                .or(UserFields.status.equals('pending')),
           ),
           throwsA(isA<UnsupportedError>()),
         );
@@ -249,7 +254,8 @@ void main() {
     group('immutability', () {
       test('whereExpression returns new query, does not mutate original', () {
         final original = const Query<User>().where('x', isEqualTo: 1);
-        final modified = original.whereExpression(UserFields.age.greaterThan(18));
+        final modified =
+            original.whereExpression(UserFields.age.greaterThan(18));
 
         expect(original.filters, hasLength(1));
         expect(modified.filters, hasLength(2));

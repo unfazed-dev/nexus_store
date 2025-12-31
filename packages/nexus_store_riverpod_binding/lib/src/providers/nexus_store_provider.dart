@@ -50,7 +50,7 @@ Provider<NexusStore<T, ID>> createNexusStoreProvider<T, ID>(
 /// ```
 AutoDisposeProvider<NexusStore<T, ID>>
     createAutoDisposeNexusStoreProvider<T, ID>(
-  NexusStore<T, ID> Function(AutoDisposeRef<NexusStore<T, ID>> ref) create,
+  NexusStore<T, ID> Function(Ref<NexusStore<T, ID>> ref) create,
 ) {
   return Provider.autoDispose<NexusStore<T, ID>>((ref) {
     final store = create(ref);

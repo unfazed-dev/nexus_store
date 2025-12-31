@@ -221,7 +221,8 @@ void main() {
 
       expect(step.completedAt.isAfter(before.subtract(Duration(seconds: 1))),
           isTrue);
-      expect(step.completedAt.isBefore(after.add(Duration(seconds: 1))), isTrue);
+      expect(
+          step.completedAt.isBefore(after.add(Duration(seconds: 1))), isTrue);
     });
 
     test('equality based on name', () {

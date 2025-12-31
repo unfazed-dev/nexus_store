@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nexus_store_flutter/src/background/background_sync_config.dart';
 import 'package:nexus_store_flutter/src/background/background_sync_status.dart';

@@ -88,8 +88,8 @@ class RetryConfig {
   Duration delayForAttempt(int attempt, {math.Random? random}) {
     assert(attempt >= 1, 'Attempt must be at least 1');
 
-    final baseDelay = initialDelay.inMilliseconds *
-        math.pow(backoffMultiplier, attempt - 1);
+    final baseDelay =
+        initialDelay.inMilliseconds * math.pow(backoffMultiplier, attempt - 1);
 
     final cappedDelay = math.min(baseDelay, maxDelay.inMilliseconds);
 

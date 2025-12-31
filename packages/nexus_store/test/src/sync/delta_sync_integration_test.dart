@@ -126,7 +126,9 @@ void main() {
         tracker = DeltaTracker();
       });
 
-      test('should detect conflicts when same field modified locally and remotely', () async {
+      test(
+          'should detect conflicts when same field modified locally and remotely',
+          () async {
         final base = {'id': '1', 'name': 'John', 'email': 'john@example.com'};
 
         // Local changes name

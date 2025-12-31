@@ -86,7 +86,9 @@ final class Merge<T> extends ConflictAction<T> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Merge<T> && runtimeType == other.runtimeType && merged == other.merged;
+      other is Merge<T> &&
+          runtimeType == other.runtimeType &&
+          merged == other.merged;
 
   @override
   int get hashCode => Object.hash(runtimeType, merged);

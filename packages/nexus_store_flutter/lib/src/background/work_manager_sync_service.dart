@@ -94,9 +94,10 @@ class WorkManagerSyncService extends BackgroundSyncService {
 
   @override
   Future<void> registerTask(BackgroundSyncTask task) async {
-    // Remove existing task with same ID
-    _registeredTasks.removeWhere((t) => t.taskId == task.taskId);
-    _registeredTasks.add(task);
+    // Remove existing task with same ID, then add new task
+    _registeredTasks
+      ..removeWhere((t) => t.taskId == task.taskId)
+      ..add(task);
   }
 
   @override
@@ -156,7 +157,7 @@ class WorkManagerSyncService extends BackgroundSyncService {
         if (!success) {
           allSucceeded = false;
         }
-      } catch (e) {
+      } on Exception {
         allSucceeded = false;
       }
     }

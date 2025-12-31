@@ -146,7 +146,7 @@ class DeltaTracker {
 
   /// Converts an entity to a JSON map.
   ///
-  /// Supports entities with toJson() method or raw Map<String, dynamic>.
+  /// Supports entities with toJson() method or raw `Map<String, dynamic>`.
   Map<String, dynamic> _toJsonMap(dynamic entity) {
     if (entity is Map<String, dynamic>) {
       return entity;

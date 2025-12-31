@@ -143,7 +143,9 @@ class CompletedStep<T> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CompletedStep && runtimeType == other.runtimeType && name == other.name;
+      other is CompletedStep &&
+          runtimeType == other.runtimeType &&
+          name == other.name;
 
   @override
   int get hashCode => name.hashCode;

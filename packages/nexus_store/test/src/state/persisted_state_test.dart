@@ -392,8 +392,7 @@ void main() {
           initialValue: <String>[],
           storage: storage,
           serialize: (v) => jsonEncode(v),
-          deserialize: (s) =>
-              (jsonDecode(s) as List).cast<String>(),
+          deserialize: (s) => (jsonDecode(s) as List).cast<String>(),
         );
 
         state.value = ['flutter', 'dart'];
@@ -411,8 +410,7 @@ void main() {
           initialValue: <String, int>{},
           storage: storage,
           serialize: (v) => jsonEncode(v),
-          deserialize: (s) =>
-              (jsonDecode(s) as Map).cast<String, int>(),
+          deserialize: (s) => (jsonDecode(s) as Map).cast<String, int>(),
         );
 
         state.value = {'alice': 100, 'bob': 85};

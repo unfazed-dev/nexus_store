@@ -250,10 +250,8 @@ void main() {
       final user2 = TestFixtures.createUser(id: 'user-2', name: 'User 2');
 
       final store = MockNexusStore<TestUser, String>();
-      when(() => store.watch('user-1'))
-          .thenAnswer((_) => Stream.value(user1));
-      when(() => store.watch('user-2'))
-          .thenAnswer((_) => Stream.value(user2));
+      when(() => store.watch('user-1')).thenAnswer((_) => Stream.value(user1));
+      when(() => store.watch('user-2')).thenAnswer((_) => Stream.value(user2));
 
       final storeProvider = Provider<NexusStore<TestUser, String>>(
         (ref) => store,

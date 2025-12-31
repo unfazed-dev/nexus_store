@@ -96,9 +96,8 @@ void main() {
 
         // Get second page using cursor
         final secondPage = await backend.getAllPaged(
-          query: const Query<_TestEntity>()
-              .after(firstPage.nextCursor!)
-              .first(10),
+          query:
+              const Query<_TestEntity>().after(firstPage.nextCursor!).first(10),
         );
 
         expect(secondPage.length, equals(10));
@@ -120,9 +119,8 @@ void main() {
           query: const Query<_TestEntity>().first(10),
         );
         final secondPage = await backend.getAllPaged(
-          query: const Query<_TestEntity>()
-              .after(firstPage.nextCursor!)
-              .first(10),
+          query:
+              const Query<_TestEntity>().after(firstPage.nextCursor!).first(10),
         );
         final thirdPage = await backend.getAllPaged(
           query: const Query<_TestEntity>()
@@ -155,9 +153,7 @@ void main() {
         backend.addToStorage('2', _TestEntity('2', 'Alice'));
         backend.addToStorage('3', _TestEntity('3', 'Bob'));
 
-        final query = const Query<_TestEntity>()
-            .orderByField('name')
-            .first(10);
+        final query = const Query<_TestEntity>().orderByField('name').first(10);
 
         final result = await backend.getAllPaged(query: query);
 
@@ -345,9 +341,8 @@ void main() {
         );
 
         final secondPage = await backend.getAllPaged(
-          query: const Query<_TestEntity>()
-              .after(firstPage.nextCursor!)
-              .first(5),
+          query:
+              const Query<_TestEntity>().after(firstPage.nextCursor!).first(5),
         );
 
         expect(secondPage.pageInfo.hasPreviousPage, isTrue);

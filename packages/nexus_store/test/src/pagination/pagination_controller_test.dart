@@ -126,8 +126,7 @@ void main() {
         expect(states.whereType<PaginationLoading<_TestUser>>(), isNotEmpty);
         expect(states.whereType<PaginationData<_TestUser>>(), isNotEmpty);
 
-        final dataState =
-            states.whereType<PaginationData<_TestUser>>().last;
+        final dataState = states.whereType<PaginationData<_TestUser>>().last;
         expect(dataState.items.length, equals(2));
       });
 
@@ -174,8 +173,7 @@ void main() {
         await subscription.cancel();
         controller.dispose();
 
-        final dataState =
-            states.whereType<PaginationData<_TestUser>>().last;
+        final dataState = states.whereType<PaginationData<_TestUser>>().last;
         expect(dataState.items.length, equals(10));
         expect(dataState.hasMore, isTrue);
       });
@@ -231,8 +229,7 @@ void main() {
         await subscription.cancel();
         controller.dispose();
 
-        final dataState =
-            states.whereType<PaginationData<_TestUser>>().last;
+        final dataState = states.whereType<PaginationData<_TestUser>>().last;
         expect(dataState.items.length, equals(2));
         expect(dataState.items.every((u) => u.status == 'active'), isTrue);
       });
@@ -318,8 +315,9 @@ void main() {
         controller.dispose();
 
         // No new loading states should be added
-        final afterLoadingMore =
-            states.skip(beforeCount).whereType<PaginationLoadingMore<_TestUser>>();
+        final afterLoadingMore = states
+            .skip(beforeCount)
+            .whereType<PaginationLoadingMore<_TestUser>>();
         expect(afterLoadingMore, isEmpty);
       });
 
@@ -621,8 +619,7 @@ void main() {
         await subscription.cancel();
         controller.dispose();
 
-        final errorState =
-            states.whereType<PaginationError<_TestUser>>().first;
+        final errorState = states.whereType<PaginationError<_TestUser>>().first;
         expect(errorState.error, isA<Exception>());
       });
 
@@ -653,8 +650,7 @@ void main() {
         await subscription.cancel();
         controller.dispose();
 
-        final errorState =
-            states.whereType<PaginationError<_TestUser>>().first;
+        final errorState = states.whereType<PaginationError<_TestUser>>().first;
         expect(errorState.items.length, equals(10)); // Previous items preserved
       });
     });

@@ -39,7 +39,8 @@ class User {
               contains("static final name = StringField<User>('name')"),
               contains("static final age = ComparableField<User, int>('age')"),
               contains(
-                "static final createdAt = ComparableField<User, DateTime>('createdAt')",
+                'static final createdAt = '
+                "ComparableField<User, DateTime>('createdAt')",
               ),
               contains(
                 "static final tags = ListField<User, String>('tags')",
@@ -82,16 +83,20 @@ class Product {
               contains('class ProductFields extends Fields<Product>'),
               contains("static final sku = StringField<Product>('sku')"),
               contains(
-                "static final price = ComparableField<Product, double>('price')",
+                'static final price = '
+                "ComparableField<Product, double>('price')",
               ),
               contains(
-                "static final quantity = ComparableField<Product, num>('quantity')",
+                'static final quantity = '
+                "ComparableField<Product, num>('quantity')",
               ),
               contains(
-                "static final warranty = ComparableField<Product, Duration>('warranty')",
+                'static final warranty = '
+                "ComparableField<Product, Duration>('warranty')",
               ),
               contains(
-                "static final isAvailable = Field<Product, bool>('isAvailable')",
+                'static final isAvailable = '
+                "Field<Product, bool>('isAvailable')",
               ),
             ]),
           ),
@@ -126,7 +131,8 @@ class Item {
                 "static final description = StringField<Item>('description')",
               ),
               contains(
-                "static final quantity = ComparableField<Item, int>('quantity')",
+                'static final quantity = '
+                "ComparableField<Item, int>('quantity')",
               ),
             ]),
           ),
@@ -206,10 +212,12 @@ class Document {
           'a|lib/document.entity.dart': decodedMatches(
             allOf([
               contains(
-                "static final pageNumbers = ListField<Document, int>('pageNumbers')",
+                'static final pageNumbers = '
+                "ListField<Document, int>('pageNumbers')",
               ),
               contains(
-                "static final revisions = ListField<Document, DateTime>('revisions')",
+                'static final revisions = '
+                "ListField<Document, DateTime>('revisions')",
               ),
             ]),
           ),

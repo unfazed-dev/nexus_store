@@ -654,6 +654,5 @@ class QueryOrderBy {
   int get hashCode => Object.hash(field, descending);
 
   @override
-  String toString() =>
-      'QueryOrderBy($field ${descending ? 'DESC' : 'ASC'})';
+  String toString() => 'QueryOrderBy($field ${descending ? 'DESC' : 'ASC'})';
 }

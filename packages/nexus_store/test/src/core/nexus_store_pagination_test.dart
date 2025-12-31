@@ -91,9 +91,8 @@ void main() {
 
         // Get second page
         final secondPage = await store.getAllPaged(
-          query: const Query<_TestUser>()
-              .after(firstPage.nextCursor!)
-              .first(10),
+          query:
+              const Query<_TestUser>().after(firstPage.nextCursor!).first(10),
         );
 
         expect(secondPage.length, equals(10));
@@ -127,9 +126,7 @@ void main() {
         backend.addToStorage('3', _TestUser('3', 'Bob'));
 
         final result = await store.getAllPaged(
-          query: const Query<_TestUser>()
-              .orderByField('name')
-              .first(10),
+          query: const Query<_TestUser>().orderByField('name').first(10),
         );
 
         expect(result.items[0].name, equals('Alice'));
@@ -168,9 +165,11 @@ void main() {
 
       test('emits updates when data changes', () async {
         final emissions = <PagedResult<_TestUser>>[];
-        final subscription = store.watchAllPaged(
-          query: const Query<_TestUser>().first(10),
-        ).listen(emissions.add);
+        final subscription = store
+            .watchAllPaged(
+              query: const Query<_TestUser>().first(10),
+            )
+            .listen(emissions.add);
 
         // Wait for initial emission
         await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -255,7 +254,8 @@ void main() {
       test('combined filter and pagination', () async {
         for (var i = 1; i <= 30; i++) {
           final status = i % 2 == 0 ? 'active' : 'inactive';
-          backend.addToStorage('$i', _TestUser('$i', 'User $i', status: status));
+          backend.addToStorage(
+              '$i', _TestUser('$i', 'User $i', status: status));
         }
 
         final result = await store.getAllPaged(

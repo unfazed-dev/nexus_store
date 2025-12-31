@@ -83,7 +83,8 @@ enum StoreOperation {
 /// Extension methods for [StoreOperation].
 extension StoreOperationExtension on StoreOperation {
   /// Whether this is a read operation (get, getAll).
-  bool get isRead => this == StoreOperation.get || this == StoreOperation.getAll;
+  bool get isRead =>
+      this == StoreOperation.get || this == StoreOperation.getAll;
 
   /// Whether this is a stream operation (watch, watchAll).
   bool get isStream =>

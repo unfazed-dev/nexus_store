@@ -50,7 +50,8 @@ void main() {
           },
         );
 
-        expect(config.placeholders, equals({'thumbnail': null, 'description': ''}));
+        expect(config.placeholders,
+            equals({'thumbnail': null, 'description': ''}));
       });
     });
 

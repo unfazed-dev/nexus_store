@@ -123,16 +123,11 @@ void main() {
 
     testWidgets('cancels loading on dispose', (tester) async {
       final completer = Completer<String>();
-      var cancelled = false;
 
       await tester.pumpWidget(
         MaterialApp(
           home: VisibilityLoader<String>(
-            loader: () => completer.future.whenComplete(() {
-                if (!completer.isCompleted) {
-                  cancelled = true;
-                }
-              }),
+            loader: () => completer.future,
             placeholder: const Text('Loading...'),
             builder: (context, data) => Text('Data: $data'),
           ),
@@ -226,17 +221,13 @@ void main() {
     });
 
     testWidgets('can reset state via controller', (tester) async {
-      var loadCount = 0;
       final controller = VisibilityLoaderController();
 
       await tester.pumpWidget(
         MaterialApp(
           home: VisibilityLoader<String>(
             controller: controller,
-            loader: () async {
-              loadCount++;
-              return 'Loaded';
-            },
+            loader: () async => 'Loaded',
             placeholder: const Text('Loading...'),
             builder: (context, data) => Text(data),
           ),
@@ -279,8 +270,9 @@ void main() {
       final controller = VisibilityLoaderController();
       var notified = false;
 
-      controller.addListener(() => notified = true);
-      controller.load();
+      controller
+        ..addListener(() => notified = true)
+        ..load();
 
       expect(notified, isTrue);
     });
@@ -289,9 +281,10 @@ void main() {
       final controller = VisibilityLoaderController();
       var notifyCount = 0;
 
-      controller.addListener(() => notifyCount++);
-      controller.load();
-      controller.reload();
+      controller
+        ..addListener(() => notifyCount++)
+        ..load()
+        ..reload();
 
       expect(notifyCount, equals(2));
     });
@@ -300,15 +293,15 @@ void main() {
       final controller = VisibilityLoaderController();
       var notifyCount = 0;
 
-      controller.addListener(() => notifyCount++);
-      controller.reset();
+      controller
+        ..addListener(() => notifyCount++)
+        ..reset();
 
       expect(notifyCount, equals(1));
     });
 
     test('disposes cleanly', () {
-      final controller = VisibilityLoaderController();
-      controller.dispose();
+      final controller = VisibilityLoaderController()..dispose();
 
       // Should not throw
       expect(controller.load, throwsFlutterError);

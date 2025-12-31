@@ -35,8 +35,7 @@ void main() {
             body: LazyListView<String, String>(
               items: const ['A', 'B', 'C'],
               lazyFieldLoader: (item, index) => completers[index].future,
-              itemBuilder: (context, item, index, {lazyData}) =>
-                  ListTile(
+              itemBuilder: (context, item, index, {lazyData}) => ListTile(
                 title: Text('Item $item'),
                 subtitle: lazyData != null ? Text(lazyData) : null,
               ),
@@ -188,8 +187,7 @@ void main() {
               lazyFieldLoader: (item, index) async {
                 throw Exception('Load failed');
               },
-              itemBuilder: (context, item, index, {lazyData}) =>
-                  ListTile(
+              itemBuilder: (context, item, index, {lazyData}) => ListTile(
                 title: Text('Item $item'),
                 subtitle: lazyData != null ? Text(lazyData) : null,
               ),

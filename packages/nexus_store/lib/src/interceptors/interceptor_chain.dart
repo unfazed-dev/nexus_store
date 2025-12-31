@@ -77,9 +77,8 @@ class InterceptorChain {
     required Future<R> Function() execute,
   }) async {
     // Filter interceptors that apply to this operation
-    final applicableInterceptors = _interceptors
-        .where((i) => i.operations.contains(operation))
-        .toList();
+    final applicableInterceptors =
+        _interceptors.where((i) => i.operations.contains(operation)).toList();
 
     if (applicableInterceptors.isEmpty) {
       return execute();

@@ -100,7 +100,8 @@ void main() {
         expect(all.length, equals(10));
 
         // Filter
-        final query = const nexus.Query<TestModel>().where('age', isGreaterThan: 25);
+        final query =
+            const nexus.Query<TestModel>().where('age', isGreaterThan: 25);
         final filtered = await backend.getAll(query: query);
         expect(filtered.length, equals(4)); // ages 26, 27, 28, 29
 
@@ -123,7 +124,8 @@ void main() {
       });
 
       test('filtering by equality', () async {
-        final query = const nexus.Query<TestModel>().where('name', isEqualTo: 'Bob');
+        final query =
+            const nexus.Query<TestModel>().where('name', isEqualTo: 'Bob');
         final result = await backend.getAll(query: query);
         expect(result.length, equals(1));
         expect(result.first.name, equals('Bob'));
@@ -187,7 +189,8 @@ void main() {
           TestModel(id: '3', name: 'Charlie', age: 35),
         ]);
 
-        final query = const nexus.Query<TestModel>().where('age', isLessThan: 30);
+        final query =
+            const nexus.Query<TestModel>().where('age', isLessThan: 30);
         await backend.deleteWhere(query);
 
         final remaining = await backend.getAll();

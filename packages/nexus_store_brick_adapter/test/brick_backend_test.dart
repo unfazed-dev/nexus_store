@@ -141,8 +141,8 @@ void main() {
         when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
             .thenAnswer((_) async => []);
 
-        final query = const nexus.Query<TestModel>()
-            .where('name', isEqualTo: 'Test');
+        final query =
+            const nexus.Query<TestModel>().where('name', isEqualTo: 'Test');
         await backend.getAll(query: query);
 
         verify(() => mockRepository.get<TestModel>(query: any(named: 'query')))

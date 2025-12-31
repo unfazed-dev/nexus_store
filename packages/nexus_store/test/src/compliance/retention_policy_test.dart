@@ -4,12 +4,14 @@ import 'package:nexus_store/src/compliance/retention_policy.dart';
 void main() {
   group('RetentionAction', () {
     test('has all required values', () {
-      expect(RetentionAction.values, containsAll([
-        RetentionAction.nullify,
-        RetentionAction.anonymize,
-        RetentionAction.deleteRecord,
-        RetentionAction.archive,
-      ]));
+      expect(
+          RetentionAction.values,
+          containsAll([
+            RetentionAction.nullify,
+            RetentionAction.anonymize,
+            RetentionAction.deleteRecord,
+            RetentionAction.archive,
+          ]));
     });
 
     test('has exactly 4 values', () {
@@ -94,7 +96,8 @@ void main() {
       final json = policy.toJson();
 
       expect(json['field'], equals('ipAddress'));
-      expect(json['duration'], equals(30 * 24 * 60 * 60 * 1000000)); // microseconds
+      expect(json['duration'],
+          equals(30 * 24 * 60 * 60 * 1000000)); // microseconds
       expect(json['action'], equals('nullify'));
       expect(json['condition'], equals('active == false'));
     });
