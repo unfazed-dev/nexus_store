@@ -51,6 +51,72 @@ final activeUsers = await userStore.getAll(
 );
 ```
 
+### State Management Examples
+
+**Riverpod:**
+```dart
+@riverpodNexusStore
+NexusStore<User, String> userStore(Ref ref) {
+  return NexusStore(backend: backend);
+}
+
+// Generated providers: userStoreProvider, usersProvider, userByIdProvider
+class MyWidget extends ConsumerWidget {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final users = ref.watch(usersProvider);
+    return users.when(
+      data: (list) => ListView(children: list.map((u) => Text(u.name)).toList()),
+      loading: () => CircularProgressIndicator(),
+      error: (e, _) => Text('Error: $e'),
+    );
+  }
+}
+```
+
+**Bloc:**
+```dart
+class UsersCubit extends NexusStoreCubit<User, String> {
+  UsersCubit(NexusStore<User, String> store) : super(store);
+}
+
+// Use with BlocBuilder
+BlocBuilder<UsersCubit, StoreState<List<User>>>(
+  builder: (context, state) => state.when(
+    loading: () => CircularProgressIndicator(),
+    data: (users) => UserList(users),
+    error: (e) => ErrorWidget(e),
+  ),
+)
+```
+
+**Signals:**
+```dart
+final usersSignal = userStore.toSignal();
+final activeCount = computed(() =>
+  usersSignal.value.where((u) => u.isActive).length
+);
+```
+
+## Backend Selection Guide
+
+Choose the right backend for your use case:
+
+| Backend | Best For | Sync | Offline | Conflict Resolution |
+|---------|----------|------|---------|---------------------|
+| **PowerSync** | Offline-first apps with PostgreSQL | Bi-directional | Full | Server-authoritative |
+| **Supabase** | Real-time apps, RLS security | Real-time | Limited | Last-write-wins |
+| **Drift** | Local-only storage, no sync needed | None | Full | N/A |
+| **Brick** | Multiple remotes (REST, GraphQL, Supabase) | Bi-directional | Full | Customizable |
+| **CRDT** | P2P, multi-device, no central server | Peer-to-peer | Full | Automatic (LWW) |
+
+### When to Use Each
+
+- **PowerSync**: Enterprise apps needing PostgreSQL sync with offline support
+- **Supabase**: Apps requiring real-time updates and Row Level Security
+- **Drift**: Settings storage, local caching, or apps with no network requirements
+- **Brick**: Complex apps with multiple data sources or migration between backends
+- **CRDT**: Collaborative apps, P2P sync, or conflict-free distributed data
+
 ## Packages
 
 | Package | Description | Pub |
@@ -62,6 +128,14 @@ final activeUsers = await userStore.getAll(
 | [nexus_store_drift_adapter](packages/nexus_store_drift_adapter/) | Drift local SQLite backend | [![pub](https://img.shields.io/pub/v/nexus_store_drift_adapter)](https://pub.dev/packages/nexus_store_drift_adapter) |
 | [nexus_store_brick_adapter](packages/nexus_store_brick_adapter/) | Brick offline-first backend | [![pub](https://img.shields.io/pub/v/nexus_store_brick_adapter)](https://pub.dev/packages/nexus_store_brick_adapter) |
 | [nexus_store_crdt_adapter](packages/nexus_store_crdt_adapter/) | CRDT conflict-free backend | [![pub](https://img.shields.io/pub/v/nexus_store_crdt_adapter)](https://pub.dev/packages/nexus_store_crdt_adapter) |
+
+### State Management Bindings
+
+| Package | Description |
+|---------|-------------|
+| [nexus_store_riverpod_binding](packages/nexus_store_riverpod_binding/) | Riverpod providers and hooks |
+| [nexus_store_bloc_binding](packages/nexus_store_bloc_binding/) | Bloc/Cubit integration |
+| [nexus_store_signals_binding](packages/nexus_store_signals_binding/) | Signals fine-grained reactivity |
 
 ## Installation
 
@@ -81,12 +155,73 @@ dependencies:
 - Dart SDK: ^3.5.0
 - Flutter SDK: ^3.10.0 (for Flutter packages)
 
+## Compliance Features
+
+nexus_store includes enterprise-ready compliance features for HIPAA and GDPR requirements.
+
+### HIPAA Audit Logging
+
+```dart
+final store = NexusStore<Patient, String>(
+  backend: backend,
+  config: StoreConfig(
+    audit: AuditConfig.hipaaCompliant(
+      backend: auditBackend,
+      signLogs: true, // Cryptographic hash chain
+    ),
+  ),
+);
+
+// All operations are automatically logged with:
+// - userId, timestamp, action, resourceType, resourceId
+// - IP address and success/failure status
+// - Hash-chained for tamper detection
+```
+
+### GDPR Data Erasure (Article 17)
+
+```dart
+// Process right to erasure requests
+final result = await store.gdpr.processErasureRequest(
+  userId: 'user_123',
+  anonymize: true, // Anonymize instead of delete if required
+);
+print('Erased ${result.deletedCount} records');
+```
+
+### GDPR Data Portability (Article 20)
+
+```dart
+// Export all user data in machine-readable format
+final export = await store.gdpr.exportUserData(
+  userId: 'user_123',
+  format: ExportFormat.json,
+);
+// Returns JSON with all user data and checksum
+```
+
+### Field-Level Encryption
+
+```dart
+final store = NexusStore<Patient, String>(
+  backend: backend,
+  config: StoreConfig(
+    encryption: EncryptionConfig.fieldLevel(
+      encryptedFields: {'ssn', 'diagnosis', 'medications'},
+      keyProvider: () => secureStorage.getKey(),
+    ),
+  ),
+);
+// Specified fields are encrypted with AES-256-GCM before storage
+```
+
 ## Documentation
 
 - [Core Package Documentation](packages/nexus_store/README.md)
 - [Flutter Extension Documentation](packages/nexus_store_flutter/README.md)
 - [Architecture Overview](docs/architecture/overview.md)
-- [Migration Guides](docs/migration/)
+- [Compliance Guide](docs/architecture/compliance.md)
+- [Encryption Guide](docs/architecture/encryption.md)
 
 ## Examples
 

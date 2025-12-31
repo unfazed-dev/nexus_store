@@ -152,8 +152,8 @@ All six adapter packages are **fully implemented** (not stubs as spec claims):
 | REQ-022 | Tag-Based Cache Invalidation | ⏳ Pending | ✅ **Complete** |
 | REQ-023 | Telemetry & Metrics | ⏳ Pending | ✅ **Complete** |
 | REQ-025 | Batch Streaming | ⏳ Pending | ✅ **Complete** |
-| REQ-026 | Data Minimization (GDPR) | ⏳ Pending | ⏳ Pending |
-| REQ-027 | Consent Tracking | ⏳ Pending | ⏳ Pending |
+| REQ-026 | Data Minimization (GDPR) | ⏳ Pending | ✅ **Complete** |
+| REQ-027 | Consent Tracking | ⏳ Pending | ✅ **Complete** |
 | REQ-029 | Cross-Store Transactions | ⏳ Pending | ✅ **Complete** (Saga) |
 | REQ-030 | Middleware/Interceptors | ⏳ Pending | ✅ **Complete** |
 | REQ-031 | Delta Sync | ⏳ Pending | ✅ **Complete** |
@@ -175,7 +175,7 @@ All six adapter packages are **fully implemented** (not stubs as spec claims):
 | REQ-015 | GDPR Right to Erasure | ✅ | ✅ Complete |
 | REQ-016 | GDPR Data Portability | ✅ | ✅ Complete |
 | REQ-019 | Type-Safe Query Builder | ⏳ Pending | ⏳ Pending |
-| REQ-028 | Breach Notification | ⏳ Pending | ⏳ Pending |
+| REQ-028 | Breach Notification | ⏳ Pending | ✅ **Complete** |
 | REQ-032 | Background Sync | ⏳ Pending | ⏳ Partial |
 | REQ-033 | Sync Priority Queues | ⏳ Pending | ⏳ Pending |
 | REQ-034 | Code Generation | ⏳ Pending | ⏳ Pending |
@@ -207,8 +207,8 @@ All six adapter packages are **fully implemented** (not stubs as spec claims):
 | nexus_store_brick_adapter | 2 | ✅ Basic |
 | nexus_store_generator | 1 | ⚠️ Minimal |
 | nexus_store_entity_generator | 1 | ⚠️ Minimal |
-| nexus_store_riverpod_generator | 0 | ❌ None |
-| **TOTAL** | **180+ files (500+ tests)** | |
+| nexus_store_riverpod_generator | 1 (23 tests) | ✅ Good |
+| **TOTAL** | **181+ files (523+ tests)** | |
 
 ### Integration Tests
 
@@ -235,15 +235,12 @@ All six adapter packages are **fully implemented** (not stubs as spec claims):
 
 | Item | REQ | Recommendation |
 |------|-----|----------------|
-| GDPR Data Minimization | REQ-026 | Add retention policy enforcement |
-| GDPR Consent Tracking | REQ-027 | Implement consent management |
 | Code Generation Tooling | REQ-034 | Complete type-safe query codegen |
 
 ### Low Priority
 
 | Item | REQ | Recommendation |
 |------|-----|----------------|
-| Breach Notification | REQ-028 | GDPR breach support |
 | Background Sync (iOS/Android) | REQ-032 | Platform-specific BGTask/WorkManager |
 | Sync Priority Queues | REQ-033 | Priority-based sync ordering |
 | Schema Validation | REQ-035 | Runtime schema checks |
@@ -257,18 +254,18 @@ All six adapter packages are **fully implemented** (not stubs as spec claims):
 
 1. **Update SPEC-nexus-store.md** - Correct the Implementation Progress table to reflect actual status
 
-2. **Add tests to nexus_store_riverpod_generator** - Only package without tests
+2. ~~**Add tests to nexus_store_riverpod_generator**~~ - ✅ Completed (23 tests added)
 
-3. **Create README.md** - Document usage, examples, and getting started guide
+3. ~~**Create README.md**~~ - ✅ Completed with backend guide and compliance docs
 
 ### Future Roadmap
 
 Based on genuine gaps, suggested development priority:
 
-1. **Documentation & Examples** - Critical for adoption
+1. ~~**Documentation & Examples**~~ - ✅ Completed
 2. **Type-Safe Query Codegen (REQ-019, REQ-034)** - Developer experience
-3. **GDPR Compliance Completion (REQ-026, REQ-027)** - Enterprise requirement
-4. **Platform Background Sync (REQ-032)** - Mobile optimization
+3. ~~**GDPR Compliance Completion (REQ-026, REQ-027, REQ-028)**~~ - ✅ Already implemented
+4. **Platform Background Sync (REQ-032)** - Mobile optimization (iOS/Android specific)
 
 ---
 
@@ -277,9 +274,11 @@ Based on genuine gaps, suggested development priority:
 The nexus_store project is **production-ready** for core functionality. The spec document significantly understates implementation progress.
 
 **Recommended Spec Updates:**
-- 6 adapters: Change from "📦 Stub" to "✅ Complete"
-- 22+ features: Change from "⏳ Pending" to "✅ Complete"
-- Unit Tests: Change from "⏳ Pending" to "✅ Complete (179+ tests)"
+- 6 adapters: ✅ Updated to "✅ Complete"
+- 22+ features: ✅ Updated to "✅ Complete"
+- GDPR Items: ✅ REQ-026, REQ-027, REQ-028 confirmed complete
+- Unit Tests: ✅ Updated to "✅ Complete (523+ tests)"
+- Riverpod Generator: ✅ Tests added (23 tests)
 
 ---
 

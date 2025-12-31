@@ -34,7 +34,7 @@
 | **CRDT Adapter** | ✅ Complete | 1,049 LOC, HLC timestamps, LWW merge |
 | **Flutter Extension** | ✅ Complete | 3,174 LOC, widgets, background sync, lazy loading |
 | **Unit Tests** | ✅ Complete | 500+ tests across monorepo |
-| **Documentation** | ⏳ Pending | README and examples needed |
+| **Documentation** | ✅ Complete | README with backend guide, compliance docs, state mgmt examples |
 | **Transaction Support** | ✅ Complete | REQ-017 - Atomic multi-entity operations |
 | **Cursor Pagination** | ✅ Complete | REQ-018 - Efficient large dataset pagination |
 | **Type-Safe Query** | ⏳ Pending | REQ-019 - Compile-time validated queries |
@@ -44,9 +44,9 @@
 | **Telemetry & Metrics** | ✅ Complete | REQ-023 - Store observability |
 | **Key Derivation** | ✅ Complete | REQ-024 - PBKDF2 support |
 | **Batch Streaming** | ✅ Complete | REQ-025 - Paginated streaming for large datasets |
-| **Data Minimization** | ⏳ Pending | REQ-026 - GDPR retention policies |
-| **Consent Tracking** | ⏳ Pending | REQ-027 - GDPR consent management |
-| **Breach Notification** | ⏳ Pending | REQ-028 - GDPR breach support |
+| **Data Minimization** | ✅ Complete | REQ-026 - DataMinimizationService with RetentionPolicy |
+| **Consent Tracking** | ✅ Complete | REQ-027 - ConsentService with granular purpose tracking |
+| **Breach Notification** | ✅ Complete | REQ-028 - BreachService with report generation |
 | **Cross-Store Transactions** | ✅ Complete | REQ-029 - Saga pattern implemented |
 | **Middleware/Interceptors** | ✅ Complete | REQ-030 - Pre/post hooks |
 | **Delta Sync** | ✅ Complete | REQ-031 - Field-level sync |
@@ -64,7 +64,7 @@
 | **Computed Stores** | ✅ Complete | REQ-043 - Derived state from multiple stores |
 | **UI State Containers** | ⏳ Pending | REQ-044 - Non-data reactive state |
 | **Selectors** | ✅ Complete | REQ-045 - Efficient derived values |
-| **Riverpod Integration** | ⏳ Partial | REQ-046 - nexus_store_riverpod_binding (44 tests) |
+| **Riverpod Integration** | ✅ Complete | REQ-046 - nexus_store_riverpod_binding (44 tests) + generator (23 tests) |
 | **Bloc Integration** | ✅ Complete | REQ-047 - nexus_store_bloc_binding (244 tests) |
 | **Signals Integration** | ✅ Complete | REQ-048 - nexus_store_signals_binding (87 tests) |
 
