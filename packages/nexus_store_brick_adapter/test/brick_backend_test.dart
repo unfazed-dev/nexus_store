@@ -330,6 +330,154 @@ void main() {
 
         expect(result, 1);
       });
+
+      test('save notifies individual watchers', () async {
+        final testModel = TestModel(id: '1', name: 'Test');
+        final updatedModel = TestModel(id: '1', name: 'Updated');
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenAnswer((_) async => [testModel]);
+        when(() => mockRepository.upsert<TestModel>(any()))
+            .thenAnswer((_) async => updatedModel);
+
+        // Start watching
+        final stream = backend.watch('1');
+        final values = <TestModel?>[];
+        stream.listen(values.add);
+
+        // Wait for initial value
+        await Future<void>.delayed(Duration.zero);
+        expect(values, [testModel]);
+
+        // Save and trigger notification
+        await backend.save(updatedModel);
+
+        await Future<void>.delayed(Duration.zero);
+        expect(values.last, updatedModel);
+      });
+
+      test('delete notifies individual watchers with null', () async {
+        final testModel = TestModel(id: '1', name: 'Test');
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenAnswer((_) async => [testModel]);
+        when(() => mockRepository.delete<TestModel>(any()))
+            .thenAnswer((_) async => true);
+
+        // Start watching
+        final stream = backend.watch('1');
+        final values = <TestModel?>[];
+        stream.listen(values.add);
+
+        // Wait for initial value
+        await Future<void>.delayed(Duration.zero);
+        expect(values, [testModel]);
+
+        // Delete and trigger notification
+        await backend.delete('1');
+
+        await Future<void>.delayed(Duration.zero);
+        expect(values.last, isNull);
+      });
+
+      test('save refreshes watchAll subjects', () async {
+        final testModel = TestModel(id: '1', name: 'Test');
+        final updatedModel = TestModel(id: '1', name: 'Updated');
+        var callCount = 0;
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenAnswer((_) async {
+          callCount++;
+          return callCount == 1 ? [testModel] : [updatedModel];
+        });
+        when(() => mockRepository.upsert<TestModel>(any()))
+            .thenAnswer((_) async => updatedModel);
+
+        // Start watching all
+        final stream = backend.watchAll();
+        final values = <List<TestModel>>[];
+        stream.listen(values.add);
+
+        // Wait for initial value
+        await Future<void>.delayed(Duration.zero);
+        expect(values.first.first.name, 'Test');
+
+        // Save triggers _refreshAllWatchers
+        await backend.save(updatedModel);
+
+        await Future<void>.delayed(Duration.zero);
+        expect(values.last.first.name, 'Updated');
+      });
+
+      test('saveAll sets error status on failure', () async {
+        final items = [TestModel(id: '1', name: 'Test')];
+        when(() => mockRepository.upsert<TestModel>(any()))
+            .thenThrow(Exception('SaveAll failed'));
+
+        final statuses = <nexus.SyncStatus>[];
+        backend.syncStatusStream.listen(statuses.add);
+
+        expect(
+          () => backend.saveAll(items),
+          throwsA(isA<nexus.SyncError>()),
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(statuses.last, nexus.SyncStatus.error);
+      });
+
+      test('delete sets error status on repository failure', () async {
+        final testModel = TestModel(id: '1', name: 'Test');
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenAnswer((_) async => [testModel]);
+        when(() => mockRepository.delete<TestModel>(any()))
+            .thenThrow(Exception('Delete failed'));
+
+        final statuses = <nexus.SyncStatus>[];
+        backend.syncStatusStream.listen(statuses.add);
+
+        expect(
+          () => backend.delete('1'),
+          throwsA(isA<nexus.SyncError>()),
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(statuses.last, nexus.SyncStatus.error);
+      });
+
+      test('deleteAll sets error status on failure', () async {
+        final testModel = TestModel(id: '1', name: 'Test');
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenAnswer((_) async => [testModel]);
+        when(() => mockRepository.delete<TestModel>(any()))
+            .thenThrow(Exception('Delete failed'));
+
+        final statuses = <nexus.SyncStatus>[];
+        backend.syncStatusStream.listen(statuses.add);
+
+        expect(
+          () => backend.deleteAll(['1']),
+          throwsA(isA<nexus.SyncError>()),
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(statuses.last, nexus.SyncStatus.error);
+      });
+
+      test('deleteWhere sets error status on failure', () async {
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenThrow(Exception('Query failed'));
+
+        final statuses = <nexus.SyncStatus>[];
+        backend.syncStatusStream.listen(statuses.add);
+
+        final query = const nexus.Query<TestModel>()
+            .where('status', isEqualTo: 'deleted');
+        expect(
+          () => backend.deleteWhere(query),
+          throwsA(isA<nexus.SyncError>()),
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(statuses.last, nexus.SyncStatus.error);
+      });
     });
 
     group('sync operations', () {
@@ -367,6 +515,53 @@ void main() {
 
       test('pendingChangesCount returns 0 when synced', () async {
         expect(await backend.pendingChangesCount, 0);
+      });
+
+      test('sync sets error status on failure', () async {
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenThrow(Exception('Sync failed'));
+
+        final statuses = <nexus.SyncStatus>[];
+        backend.syncStatusStream.listen(statuses.add);
+
+        expect(
+          () => backend.sync(),
+          throwsA(isA<nexus.SyncError>()),
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        expect(statuses.last, nexus.SyncStatus.error);
+      });
+
+      test('refreshAllWatchers handles error gracefully', () async {
+        final testModel = TestModel(id: '1', name: 'Test');
+        var shouldFail = false;
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenAnswer((_) async {
+          if (shouldFail) throw Exception('Refresh failed');
+          return [testModel];
+        });
+        when(() => mockRepository.upsert<TestModel>(any()))
+            .thenAnswer((_) async => testModel);
+
+        // Start watching all
+        final stream = backend.watchAll();
+        final values = <List<TestModel>>[];
+        final errors = <Object>[];
+        stream.listen(values.add, onError: errors.add);
+
+        // Wait for initial value
+        await Future<void>.delayed(Duration.zero);
+        expect(values.first.first.name, 'Test');
+
+        // Make refresh fail
+        shouldFail = true;
+
+        // Save triggers _refreshAllWatchers which should handle error
+        await backend.save(testModel);
+
+        await Future<void>.delayed(Duration.zero);
+        expect(errors, isNotEmpty);
       });
     });
 

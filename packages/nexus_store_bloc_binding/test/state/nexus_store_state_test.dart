@@ -344,10 +344,30 @@ void main() {
         expect(state1, equals(state2));
       });
 
+      test('NexusStoreInitial non-identical instances should be equal', () {
+        // Create non-const instances to cover the non-identical path
+        // ignore: prefer_const_constructors
+        final state1 = NexusStoreInitial<String>();
+        // ignore: prefer_const_constructors
+        final state2 = NexusStoreInitial<String>();
+        expect(state1, equals(state2));
+        expect(identical(state1, state2), isFalse);
+      });
+
       test('NexusStoreLoading instances with same data should be equal', () {
         const state1 = NexusStoreLoading<String>(previousData: ['a', 'b']);
         const state2 = NexusStoreLoading<String>(previousData: ['a', 'b']);
         expect(state1, equals(state2));
+      });
+
+      test('NexusStoreLoading non-identical instances should be equal', () {
+        // Create non-const instances to cover the non-identical path
+        // ignore: prefer_const_constructors
+        final state1 = NexusStoreLoading<String>(previousData: ['a', 'b']);
+        // ignore: prefer_const_constructors
+        final state2 = NexusStoreLoading<String>(previousData: ['a', 'b']);
+        expect(state1, equals(state2));
+        expect(identical(state1, state2), isFalse);
       });
 
       test(
@@ -358,10 +378,26 @@ void main() {
         expect(state1, isNot(equals(state2)));
       });
 
+      test('NexusStoreLoading with null vs empty list should not be equal', () {
+        const state1 = NexusStoreLoading<String>(previousData: null);
+        const state2 = NexusStoreLoading<String>(previousData: []);
+        expect(state1, isNot(equals(state2)));
+      });
+
       test('NexusStoreLoaded instances with same data should be equal', () {
         const state1 = NexusStoreLoaded<String>(data: ['a', 'b']);
         const state2 = NexusStoreLoaded<String>(data: ['a', 'b']);
         expect(state1, equals(state2));
+      });
+
+      test('NexusStoreLoaded non-identical instances should be equal', () {
+        // Create non-const instances to cover the non-identical path
+        // ignore: prefer_const_constructors
+        final state1 = NexusStoreLoaded<String>(data: ['a', 'b']);
+        // ignore: prefer_const_constructors
+        final state2 = NexusStoreLoaded<String>(data: ['a', 'b']);
+        expect(state1, equals(state2));
+        expect(identical(state1, state2), isFalse);
       });
 
       test('NexusStoreLoaded instances with different data should not be equal',
@@ -383,6 +419,38 @@ void main() {
           () {
         final state1 = NexusStoreError<String>(error: Exception('test1'));
         final state2 = NexusStoreError<String>(error: Exception('test2'));
+        expect(state1, isNot(equals(state2)));
+      });
+
+      test(
+          'NexusStoreError with same error but different stackTrace should not be equal',
+          () {
+        final error = Exception('test');
+        final stackTrace1 = StackTrace.current;
+        final state1 =
+            NexusStoreError<String>(error: error, stackTrace: stackTrace1);
+        final state2 = NexusStoreError<String>(error: error, stackTrace: null);
+        expect(state1, isNot(equals(state2)));
+      });
+
+      test(
+          'NexusStoreError with same error but different previousData should not be equal',
+          () {
+        final error = Exception('test');
+        final state1 =
+            NexusStoreError<String>(error: error, previousData: ['a']);
+        final state2 =
+            NexusStoreError<String>(error: error, previousData: ['b']);
+        expect(state1, isNot(equals(state2)));
+      });
+
+      test(
+          'NexusStoreError with same error and null vs empty previousData should not be equal',
+          () {
+        final error = Exception('test');
+        final state1 =
+            NexusStoreError<String>(error: error, previousData: null);
+        final state2 = NexusStoreError<String>(error: error, previousData: []);
         expect(state1, isNot(equals(state2)));
       });
 
@@ -409,11 +477,65 @@ void main() {
       });
 
       test(
+          'NexusStoreLoading instances with same data should have same hashCode',
+          () {
+        const state1 = NexusStoreLoading<String>(previousData: ['a', 'b']);
+        const state2 = NexusStoreLoading<String>(previousData: ['a', 'b']);
+        expect(state1.hashCode, equals(state2.hashCode));
+      });
+
+      test(
+          'NexusStoreLoading with null vs empty list should have different hashCode',
+          () {
+        const state1 = NexusStoreLoading<String>(previousData: null);
+        const state2 = NexusStoreLoading<String>(previousData: []);
+        expect(state1.hashCode, isNot(equals(state2.hashCode)));
+      });
+
+      test(
           'NexusStoreLoaded instances with same data should have same hashCode',
           () {
         const state1 = NexusStoreLoaded<String>(data: ['a', 'b']);
         const state2 = NexusStoreLoaded<String>(data: ['a', 'b']);
         expect(state1.hashCode, equals(state2.hashCode));
+      });
+
+      test('NexusStoreError with same parameters should have same hashCode',
+          () {
+        final error = Exception('test');
+        final stackTrace = StackTrace.current;
+        final state1 = NexusStoreError<String>(
+          error: error,
+          stackTrace: stackTrace,
+          previousData: ['a'],
+        );
+        final state2 = NexusStoreError<String>(
+          error: error,
+          stackTrace: stackTrace,
+          previousData: ['a'],
+        );
+        expect(state1.hashCode, equals(state2.hashCode));
+      });
+
+      test(
+          'NexusStoreError with different stackTrace should have different hashCode',
+          () {
+        final error = Exception('test');
+        final stackTrace1 = StackTrace.current;
+        final state1 =
+            NexusStoreError<String>(error: error, stackTrace: stackTrace1);
+        final state2 = NexusStoreError<String>(error: error, stackTrace: null);
+        expect(state1.hashCode, isNot(equals(state2.hashCode)));
+      });
+
+      test(
+          'NexusStoreError with null vs empty previousData should have different hashCode',
+          () {
+        final error = Exception('test');
+        final state1 =
+            NexusStoreError<String>(error: error, previousData: null);
+        final state2 = NexusStoreError<String>(error: error, previousData: []);
+        expect(state1.hashCode, isNot(equals(state2.hashCode)));
       });
     });
 

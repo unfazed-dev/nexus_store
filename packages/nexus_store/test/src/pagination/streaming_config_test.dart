@@ -165,6 +165,23 @@ void main() {
         expect(config1.hashCode, equals(config2.hashCode));
       });
 
+      test('non-identical configs with same values are equal', () {
+        // Create non-const instances to cover the non-identical path
+        // ignore: prefer_const_constructors
+        final config1 = StreamingConfig(
+          pageSize: 20,
+          prefetchDistance: 5,
+        );
+        // ignore: prefer_const_constructors
+        final config2 = StreamingConfig(
+          pageSize: 20,
+          prefetchDistance: 5,
+        );
+
+        expect(config1, equals(config2));
+        expect(identical(config1, config2), isFalse);
+      });
+
       test('configs with different values are not equal', () {
         const config1 = StreamingConfig(pageSize: 20);
         const config2 = StreamingConfig(pageSize: 50);
@@ -177,6 +194,20 @@ void main() {
         const config2 = StreamingConfig();
 
         expect(config1, equals(config2));
+      });
+
+      test('configs with different debounce are not equal', () {
+        const config1 = StreamingConfig(debounce: Duration(milliseconds: 100));
+        const config2 = StreamingConfig(debounce: Duration(milliseconds: 200));
+
+        expect(config1, isNot(equals(config2)));
+      });
+
+      test('configs with different maxPagesInMemory are not equal', () {
+        const config1 = StreamingConfig(maxPagesInMemory: 5);
+        const config2 = StreamingConfig(maxPagesInMemory: 10);
+
+        expect(config1, isNot(equals(config2)));
       });
     });
 

@@ -418,6 +418,30 @@ flutter test test/<test_file>.dart
 
 ## History
 
+- **2026-01-01**: Session 7 - Multi-package coverage improvements
+  - **nexus_store_bloc_binding** (94.0% → 96%+)
+    - Enhanced `test/state/nexus_store_state_test.dart` (11 new tests)
+      - Non-identical equality tests for NexusStoreInitial, NexusStoreLoading, NexusStoreLoaded
+      - NexusStoreLoading null vs empty list previousData equality
+      - NexusStoreError stackTrace and previousData equality variations
+      - hashCode tests for Loading, Loaded, and Error states
+    - Enhanced `test/state/nexus_item_state_test.dart` (13 new tests)
+      - Non-identical equality tests for all state types
+      - NexusItemError stackTrace and previousData equality variations
+      - hashCode tests including stackTrace and previousData
+  - **nexus_store_brick_adapter** (90.9% → 95%+)
+    - Enhanced `test/brick_backend_test.dart` (10 new tests)
+      - _notifyWatchers test: save triggers update to watching subscribers
+      - _notifyDeletion test: delete sends null to watching subscribers
+      - _refreshAllWatchers test: save triggers refresh of watchAll subjects
+      - _refreshAllWatchers error handling: graceful error propagation
+      - Error handling tests for saveAll, delete, deleteAll, deleteWhere, sync
+  - **nexus_store core** (89.8% → 90%+)
+    - Enhanced `test/src/pagination/streaming_config_test.dart` (3 new tests)
+      - Non-identical equality test
+      - Additional equality tests for debounce and maxPagesInMemory variations
+  - Total: 37 new tests added across 3 packages
+
 - **2026-01-01**: Session 6 - signals_binding 100% coverage achieved (+3.9%)
   - **nexus_store_signals_binding** (96.1% → 100%, +3.9%)
     - Enhanced `test/state_test.dart` (3 new tests)
