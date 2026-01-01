@@ -114,6 +114,25 @@ void main() {
         expect(result, equals('loading'));
       });
 
+      test('maybeWhen() returns orElse when loading not provided', () {
+        const state = NexusSignalLoading<TestUser>();
+
+        final result = state.maybeWhen(
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('orElse'));
+      });
+
+      test('toString returns correct value', () {
+        const state = NexusSignalLoading<TestUser>(previousData: testUsers);
+
+        expect(
+          state.toString(),
+          equals('NexusSignalLoading<TestUser>(previousData: $testUsers)'),
+        );
+      });
+
       test('equality works correctly', () {
         const state1 = NexusSignalLoading<TestUser>(previousData: testUsers);
         const state2 = NexusSignalLoading<TestUser>(previousData: testUsers);
@@ -160,6 +179,25 @@ void main() {
         );
 
         expect(result, equals('data'));
+      });
+
+      test('maybeWhen() returns orElse when data not provided', () {
+        const state = NexusSignalData<TestUser>(data: testUsers);
+
+        final result = state.maybeWhen(
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('orElse'));
+      });
+
+      test('toString returns correct value', () {
+        const state = NexusSignalData<TestUser>(data: testUsers);
+
+        expect(
+          state.toString(),
+          equals('NexusSignalData<TestUser>(data: $testUsers)'),
+        );
       });
 
       test('equality works correctly', () {
@@ -230,6 +268,33 @@ void main() {
         expect(result, equals('error'));
       });
 
+      test('maybeWhen() returns orElse when error not provided', () {
+        final error = Exception('test error');
+        final state = NexusSignalError<TestUser>(error: error);
+
+        final result = state.maybeWhen(
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('orElse'));
+      });
+
+      test('toString returns correct value', () {
+        final error = Exception('test error');
+        final stackTrace = StackTrace.current;
+        final state = NexusSignalError<TestUser>(
+          error: error,
+          stackTrace: stackTrace,
+          previousData: testUsers,
+        );
+
+        final str = state.toString();
+        expect(str, contains('NexusSignalError'));
+        expect(str, contains('error:'));
+        expect(str, contains('stackTrace:'));
+        expect(str, contains('previousData:'));
+      });
+
       test('equality works correctly', () {
         final error = Exception('test error');
         final state1 = NexusSignalError<TestUser>(error: error);
@@ -278,6 +343,31 @@ void main() {
 
         expect(result, equals('orElse'));
       });
+
+      test('maybeWhen() returns initial handler if provided', () {
+        const state = NexusItemSignalInitial<TestUser>();
+
+        final result = state.maybeWhen(
+          initial: () => 'initial',
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('initial'));
+      });
+
+      test('toString returns correct value', () {
+        const state = NexusItemSignalInitial<TestUser>();
+
+        expect(state.toString(), equals('NexusItemSignalInitial<TestUser>()'));
+      });
+
+      test('equality works correctly', () {
+        const state1 = NexusItemSignalInitial<TestUser>();
+        const state2 = NexusItemSignalInitial<TestUser>();
+
+        expect(state1, equals(state2));
+        expect(state1.hashCode, equals(state2.hashCode));
+      });
     });
 
     group('NexusItemSignalLoading', () {
@@ -312,6 +402,46 @@ void main() {
 
         expect(result, equals('loading: Alice'));
       });
+
+      test('maybeWhen() returns loading handler if provided', () {
+        const state = NexusItemSignalLoading<TestUser>();
+
+        final result = state.maybeWhen(
+          loading: (prev) => 'loading',
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('loading'));
+      });
+
+      test('maybeWhen() returns orElse when loading not provided', () {
+        const state = NexusItemSignalLoading<TestUser>();
+
+        final result = state.maybeWhen(
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('orElse'));
+      });
+
+      test('toString returns correct value', () {
+        const state = NexusItemSignalLoading<TestUser>(previousData: testUser1);
+
+        expect(
+          state.toString(),
+          equals('NexusItemSignalLoading<TestUser>(previousData: $testUser1)'),
+        );
+      });
+
+      test('equality works correctly', () {
+        const state1 = NexusItemSignalLoading<TestUser>(previousData: testUser1);
+        const state2 = NexusItemSignalLoading<TestUser>(previousData: testUser1);
+        const state3 = NexusItemSignalLoading<TestUser>();
+
+        expect(state1, equals(state2));
+        expect(state1.hashCode, equals(state2.hashCode));
+        expect(state1, isNot(equals(state3)));
+      });
     });
 
     group('NexusItemSignalData', () {
@@ -339,6 +469,46 @@ void main() {
 
         expect(result, equals('data: Alice'));
       });
+
+      test('maybeWhen() returns data handler if provided', () {
+        const state = NexusItemSignalData<TestUser>(data: testUser1);
+
+        final result = state.maybeWhen(
+          data: (data) => 'data: ${data.name}',
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('data: Alice'));
+      });
+
+      test('maybeWhen() returns orElse when data not provided', () {
+        const state = NexusItemSignalData<TestUser>(data: testUser1);
+
+        final result = state.maybeWhen(
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('orElse'));
+      });
+
+      test('toString returns correct value', () {
+        const state = NexusItemSignalData<TestUser>(data: testUser1);
+
+        expect(
+          state.toString(),
+          equals('NexusItemSignalData<TestUser>(data: $testUser1)'),
+        );
+      });
+
+      test('equality works correctly', () {
+        const state1 = NexusItemSignalData<TestUser>(data: testUser1);
+        const state2 = NexusItemSignalData<TestUser>(data: testUser1);
+        const state3 = NexusItemSignalData<TestUser>(data: testUser2);
+
+        expect(state1, equals(state2));
+        expect(state1.hashCode, equals(state2.hashCode));
+        expect(state1, isNot(equals(state3)));
+      });
     });
 
     group('NexusItemSignalNotFound', () {
@@ -364,6 +534,44 @@ void main() {
         );
 
         expect(result, equals('notFound'));
+      });
+
+      test('maybeWhen() returns notFound handler if provided', () {
+        const state = NexusItemSignalNotFound<TestUser>();
+
+        final result = state.maybeWhen(
+          notFound: () => 'notFound',
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('notFound'));
+      });
+
+      test('maybeWhen() returns orElse when notFound not provided', () {
+        const state = NexusItemSignalNotFound<TestUser>();
+
+        final result = state.maybeWhen(
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('orElse'));
+      });
+
+      test('toString returns correct value', () {
+        const state = NexusItemSignalNotFound<TestUser>();
+
+        expect(
+          state.toString(),
+          equals('NexusItemSignalNotFound<TestUser>()'),
+        );
+      });
+
+      test('equality works correctly', () {
+        const state1 = NexusItemSignalNotFound<TestUser>();
+        const state2 = NexusItemSignalNotFound<TestUser>();
+
+        expect(state1, equals(state2));
+        expect(state1.hashCode, equals(state2.hashCode));
       });
     });
 
@@ -405,6 +613,79 @@ void main() {
         );
 
         expect(result, contains('error:'));
+      });
+
+      test('maybeWhen() returns error handler if provided', () {
+        final error = Exception('test error');
+        final state = NexusItemSignalError<TestUser>(error: error);
+
+        final result = state.maybeWhen(
+          error: (e, st, prev) => 'error',
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('error'));
+      });
+
+      test('maybeWhen() returns orElse when error not provided', () {
+        final error = Exception('test error');
+        final state = NexusItemSignalError<TestUser>(error: error);
+
+        final result = state.maybeWhen(
+          orElse: () => 'orElse',
+        );
+
+        expect(result, equals('orElse'));
+      });
+
+      test('toString returns correct value', () {
+        final error = Exception('test error');
+        final stackTrace = StackTrace.current;
+        final state = NexusItemSignalError<TestUser>(
+          error: error,
+          stackTrace: stackTrace,
+          previousData: testUser1,
+        );
+
+        final str = state.toString();
+        expect(str, contains('NexusItemSignalError'));
+        expect(str, contains('error:'));
+        expect(str, contains('stackTrace:'));
+        expect(str, contains('previousData:'));
+      });
+
+      test('equality works correctly', () {
+        final error = Exception('test error');
+        final stackTrace = StackTrace.current;
+        final state1 = NexusItemSignalError<TestUser>(
+          error: error,
+          stackTrace: stackTrace,
+        );
+        final state2 = NexusItemSignalError<TestUser>(
+          error: error,
+          stackTrace: stackTrace,
+        );
+        final state3 = NexusItemSignalError<TestUser>(
+          error: Exception('different error'),
+        );
+
+        expect(state1, equals(state2));
+        expect(state1.hashCode, equals(state2.hashCode));
+        expect(state1, isNot(equals(state3)));
+      });
+
+      test('hasData returns true when previousData is set', () {
+        final error = Exception('test error');
+        final stateWithPrevData = NexusItemSignalError<TestUser>(
+          error: error,
+          previousData: testUser1,
+        );
+        final stateWithoutPrevData = NexusItemSignalError<TestUser>(
+          error: error,
+        );
+
+        expect(stateWithPrevData.hasData, isTrue);
+        expect(stateWithoutPrevData.hasData, isFalse);
       });
     });
   });

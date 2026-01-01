@@ -80,6 +80,23 @@ void main() {
 
         controller.close();
       });
+
+      test('silently ignores stream errors', () async {
+        final controller = StreamController<List<TestUser>>.broadcast();
+        when(() => mockStore.watchAll(query: any(named: 'query')))
+            .thenAnswer((_) => controller.stream);
+
+        final signal = mockStore.toSignal();
+
+        // Emit error - should be silently ignored
+        controller.addError(Exception('test error'));
+        await Future<void>.delayed(Duration.zero);
+
+        // Signal should remain empty (no crash)
+        expect(signal.value, isEmpty);
+
+        controller.close();
+      });
     });
 
     group('toItemSignal', () {
@@ -118,6 +135,22 @@ void main() {
         controller.add(null);
         await Future<void>.delayed(Duration.zero);
 
+        expect(signal.value, isNull);
+
+        controller.close();
+      });
+
+      test('silently ignores stream errors', () async {
+        final controller = StreamController<TestUser?>.broadcast();
+        when(() => mockStore.watch(any())).thenAnswer((_) => controller.stream);
+
+        final signal = mockStore.toItemSignal('1');
+
+        // Emit error - should be silently ignored
+        controller.addError(Exception('test error'));
+        await Future<void>.delayed(Duration.zero);
+
+        // Signal should remain null (no crash)
         expect(signal.value, isNull);
 
         controller.close();

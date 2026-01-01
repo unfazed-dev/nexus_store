@@ -168,6 +168,68 @@ void main() {
 
         expect(await stream.first, items);
       });
+
+      test('watch reuses cached subject for same id', () async {
+        final testModel = TestModel(id: '1', name: 'Test');
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenAnswer((_) async => [testModel]);
+
+        // Call watch twice for same id
+        backend.watch('1');
+        backend.watch('1');
+
+        // Allow initial load to complete
+        await Future<void>.delayed(Duration.zero);
+
+        // Repository should only be called once (cached on subsequent calls)
+        verify(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .called(1);
+      });
+
+      test('watchAll reuses cached subject for same query', () async {
+        final items = [TestModel(id: '1', name: 'Test')];
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenAnswer((_) async => items);
+
+        // Call watchAll twice (no query = same key)
+        backend.watchAll();
+        backend.watchAll();
+
+        // Allow initial load to complete
+        await Future<void>.delayed(Duration.zero);
+
+        // Repository should only be called once (cached on subsequent calls)
+        verify(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .called(1);
+      });
+
+      test('watch handles error from repository', () async {
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenThrow(Exception('SocketException: Connection failed'));
+
+        final stream = backend.watch('1');
+
+        await expectLater(stream, emitsError(isA<nexus.NetworkError>()));
+      });
+
+      test('watchAll handles error from repository', () async {
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenThrow(Exception('SocketException: Connection failed'));
+
+        final stream = backend.watchAll();
+
+        await expectLater(stream, emitsError(isA<nexus.NetworkError>()));
+      });
+
+      test('getAll throws mapped exception on error', () async {
+        when(() => mockRepository.get<TestModel>(query: any(named: 'query')))
+            .thenThrow(Exception('Database error'));
+
+        expect(
+          () => backend.getAll(),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
     });
 
     group('write operations', () {

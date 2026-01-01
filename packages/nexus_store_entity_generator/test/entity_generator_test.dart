@@ -1,6 +1,7 @@
 import 'package:build/build.dart';
 import 'package:build_test/build_test.dart';
 import 'package:nexus_store_entity_generator/builder.dart';
+import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -419,6 +420,63 @@ class StatusModel {
             ]),
           ),
         },
+      );
+    });
+
+    test('returns empty for class with only static fields', () async {
+      await testBuilder(
+        entityBuilder(BuilderOptions.empty),
+        {
+          'a|lib/static_only.dart': '''
+import 'package:nexus_store/nexus_store.dart';
+
+@NexusEntity()
+class StaticOnly {
+  static const defaultValue = 0;
+  static String version = '1.0.0';
+}
+''',
+        },
+        reader: await PackageAssetReader.currentIsolate(),
+        outputs: {},
+      );
+    });
+
+    test('returns empty for empty class with no fields', () async {
+      await testBuilder(
+        entityBuilder(BuilderOptions.empty),
+        {
+          'a|lib/empty_class.dart': '''
+import 'package:nexus_store/nexus_store.dart';
+
+@NexusEntity()
+class EmptyClass {}
+''',
+        },
+        reader: await PackageAssetReader.currentIsolate(),
+        outputs: {},
+      );
+    });
+
+    test('throws InvalidGenerationSourceError for mixin', () async {
+      final reader = await PackageAssetReader.currentIsolate();
+      await expectLater(
+        testBuilder(
+          entityBuilder(BuilderOptions.empty),
+          {
+            'a|lib/my_mixin.dart': '''
+import 'package:nexus_store/nexus_store.dart';
+
+@NexusEntity()
+mixin MyMixin {
+  String get id;
+}
+''',
+          },
+          reader: reader,
+          outputs: {},
+        ),
+        throwsA(isA<InvalidGenerationSourceError>()),
       );
     });
   });

@@ -129,5 +129,67 @@ void main() {
 
       expect(signal.disposed, isTrue);
     });
+
+    test('subscribe() notifies on changes', () async {
+      final signal = NexusListSignal<TestUser, String>.fromStore(mockStore);
+      final values = <List<TestUser>>[];
+
+      signal.subscribe((value) => values.add(value));
+
+      controller.add([testUser1]);
+      await Future<void>.delayed(Duration.zero);
+
+      controller.add([testUser1, testUser2]);
+      await Future<void>.delayed(Duration.zero);
+
+      // Values include initial empty list + 2 emissions
+      expect(values, hasLength(3));
+      expect(values[0], isEmpty); // Initial empty list
+      expect(values[1], equals([testUser1]));
+      expect(values[2], equals([testUser1, testUser2]));
+    });
+
+    test('subscribe() returns unsubscribe function', () async {
+      final signal = NexusListSignal<TestUser, String>.fromStore(mockStore);
+      final values = <List<TestUser>>[];
+
+      final unsubscribe = signal.subscribe((value) => values.add(value));
+
+      controller.add([testUser1]);
+      await Future<void>.delayed(Duration.zero);
+
+      // Unsubscribe
+      unsubscribe();
+
+      controller.add([testUser1, testUser2]);
+      await Future<void>.delayed(Duration.zero);
+
+      // Only 2 values (initial + first emission), not the one after unsubscribe
+      expect(values, hasLength(2));
+    });
+
+    test('onDispose() callback is invoked on disposal', () {
+      final signal = NexusListSignal<TestUser, String>.fromStore(mockStore);
+      var disposed = false;
+
+      signal.onDispose(() => disposed = true);
+
+      expect(disposed, isFalse);
+
+      signal.dispose();
+
+      expect(disposed, isTrue);
+    });
+
+    test('handles stream errors silently', () async {
+      final signal = NexusListSignal<TestUser, String>.fromStore(mockStore);
+
+      // Emit an error - should be silently ignored
+      controller.addError(Exception('test error'));
+      await Future<void>.delayed(Duration.zero);
+
+      // Signal should still have empty list (no crash)
+      expect(signal.value, isEmpty);
+    });
   });
 }

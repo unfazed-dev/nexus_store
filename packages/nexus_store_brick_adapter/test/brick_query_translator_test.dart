@@ -133,6 +133,117 @@ void main() {
         expect(result.where![0].evaluatedField, 'status');
         expect(result.where![1].evaluatedField, 'age');
       });
+
+      test('translates startsWith filter', () {
+        final filters = [
+          const QueryFilter(
+            field: 'name',
+            operator: FilterOperator.startsWith,
+            value: 'Jo',
+          ),
+        ];
+        final result = translator.translateFilters(filters);
+
+        expect(result.where, isNotNull);
+        expect(result.where!.first.evaluatedField, 'name');
+        expect(result.where!.first.value, 'Jo');
+        expect(result.where!.first.compare, brick.Compare.contains);
+      });
+
+      test('translates endsWith filter', () {
+        final filters = [
+          const QueryFilter(
+            field: 'name',
+            operator: FilterOperator.endsWith,
+            value: 'son',
+          ),
+        ];
+        final result = translator.translateFilters(filters);
+
+        expect(result.where, isNotNull);
+        expect(result.where!.first.evaluatedField, 'name');
+        expect(result.where!.first.value, 'son');
+        expect(result.where!.first.compare, brick.Compare.contains);
+      });
+
+      group('whereNotIn filter', () {
+        test('handles empty list', () {
+          final query = const Query<TestModel>()
+              .where('role', whereNotIn: <String>[]);
+          final result = translator.translate(query);
+
+          expect(result.where, isNotNull);
+          expect(result.where!.first.evaluatedField, 'role');
+          expect(result.where!.first.compare, brick.Compare.notEqual);
+        });
+
+        test('handles single value', () {
+          final query =
+              const Query<TestModel>().where('role', whereNotIn: ['admin']);
+          final result = translator.translate(query);
+
+          expect(result.where, isNotNull);
+          expect(result.where!.first.evaluatedField, 'role');
+          expect(result.where!.first.value, 'admin');
+          expect(result.where!.first.compare, brick.Compare.notEqual);
+        });
+
+        test('handles multiple values (uses first only)', () {
+          final query = const Query<TestModel>()
+              .where('role', whereNotIn: ['admin', 'superuser']);
+          final result = translator.translate(query);
+
+          expect(result.where, isNotNull);
+          expect(result.where!.first.evaluatedField, 'role');
+          expect(result.where!.first.value, 'admin');
+          expect(result.where!.first.compare, brick.Compare.notEqual);
+        });
+      });
+
+      group('arrayContainsAny filter', () {
+        test('handles empty list', () {
+          final query = const Query<TestModel>()
+              .where('tags', arrayContainsAny: <String>[]);
+          final result = translator.translate(query);
+
+          expect(result.where, isNotNull);
+          expect(result.where!.first.evaluatedField, 'tags');
+          expect(result.where!.first.compare, brick.Compare.exact);
+        });
+
+        test('handles single value', () {
+          final query = const Query<TestModel>()
+              .where('tags', arrayContainsAny: ['flutter']);
+          final result = translator.translate(query);
+
+          expect(result.where, isNotNull);
+          expect(result.where!.first.evaluatedField, 'tags');
+          expect(result.where!.first.value, 'flutter');
+          expect(result.where!.first.compare, brick.Compare.contains);
+        });
+
+        test('handles multiple values (uses first only)', () {
+          final query = const Query<TestModel>()
+              .where('tags', arrayContainsAny: ['flutter', 'dart']);
+          final result = translator.translate(query);
+
+          expect(result.where, isNotNull);
+          expect(result.where!.first.evaluatedField, 'tags');
+          expect(result.where!.first.value, 'flutter');
+          expect(result.where!.first.compare, brick.Compare.contains);
+        });
+      });
+
+      test('translates arrayContains filter', () {
+        final query =
+            const Query<TestModel>().where('tags', arrayContains: 'flutter');
+        final result = translator.translate(query);
+
+        expect(result.where, isNotNull);
+        expect(result.where!.first.evaluatedField, 'tags');
+        expect(result.where!.first.value, 'flutter');
+        expect(result.where!.first.compare, brick.Compare.contains);
+      });
     });
 
     group('orderBy translation', () {

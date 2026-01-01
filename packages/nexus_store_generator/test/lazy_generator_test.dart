@@ -119,5 +119,176 @@ class NoAccessors {
         },
       );
     });
+
+    test('generates preloadOnWatchFields for fields with preloadOnWatch: true',
+        () async {
+      await testBuilder(
+        lazyBuilder(BuilderOptions.empty),
+        {
+          'a|lib/preload_model.dart': '''
+import 'package:nexus_store/src/lazy/annotations.dart';
+
+@NexusLazy(generateWrapper: true)
+class PreloadModel {
+  final String id;
+
+  @Lazy(preloadOnWatch: true)
+  final String? avatar;
+
+  @Lazy(preloadOnWatch: true)
+  final String? bio;
+
+  @Lazy()
+  final String? metadata;
+
+  PreloadModel({required this.id, this.avatar, this.bio, this.metadata});
+}
+''',
+        },
+        reader: await PackageAssetReader.currentIsolate(),
+        outputs: {
+          'a|lib/preload_model.lazy.dart': decodedMatches(
+            allOf([
+              contains('class LazyPreloadModel'),
+              contains("preloadOnWatchFields = {'avatar', 'bio'}"),
+            ]),
+          ),
+        },
+      );
+    });
+
+    test('handles numeric placeholder values', () async {
+      await testBuilder(
+        lazyBuilder(BuilderOptions.empty),
+        {
+          'a|lib/numeric_placeholder.dart': '''
+import 'package:nexus_store/src/lazy/annotations.dart';
+
+@NexusLazy(generateWrapper: true)
+class NumericPlaceholder {
+  final String id;
+
+  @Lazy(placeholder: 0)
+  final int? count;
+
+  @Lazy(placeholder: 0.0)
+  final double? rate;
+
+  NumericPlaceholder({required this.id, this.count, this.rate});
+}
+''',
+        },
+        reader: await PackageAssetReader.currentIsolate(),
+        outputs: {
+          'a|lib/numeric_placeholder.lazy.dart': decodedMatches(
+            allOf([
+              contains("placeholders: {'count': 0"),
+              contains("'rate': 0.0"),
+            ]),
+          ),
+        },
+      );
+    });
+
+    test('handles boolean placeholder values', () async {
+      await testBuilder(
+        lazyBuilder(BuilderOptions.empty),
+        {
+          'a|lib/bool_placeholder.dart': '''
+import 'package:nexus_store/src/lazy/annotations.dart';
+
+@NexusLazy(generateWrapper: true)
+class BoolPlaceholder {
+  final String id;
+
+  @Lazy(placeholder: false)
+  final bool? isActive;
+
+  BoolPlaceholder({required this.id, this.isActive});
+}
+''',
+        },
+        reader: await PackageAssetReader.currentIsolate(),
+        outputs: {
+          'a|lib/bool_placeholder.lazy.dart': decodedMatches(
+            contains("placeholders: {'isActive': false}"),
+          ),
+        },
+      );
+    });
+
+    test('returns empty for class with no @Lazy fields', () async {
+      await testBuilder(
+        lazyBuilder(BuilderOptions.empty),
+        {
+          'a|lib/no_lazy_fields.dart': '''
+import 'package:nexus_store/src/lazy/annotations.dart';
+
+@NexusLazy()
+class NoLazyFields {
+  final String id;
+  final String name;
+
+  NoLazyFields({required this.id, required this.name});
+}
+''',
+        },
+        reader: await PackageAssetReader.currentIsolate(),
+        outputs: {},
+      );
+    });
+
+    test('throws InvalidGenerationSourceError for mixin with @NexusLazy',
+        () async {
+      final reader = await PackageAssetReader.currentIsolate();
+      await expectLater(
+        testBuilder(
+          lazyBuilder(BuilderOptions.empty),
+          {
+            'a|lib/lazy_mixin.dart': '''
+import 'package:nexus_store/src/lazy/annotations.dart';
+
+@NexusLazy()
+mixin LazyMixin {
+  String get id;
+}
+''',
+          },
+          reader: reader,
+          outputs: {},
+        ),
+        throwsA(anything),
+      );
+    });
+
+    test('handles list placeholder values', () async {
+      await testBuilder(
+        lazyBuilder(BuilderOptions.empty),
+        {
+          'a|lib/list_placeholder.dart': '''
+import 'package:nexus_store/src/lazy/annotations.dart';
+
+@NexusLazy(generateWrapper: true)
+class ListPlaceholder {
+  final String id;
+
+  @Lazy(placeholder: [1, 2, 3])
+  final List<int>? items;
+
+  ListPlaceholder({required this.id, this.items});
+}
+''',
+        },
+        reader: await PackageAssetReader.currentIsolate(),
+        outputs: {
+          'a|lib/list_placeholder.lazy.dart': decodedMatches(
+            allOf([
+              contains("'items': [int(1), int(2), int(3)]"),
+              contains('class LazyListPlaceholder'),
+            ]),
+          ),
+        },
+      );
+    });
   });
 }

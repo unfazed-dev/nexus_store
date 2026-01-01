@@ -88,5 +88,64 @@ void main() {
       expect(values[1], equals([testUser1]));
       expect(values[2], equals([testUser1, testUser2]));
     });
+
+    test('subscribe() returns unsubscribe function', () async {
+      final signal = NexusSignal<TestUser, String>.fromStore(mockStore);
+      final values = <List<TestUser>>[];
+
+      final unsubscribe = signal.subscribe((value) => values.add(value));
+
+      controller.add([testUser1]);
+      await Future<void>.delayed(Duration.zero);
+
+      // Unsubscribe
+      unsubscribe();
+
+      controller.add([testUser1, testUser2]);
+      await Future<void>.delayed(Duration.zero);
+
+      // Only 2 values (initial + first emission), not the one after unsubscribe
+      expect(values, hasLength(2));
+    });
+
+    test('onDispose() callback is invoked on disposal', () {
+      final signal = NexusSignal<TestUser, String>.fromStore(mockStore);
+      var disposed = false;
+
+      signal.onDispose(() => disposed = true);
+
+      expect(disposed, isFalse);
+
+      signal.dispose();
+
+      expect(disposed, isTrue);
+    });
+
+    test('value setter updates signal', () async {
+      final signal = NexusSignal<TestUser, String>.fromStore(mockStore);
+
+      expect(signal.value, isEmpty);
+
+      signal.value = testUsers;
+
+      expect(signal.value, equals(testUsers));
+    });
+
+    test('handles stream errors silently', () async {
+      final signal = NexusSignal<TestUser, String>.fromStore(mockStore);
+
+      // Emit an error - should be silently ignored
+      controller.addError(Exception('test error'));
+      await Future<void>.delayed(Duration.zero);
+
+      // Signal should still have empty list (no crash)
+      expect(signal.value, isEmpty);
+    });
+
+    test('store getter returns the underlying store', () {
+      final signal = NexusSignal<TestUser, String>.fromStore(mockStore);
+
+      expect(signal.store, equals(mockStore));
+    });
   });
 }

@@ -11,7 +11,7 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 | P0 Critical | 3 | 474 | 3 (riverpod_generator ✅, supabase_adapter 🟡 74.7%, riverpod_binding ✅) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
 | P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store 🟡 89.8%, crdt_adapter 🟡 87.2%, bloc_binding 🟡 94.0%, drift_adapter ✅ 94.4%) |
-| P3-P4 Lower | 4 | 133 | 0 |
+| P3-P4 Lower | 4 | 133 | 3 (entity_generator ✅ 100%, generator ✅ 100%, brick_adapter 🟡 90.9%, signals_binding 🟡 96.1%) |
 | **Total** | **13** | **1,415** | **9** |
 
 ---
@@ -289,45 +289,93 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ### P3-P4: Lower Priority (76-97% coverage)
 
-#### nexus_store_signals_binding (75.7% → 100%)
+#### nexus_store_signals_binding (75.7% → 96.1%) 🟡 NEAR COMPLETE
 **Path:** `packages/nexus_store_signals_binding`
-**Lines to cover:** 81
+**Lines to cover:** 81 → ~13 remaining
 
-- [ ] Review and complete remaining coverage
-
----
-
-#### nexus_store_brick_adapter (79.9% → 100%)
-**Path:** `packages/nexus_store_brick_adapter`
-**Lines to cover:** 42
-
-- [ ] Add error handling tests (lines 147, 240-241, 265-266, etc.)
-- [ ] Add watch stream tests (lines 156, 165-166, 177, 180)
-- [ ] Add watchAll subject refresh tests (lines 390-398)
-- [ ] Add startsWith filter test (line 138)
-- [ ] Add endsWith filter test (line 139)
-- [ ] Add notIn condition tests (lines 147-160)
-- [ ] Add arrayContainsAny condition tests (lines 169-181)
+- [x] Create `test/nexus_signals_mixin_test.dart` (22 tests)
+  - [x] createSignal - creates tracked signal
+  - [x] createComputed - creates tracked computed
+  - [x] createFromStore - creates signal from store (with and without query)
+  - [x] createItemFromStore - creates item signal from store
+  - [x] disposeSignals - disposes all managed signals
+- [x] Add SignalScope.createItemFromStore tests (6 tests)
+  - [x] Signal updates when store emits item
+  - [x] Signal handles null (item not found)
+  - [x] Subscription cancelled on disposeAll
+  - [x] Error handling in onError callback
+- [x] Add NexusItemSignalState complete coverage (27 tests)
+  - [x] maybeWhen orElse paths for all states
+  - [x] toString() for all states
+  - [x] hashCode/equality for all states
+- [x] Add NexusSignal/NexusListSignal edge cases (10 tests)
+  - [x] subscribe() returns unsubscribe function
+  - [x] onDispose() callback invoked on disposal
+  - [x] Stream error handling
+- [x] Add store extension error handling tests (2 tests)
+  - [x] toSignal silently ignores errors
+  - [x] toItemSignal silently ignores errors
+- [ ] Remaining: state classes internal branches (~4%)
 
 **Files:**
-- `lib/src/brick_backend.dart` (82.6%)
-- `lib/src/brick_query_translator.dart` (73.3%)
+- `lib/src/lifecycle/signal_scope.dart` (100% ✅)
+- `lib/src/signals/nexus_signal.dart` (100% ✅)
+- `lib/src/signals/nexus_list_signal.dart` (100% ✅)
+- `lib/src/computed/computed_utils.dart` (100% ✅)
+- `lib/src/extensions/store_signal_extension.dart` (90.9%)
+- `lib/src/state/nexus_signal_state.dart` (98.8%)
+- `lib/src/state/nexus_item_signal_state.dart` (91.2%)
 
 ---
 
-#### nexus_store_generator (92.2% → 100%)
-**Path:** `packages/nexus_store_generator`
-**Lines to cover:** 8
-
-- [ ] Add edge case tests for remaining uncovered lines
-
----
-
-#### nexus_store_entity_generator (97.0% → 100%)
+#### nexus_store_entity_generator (97.0% → 100%) ✅ COMPLETE
 **Path:** `packages/nexus_store_entity_generator`
-**Lines to cover:** 2
+**Lines to cover:** 2 → **0 remaining (100%)**
 
-- [ ] Cover lines 19 and 39
+- [x] Test InvalidGenerationSourceError for non-class elements (mixin)
+- [x] Test empty class with no fields (warning path)
+- [x] Test class with only static fields (warning path)
+
+**Files:**
+- `lib/src/entity_generator.dart` (100% ✅)
+
+---
+
+#### nexus_store_generator (92.2% → 100%) ✅ COMPLETE
+**Path:** `packages/nexus_store_generator`
+**Lines to cover:** 8 → **0 remaining (100%)**
+
+- [x] Test preloadOnWatchFields generation with preloadOnWatch: true
+- [x] Test numeric placeholder values (int, double)
+- [x] Test boolean placeholder values
+- [x] Test list placeholder values (fallback case in _literalValue)
+- [x] Test class with no @Lazy fields (warning path)
+- [x] Test InvalidGenerationSourceError for mixin with @NexusLazy
+
+**Files:**
+- `lib/src/lazy_generator.dart` (100% ✅)
+
+---
+
+#### nexus_store_brick_adapter (79.9% → 90.9%) 🟡 IN PROGRESS
+**Path:** `packages/nexus_store_brick_adapter`
+**Lines to cover:** 42 → ~19 remaining
+
+- [x] Add startsWith filter test
+- [x] Add endsWith filter test
+- [x] Add whereNotIn condition tests (empty list, single value, multiple values)
+- [x] Add arrayContainsAny condition tests (empty list, single value, multiple values)
+- [x] Add arrayContains filter test
+- [x] Add watch cached subject test
+- [x] Add watchAll cached subject test
+- [x] Add watch error handling test
+- [x] Add watchAll error handling test
+- [x] Add getAll error handling test
+- [ ] Remaining: _refreshAllWatchers, some delete error paths
+
+**Files:**
+- `lib/src/brick_backend.dart` (88.9% - up from 82.6%)
+- `lib/src/brick_query_translator.dart` (100% ✅ - up from 73.3%)
 
 ---
 
@@ -366,6 +414,57 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-01**: Session 5 - signals_binding coverage improvement (+20.4%)
+  - **nexus_store_signals_binding** (75.7% → 96.1%, +20.4%)
+    - Created `test/nexus_signals_mixin_test.dart` (22 tests)
+      - NexusSignalsMixin complete coverage: createSignal, createComputed, createFromStore, createItemFromStore, disposeSignals
+    - Enhanced `test/lifecycle_test.dart` (9 new tests)
+      - SignalScope.createItemFromStore tests (6 tests)
+      - SignalScope.createFromStore with query parameter (3 tests)
+    - Enhanced `test/state_test.dart` (32 new tests)
+      - NexusItemSignalState maybeWhen orElse paths (10 tests)
+      - NexusItemSignalState toString/equality (15 tests)
+      - NexusSignalState toString/maybeWhen orElse (7 tests)
+    - Enhanced `test/nexus_signal_test.dart` (6 new tests)
+      - subscribe unsubscribe, onDispose, value setter, stream errors
+    - Enhanced `test/nexus_list_signal_test.dart` (5 new tests)
+      - subscribe, onDispose, stream errors
+    - Enhanced `test/signal_extension_test.dart` (2 new tests)
+      - toSignal/toItemSignal error handling
+  - Per-file improvements:
+    - lifecycle/signal_scope.dart: 58.7% → 100%
+    - signals/nexus_list_signal.dart: 83.3% → 100%
+    - signals/nexus_signal.dart: 81.8% → 100%
+    - state/nexus_item_signal_state.dart: 55.9% → 91.2%
+    - extensions/store_signal_extension.dart: 84.8% → 90.9%
+    - state/nexus_signal_state.dart: 96.4% → 98.8%
+  - Total: 76 new tests added
+
+- **2026-01-01**: Session 4 - P3-P4 package coverage completion
+  - **nexus_store_entity_generator** (97.0% → 100%, +3.0%)
+    - Added 3 tests for edge cases:
+      - InvalidGenerationSourceError for mixin with @NexusEntity
+      - Empty class with no fields (warning path)
+      - Class with only static fields (warning path)
+  - **nexus_store_generator** (92.2% → 100%, +7.8%)
+    - Added 6 tests for helper methods and edge cases:
+      - preloadOnWatchFields generation
+      - Numeric, boolean, and list placeholder values
+      - Class with no @Lazy fields
+      - InvalidGenerationSourceError for mixin with @NexusLazy
+  - **nexus_store_brick_adapter** (79.9% → 90.9%, +11.0%)
+    - Added 11 query translator tests:
+      - startsWith and endsWith filters
+      - whereNotIn with empty/single/multiple values
+      - arrayContainsAny with empty/single/multiple values
+      - arrayContains filter
+    - Added 6 backend tests:
+      - watch/watchAll cached subject reuse
+      - watch/watchAll error handling
+      - getAll error handling
+    - brick_query_translator.dart: 73.3% → 100%
+  - Total: 20 new tests added across 3 packages
 
 - **2026-01-01**: Session 3 - Core package coverage improvements
   - **nexus_store** core (87.9% → 89.8%, +1.9%)
