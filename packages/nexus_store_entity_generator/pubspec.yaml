@@ -16,3 +16,7 @@ dev_dependencies:
   build_runner: ^2.4.0
   build_test: ^2.2.0
   test: ^1.24.0
+  test_reporter:
+    git:
+      url: https://github.com/unfazed-dev/test_reporter.git
+      ref: main

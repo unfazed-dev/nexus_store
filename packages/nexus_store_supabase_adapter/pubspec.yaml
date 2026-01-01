@@ -15,3 +15,7 @@ dev_dependencies:
   test: ^1.25.0
   mocktail: ^1.0.4
   lints: ^5.1.0
+  test_reporter:
+    git:
+      url: https://github.com/unfazed-dev/test_reporter.git
+      ref: main

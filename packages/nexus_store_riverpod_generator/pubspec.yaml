@@ -17,3 +17,7 @@ dev_dependencies:
   lints: ^5.0.0
   test: ^1.25.8
   build_test: ^2.2.2
+  test_reporter:
+    git:
+      url: https://github.com/unfazed-dev/test_reporter.git
+      ref: main

@@ -18,3 +18,7 @@ dev_dependencies:
   mocktail: ^1.0.4
   lints: ^5.1.0
   sqlite3: ^2.4.0
+  test_reporter:
+    git:
+      url: https://github.com/unfazed-dev/test_reporter.git
+      ref: main
