@@ -178,6 +178,11 @@ void main() {
         expect(state.stackTrace, equals(stackTrace));
       });
 
+      test('stackTrace should return null when not provided', () {
+        final state = NexusStoreError<String>(error: Exception('test'));
+        expect(state.stackTrace, isNull);
+      });
+
       test('previousData should be accessible', () {
         const data = ['item1', 'item2'];
         final state = NexusStoreError<String>(
@@ -550,14 +555,58 @@ void main() {
         expect(state.toString(), contains('NexusStoreLoading'));
       });
 
+      test('NexusStoreLoading toString includes previousData value', () {
+        const state = NexusStoreLoading<String>(previousData: ['item1', 'item2']);
+        final str = state.toString();
+        expect(str, contains('previousData'));
+        expect(str, contains('item1'));
+        expect(str, contains('item2'));
+      });
+
+      test('NexusStoreLoading toString shows null previousData', () {
+        const state = NexusStoreLoading<String>();
+        expect(state.toString(), contains('previousData: null'));
+      });
+
       test('NexusStoreLoaded should have readable toString', () {
         const state = NexusStoreLoaded<String>(data: ['a', 'b']);
         expect(state.toString(), contains('NexusStoreLoaded'));
       });
 
+      test('NexusStoreLoaded toString includes data value', () {
+        const state = NexusStoreLoaded<String>(data: ['first', 'second']);
+        final str = state.toString();
+        expect(str, contains('data'));
+        expect(str, contains('first'));
+        expect(str, contains('second'));
+      });
+
       test('NexusStoreError should have readable toString', () {
         final state = NexusStoreError<String>(error: Exception('test'));
         expect(state.toString(), contains('NexusStoreError'));
+      });
+
+      test('NexusStoreError toString includes all field values', () {
+        final stackTrace = StackTrace.current;
+        final state = NexusStoreError<String>(
+          error: Exception('test error'),
+          stackTrace: stackTrace,
+          previousData: ['prev1', 'prev2'],
+        );
+        final str = state.toString();
+        expect(str, contains('error'));
+        expect(str, contains('test error'));
+        expect(str, contains('stackTrace'));
+        expect(str, contains('previousData'));
+        expect(str, contains('prev1'));
+        expect(str, contains('prev2'));
+      });
+
+      test('NexusStoreError toString shows null fields', () {
+        final state = NexusStoreError<String>(error: Exception('test'));
+        final str = state.toString();
+        expect(str, contains('stackTrace: null'));
+        expect(str, contains('previousData: null'));
       });
     });
   });

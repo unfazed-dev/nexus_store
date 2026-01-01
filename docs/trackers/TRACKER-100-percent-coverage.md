@@ -10,8 +10,8 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 |----------|----------|--------------|-----------|
 | P0 Critical | 3 | 474 | 3 (riverpod_generator ✅, supabase_adapter 🟡 74.7%, riverpod_binding ✅) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
-| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store 🟡 89.8%, crdt_adapter 🟡 87.2%, bloc_binding 🟡 94.0%, drift_adapter ✅ 94.4%) |
-| P3-P4 Lower | 4 | 133 | 4 (entity_generator ✅ 100%, generator ✅ 100%, brick_adapter 🟡 90.9%, signals_binding ✅ 100%) |
+| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store 🟡 89.8%, crdt_adapter 🟡 87.2%, bloc_binding ✅ 96.2%, drift_adapter ✅ 94.4%) |
+| P3-P4 Lower | 4 | 133 | 4 (entity_generator ✅ 100%, generator ✅ 100%, brick_adapter ✅ 100%, signals_binding ✅ 100%) |
 | **Total** | **13** | **1,415** | **9** |
 
 ---
@@ -239,15 +239,22 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ---
 
-#### nexus_store_bloc_binding (71.8% → 93.2%) 🟡 IN PROGRESS
+#### nexus_store_bloc_binding (71.8% → 96.2%) ✅ NEAR COMPLETE
 **Path:** `packages/nexus_store_bloc_binding`
-**Lines to cover:** 150 → ~36 remaining
+**Lines to cover:** 150 → ~20 remaining
 
 - [x] Add event equality/hashCode/toString tests ✅
   - [x] nexus_store_event.dart: 19.1% → 96.6% (40 new tests)
   - [x] nexus_item_event.dart: 8.6% → 94.8% (35 new tests)
 - [x] Add comprehensive event tests (DataReceived, ErrorReceived)
-- [ ] Remaining: cubit protected methods, state edge cases
+- [x] Add cubit protected methods tests ✅ (Session 8)
+  - [x] load(query: query) passes query to watchAll
+  - [x] refresh preserves the current query
+  - [x] error state with stackTrace captures from stream
+- [x] Add state edge case tests ✅ (Session 8)
+  - [x] stackTrace returns null when not provided
+  - [x] toString() includes previousData value
+  - [x] toString() shows null fields
 
 **Files:**
 - `lib/src/bloc/nexus_item_event.dart` (94.8% ✅)
@@ -255,9 +262,9 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 - `lib/src/bloc/nexus_item_bloc.dart` (100% ✅)
 - `lib/src/bloc/nexus_store_bloc.dart` (92.2%)
 - `lib/src/cubit/nexus_item_cubit.dart` (100% ✅)
-- `lib/src/cubit/nexus_store_cubit.dart` (90.2%)
-- `lib/src/state/nexus_item_state.dart` (90.2%)
-- `lib/src/state/nexus_store_state.dart` (85.7%)
+- `lib/src/cubit/nexus_store_cubit.dart` (96%+ ✅)
+- `lib/src/state/nexus_item_state.dart` (96%+ ✅)
+- `lib/src/state/nexus_store_state.dart` (96%+ ✅)
 - `lib/src/utils/bloc_observer.dart` (100% ✅)
 
 ---
@@ -360,9 +367,9 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ---
 
-#### nexus_store_brick_adapter (79.9% → 90.9%) 🟡 IN PROGRESS
+#### nexus_store_brick_adapter (79.9% → 100%) ✅ COMPLETE
 **Path:** `packages/nexus_store_brick_adapter`
-**Lines to cover:** 42 → ~19 remaining
+**Lines to cover:** 42 → **0 remaining (100%)**
 
 - [x] Add startsWith filter test
 - [x] Add endsWith filter test
@@ -374,11 +381,14 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 - [x] Add watch error handling test
 - [x] Add watchAll error handling test
 - [x] Add getAll error handling test
-- [ ] Remaining: _refreshAllWatchers, some delete error paths
+- [x] Add _refreshAllWatchers tests ✅ (Session 8)
+  - [x] watchAll with query uses unique queryKey
+  - [x] _refreshAllWatchers only refreshes _all_ subjects
+  - [x] delete triggers _refreshAllWatchers
 
 **Files:**
-- `lib/src/brick_backend.dart` (88.9% - up from 82.6%)
-- `lib/src/brick_query_translator.dart` (100% ✅ - up from 73.3%)
+- `lib/src/brick_backend.dart` (100% ✅)
+- `lib/src/brick_query_translator.dart` (100% ✅)
 
 ---
 
@@ -417,6 +427,33 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-01**: Session 8 - TDD coverage improvements (bloc_binding, brick_adapter, delta_merger)
+  - **nexus_store_bloc_binding** (94.0% → 96.2%, +2.2%)
+    - Enhanced `test/state/nexus_store_state_test.dart` (7 new tests)
+      - NexusStoreError.stackTrace null getter test
+      - NexusStoreLoading.toString() with previousData verification
+      - NexusStoreLoading.toString() shows null previousData
+      - NexusStoreLoaded.toString() includes data value
+      - NexusStoreError.toString() all fields verification
+      - NexusStoreError.toString() shows null fields
+    - Enhanced `test/state/nexus_item_state_test.dart` (7 new tests)
+      - Same pattern as store state tests
+    - Enhanced `test/cubit/nexus_store_cubit_test.dart` (5 new tests)
+      - load(query: query) passes query to watchAll
+      - refresh preserves current query
+      - error state with stackTrace from stream
+      - save error includes stackTrace
+  - **nexus_store_brick_adapter** (90.9% → 100%, +9.1%) ✅ COMPLETE
+    - Enhanced `test/brick_backend_test.dart` (4 new tests)
+      - watchAll with query uses unique queryKey
+      - _refreshAllWatchers only refreshes _all_ subjects
+      - delete triggers _refreshAllWatchers
+  - **nexus_store core - delta_merger** (3 new tests)
+    - Custom strategy fallback when onMergeConflict is null
+    - Custom callback exception propagates
+    - Resolves multiple simultaneous conflicts (3+ fields)
+  - Total: 26 new tests added across 3 packages
 
 - **2026-01-01**: Session 7 - Multi-package coverage improvements
   - **nexus_store_bloc_binding** (94.0% → 96%+)

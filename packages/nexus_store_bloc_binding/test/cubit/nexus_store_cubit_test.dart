@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:nexus_store/nexus_store.dart';
 import 'package:nexus_store_bloc_binding/nexus_store_bloc_binding.dart';
 import 'package:test/test.dart';
 
@@ -314,6 +315,86 @@ void main() {
         expect(cubit.store, same(mockStore));
         cubit.close();
       });
+    });
+
+    group('load with query', () {
+      blocTest<NexusStoreCubit<TestUser, String>, NexusStoreState<TestUser>>(
+        'passes query parameter to watchAll',
+        build: () => NexusStoreCubit<TestUser, String>(mockStore),
+        act: (cubit) async {
+          final query = Query<TestUser>().where('name', isEqualTo: 'Alice');
+          await cubit.load(query: query);
+          watchAllController.add([TestFixtures.sampleUser]);
+          await Future<void>.delayed(Duration.zero);
+        },
+        verify: (_) {
+          verify(() => mockStore.watchAll(
+                query: any(named: 'query', that: isNotNull),
+              )).called(1);
+        },
+      );
+
+      blocTest<NexusStoreCubit<TestUser, String>, NexusStoreState<TestUser>>(
+        'refresh preserves the current query',
+        build: () => NexusStoreCubit<TestUser, String>(mockStore),
+        act: (cubit) async {
+          final query = Query<TestUser>().where('name', isEqualTo: 'Alice');
+          await cubit.load(query: query);
+          watchAllController.add([TestFixtures.sampleUser]);
+          await Future<void>.delayed(Duration.zero);
+
+          await cubit.refresh();
+          watchAllController.add([TestFixtures.sampleUser]);
+          await Future<void>.delayed(Duration.zero);
+        },
+        verify: (_) {
+          // watchAll should be called twice, both times with a query
+          verify(() => mockStore.watchAll(
+                query: any(named: 'query', that: isNotNull),
+              )).called(2);
+        },
+      );
+    });
+
+    group('error state with stackTrace', () {
+      blocTest<NexusStoreCubit<TestUser, String>, NexusStoreState<TestUser>>(
+        'captures stackTrace from stream error',
+        build: () => NexusStoreCubit<TestUser, String>(mockStore),
+        act: (cubit) async {
+          await cubit.load();
+          watchAllController.addError(
+            Exception('Network error'),
+            StackTrace.current,
+          );
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusStoreLoading<TestUser>>(),
+          isA<NexusStoreError<TestUser>>()
+              .having((s) => s.stackTrace, 'stackTrace', isNotNull),
+        ],
+      );
+
+      blocTest<NexusStoreCubit<TestUser, String>, NexusStoreState<TestUser>>(
+        'save error includes stackTrace',
+        build: () {
+          when(() => mockStore.save(any(),
+              policy: any(named: 'policy'),
+              tags: any(named: 'tags'))).thenThrow(Exception('Save failed'));
+          return NexusStoreCubit<TestUser, String>(mockStore);
+        },
+        act: (cubit) async {
+          try {
+            await cubit.save(TestFixtures.sampleUser);
+          } catch (_) {
+            // Expected error
+          }
+        },
+        expect: () => [
+          isA<NexusStoreError<TestUser>>()
+              .having((s) => s.stackTrace, 'stackTrace', isNotNull),
+        ],
+      );
     });
 
     group('lifecycle hooks', () {

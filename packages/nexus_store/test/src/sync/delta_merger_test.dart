@@ -370,6 +370,178 @@ void main() {
         expect(result.merged['name'], equals('Jane')); // Local wins
         expect(result.merged['age'], equals(32)); // Remote wins
       });
+
+      test('custom strategy falls back to lastWriteWins when callback is null',
+          () async {
+        final config = DeltaSyncConfig(
+          mergeStrategy: DeltaMergeStrategy.custom,
+          // onMergeConflict is null
+        );
+        final mergerWithConfig = DeltaMerger(config: config);
+
+        final localDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'Jane',
+              timestamp: DateTime(2024, 1, 15, 10, 0),
+            ),
+          ],
+          timestamp: DateTime(2024, 1, 15, 10, 0),
+        );
+
+        final remoteDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'Janet',
+              timestamp: DateTime(2024, 1, 15, 11, 0), // Later timestamp
+            ),
+          ],
+          timestamp: DateTime(2024, 1, 15, 11, 0),
+        );
+
+        final result = await mergerWithConfig.mergeDeltas(
+          base: {'name': 'John'},
+          local: localDelta,
+          remote: remoteDelta,
+        );
+
+        // Falls back to lastWriteWins - remote has later timestamp
+        expect(result.merged['name'], equals('Janet'));
+      });
+
+      test('custom callback exception propagates', () async {
+        final config = DeltaSyncConfig(
+          mergeStrategy: DeltaMergeStrategy.custom,
+          onMergeConflict: (field, local, remote) async {
+            throw Exception('Custom merge failed');
+          },
+        );
+        final mergerWithConfig = DeltaMerger(config: config);
+
+        final localDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'Jane',
+              timestamp: timestamp,
+            ),
+          ],
+          timestamp: timestamp,
+        );
+
+        final remoteDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'Janet',
+              timestamp: timestamp,
+            ),
+          ],
+          timestamp: timestamp,
+        );
+
+        expect(
+          () => mergerWithConfig.mergeDeltas(
+            base: {'name': 'John'},
+            local: localDelta,
+            remote: remoteDelta,
+          ),
+          throwsA(isA<Exception>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Custom merge failed'),
+          )),
+        );
+      });
+
+      test('resolves multiple simultaneous conflicts', () async {
+        final config = DeltaSyncConfig(
+          mergeStrategy: DeltaMergeStrategy.lastWriteWins,
+        );
+        final mergerWithConfig = DeltaMerger(config: config);
+
+        // Local changes 3 fields at 10:00
+        final localDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'LocalName',
+              timestamp: DateTime(2024, 1, 15, 10, 0),
+            ),
+            FieldChange(
+              fieldName: 'email',
+              oldValue: 'old@example.com',
+              newValue: 'local@example.com',
+              timestamp: DateTime(2024, 1, 15, 12, 0), // Later than remote
+            ),
+            FieldChange(
+              fieldName: 'age',
+              oldValue: 30,
+              newValue: 31,
+              timestamp: DateTime(2024, 1, 15, 10, 0),
+            ),
+          ],
+          timestamp: DateTime(2024, 1, 15, 10, 0),
+        );
+
+        // Remote changes same 3 fields at 11:00 (except email at 10:30)
+        final remoteDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'RemoteName',
+              timestamp: DateTime(2024, 1, 15, 11, 0), // Later than local
+            ),
+            FieldChange(
+              fieldName: 'email',
+              oldValue: 'old@example.com',
+              newValue: 'remote@example.com',
+              timestamp: DateTime(2024, 1, 15, 10, 30), // Earlier than local
+            ),
+            FieldChange(
+              fieldName: 'age',
+              oldValue: 30,
+              newValue: 35,
+              timestamp: DateTime(2024, 1, 15, 11, 0), // Later than local
+            ),
+          ],
+          timestamp: DateTime(2024, 1, 15, 11, 0),
+        );
+
+        final result = await mergerWithConfig.mergeDeltas(
+          base: {'name': 'John', 'email': 'old@example.com', 'age': 30},
+          local: localDelta,
+          remote: remoteDelta,
+        );
+
+        // All 3 fields have conflicts
+        expect(result.conflictCount, equals(3));
+        expect(result.hasConflicts, isTrue);
+
+        // Each resolved by lastWriteWins based on individual timestamps
+        expect(result.merged['name'], equals('RemoteName')); // Remote later
+        expect(result.merged['email'], equals('local@example.com')); // Local later
+        expect(result.merged['age'], equals(35)); // Remote later
+
+        // Verify resolved conflicts map
+        expect(result.resolvedConflicts['name'], equals('RemoteName'));
+        expect(result.resolvedConflicts['email'], equals('local@example.com'));
+        expect(result.resolvedConflicts['age'], equals(35));
+      });
     });
 
     group('MergeResult', () {
