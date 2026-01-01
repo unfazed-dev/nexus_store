@@ -9,7 +9,7 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 | Priority | Packages | Target Lines | Completed |
 |----------|----------|--------------|-----------|
 | P0 Critical | 3 | 474 | 3 (riverpod_generator ✅, supabase_adapter 🟡, riverpod_binding ✅) |
-| P1 High | 1 | 184 | 1 (powersync_adapter 🟡 66.7% - CRUD blocked by final class) |
+| P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
 | P2 Medium | 5 | 720 | 0 |
 | P3-P4 Lower | 4 | 133 | 0 |
 | **Total** | **13** | **1,415** | **4** |
@@ -101,24 +101,35 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ### P1: High Priority (50-60% coverage)
 
-#### nexus_store_powersync_adapter (58.1% → 66.7%) 🟡 PARTIAL
+#### nexus_store_powersync_adapter (58.1% → 94%) ✅ NEAR COMPLETE
 **Path:** `packages/nexus_store_powersync_adapter`
-**Lines to cover:** 184 → 146 remaining
+**Lines to cover:** 184 → ~20 remaining (DefaultPowerSyncDatabaseWrapper requires native FFI)
 
-**Limitation:** PowerSync's `ResultSet` is a final class that cannot be mocked, preventing full CRUD unit tests. Integration tests require real database.
+**Solution:** Created `PowerSyncDatabaseWrapper` abstraction to enable mocking of final PowerSync classes. Added `.withWrapper` constructor for dependency injection in tests.
 
+- [x] Create PowerSyncDatabaseWrapper abstraction ✅
+  - [x] Interface with execute, watch, writeTransaction methods
+  - [x] DefaultPowerSyncDatabaseWrapper for production use
+  - [x] PowerSyncTransactionContext interface for transaction mocking
+- [x] Add `.withWrapper` constructor to PowerSyncBackend ✅
+- [x] Add `.withBackend` constructor to PowerSyncEncryptedBackend ✅
 - [x] Add backend lifecycle and sync status tests ✅
   - [x] Test all uninitialized state guards
   - [x] Test sync status mapping (uploading, download error, upload error, disconnected)
   - [x] Test pendingChangesCount based on hasSynced
   - [x] Test error mapping (network, timeout, auth, validation)
-- [x] Add encrypted backend tests (57.5% → 83.6%) ✅
+- [x] Add CRUD operation tests via wrapper mocking ✅
+  - [x] get/getAll/save/saveAll/delete tests
+  - [x] watch/watchAll stream tests with caching
+  - [x] watchAllPaged pagination tests
+  - [x] Error handling and status updates
+- [x] Add encrypted backend tests (57.5% → 98.6%) ✅
   - [x] Test key provider disposal check
-  - [x] Test all delegated CRUD state guards
+  - [x] Test all delegated CRUD operations
   - [x] Test sync status delegation
   - [x] Test pendingChangesCount delegation
   - [x] Test ChaCha20 algorithm selection
-- [x] Add query translator tests (81.2% → 97.4%) ✅
+- [x] Add query translator tests (81.2% → 100%) ✅
   - [x] Test startsWith condition
   - [x] Test endsWith condition
   - [x] Test arrayContainsAny condition
@@ -128,15 +139,15 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
   - [x] Test rotateKey after dispose
   - [x] Test multiple key rotations
   - [x] Test dispose idempotency
-- [ ] BLOCKED: CRUD operations (requires real database)
-  - [ ] watch/watchAll stream tests
-  - [ ] get/getAll/save/saveAll/delete tests
-  - [ ] pagination tests
+- [ ] Remaining ~6%: DefaultPowerSyncDatabaseWrapper (requires native FFI)
+  - Integration tests available in `test/integration/real_database_test.dart`
+  - Skipped without native SQLite extension
 
 **Files:**
-- `lib/src/powersync_backend.dart` (47.4% - CRUD blocked)
-- `lib/src/powersync_encrypted_backend.dart` (83.6% ✅)
-- `lib/src/powersync_query_translator.dart` (97.4% ✅)
+- `lib/src/powersync_database_wrapper.dart` (36.8% - DefaultWrapper needs FFI)
+- `lib/src/powersync_backend.dart` (94% ✅)
+- `lib/src/powersync_encrypted_backend.dart` (98.6% ✅)
+- `lib/src/powersync_query_translator.dart` (100% ✅)
 
 ---
 
@@ -280,12 +291,23 @@ flutter test test/<test_file>.dart
 
 ## History
 
-- **2026-01-01**: P1 powersync_adapter coverage improvements
+- **2026-01-01**: P1 powersync_adapter - wrapper abstraction breakthrough
+  - Created `PowerSyncDatabaseWrapper` abstraction to enable mocking
+  - Added `.withWrapper` constructor to PowerSyncBackend
+  - Added `.withBackend` constructor to PowerSyncEncryptedBackend
+  - Full CRUD testing now possible via mock wrapper injection
+  - powersync_backend.dart: 47.4% → 94%
+  - powersync_encrypted_backend.dart: 83.6% → 98.6%
+  - powersync_query_translator.dart: 97.4% → 100%
+  - Overall package: 66.7% → 94%
+  - Remaining 6% requires native FFI (DefaultPowerSyncDatabaseWrapper)
+
+- **2026-01-01**: P1 powersync_adapter initial coverage improvements
   - Added 180 tests across all test files
   - powersync_query_translator.dart: 81.2% → 97.4% (+51 tests)
   - powersync_encrypted_backend.dart: 57.5% → 83.6% (+20 tests)
   - Overall package: 58.1% → 66.7%
-  - BLOCKED: CRUD ops require real database (ResultSet is final class)
+  - Identified ResultSet final class as mocking blocker
 
 - **2026-01-01**: Created tracker from coverage analysis
   - Analyzed all 13 packages
