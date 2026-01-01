@@ -620,5 +620,135 @@ void main() {
         expect(results[2].age, equals(15));
       });
     });
+
+    group('Constraint Violation Tests', () {
+      // Note: DriftBackend uses INSERT OR REPLACE (upsert) semantics,
+      // so duplicate primary keys update rather than throw errors.
+      // These tests verify upsert behavior and test constraint violations
+      // via raw SQL where possible.
+
+      test('save with same ID performs upsert (no constraint error)', () async {
+        // First insert
+        await backend.save(
+          TestModel(id: 'upsert-1', name: 'Original', age: 25),
+        );
+
+        // Second insert with same ID should update, not error
+        await backend.save(
+          TestModel(id: 'upsert-1', name: 'Updated', age: 30),
+        );
+
+        final result = await backend.get('upsert-1');
+        expect(result?.name, equals('Updated'));
+        expect(result?.age, equals(30));
+      });
+
+      test('saveAll with duplicate IDs within batch uses last value', () async {
+        await backend.saveAll([
+          TestModel(id: 'batch-dup-1', name: 'First', age: 20),
+          TestModel(id: 'batch-dup-1', name: 'Second', age: 25),
+        ]);
+
+        final result = await backend.get('batch-dup-1');
+        expect(result?.name, equals('Second'));
+        expect(result?.age, equals(25));
+      });
+
+      test('NOT NULL constraint violation via raw SQL throws error', () async {
+        // Attempt to insert NULL into NOT NULL column 'name'
+        expect(
+          () => testDb.customStatement(
+            'INSERT INTO test_models (id, name, age) '
+            "VALUES ('null-test', NULL, 30)",
+          ),
+          throwsA(anything),
+        );
+      });
+
+      test('PRIMARY KEY uniqueness enforced via raw INSERT', () async {
+        // First insert via raw SQL
+        await testDb.customStatement(
+          'INSERT INTO test_models (id, name, age) '
+          "VALUES ('raw-pk-1', 'First', 25)",
+        );
+
+        // Second raw INSERT (not REPLACE) should fail on duplicate PK
+        expect(
+          () => testDb.customStatement(
+            'INSERT INTO test_models (id, name, age) '
+            "VALUES ('raw-pk-1', 'Duplicate', 30)",
+          ),
+          throwsA(anything),
+        );
+      });
+
+      test('backend save after raw insert updates via upsert', () async {
+        // Insert via raw SQL
+        await testDb.customStatement(
+          'INSERT INTO test_models (id, name, age) '
+          "VALUES ('mixed-1', 'RawInsert', 25)",
+        );
+
+        // Backend save should update (upsert)
+        await backend.save(
+          TestModel(id: 'mixed-1', name: 'BackendUpdate', age: 30),
+        );
+
+        final result = await backend.get('mixed-1');
+        expect(result?.name, equals('BackendUpdate'));
+      });
+
+      test('saveAll handles existing + new items via upsert', () async {
+        // Pre-insert one item
+        await backend.save(
+          TestModel(id: 'pre-1', name: 'PreExisting', age: 20),
+        );
+
+        // saveAll with mix of existing and new
+        await backend.saveAll([
+          TestModel(id: 'pre-1', name: 'Updated', age: 25), // existing - update
+          TestModel(id: 'new-1', name: 'New', age: 30), // new - insert
+        ]);
+
+        final preExisting = await backend.get('pre-1');
+        expect(preExisting?.name, equals('Updated'));
+
+        final newItem = await backend.get('new-1');
+        expect(newItem?.name, equals('New'));
+      });
+
+      test('multiple upserts maintain data integrity', () async {
+        // Rapid upserts to same ID
+        for (var i = 0; i < 10; i++) {
+          await backend.save(TestModel(id: 'rapid-1', name: 'Ver$i', age: i));
+        }
+
+        final result = await backend.get('rapid-1');
+        expect(result?.name, equals('Ver9'));
+        expect(result?.age, equals(9));
+      });
+
+      test('concurrent saveAll operations maintain integrity', () async {
+        // Two saveAll operations with overlapping IDs
+        await Future.wait([
+          backend.saveAll([
+            TestModel(id: 'concurrent-1', name: 'BatchA-1', age: 10),
+            TestModel(id: 'concurrent-2', name: 'BatchA-2', age: 20),
+          ]),
+          backend.saveAll([
+            TestModel(id: 'concurrent-2', name: 'BatchB-2', age: 25),
+            TestModel(id: 'concurrent-3', name: 'BatchB-3', age: 30),
+          ]),
+        ]);
+
+        // All three should exist, concurrent-2 has one of the values
+        expect(await backend.get('concurrent-1'), isNotNull);
+        expect(await backend.get('concurrent-2'), isNotNull);
+        expect(await backend.get('concurrent-3'), isNotNull);
+
+        final all = await backend.getAll();
+        expect(all.length, equals(3));
+      });
+    });
   });
 }

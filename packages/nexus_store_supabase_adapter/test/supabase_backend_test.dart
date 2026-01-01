@@ -1047,6 +1047,142 @@ void main() {
         expect(getAllCallCount, 2);
       });
     });
+
+    group('Constraint Violation Error Handling', () {
+      test('save throws ValidationError on 23505 (unique)', () async {
+        when(() => mockWrapper.upsert('test_models', any())).thenThrow(
+          const PostgrestException(
+            message: 'duplicate key value violates unique constraint',
+            code: '23505',
+          ),
+        );
+
+        await backend.initialize();
+        expect(
+          () => backend.save(const TestModel(id: '1', name: 'Test')),
+          throwsA(isA<nexus.ValidationError>()),
+        );
+      });
+
+      test('saveAll throws ValidationError on constraint violation', () async {
+        when(() => mockWrapper.upsertAll('test_models', any())).thenThrow(
+          const PostgrestException(
+            message: 'foreign key constraint violation',
+            code: '23503',
+          ),
+        );
+
+        await backend.initialize();
+        expect(
+          () => backend.saveAll([const TestModel(id: '1', name: 'Test')]),
+          throwsA(isA<nexus.ValidationError>()),
+        );
+      });
+
+      test('delete throws ValidationError on foreign key reference', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenAnswer(
+          (_) async => {'id': '1', 'name': 'Test', 'age': 25},
+        );
+        when(() => mockWrapper.delete('test_models', 'id', '1')).thenThrow(
+          const PostgrestException(
+            message: 'violates foreign key constraint',
+            code: '23503',
+          ),
+        );
+
+        await backend.initialize();
+        expect(
+          () => backend.delete('1'),
+          throwsA(isA<nexus.ValidationError>()),
+        );
+      });
+
+      test('deleteAll throws ValidationError on constraint', () async {
+        when(
+          () => mockWrapper.deleteByIds('test_models', 'id', ['1', '2']),
+        ).thenThrow(
+          const PostgrestException(
+            message: 'constraint violation',
+            code: '23505',
+          ),
+        );
+
+        await backend.initialize();
+        expect(
+          () => backend.deleteAll(['1', '2']),
+          throwsA(isA<nexus.ValidationError>()),
+        );
+      });
+
+      test('getAll maps unknown constraint to SyncError', () async {
+        when(
+          () => mockWrapper.getAll(
+            'test_models',
+            queryBuilder: any(named: 'queryBuilder'),
+          ),
+        ).thenThrow(
+          const PostgrestException(
+            message: 'check constraint violation',
+            code: '23514', // CHECK constraint - not explicitly mapped
+          ),
+        );
+
+        await backend.initialize();
+        // Unknown constraint codes map to SyncError
+        expect(
+          () => backend.getAll(),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
+
+      test('error includes original PostgrestException as cause', () async {
+        const originalError = PostgrestException(
+          message: 'duplicate key',
+          code: '23505',
+        );
+        when(() => mockWrapper.upsert('test_models', any()))
+            .thenThrow(originalError);
+
+        await backend.initialize();
+
+        try {
+          await backend.save(const TestModel(id: '1', name: 'Test'));
+          fail('Expected ValidationError');
+        } on nexus.ValidationError catch (e) {
+          expect(e.cause, equals(originalError));
+        }
+      });
+
+      test('error includes stackTrace from throw location', () async {
+        when(() => mockWrapper.upsert('test_models', any())).thenThrow(
+          const PostgrestException(message: 'unique', code: '23505'),
+        );
+
+        await backend.initialize();
+
+        try {
+          await backend.save(const TestModel(id: '1', name: 'Test'));
+          fail('Expected ValidationError');
+        } on nexus.ValidationError catch (e) {
+          expect(e.stackTrace, isNotNull);
+        }
+      });
+
+      test('constraint ValidationError has isRetryable false', () async {
+        when(() => mockWrapper.upsert('test_models', any())).thenThrow(
+          const PostgrestException(message: 'unique', code: '23505'),
+        );
+
+        await backend.initialize();
+
+        try {
+          await backend.save(const TestModel(id: '1', name: 'Test'));
+          fail('Expected ValidationError');
+        } on nexus.ValidationError catch (e) {
+          expect(e.isRetryable, isFalse);
+        }
+      });
+    });
   });
 }
 

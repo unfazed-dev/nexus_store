@@ -282,5 +282,116 @@ void main() {
         );
       });
     });
+
+    group('Constraint Violation Tests', () {
+      // Note: CRDT uses upsert semantics, so duplicate keys update
+      // rather than throw constraint errors. These tests verify
+      // upsert behavior and error mapping.
+
+      test('save with same ID performs upsert (no constraint error)', () async {
+        // First insert
+        await backend.save(TestModel(id: 'upsert-1', name: 'Original'));
+
+        // Second insert with same ID should update, not error
+        await backend.save(TestModel(id: 'upsert-1', name: 'Updated', age: 30));
+
+        final result = await backend.get('upsert-1');
+        expect(result?.name, equals('Updated'));
+        expect(result?.age, equals(30));
+      });
+
+      test('saveAll with duplicate IDs within batch uses last value', () async {
+        await backend.saveAll([
+          TestModel(id: 'batch-dup-1', name: 'First', age: 20),
+          TestModel(id: 'batch-dup-1', name: 'Second', age: 25),
+        ]);
+
+        final result = await backend.get('batch-dup-1');
+        expect(result?.name, equals('Second'));
+        expect(result?.age, equals(25));
+      });
+
+      test('tombstone revival does not trigger constraint error', () async {
+        // Create, delete, recreate
+        await backend.save(TestModel(id: 'tomb-1', name: 'Original'));
+        await backend.delete('tomb-1');
+
+        // Verify deleted
+        expect(await backend.get('tomb-1'), isNull);
+
+        // Re-insert should work
+        await backend.save(TestModel(id: 'tomb-1', name: 'Revived', age: 99));
+
+        final result = await backend.get('tomb-1');
+        expect(result?.name, equals('Revived'));
+        expect(result?.age, equals(99));
+      });
+
+      test('error mapping for UNIQUE constraint via fromJson', () async {
+        final errorBackend = CrdtBackend<TestModel, String>(
+          tableName: 'error_test_unique',
+          getId: (m) => m.id,
+          fromJson: (_) => throw Exception('UNIQUE constraint failed'),
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await errorBackend.initialize();
+
+        // Save works (uses toJson)
+        await errorBackend.save(TestModel(id: '1', name: 'Test'));
+
+        // Get triggers fromJson which throws
+        expect(
+          () => errorBackend.get('1'),
+          throwsA(isA<nexus.ValidationError>()),
+        );
+
+        await errorBackend.close();
+      });
+
+      test('error includes stackTrace for debugging', () async {
+        final errorBackend = CrdtBackend<TestModel, String>(
+          tableName: 'error_test_stack',
+          getId: (m) => m.id,
+          fromJson: (_) => throw Exception('FOREIGN KEY constraint failed'),
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await errorBackend.initialize();
+        await errorBackend.save(TestModel(id: '1', name: 'Test'));
+
+        try {
+          await errorBackend.get('1');
+          fail('Expected ValidationError');
+        } on nexus.ValidationError catch (e) {
+          expect(e.stackTrace, isNotNull);
+          expect(e.cause, isNotNull);
+        }
+
+        await errorBackend.close();
+      });
+
+      test('ValidationError.isRetryable is false for constraint violations',
+          () async {
+        final errorBackend = CrdtBackend<TestModel, String>(
+          tableName: 'error_test_retry',
+          getId: (m) => m.id,
+          fromJson: (_) => throw Exception('UNIQUE constraint'),
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await errorBackend.initialize();
+        await errorBackend.save(TestModel(id: '1', name: 'Test'));
+
+        try {
+          await errorBackend.get('1');
+          fail('Expected ValidationError');
+        } on nexus.ValidationError catch (e) {
+          expect(e.isRetryable, isFalse);
+        }
+
+        await errorBackend.close();
+      });
+    });
   });
 }

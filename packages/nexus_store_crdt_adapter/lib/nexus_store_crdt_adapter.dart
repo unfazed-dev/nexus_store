@@ -2,5 +2,10 @@
 library;
 
 export 'src/crdt_backend.dart' show CrdtBackend;
+export 'src/crdt_database_wrapper.dart'
+    show
+        CrdtDatabaseWrapper,
+        CrdtTransactionContext,
+        DefaultCrdtDatabaseWrapper;
 export 'src/crdt_query_translator.dart'
     show CrdtQueryExtension, CrdtQueryTranslator;

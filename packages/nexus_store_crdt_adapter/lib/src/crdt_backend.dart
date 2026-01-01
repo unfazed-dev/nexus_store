@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
+import 'package:nexus_store_crdt_adapter/src/crdt_database_wrapper.dart';
 import 'package:nexus_store_crdt_adapter/src/crdt_query_translator.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sqlite_crdt/sqlite_crdt.dart';
@@ -46,6 +47,9 @@ class CrdtBackend<T, ID>
   /// - [primaryKeyField]: The name of the primary key column.
   /// - [queryTranslator]: Optional custom query translator.
   /// - [fieldMapping]: Optional field name mapping for queries.
+  /// Creates a [CrdtBackend] with the specified configuration.
+  ///
+  /// The SqliteCrdt database will be created during [initialize].
   CrdtBackend({
     required String tableName,
     required ID Function(T item) getId,
@@ -60,7 +64,49 @@ class CrdtBackend<T, ID>
         _toJson = toJson,
         _primaryKeyField = primaryKeyField,
         _queryTranslator = queryTranslator ??
-            CrdtQueryTranslator<T>(fieldMapping: fieldMapping) {
+            CrdtQueryTranslator<T>(fieldMapping: fieldMapping),
+        _db = null,
+        _createDbOnInit = true {
+    _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
+      idExtractor: getId,
+    );
+  }
+
+  /// Creates a [CrdtBackend] with a custom database wrapper.
+  ///
+  /// This constructor is primarily for testing, allowing injection of
+  /// a mock database wrapper.
+  ///
+  /// Example:
+  /// ```dart
+  /// final mockWrapper = MockCrdtDatabaseWrapper();
+  /// final backend = CrdtBackend.withWrapper(
+  ///   db: mockWrapper,
+  ///   tableName: 'users',
+  ///   getId: (user) => user.id,
+  ///   fromJson: User.fromJson,
+  ///   toJson: (user) => user.toJson(),
+  ///   primaryKeyField: 'id',
+  /// );
+  /// ```
+  CrdtBackend.withWrapper({
+    required CrdtDatabaseWrapper db,
+    required String tableName,
+    required ID Function(T item) getId,
+    required T Function(Map<String, dynamic> json) fromJson,
+    required Map<String, dynamic> Function(T item) toJson,
+    required String primaryKeyField,
+    CrdtQueryTranslator<T>? queryTranslator,
+    Map<String, String>? fieldMapping,
+  })  : _db = db,
+        _tableName = tableName,
+        _getId = getId,
+        _fromJson = fromJson,
+        _toJson = toJson,
+        _primaryKeyField = primaryKeyField,
+        _queryTranslator = queryTranslator ??
+            CrdtQueryTranslator<T>(fieldMapping: fieldMapping),
+        _createDbOnInit = false {
     _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
       idExtractor: getId,
     );
@@ -72,8 +118,9 @@ class CrdtBackend<T, ID>
   final Map<String, dynamic> Function(T item) _toJson;
   final String _primaryKeyField;
   final CrdtQueryTranslator<T> _queryTranslator;
+  final bool _createDbOnInit;
 
-  SqliteCrdt? _crdt;
+  CrdtDatabaseWrapper? _db;
 
   final _syncStatusSubject =
       BehaviorSubject<nexus.SyncStatus>.seeded(nexus.SyncStatus.synced);
@@ -104,7 +151,7 @@ class CrdtBackend<T, ID>
   /// timestamp generation and conflict resolution.
   String get nodeId {
     _ensureInitialized();
-    return _crdt!.nodeId;
+    return _db!.nodeId;
   }
 
   // ---------------------------------------------------------------------------
@@ -131,10 +178,13 @@ class CrdtBackend<T, ID>
   Future<void> initialize() async {
     if (_initialized) return;
 
-    _crdt = await SqliteCrdt.openInMemory(
-      version: 1,
-      onCreate: _createTable,
-    );
+    if (_createDbOnInit) {
+      final crdt = await SqliteCrdt.openInMemory(
+        version: 1,
+        onCreate: _createTable,
+      );
+      _db = DefaultCrdtDatabaseWrapper(crdt);
+    }
 
     _initialized = true;
   }
@@ -173,8 +223,8 @@ class CrdtBackend<T, ID>
     await _syncStatusSubject.close();
     await _conflictsSubject.close();
     await _pendingChangesManager.dispose();
-    await _crdt?.close();
-    _crdt = null;
+    await _db?.close();
+    _db = null;
     _initialized = false;
   }
 
@@ -187,7 +237,7 @@ class CrdtBackend<T, ID>
     _ensureInitialized();
 
     try {
-      final results = await _crdt!.query(
+      final results = await _db!.query(
         'SELECT * FROM $_tableName WHERE $_primaryKeyField = ?1 '
         'AND is_deleted = 0',
         [id],
@@ -214,9 +264,11 @@ class CrdtBackend<T, ID>
         includeTombstoneFilter: true,
       );
 
-      final results = await _crdt!.query(sql, args);
+      final results = await _db!.query(sql, args);
 
-      return results.map((row) => _fromJson(_stripCrdtMetadata(row))).toList();
+      return results
+          .map((row) => _fromJson(_stripCrdtMetadata(row)))
+          .toList();
     } catch (e, stackTrace) {
       throw _mapException(e, stackTrace);
     }
@@ -239,7 +291,7 @@ class CrdtBackend<T, ID>
     final subscriptionKey = 'watch_$id';
 
     // ignore: cancel_subscriptions - cancelled in close() method
-    final subscription = _crdt!.watch(sql, () => [id]).listen(
+    final subscription = _db!.watch(sql, () => [id]).listen(
       (results) {
         if (!subject.isClosed) {
           final item = results.isEmpty
@@ -282,11 +334,12 @@ class CrdtBackend<T, ID>
     final subscriptionKey = 'watchAll_$queryKey';
 
     // ignore: cancel_subscriptions - cancelled in close() method
-    final subscription = _crdt!.watch(sql, () => args).listen(
+    final subscription = _db!.watch(sql, () => args).listen(
       (results) {
         if (!subject.isClosed) {
-          final items =
-              results.map((row) => _fromJson(_stripCrdtMetadata(row))).toList();
+          final items = results
+              .map((row) => _fromJson(_stripCrdtMetadata(row)))
+              .toList();
           subject.add(items);
         }
       },
@@ -321,7 +374,7 @@ class CrdtBackend<T, ID>
       final sql = 'INSERT OR REPLACE INTO $_tableName '
           '($columnNames) VALUES ($placeholders)';
 
-      await _crdt!.execute(sql, [
+      await _db!.execute(sql, [
         for (final col in columns) json[col],
       ]);
 
@@ -339,7 +392,7 @@ class CrdtBackend<T, ID>
     if (items.isEmpty) return [];
 
     try {
-      await _crdt!.transaction((txn) async {
+      await _db!.transaction((txn) async {
         for (final item in items) {
           final json = _toJson(item);
           final columns = json.keys.toList();
@@ -373,7 +426,7 @@ class CrdtBackend<T, ID>
     try {
       // In CRDT, DELETE creates a tombstone (is_deleted = 1)
       // sqlite_crdt handles this automatically
-      await _crdt!.execute(
+      await _db!.execute(
         'DELETE FROM $_tableName WHERE $_primaryKeyField = ?1',
         [id],
       );
@@ -392,7 +445,7 @@ class CrdtBackend<T, ID>
     if (ids.isEmpty) return 0;
 
     try {
-      await _crdt!.transaction((txn) async {
+      await _db!.transaction((txn) async {
         for (final id in ids) {
           await txn.execute(
             'DELETE FROM $_tableName WHERE $_primaryKeyField = ?1',
@@ -633,7 +686,7 @@ class CrdtBackend<T, ID>
   /// Use this to get changes to send to another peer.
   Future<CrdtChangeset> getChangeset({Hlc? since}) async {
     _ensureInitialized();
-    return _crdt!.getChangeset(
+    return _db!.getChangeset(
       modifiedAfter: since,
     );
   }
@@ -644,7 +697,7 @@ class CrdtBackend<T, ID>
   /// using HLC timestamps - the record with the higher HLC wins.
   Future<void> applyChangeset(CrdtChangeset changeset) async {
     _ensureInitialized();
-    await _crdt!.merge(changeset);
+    await _db!.merge(changeset);
   }
 
   // ---------------------------------------------------------------------------

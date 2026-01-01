@@ -10,9 +10,9 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 |----------|----------|--------------|-----------|
 | P0 Critical | 3 | 474 | 3 (riverpod_generator ✅, supabase_adapter 🟡 85%+, riverpod_binding ✅) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
-| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store ✅ 94%+, crdt_adapter 🟡 94.3%, bloc_binding ✅ 96.2%, drift_adapter ✅ 94.4%) |
+| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store ✅ 94%+, crdt_adapter ✅ 98.3%, bloc_binding ✅ 96.2%, drift_adapter ✅ 94.4%) |
 | P3-P4 Lower | 4 | 133 | 4 (entity_generator ✅ 100%, generator ✅ 100%, brick_adapter ✅ 100%, signals_binding ✅ 100%) |
-| **Total** | **13** | **1,415** | **11** (2 packages 🟡: supabase, crdt) |
+| **Total** | **13** | **1,415** | **12** (1 package 🟡: supabase) |
 
 ---
 
@@ -200,10 +200,26 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ---
 
-#### nexus_store_crdt_adapter (70.6% → 94.3%) 🟡 IN PROGRESS
+#### nexus_store_crdt_adapter (70.6% → 98.3%) ✅ NEAR COMPLETE
 **Path:** `packages/nexus_store_crdt_adapter`
-**Lines to cover:** 112 → ~22 remaining
+**Lines to cover:** 112 → ~7 remaining (catch blocks for exception rethrow)
 
+**Solution:** Created `CrdtDatabaseWrapper` abstraction to enable mocking of final SqliteCrdt class. Added `.withWrapper` constructor for dependency injection in tests.
+
+- [x] Create CrdtDatabaseWrapper abstraction ✅ (Session 14)
+  - [x] Interface with query, execute, watch, transaction, getChangeset, merge, nodeId, close methods
+  - [x] DefaultCrdtDatabaseWrapper for production use
+  - [x] CrdtTransactionContext interface for transaction mocking
+- [x] Add `.withWrapper` constructor to CrdtBackend ✅ (Session 14)
+- [x] Add wrapper interface tests ✅ (Session 14)
+  - [x] `crdt_database_wrapper_test.dart` (15 tests)
+  - [x] Query, execute, watch, transaction, getChangeset, merge, nodeId, close delegation
+- [x] Add backend wrapper tests ✅ (Session 14)
+  - [x] `crdt_backend_wrapper_test.dart` (55 tests)
+  - [x] Backend info, lifecycle, read/write operations via mock
+  - [x] Watch stream errors (critical - now testable via mock)
+  - [x] WatchAll stream errors (critical - now testable via mock)
+  - [x] CRDT operations, error mapping, uninitialized state guards
 - [x] Add error handling tests ✅
   - [x] Uninitialized state guards for all operations (18 tests)
   - [x] Exception mapping verification
@@ -222,10 +238,11 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
   - [x] translate() with LIMIT/OFFSET clauses
   - [x] toCrdtSql() extension with tombstone filter, field mapping
   - [x] 6 new tests added
-- [ ] Remaining: Stream error handlers in watch/watchAll (require sqlite_crdt stream errors)
+- [ ] Remaining ~2%: Exception rethrow catch blocks (7 lines) - require actual DB errors
 
 **Files:**
-- `lib/src/crdt_backend.dart` (94.3%)
+- `lib/src/crdt_database_wrapper.dart` (100% ✅) - NEW
+- `lib/src/crdt_backend.dart` (97.4% ✅)
 - `lib/src/crdt_query_translator.dart` (100% ✅)
 
 ---
@@ -436,6 +453,72 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-02**: Session 14 - CrdtDatabaseWrapper abstraction (TDD)
+  - **nexus_store_crdt_adapter** (94.3% → 98.3%, +4.0%)
+    - Created `CrdtDatabaseWrapper` abstraction to enable mocking of final SqliteCrdt class
+    - Pattern mirrors `PowerSyncDatabaseWrapper` from powersync_adapter package
+    - Created `lib/src/crdt_database_wrapper.dart` (100%)
+      - Abstract `CrdtDatabaseWrapper` interface with query, execute, watch, transaction, getChangeset, merge, nodeId, close
+      - `CrdtTransactionContext` interface for transaction mocking
+      - `DefaultCrdtDatabaseWrapper` implementation wrapping real SqliteCrdt
+    - Modified `lib/src/crdt_backend.dart` (94.3% → 97.4%)
+      - Added `.withWrapper` constructor for dependency injection
+      - Replaced `SqliteCrdt? _crdt` with `CrdtDatabaseWrapper? _db`
+      - Added `_createDbOnInit` flag for conditional wrapper creation
+    - Updated `lib/nexus_store_crdt_adapter.dart` exports
+    - Created `test/crdt_database_wrapper_test.dart` (15 tests)
+      - Query delegation tests (3 tests)
+      - Execute delegation tests (2 tests)
+      - Watch stream tests (2 tests)
+      - Transaction tests (2 tests)
+      - Changeset tests (3 tests)
+      - Merge, nodeId, close tests (3 tests)
+    - Created `test/crdt_backend_wrapper_test.dart` (55 tests)
+      - Backend info tests (5 tests)
+      - Lifecycle tests (3 tests)
+      - Read operation tests (5 tests)
+      - Write operation tests (7 tests)
+      - Watch operation tests with stream errors (10 tests)
+      - CRDT-specific operation tests (4 tests)
+      - Error handling/mapping tests (10 tests)
+      - Uninitialized state guard tests (8 tests)
+      - Sync operation tests (3 tests)
+  - **Key Achievement:** Stream error handlers in watch/watchAll (lines 251-255, 293-297) now testable via mock wrapper
+  - Total: 70 new tests added
+  - TDD methodology followed (Red-Green-Refactor)
+
+- **2026-01-02**: Session 13 - TDD integration tests for database error simulation
+  - **nexus_store_drift_adapter** (+8 tests)
+    - Enhanced `test/integration/drift_integration_test.dart`
+      - save with same ID performs upsert (no constraint error)
+      - saveAll with duplicate IDs within batch uses last value
+      - NOT NULL constraint violation via raw SQL throws error
+      - PRIMARY KEY uniqueness enforced via raw INSERT
+      - backend save after raw insert updates via upsert
+      - saveAll handles existing + new items via upsert
+      - multiple upserts maintain data integrity
+      - concurrent saveAll operations maintain integrity
+  - **nexus_store_crdt_adapter** (+6 tests)
+    - Enhanced `test/integration/crdt_integration_test.dart`
+      - save with same ID performs upsert (no constraint error)
+      - saveAll with duplicate IDs within batch uses last value
+      - tombstone revival does not trigger constraint error
+      - error mapping for UNIQUE constraint via fromJson
+      - error includes stackTrace for debugging
+      - ValidationError.isRetryable is false for constraint violations
+  - **nexus_store_supabase_adapter** (+8 tests)
+    - Enhanced `test/supabase_backend_test.dart`
+      - save throws ValidationError on 23505 (unique)
+      - saveAll throws ValidationError on constraint violation
+      - delete throws ValidationError on foreign key reference
+      - deleteAll throws ValidationError on constraint
+      - getAll maps unknown constraint to SyncError
+      - error includes original PostgrestException as cause
+      - error includes stackTrace from throw location
+      - constraint ValidationError has isRetryable false
+  - Total: 22 new tests added across 3 packages
+  - TDD methodology followed (Red-Green-Refactor)
 
 - **2026-01-02**: Session 12 - TDD coverage for query translator interface and watch stream operations
   - **nexus_store_crdt_adapter** (94.3% → improved)
