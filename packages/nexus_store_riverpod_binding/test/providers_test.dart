@@ -303,6 +303,32 @@ void main() {
     });
   });
 
+  group('createWatchByIdWithStatusProvider', () {
+    test('wraps item in StoreResult.success', () async {
+      final user = TestFixtures.sampleUser;
+      final store = MockStoreHelper.withUser(user.id, user);
+
+      final storeProvider = Provider<NexusStore<TestUser, String>>(
+        (ref) => store,
+      );
+      final statusProvider =
+          createWatchByIdWithStatusProvider<TestUser, String>(
+        storeProvider,
+      );
+
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await container.read(statusProvider(user.id).future);
+
+      final result = container.read(statusProvider(user.id));
+      expect(result.hasValue, isTrue);
+
+      final storeResult = result.value!;
+      expect(storeResult, isA<StoreResultSuccess<TestUser?>>());
+    });
+  });
+
   group('NexusStoreProviderOptions', () {
     test('defaults has autoDispose true', () {
       const options = NexusStoreProviderOptions();

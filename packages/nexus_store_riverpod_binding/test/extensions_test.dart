@@ -213,6 +213,30 @@ void main() {
       container.dispose();
       verify(store.dispose).called(1);
     });
+
+    test('invalidate closes link and invalidates provider', () async {
+      final store = MockNexusStore<TestUser, String>();
+      when(store.dispose).thenAnswer((_) async {});
+
+      var createCount = 0;
+      final provider = Provider<NexusStoreKeepAlive<TestUser, String>>((ref) {
+        createCount++;
+        return store.withKeepAlive(ref);
+      });
+
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final result1 = container.read(provider);
+      expect(createCount, equals(1));
+
+      // Invalidate the provider
+      result1.invalidate();
+
+      // Read again - should recreate
+      container.read(provider);
+      expect(createCount, equals(2));
+    });
   });
 
   group('StoreDisposalManager', () {
