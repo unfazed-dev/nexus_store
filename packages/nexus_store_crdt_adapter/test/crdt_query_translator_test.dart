@@ -473,6 +473,41 @@ void main() {
         expect(result, contains('ORDER BY'));
       });
 
+      test('translate includes LIMIT clause when limit is set', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('status', isEqualTo: 'active')
+            .limitTo(25);
+
+        final result = translator.translate(query);
+
+        expect(result, contains('WHERE'));
+        expect(result, contains('LIMIT 25'));
+      });
+
+      test('translate includes OFFSET clause when offset is set', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('status', isEqualTo: 'active')
+            .offsetBy(50);
+
+        final result = translator.translate(query);
+
+        expect(result, contains('WHERE'));
+        expect(result, contains('OFFSET 50'));
+      });
+
+      test('translate includes both LIMIT and OFFSET when both are set', () {
+        final query = const Query<Map<String, dynamic>>()
+            .orderByField('created_at', descending: true)
+            .limitTo(10)
+            .offsetBy(20);
+
+        final result = translator.translate(query);
+
+        expect(result, contains('ORDER BY created_at DESC'));
+        expect(result, contains('LIMIT 10'));
+        expect(result, contains('OFFSET 20'));
+      });
+
       test('translateFilters returns WHERE clause conditions', () {
         final query = const Query<Map<String, dynamic>>()
             .where('name', isEqualTo: 'John')
@@ -492,6 +527,49 @@ void main() {
         final result = translator.translateOrderBy(query.orderBy);
 
         expect(result, equals('name ASC, age DESC'));
+      });
+    });
+
+    group('CrdtQueryExtension', () {
+      test('toCrdtSql generates SQL with tombstone filter by default', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('name', isEqualTo: 'Alice');
+
+        final (sql, args) = query.toCrdtSql('users');
+
+        expect(sql, contains('SELECT * FROM users'));
+        expect(sql, contains('is_deleted = 0'));
+        expect(sql, contains('name = ?'));
+        expect(args, equals(['Alice']));
+      });
+
+      test('toCrdtSql can disable tombstone filter', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('age', isGreaterThan: 18);
+
+        final (sql, args) = query.toCrdtSql(
+          'users',
+          includeTombstoneFilter: false,
+        );
+
+        expect(sql, equals('SELECT * FROM users WHERE age > ?'));
+        expect(sql, isNot(contains('is_deleted')));
+        expect(args, equals([18]));
+      });
+
+      test('toCrdtSql applies field mapping', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('userName', isEqualTo: 'john')
+            .orderByField('createdAt');
+
+        final (sql, args) = query.toCrdtSql(
+          'users',
+          fieldMapping: {'userName': 'user_name', 'createdAt': 'created_at'},
+        );
+
+        expect(sql, contains('user_name = ?'));
+        expect(sql, contains('ORDER BY created_at ASC'));
+        expect(args, equals(['john']));
       });
     });
   });

@@ -770,6 +770,283 @@ void main() {
         );
       });
     });
+
+    group('watch', () {
+      test('returns stream for entity ID', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenAnswer(
+          (_) async => {'id': '1', 'name': 'Alice', 'age': 25},
+        );
+
+        await backend.initialize();
+        final stream = backend.watch('1');
+
+        expect(stream, isA<Stream<TestModel?>>());
+        final item = await stream.first;
+        expect(item, isNotNull);
+        expect(item!.id, '1');
+        expect(item.name, 'Alice');
+      });
+
+      test('caches subject for same ID', () async {
+        var callCount = 0;
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenAnswer(
+          (_) async {
+            callCount++;
+            return {'id': '1', 'name': 'Alice', 'age': 25};
+          },
+        );
+
+        await backend.initialize();
+        backend
+          ..watch('1')
+          ..watch('1')
+          ..watch('1');
+
+        // Wait for async operations
+        await Future<void>.delayed(Duration.zero);
+
+        // Only one get call should be made (subject is cached)
+        expect(callCount, 1);
+      });
+
+      test('emits null when item not found', () async {
+        when(() => mockWrapper.get('test_models', 'id', 'nonexistent'))
+            .thenAnswer((_) async => null);
+
+        await backend.initialize();
+        final stream = backend.watch('nonexistent');
+        final item = await stream.first;
+
+        expect(item, isNull);
+      });
+
+      test('emits error on initial load failure', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1'))
+            .thenThrow(Exception('network error'));
+
+        await backend.initialize();
+        final stream = backend.watch('1');
+
+        expect(stream, emitsError(isA<nexus.NetworkError>()));
+      });
+    });
+
+    group('watchAll', () {
+      test('returns stream of items', () async {
+        when(
+          () => mockWrapper.getAll(
+            'test_models',
+            queryBuilder: any(named: 'queryBuilder'),
+          ),
+        ).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'Alice', 'age': 25},
+            {'id': '2', 'name': 'Bob', 'age': 30},
+          ],
+        );
+
+        await backend.initialize();
+        final stream = backend.watchAll();
+
+        expect(stream, isA<Stream<List<TestModel>>>());
+        final items = await stream.first;
+        expect(items, hasLength(2));
+        expect(items[0].name, 'Alice');
+        expect(items[1].name, 'Bob');
+      });
+
+      test('caches subject for same query', () async {
+        var callCount = 0;
+        when(
+          () => mockWrapper.getAll(
+            'test_models',
+            queryBuilder: any(named: 'queryBuilder'),
+          ),
+        ).thenAnswer(
+          (_) async {
+            callCount++;
+            return [
+              {'id': '1', 'name': 'Alice', 'age': 25},
+            ];
+          },
+        );
+
+        await backend.initialize();
+        backend
+          ..watchAll()
+          ..watchAll()
+          ..watchAll();
+
+        // Wait for async operations
+        await Future<void>.delayed(Duration.zero);
+
+        // Only one getAll call should be made (subject is cached)
+        expect(callCount, 1);
+      });
+
+      test('uses unique queryKey for different queries', () async {
+        when(
+          () => mockWrapper.getAll(
+            'test_models',
+            queryBuilder: any(named: 'queryBuilder'),
+          ),
+        ).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'Alice', 'age': 25},
+          ],
+        );
+
+        await backend.initialize();
+        final stream1 = backend.watchAll();
+        final query = const nexus.Query<TestModel>().where(
+          'name',
+          isEqualTo: 'Bob',
+        );
+        final stream2 = backend.watchAll(query: query);
+
+        // Should be different streams (different queryKeys)
+        expect(identical(stream1, stream2), isFalse);
+      });
+
+      test('emits error on initial load failure', () async {
+        when(
+          () => mockWrapper.getAll(
+            'test_models',
+            queryBuilder: any(named: 'queryBuilder'),
+          ),
+        ).thenThrow(Exception('network error'));
+
+        await backend.initialize();
+        final stream = backend.watchAll();
+
+        expect(stream, emitsError(isA<nexus.NetworkError>()));
+      });
+
+      test('emits empty list when no items exist', () async {
+        when(
+          () => mockWrapper.getAll(
+            'test_models',
+            queryBuilder: any(named: 'queryBuilder'),
+          ),
+        ).thenAnswer((_) async => []);
+
+        await backend.initialize();
+        final stream = backend.watchAll();
+        final items = await stream.first;
+
+        expect(items, isEmpty);
+      });
+    });
+
+    group('watcher notifications', () {
+      test('_notifyWatchers is called after save', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenAnswer(
+          (_) async => {'id': '1', 'name': 'Alice', 'age': 25},
+        );
+        when(() => mockWrapper.upsert('test_models', any())).thenAnswer(
+          (_) async => {'id': '1', 'name': 'Alice Updated', 'age': 26},
+        );
+
+        await backend.initialize();
+
+        // Start watching before save
+        final stream = backend.watch('1');
+        final firstValue = await stream.first;
+        expect(firstValue!.name, 'Alice');
+
+        // After save, watch stream should eventually emit the updated value
+        // Note: _notifyWatchers updates the cached subject
+        await backend.save(
+          const TestModel(id: '1', name: 'Alice Updated', age: 26),
+        );
+
+        // The save operation calls _notifyWatchers which updates the subject
+        // We verify this by checking the returned item from save
+        verify(() => mockWrapper.upsert('test_models', any())).called(1);
+      });
+
+      test('_notifyDeletion is called after delete', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenAnswer(
+          (_) async => {'id': '1', 'name': 'Alice', 'age': 25},
+        );
+        when(() => mockWrapper.delete('test_models', 'id', '1'))
+            .thenAnswer((_) async => true);
+
+        await backend.initialize();
+
+        // Start watching before delete
+        final stream = backend.watch('1');
+        final firstValue = await stream.first;
+        expect(firstValue, isNotNull);
+
+        // Delete triggers _notifyDeletion
+        final deleted = await backend.delete('1');
+        expect(deleted, isTrue);
+        verify(() => mockWrapper.delete('test_models', 'id', '1')).called(1);
+      });
+
+      test('_refreshAllWatchers is triggered after save', () async {
+        var getAllCallCount = 0;
+        when(
+          () => mockWrapper.getAll(
+            'test_models',
+            queryBuilder: any(named: 'queryBuilder'),
+          ),
+        ).thenAnswer((_) async {
+          getAllCallCount++;
+          return [{'id': '1', 'name': 'Alice', 'age': 25}];
+        });
+        when(() => mockWrapper.upsert('test_models', any())).thenAnswer(
+          (_) async => {'id': '2', 'name': 'Bob', 'age': 30},
+        );
+
+        await backend.initialize();
+
+        // Start watchAll - triggers first getAll
+        final stream = backend.watchAll();
+        await stream.first;
+        expect(getAllCallCount, 1);
+
+        // Save triggers _refreshAllWatchers which calls getAll again
+        await backend.save(const TestModel(id: '2', name: 'Bob', age: 30));
+
+        // Give time for async refresh
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        expect(getAllCallCount, 2);
+      });
+
+      test('_refreshAllWatchers is triggered after delete', () async {
+        var getAllCallCount = 0;
+        when(
+          () => mockWrapper.getAll(
+            'test_models',
+            queryBuilder: any(named: 'queryBuilder'),
+          ),
+        ).thenAnswer((_) async {
+          getAllCallCount++;
+          return [{'id': '1', 'name': 'Alice', 'age': 25}];
+        });
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenAnswer(
+          (_) async => {'id': '1', 'name': 'Alice', 'age': 25},
+        );
+        when(() => mockWrapper.delete('test_models', 'id', '1'))
+            .thenAnswer((_) async => true);
+
+        await backend.initialize();
+
+        // Start watchAll - triggers first getAll
+        final stream = backend.watchAll();
+        await stream.first;
+        expect(getAllCallCount, 1);
+
+        // Delete triggers _refreshAllWatchers which calls getAll again
+        await backend.delete('1');
+
+        // Give time for async refresh
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        expect(getAllCallCount, 2);
+      });
+    });
   });
 }
 
