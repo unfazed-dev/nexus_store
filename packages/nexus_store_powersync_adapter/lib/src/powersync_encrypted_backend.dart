@@ -127,6 +127,18 @@ class PowerSyncEncryptedBackend<T, ID>
           fieldMapping: fieldMapping,
         );
 
+  /// Creates an encrypted backend with a pre-configured inner backend.
+  ///
+  /// This constructor is primarily for testing, allowing injection of
+  /// a mock or pre-configured PowerSyncBackend.
+  PowerSyncEncryptedBackend.withBackend({
+    required PowerSyncBackend<T, ID> backend,
+    required EncryptionKeyProvider keyProvider,
+    EncryptionAlgorithm algorithm = EncryptionAlgorithm.aes256Gcm,
+  })  : _keyProvider = keyProvider,
+        _algorithm = algorithm,
+        _innerBackend = backend;
+
   final EncryptionKeyProvider _keyProvider;
   final EncryptionAlgorithm _algorithm;
   final PowerSyncBackend<T, ID> _innerBackend;

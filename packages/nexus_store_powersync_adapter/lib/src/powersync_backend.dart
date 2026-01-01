@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:nexus_store/nexus_store.dart' as nexus;
+import 'package:nexus_store_powersync_adapter/src/powersync_database_wrapper.dart';
 import 'package:nexus_store_powersync_adapter/src/powersync_query_translator.dart';
 import 'package:powersync/powersync.dart' as ps;
 import 'package:rxdart/rxdart.dart';
-import 'package:sqlite3/common.dart' as sqlite;
 
 /// PowerSync backend adapter for nexus_store.
 ///
@@ -29,7 +29,7 @@ class PowerSyncBackend<T, ID>
     implements nexus.StoreBackend<T, ID> {
   /// Creates a PowerSync backend adapter.
   ///
-  /// [db] - The PowerSync database instance.
+  /// [db] - The PowerSync database instance (wrapped automatically).
   /// [tableName] - The table name to operate on.
   /// [getId] - Function to extract the ID from an entity.
   /// [fromJson] - Function to deserialize an entity from JSON.
@@ -39,6 +39,30 @@ class PowerSyncBackend<T, ID>
   /// [fieldMapping] - Optional field name to column name mapping.
   PowerSyncBackend({
     required ps.PowerSyncDatabase db,
+    required String tableName,
+    required ID Function(T item) getId,
+    required T Function(Map<String, dynamic> json) fromJson,
+    required Map<String, dynamic> Function(T item) toJson,
+    String primaryKeyColumn = 'id',
+    PowerSyncQueryTranslator<T>? queryTranslator,
+    Map<String, String>? fieldMapping,
+  }) : this.withWrapper(
+          db: DefaultPowerSyncDatabaseWrapper(db),
+          tableName: tableName,
+          getId: getId,
+          fromJson: fromJson,
+          toJson: toJson,
+          primaryKeyColumn: primaryKeyColumn,
+          queryTranslator: queryTranslator,
+          fieldMapping: fieldMapping,
+        );
+
+  /// Creates a PowerSync backend with a custom database wrapper.
+  ///
+  /// This constructor is primarily for testing, allowing injection of
+  /// a mock database wrapper.
+  PowerSyncBackend.withWrapper({
+    required PowerSyncDatabaseWrapper db,
     required String tableName,
     required ID Function(T item) getId,
     required T Function(Map<String, dynamic> json) fromJson,
@@ -59,7 +83,7 @@ class PowerSyncBackend<T, ID>
     );
   }
 
-  final ps.PowerSyncDatabase _db;
+  final PowerSyncDatabaseWrapper _db;
   final String _tableName;
   final ID Function(T item) _getId;
   final T Function(Map<String, dynamic> json) _fromJson;
@@ -75,8 +99,11 @@ class PowerSyncBackend<T, ID>
   final _syncStatusSubject =
       BehaviorSubject<nexus.SyncStatus>.seeded(nexus.SyncStatus.synced);
   final _watchSubjects = <ID, BehaviorSubject<T?>>{};
+  final _watchStreams = <ID, Stream<T?>>{};
   final _watchAllSubjects = <String, BehaviorSubject<List<T>>>{};
-  final _watchSubscriptions = <String, StreamSubscription<sqlite.ResultSet>>{};
+  final _watchAllStreams = <String, Stream<List<T>>>{};
+  final _watchSubscriptions =
+      <String, StreamSubscription<List<Map<String, dynamic>>>>{};
 
   // Pending changes and conflicts
   late final nexus.PendingChangesManager<T, ID> _pendingChangesManager;
@@ -126,16 +153,18 @@ class PowerSyncBackend<T, ID>
     }
     _watchSubscriptions.clear();
 
-    // Close all watch subjects
+    // Close all watch subjects and clear stream caches
     for (final subject in _watchSubjects.values) {
       await subject.close();
     }
     _watchSubjects.clear();
+    _watchStreams.clear();
 
     for (final subject in _watchAllSubjects.values) {
       await subject.close();
     }
     _watchAllSubjects.clear();
+    _watchAllStreams.clear();
 
     await _syncStatusSubject.close();
     await _conflictsSubject.close();
@@ -184,8 +213,9 @@ class PowerSyncBackend<T, ID>
   Stream<T?> watch(ID id) {
     _ensureInitialized();
 
-    if (_watchSubjects.containsKey(id)) {
-      return _watchSubjects[id]!.stream;
+    // Return cached stream if available
+    if (_watchStreams.containsKey(id)) {
+      return _watchStreams[id]!;
     }
 
     // ignore: close_sinks - closed in close() method
@@ -212,7 +242,10 @@ class PowerSyncBackend<T, ID>
 
     _watchSubscriptions[subscriptionKey] = subscription;
 
-    return subject.stream;
+    // Cache and return the stream
+    final stream = subject.stream;
+    _watchStreams[id] = stream;
+    return stream;
   }
 
   @override
@@ -221,8 +254,9 @@ class PowerSyncBackend<T, ID>
 
     final queryKey = query?.toString() ?? '_all_';
 
-    if (_watchAllSubjects.containsKey(queryKey)) {
-      return _watchAllSubjects[queryKey]!.stream;
+    // Return cached stream if available
+    if (_watchAllStreams.containsKey(queryKey)) {
+      return _watchAllStreams[queryKey]!;
     }
 
     // ignore: close_sinks - closed in close() method
@@ -253,7 +287,10 @@ class PowerSyncBackend<T, ID>
 
     _watchSubscriptions[subscriptionKey] = subscription;
 
-    return subject.stream;
+    // Cache and return the stream
+    final stream = subject.stream;
+    _watchAllStreams[queryKey] = stream;
+    return stream;
   }
 
   // ===================== WRITE OPERATIONS =====================

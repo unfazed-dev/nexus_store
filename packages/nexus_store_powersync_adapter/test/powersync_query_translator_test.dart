@@ -316,6 +316,64 @@ void main() {
         expect(sql, contains('LIKE ?'));
         expect(args, contains('%john%'));
       });
+
+      test('startsWith generates LIKE value%', () {
+        final filters = [
+          const QueryFilter(
+            field: 'name',
+            operator: FilterOperator.startsWith,
+            value: 'John',
+          ),
+        ];
+
+        final result = translator.translateFilters(filters);
+
+        expect(result, contains('name LIKE ?'));
+      });
+
+      test('endsWith generates LIKE %value', () {
+        final filters = [
+          const QueryFilter(
+            field: 'email',
+            operator: FilterOperator.endsWith,
+            value: '@example.com',
+          ),
+        ];
+
+        final result = translator.translateFilters(filters);
+
+        expect(result, contains('email LIKE ?'));
+      });
+
+      test('arrayContainsAny generates EXISTS with json_each', () {
+        final filters = [
+          const QueryFilter(
+            field: 'tags',
+            operator: FilterOperator.arrayContainsAny,
+            value: ['dart', 'flutter'],
+          ),
+        ];
+
+        final result = translator.translateFilters(filters);
+
+        expect(result, contains('EXISTS'));
+        expect(result, contains('json_each(tags)'));
+        expect(result, contains('value IN'));
+      });
+
+      test('arrayContainsAny with empty list generates always-false', () {
+        final filters = [
+          const QueryFilter(
+            field: 'tags',
+            operator: FilterOperator.arrayContainsAny,
+            value: <String>[],
+          ),
+        ];
+
+        final result = translator.translateFilters(filters);
+
+        expect(result, contains('1 = 0'));
+      });
     });
 
     group('toDeleteSql', () {
@@ -411,6 +469,54 @@ void main() {
         expect(result, contains('WHERE'));
       });
 
+      test('translate includes ORDER BY when present', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('status', isEqualTo: 'active')
+            .orderByField('name');
+
+        final result = translator.translate(query);
+
+        expect(result, contains('WHERE'));
+        expect(result, contains('ORDER BY name ASC'));
+      });
+
+      test('translate includes LIMIT when present', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('status', isEqualTo: 'active')
+            .limitTo(10);
+
+        final result = translator.translate(query);
+
+        expect(result, contains('WHERE'));
+        expect(result, contains('LIMIT 10'));
+      });
+
+      test('translate includes OFFSET when present', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('status', isEqualTo: 'active')
+            .offsetBy(20);
+
+        final result = translator.translate(query);
+
+        expect(result, contains('WHERE'));
+        expect(result, contains('OFFSET 20'));
+      });
+
+      test('translate includes all clauses when present', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('status', isEqualTo: 'active')
+            .orderByField('name')
+            .limitTo(10)
+            .offsetBy(5);
+
+        final result = translator.translate(query);
+
+        expect(result, contains('WHERE'));
+        expect(result, contains('ORDER BY name ASC'));
+        expect(result, contains('LIMIT 10'));
+        expect(result, contains('OFFSET 5'));
+      });
+
       test('translateFilters returns WHERE clause parts', () {
         final filters = [
           const QueryFilter(
@@ -434,6 +540,33 @@ void main() {
         final result = translator.translateOrderBy(orderBy);
 
         expect(result, equals('name ASC, age DESC'));
+      });
+    });
+
+    group('PowerSyncQueryExtension', () {
+      test('toSql extension creates translator and generates SQL', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('name', isEqualTo: 'John');
+
+        final (sql, args) = query.toSql('users');
+
+        expect(sql, contains('SELECT * FROM users'));
+        expect(sql, contains('WHERE'));
+        expect(sql, contains('name = ?'));
+        expect(args, equals(['John']));
+      });
+
+      test('toSql extension accepts custom field mapping', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('userName', isEqualTo: 'John');
+
+        final (sql, args) = query.toSql(
+          'users',
+          fieldMapping: {'userName': 'user_name'},
+        );
+
+        expect(sql, contains('user_name = ?'));
+        expect(args, equals(['John']));
       });
     });
   });

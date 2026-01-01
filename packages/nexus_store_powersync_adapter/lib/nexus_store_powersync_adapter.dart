@@ -3,6 +3,11 @@
 library;
 
 export 'src/powersync_backend.dart' show PowerSyncBackend;
+export 'src/powersync_database_wrapper.dart'
+    show
+        DefaultPowerSyncDatabaseWrapper,
+        PowerSyncDatabaseWrapper,
+        PowerSyncTransactionContext;
 export 'src/powersync_encrypted_backend.dart'
     show
         EncryptionAlgorithm,
