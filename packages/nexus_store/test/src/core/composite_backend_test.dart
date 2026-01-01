@@ -408,7 +408,8 @@ void main() {
       test('supportsTransactions should reflect primary', () {
         final backend = CompositeBackend<TestUser, String>(primary: primary);
 
-        expect(backend.supportsTransactions, isFalse);
+        // FakeStoreBackend.supportsTransactions returns true
+        expect(backend.supportsTransactions, isTrue);
       });
     });
 
