@@ -6,6 +6,8 @@ import 'package:build/build.dart';
 import 'package:nexus_store_riverpod_binding/nexus_store_riverpod_binding.dart';
 import 'package:source_gen/source_gen.dart';
 
+import 'generator_helpers.dart';
+
 /// Generator for `@riverpodNexusStore` annotated functions.
 ///
 /// Generates the following providers for each annotated function:
@@ -32,7 +34,7 @@ class NexusStoreRiverpodGenerator
     final returnType = function.returnType;
 
     // Validate return type is NexusStore<T, ID>
-    if (!_isNexusStoreType(returnType)) {
+    if (!isNexusStoreType(returnType)) {
       throw InvalidGenerationSourceError(
         '@riverpodNexusStore function must return NexusStore<T, ID>',
         element: element,
@@ -40,7 +42,7 @@ class NexusStoreRiverpodGenerator
     }
 
     // Extract type parameters
-    final typeArgs = _extractTypeArguments(returnType);
+    final typeArgs = extractTypeArguments(returnType);
     if (typeArgs == null) {
       throw InvalidGenerationSourceError(
         'Could not extract type arguments from NexusStore return type',
@@ -56,11 +58,11 @@ class NexusStoreRiverpodGenerator
     final customName = annotation.peek('name')?.stringValue;
 
     // Derive provider names
-    final baseName = customName ?? _deriveBaseName(function.name);
-    final pluralName = _pluralize(baseName);
+    final baseName = customName ?? deriveBaseName(function.name);
+    final pluralName = pluralize(baseName);
 
     // Generate the code
-    return _generateProviders(
+    return generateProviders(
       functionName: function.name,
       baseName: baseName,
       pluralName: pluralName,
@@ -70,12 +72,17 @@ class NexusStoreRiverpodGenerator
     );
   }
 
-  bool _isNexusStoreType(DartType type) {
+  /// Checks if the given type is a NexusStore type.
+  static bool isNexusStoreType(DartType type) {
     if (type is! InterfaceType) return false;
     return type.element.name == 'NexusStore';
   }
 
-  (String, String)? _extractTypeArguments(DartType type) {
+  /// Extracts the type arguments (T, ID) from a NexusStore<T, ID> type.
+  ///
+  /// Returns null if the type is not an InterfaceType or doesn't have
+  /// exactly 2 type arguments.
+  static (String, String)? extractTypeArguments(DartType type) {
     if (type is! InterfaceType) return null;
     final typeArgs = type.typeArguments;
     if (typeArgs.length != 2) return null;
@@ -83,69 +90,5 @@ class NexusStoreRiverpodGenerator
       typeArgs[0].getDisplayString(withNullability: false),
       typeArgs[1].getDisplayString(withNullability: false),
     );
-  }
-
-  String _deriveBaseName(String functionName) {
-    // userStore -> user
-    // productStore -> product
-    if (functionName.endsWith('Store')) {
-      return functionName.substring(0, functionName.length - 5);
-    }
-    return functionName;
-  }
-
-  String _pluralize(String name) {
-    // Simple pluralization - works for most English nouns
-    if (name.endsWith('y')) {
-      return '${name.substring(0, name.length - 1)}ies';
-    } else if (name.endsWith('s') ||
-        name.endsWith('x') ||
-        name.endsWith('ch') ||
-        name.endsWith('sh')) {
-      return '${name}es';
-    }
-    return '${name}s';
-  }
-
-  String _generateProviders({
-    required String functionName,
-    required String baseName,
-    required String pluralName,
-    required String entityType,
-    required String idType,
-    required bool keepAlive,
-  }) {
-    final providerModifier = keepAlive ? '' : '.autoDispose';
-
-    return '''
-// **************************************************************************
-// NexusStoreRiverpodGenerator
-// **************************************************************************
-
-/// Provider for the $entityType store.
-final ${baseName}StoreProvider = Provider$providerModifier<NexusStore<$entityType, $idType>>((ref) {
-  final store = $functionName(ref);
-  ref.onDispose(() => store.dispose());
-  return store;
-});
-
-/// StreamProvider for all $pluralName.
-final ${pluralName}Provider = StreamProvider$providerModifier<List<$entityType>>((ref) {
-  final store = ref.watch(${baseName}StoreProvider);
-  return store.watchAll();
-});
-
-/// StreamProvider.family for a single $baseName by ID.
-final ${baseName}ByIdProvider = StreamProvider$providerModifier.family<$entityType?, $idType>((ref, id) {
-  final store = ref.watch(${baseName}StoreProvider);
-  return store.watch(id);
-});
-
-/// StreamProvider for all $pluralName with StoreResult status.
-final ${pluralName}StatusProvider = StreamProvider$providerModifier<StoreResult<List<$entityType>>>((ref) {
-  final store = ref.watch(${baseName}StoreProvider);
-  return store.watchAll().map(StoreResult.success);
-});
-''';
   }
 }

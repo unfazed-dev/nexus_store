@@ -1,80 +1,14 @@
-// ignore_for_file: avoid_relative_lib_imports
+import 'package:nexus_store_riverpod_generator/src/generator_helpers.dart';
 import 'package:test/test.dart';
 
-// We test the generator logic by unit testing the helper methods.
+// We test the generator logic by unit testing the helper functions.
 // The generator depends on flutter_riverpod transitively, which makes
 // build_test unavailable (dart:mirrors + dart:ui conflict).
-// Instead, we test the logic directly.
-
-/// Derives the base name from a function name.
-/// This mirrors the _deriveBaseName method in the generator.
-String deriveBaseName(String functionName) {
-  if (functionName.endsWith('Store')) {
-    return functionName.substring(0, functionName.length - 5);
-  }
-  return functionName;
-}
-
-/// Pluralizes a name using simple English rules.
-/// This mirrors the _pluralize method in the generator.
-String pluralize(String name) {
-  if (name.endsWith('y')) {
-    return '${name.substring(0, name.length - 1)}ies';
-  } else if (name.endsWith('s') ||
-      name.endsWith('x') ||
-      name.endsWith('ch') ||
-      name.endsWith('sh')) {
-    return '${name}es';
-  }
-  return '${name}s';
-}
-
-/// Generates provider code for given parameters.
-/// This mirrors the _generateProviders method in the generator.
-String generateProviders({
-  required String functionName,
-  required String baseName,
-  required String pluralName,
-  required String entityType,
-  required String idType,
-  required bool keepAlive,
-}) {
-  final providerModifier = keepAlive ? '' : '.autoDispose';
-
-  return '''
-// **************************************************************************
-// NexusStoreRiverpodGenerator
-// **************************************************************************
-
-/// Provider for the $entityType store.
-final ${baseName}StoreProvider = Provider$providerModifier<NexusStore<$entityType, $idType>>((ref) {
-  final store = $functionName(ref);
-  ref.onDispose(() => store.dispose());
-  return store;
-});
-
-/// StreamProvider for all $pluralName.
-final ${pluralName}Provider = StreamProvider$providerModifier<List<$entityType>>((ref) {
-  final store = ref.watch(${baseName}StoreProvider);
-  return store.watchAll();
-});
-
-/// StreamProvider.family for a single $baseName by ID.
-final ${baseName}ByIdProvider = StreamProvider$providerModifier.family<$entityType?, $idType>((ref, id) {
-  final store = ref.watch(${baseName}StoreProvider);
-  return store.watch(id);
-});
-
-/// StreamProvider for all $pluralName with StoreResult status.
-final ${pluralName}StatusProvider = StreamProvider$providerModifier<StoreResult<List<$entityType>>>((ref) {
-  final store = ref.watch(${baseName}StoreProvider);
-  return store.watchAll().map(StoreResult.success);
-});
-''';
-}
+// The helper functions are now extracted to generator_helpers.dart
+// so we can test the actual implementation.
 
 void main() {
-  group('NexusStoreRiverpodGenerator Logic', () {
+  group('NexusStoreRiverpodGenerator Helpers', () {
     group('deriveBaseName', () {
       test('strips Store suffix from function name', () {
         expect(deriveBaseName('userStore'), equals('user'));
