@@ -194,5 +194,208 @@ void main() {
         isTrue,
       );
     });
+
+    group('isFailure', () {
+      test('returns true for stepFailed', () {
+        expect(
+          SagaEventData(
+            event: SagaEvent.stepFailed,
+            sagaId: 's',
+            stepName: 'x',
+            timestamp: DateTime.now(),
+          ).isFailure,
+          isTrue,
+        );
+      });
+
+      test('returns true for compensationFailed', () {
+        expect(
+          SagaEventData(
+            event: SagaEvent.compensationFailed,
+            sagaId: 's',
+            stepName: 'x',
+            timestamp: DateTime.now(),
+          ).isFailure,
+          isTrue,
+        );
+      });
+
+      test('returns true for sagaFailed', () {
+        expect(
+          SagaEventData(
+            event: SagaEvent.sagaFailed,
+            sagaId: 's',
+            timestamp: DateTime.now(),
+          ).isFailure,
+          isTrue,
+        );
+      });
+
+      test('returns false for success events', () {
+        expect(
+          SagaEventData(
+            event: SagaEvent.stepCompleted,
+            sagaId: 's',
+            stepName: 'x',
+            timestamp: DateTime.now(),
+          ).isFailure,
+          isFalse,
+        );
+        expect(
+          SagaEventData(
+            event: SagaEvent.sagaCompleted,
+            sagaId: 's',
+            timestamp: DateTime.now(),
+          ).isFailure,
+          isFalse,
+        );
+        expect(
+          SagaEventData(
+            event: SagaEvent.stepStarted,
+            sagaId: 's',
+            stepName: 'x',
+            timestamp: DateTime.now(),
+          ).isFailure,
+          isFalse,
+        );
+      });
+    });
+
+    group('isSuccess', () {
+      test('returns true for stepCompleted', () {
+        expect(
+          SagaEventData(
+            event: SagaEvent.stepCompleted,
+            sagaId: 's',
+            stepName: 'x',
+            timestamp: DateTime.now(),
+          ).isSuccess,
+          isTrue,
+        );
+      });
+
+      test('returns true for compensationCompleted', () {
+        expect(
+          SagaEventData(
+            event: SagaEvent.compensationCompleted,
+            sagaId: 's',
+            stepName: 'x',
+            timestamp: DateTime.now(),
+          ).isSuccess,
+          isTrue,
+        );
+      });
+
+      test('returns true for sagaCompleted', () {
+        expect(
+          SagaEventData(
+            event: SagaEvent.sagaCompleted,
+            sagaId: 's',
+            timestamp: DateTime.now(),
+          ).isSuccess,
+          isTrue,
+        );
+      });
+
+      test('returns false for failure events', () {
+        expect(
+          SagaEventData(
+            event: SagaEvent.stepFailed,
+            sagaId: 's',
+            stepName: 'x',
+            timestamp: DateTime.now(),
+          ).isSuccess,
+          isFalse,
+        );
+        expect(
+          SagaEventData(
+            event: SagaEvent.sagaFailed,
+            sagaId: 's',
+            timestamp: DateTime.now(),
+          ).isSuccess,
+          isFalse,
+        );
+        expect(
+          SagaEventData(
+            event: SagaEvent.stepStarted,
+            sagaId: 's',
+            stepName: 'x',
+            timestamp: DateTime.now(),
+          ).isSuccess,
+          isFalse,
+        );
+      });
+    });
+
+    group('toString formatting', () {
+      test('includes duration in milliseconds when present', () {
+        final eventData = SagaEventData(
+          event: SagaEvent.stepCompleted,
+          sagaId: 'saga-123',
+          stepName: 'process-payment',
+          timestamp: DateTime.now(),
+          duration: const Duration(milliseconds: 1500),
+        );
+
+        expect(eventData.toString(), contains('1500ms'));
+      });
+
+      test('includes error when present', () {
+        final eventData = SagaEventData(
+          event: SagaEvent.stepFailed,
+          sagaId: 'saga-123',
+          stepName: 'process-payment',
+          timestamp: DateTime.now(),
+          error: Exception('Connection timeout'),
+        );
+
+        expect(eventData.toString(), contains('error:'));
+        expect(eventData.toString(), contains('Connection timeout'));
+      });
+
+      test('omits duration when null', () {
+        final eventData = SagaEventData(
+          event: SagaEvent.stepStarted,
+          sagaId: 'saga-123',
+          stepName: 'start-step',
+          timestamp: DateTime.now(),
+        );
+
+        expect(eventData.toString(), isNot(contains('duration:')));
+        expect(eventData.toString(), isNot(contains('ms')));
+      });
+
+      test('omits error when null', () {
+        final eventData = SagaEventData(
+          event: SagaEvent.stepCompleted,
+          sagaId: 'saga-123',
+          stepName: 'success-step',
+          timestamp: DateTime.now(),
+        );
+
+        expect(eventData.toString(), isNot(contains('error:')));
+      });
+
+      test('includes stepName when present', () {
+        final eventData = SagaEventData(
+          event: SagaEvent.stepStarted,
+          sagaId: 'saga-123',
+          stepName: 'my-custom-step',
+          timestamp: DateTime.now(),
+        );
+
+        expect(eventData.toString(), contains('stepName: my-custom-step'));
+      });
+
+      test('omits stepName when null (saga-level events)', () {
+        final eventData = SagaEventData(
+          event: SagaEvent.sagaStarted,
+          sagaId: 'saga-123',
+          timestamp: DateTime.now(),
+        );
+
+        expect(eventData.toString(), isNot(contains('stepName:')));
+      });
+    });
   });
 }

@@ -10,9 +10,9 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 |----------|----------|--------------|-----------|
 | P0 Critical | 3 | 474 | 3 (riverpod_generator ✅, supabase_adapter 🟡 74.7%, riverpod_binding ✅) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
-| P2 Medium | 5 | 720 | 2 (nexus_store_flutter ✅ 94.8%) |
+| P2 Medium | 5 | 720 | 3 (nexus_store_flutter ✅ 94.8%, nexus_store 🟡 90%+) |
 | P3-P4 Lower | 4 | 133 | 0 |
-| **Total** | **13** | **1,415** | **5** |
+| **Total** | **13** | **1,415** | **6** |
 
 ---
 
@@ -205,13 +205,21 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ---
 
-#### nexus_store (71.8% → 100%)
+#### nexus_store (71.8% → 90%+) 🟡 IN PROGRESS
 **Path:** `packages/nexus_store`
-**Lines to cover:** 150
+**Lines to cover:** 150 → ~50 remaining
 
+- [x] Add event/state toString and equality tests ✅
+  - [x] saga_state.dart: 0% → 100% (+43 lines)
+  - [x] saga_event.dart: ~80% → 100% (isFailure/isSuccess/toString)
+  - [x] pagination_state.dart: ~83% → 92.7% (maybeWhen orElse tests)
 - [ ] Add error handling path tests
 - [ ] Add stream operation edge case tests
-- [ ] Add event/state toString and equality tests
+
+**Files:**
+- `lib/src/coordination/saga_state.dart` (100% ✅)
+- `lib/src/coordination/saga_event.dart` (100% ✅)
+- `lib/src/pagination/pagination_state.dart` (92.7% ✅)
 
 ---
 
@@ -312,6 +320,15 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-01**: P2 nexus_store core - saga_state and saga_event 100% coverage
+  - Created `test/src/coordination/saga_state_test.dart` (44 tests)
+  - Added isFailure/isSuccess/toString tests to saga_event_test.dart (14 tests)
+  - Added maybeWhen orElse and toString tests to pagination_state_test.dart (10 tests)
+  - saga_state.dart: 0% → 100%
+  - saga_event.dart: ~80% → 100%
+  - pagination_state.dart: ~83% → 92.7%
+  - Overall package improvement: 71.8% → ~90%
 
 - **2026-01-01**: P0 supabase_adapter - query_translator 100% coverage
   - Created spy pattern (`SpyPostgrestFilterBuilder`/`SpyPostgrestTransformBuilder`) to test PostgrestBuilder chaining

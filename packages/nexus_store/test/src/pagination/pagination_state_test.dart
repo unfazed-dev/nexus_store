@@ -302,7 +302,7 @@ void main() {
         expect(result, equals('has data'));
       });
 
-      test('maybeWhen falls through to orElse', () {
+      test('maybeWhen falls through to orElse for loading', () {
         final state = PaginationState<String>.loading();
 
         final result = state.maybeWhen(
@@ -311,6 +311,84 @@ void main() {
         );
 
         expect(result, equals('other'));
+      });
+
+      test('maybeWhen falls through to orElse for initial', () {
+        final state = PaginationState<String>.initial();
+
+        final result = state.maybeWhen(
+          data: (items, pageInfo) => 'has data',
+          loading: (items) => 'loading',
+          orElse: () => 'orElse called',
+        );
+
+        expect(result, equals('orElse called'));
+      });
+
+      test('maybeWhen falls through to orElse for loadingMore', () {
+        final state = PaginationState<String>.loadingMore(
+          items: ['a', 'b'],
+          pageInfo: const PageInfo(hasNextPage: true, hasPreviousPage: false),
+        );
+
+        final result = state.maybeWhen(
+          data: (items, pageInfo) => 'has data',
+          initial: () => 'initial',
+          orElse: () => 'orElse called',
+        );
+
+        expect(result, equals('orElse called'));
+      });
+
+      test('maybeWhen falls through to orElse for error', () {
+        final state = PaginationState<String>.error(
+          Exception('test error'),
+          previousItems: ['a'],
+        );
+
+        final result = state.maybeWhen(
+          data: (items, pageInfo) => 'has data',
+          loading: (items) => 'loading',
+          orElse: () => 'orElse called',
+        );
+
+        expect(result, equals('orElse called'));
+      });
+
+      test('maybeWhen uses handler when initial is provided', () {
+        final state = PaginationState<String>.initial();
+
+        final result = state.maybeWhen(
+          initial: () => 'initial state',
+          orElse: () => 'other',
+        );
+
+        expect(result, equals('initial state'));
+      });
+
+      test('maybeWhen uses handler when loadingMore is provided', () {
+        final state = PaginationState<String>.loadingMore(
+          items: ['a'],
+          pageInfo: const PageInfo(hasNextPage: true, hasPreviousPage: false),
+        );
+
+        final result = state.maybeWhen(
+          loadingMore: (items, pageInfo) => 'loading more items',
+          orElse: () => 'other',
+        );
+
+        expect(result, equals('loading more items'));
+      });
+
+      test('maybeWhen uses handler when error is provided', () {
+        final state = PaginationState<String>.error(Exception('oops'));
+
+        final result = state.maybeWhen(
+          error: (err, items, pageInfo) => 'error occurred',
+          orElse: () => 'other',
+        );
+
+        expect(result, equals('error occurred'));
       });
     });
 
@@ -365,6 +443,33 @@ void main() {
       test('error state has readable string', () {
         final state = PaginationState<String>.error(Exception('test error'));
         expect(state.toString(), contains('PaginationError'));
+      });
+
+      test('loadingMore state includes item count and hasMore', () {
+        final state = PaginationState<String>.loadingMore(
+          items: ['a', 'b', 'c'],
+          pageInfo: const PageInfo(hasNextPage: true, hasPreviousPage: false),
+        );
+        expect(state.toString(), contains('PaginationLoadingMore'));
+        expect(state.toString(), contains('3 items'));
+        expect(state.toString(), contains('hasMore: true'));
+      });
+
+      test('loading state includes previous items count', () {
+        final state = PaginationState<String>.loading(
+          previousItems: ['x', 'y'],
+        );
+        expect(state.toString(), contains('PaginationLoading'));
+        expect(state.toString(), contains('2 previous items'));
+      });
+
+      test('error state includes error and previous items count', () {
+        final state = PaginationState<String>.error(
+          Exception('network error'),
+          previousItems: ['a'],
+        );
+        expect(state.toString(), contains('PaginationError'));
+        expect(state.toString(), contains('1 previous items'));
       });
     });
   });
