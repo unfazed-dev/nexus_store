@@ -1,8 +1,19 @@
 // ignore_for_file: unreachable_from_main
 
+import 'dart:async';
+
+import 'package:drift/drift.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
 import 'package:nexus_store_drift_adapter/nexus_store_drift_adapter.dart';
 import 'package:test/test.dart';
+
+// Mock for DatabaseConnectionUser
+class MockDatabaseConnectionUser extends Mock
+    implements DatabaseConnectionUser {}
+
+// Mock for Selectable to return results
+class MockSelectable<T> extends Mock implements Selectable<T> {}
 
 // Test model
 class TestModel {
@@ -264,5 +275,345 @@ void main() {
     // Integration-style tests would go here
     // These would use a real in-memory SQLite database
     // For now, we focus on unit tests with mocks
+  });
+
+  group('Exception Mapping (_mapException)', () {
+    late DriftBackend<TestModel, String> backend;
+    late MockDatabaseConnectionUser mockExecutor;
+    late MockSelectable<QueryRow> mockSelectable;
+
+    setUp(() async {
+      backend = DriftBackend<TestModel, String>(
+        tableName: 'test_models',
+        getId: (model) => model.id,
+        fromJson: TestModel.fromJson,
+        toJson: (model) => model.toJson(),
+        primaryKeyField: 'id',
+      );
+
+      mockExecutor = MockDatabaseConnectionUser();
+      mockSelectable = MockSelectable<QueryRow>();
+
+      await backend.initializeWithExecutor(mockExecutor);
+    });
+
+    tearDown(() async {
+      await backend.close();
+    });
+
+    test('passes through existing StoreError unchanged', () async {
+      final originalError = nexus.ValidationError(
+        message: 'Original error',
+        cause: Exception('test'),
+        stackTrace: StackTrace.current,
+      );
+
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get()).thenThrow(originalError);
+
+      expect(
+        () => backend.get('1'),
+        throwsA(isA<nexus.ValidationError>().having(
+          (e) => e.message,
+          'message',
+          'Original error',
+        )),
+      );
+    });
+
+    test('maps unique constraint violation to ValidationError', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('UNIQUE CONSTRAINT failed: test_models.id'));
+
+      expect(
+        () => backend.get('1'),
+        throwsA(isA<nexus.ValidationError>().having(
+          (e) => e.message,
+          'message',
+          'Unique constraint violation',
+        )),
+      );
+    });
+
+    test('maps uniqueviolation to ValidationError', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('UniqueViolation: duplicate key'));
+
+      expect(
+        () => backend.get('1'),
+        throwsA(isA<nexus.ValidationError>().having(
+          (e) => e.message,
+          'message',
+          'Unique constraint violation',
+        )),
+      );
+    });
+
+    test('maps foreign key constraint to ValidationError', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('FOREIGN KEY constraint failed'));
+
+      expect(
+        () => backend.get('1'),
+        throwsA(isA<nexus.ValidationError>().having(
+          (e) => e.message,
+          'message',
+          'Foreign key constraint violation',
+        )),
+      );
+    });
+
+    test('maps foreignkeyviolation to ValidationError', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('ForeignKeyViolation: reference missing'));
+
+      expect(
+        () => backend.get('1'),
+        throwsA(isA<nexus.ValidationError>().having(
+          (e) => e.message,
+          'message',
+          'Foreign key constraint violation',
+        )),
+      );
+    });
+
+    test('maps database is locked to TransactionError', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('database is locked'));
+
+      expect(
+        () => backend.get('1'),
+        throwsA(isA<nexus.TransactionError>().having(
+          (e) => e.message,
+          'message',
+          'Database is locked',
+        )),
+      );
+    });
+
+    test('maps busy error to TransactionError', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('SQLITE_BUSY: database is busy'));
+
+      expect(
+        () => backend.get('1'),
+        throwsA(isA<nexus.TransactionError>().having(
+          (e) => e.message,
+          'message',
+          'Database is locked',
+        )),
+      );
+    });
+
+    test('maps no such table to StateError', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('no such table: test_models'));
+
+      expect(
+        () => backend.get('1'),
+        throwsA(isA<nexus.StateError>().having(
+          (e) => e.message,
+          'message',
+          'Table does not exist',
+        )),
+      );
+    });
+
+    test('maps unknown error to SyncError', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('Some unknown database error'));
+
+      expect(
+        () => backend.get('1'),
+        throwsA(isA<nexus.SyncError>().having(
+          (e) => e.message,
+          'message',
+          contains('Drift operation failed'),
+        )),
+      );
+    });
+
+    test('exception mapping in save operation', () async {
+      when(() => mockExecutor.customStatement(any(), any()))
+          .thenThrow(Exception('UNIQUE CONSTRAINT failed'));
+
+      final model = TestModel(id: '1', name: 'Test');
+
+      expect(
+        () => backend.save(model),
+        throwsA(isA<nexus.ValidationError>()),
+      );
+    });
+
+    test('exception mapping in delete operation', () async {
+      when(() => mockExecutor.customUpdate(
+            any(),
+            variables: any(named: 'variables'),
+            updates: any(named: 'updates'),
+          )).thenThrow(Exception('FOREIGN KEY constraint failed'));
+
+      expect(
+        () => backend.delete('1'),
+        throwsA(isA<nexus.ValidationError>()),
+      );
+    });
+
+    test('exception mapping in getAll operation', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('no such table: test_models'));
+
+      expect(
+        () => backend.getAll(),
+        throwsA(isA<nexus.StateError>()),
+      );
+    });
+
+    test('exception mapping in getAllPaged operation', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('database is locked'));
+
+      expect(
+        () => backend.getAllPaged(),
+        throwsA(isA<nexus.TransactionError>()),
+      );
+    });
+  });
+
+  group('Watch Stream Error Handling', () {
+    late DriftBackend<TestModel, String> backend;
+    late MockDatabaseConnectionUser mockExecutor;
+    late MockSelectable<QueryRow> mockSelectable;
+
+    setUp(() async {
+      backend = DriftBackend<TestModel, String>(
+        tableName: 'test_models',
+        getId: (model) => model.id,
+        fromJson: TestModel.fromJson,
+        toJson: (model) => model.toJson(),
+        primaryKeyField: 'id',
+      );
+
+      mockExecutor = MockDatabaseConnectionUser();
+      mockSelectable = MockSelectable<QueryRow>();
+
+      await backend.initializeWithExecutor(mockExecutor);
+    });
+
+    tearDown(() async {
+      await backend.close();
+    });
+
+    test('watch() stream emits error when get() fails', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('database connection failed'));
+
+      final stream = backend.watch('1');
+
+      await expectLater(
+        stream,
+        emitsError(isA<nexus.SyncError>()),
+      );
+    });
+
+    test('watchAll() stream emits error when getAll() fails', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get())
+          .thenThrow(Exception('no such table: test_models'));
+
+      final stream = backend.watchAll();
+
+      await expectLater(
+        stream,
+        emitsError(isA<nexus.StateError>()),
+      );
+    });
+
+    test('watch() uses cached subject for same ID', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get()).thenAnswer((_) async => []);
+
+      // First call creates the subject
+      backend.watch('1');
+      // Second call should reuse existing subject (only one get() call)
+      backend.watch('1');
+
+      // Verify customSelect was only called once (for initial load)
+      verify(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).called(1);
+    });
+
+    test('watchAll() uses cached subject for same query', () async {
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).thenReturn(mockSelectable);
+      when(() => mockSelectable.get()).thenAnswer((_) async => []);
+
+      // First call creates the subject
+      backend.watchAll();
+      // Second call should reuse existing subject
+      backend.watchAll();
+
+      // Verify customSelect was only called once (for initial load)
+      verify(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          )).called(1);
+    });
   });
 }

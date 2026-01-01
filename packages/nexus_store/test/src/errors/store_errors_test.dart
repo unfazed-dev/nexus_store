@@ -390,4 +390,189 @@ void main() {
       expect(str, contains('original error'));
     });
   });
+
+  group('CircuitBreakerOpenException', () {
+    test('should have correct properties', () {
+      const error = CircuitBreakerOpenException(
+        retryAfter: Duration(seconds: 30),
+      );
+
+      expect(error.retryAfter, equals(const Duration(seconds: 30)));
+      expect(error.message, equals('Circuit breaker is open'));
+      expect(error.code, equals('CIRCUIT_BREAKER_OPEN'));
+      expect(error.errorName, equals('CircuitBreakerOpenException'));
+    });
+
+    test('should always be retryable', () {
+      const error = CircuitBreakerOpenException(
+        retryAfter: Duration(seconds: 30),
+      );
+      expect(error.isRetryable, isTrue);
+    });
+
+    test('should be a StoreError', () {
+      const error = CircuitBreakerOpenException(
+        retryAfter: Duration(seconds: 30),
+      );
+      expect(error, isA<StoreError>());
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original failure');
+      final stackTrace = StackTrace.current;
+      final error = CircuitBreakerOpenException(
+        retryAfter: const Duration(seconds: 10),
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
+  });
+
+  group('SagaError', () {
+    test('should have correct properties', () {
+      const error = SagaError(
+        message: 'Saga failed',
+        failedStep: 'payment',
+        compensatedSteps: ['order', 'inventory'],
+        failedCompensations: ['notification'],
+      );
+
+      expect(error.message, equals('Saga failed'));
+      expect(error.failedStep, equals('payment'));
+      expect(error.compensatedSteps, equals(['order', 'inventory']));
+      expect(error.failedCompensations, equals(['notification']));
+      expect(error.code, equals('SAGA_ERROR'));
+      expect(error.errorName, equals('SagaError'));
+    });
+
+    test('should have default empty lists for compensations', () {
+      const error = SagaError(message: 'Saga failed');
+
+      expect(error.compensatedSteps, isEmpty);
+      expect(error.failedCompensations, isEmpty);
+    });
+
+    test('should not be retryable', () {
+      const error = SagaError(message: 'test');
+      expect(error.isRetryable, isFalse);
+    });
+
+    group('wasPartiallyCompensated', () {
+      test('returns true when failedCompensations is not empty', () {
+        const error = SagaError(
+          message: 'Failed',
+          failedCompensations: ['step-1'],
+        );
+        expect(error.wasPartiallyCompensated, isTrue);
+      });
+
+      test('returns false when failedCompensations is empty', () {
+        const error = SagaError(
+          message: 'Failed',
+          compensatedSteps: ['step-1'],
+        );
+        expect(error.wasPartiallyCompensated, isFalse);
+      });
+    });
+
+    group('wasFullyCompensated', () {
+      test('returns true when compensatedSteps not empty and no failed', () {
+        const error = SagaError(
+          message: 'Failed',
+          compensatedSteps: ['step-1', 'step-2'],
+        );
+        expect(error.wasFullyCompensated, isTrue);
+      });
+
+      test('returns false when compensatedSteps is empty', () {
+        const error = SagaError(message: 'Failed');
+        expect(error.wasFullyCompensated, isFalse);
+      });
+
+      test('returns false when there are failed compensations', () {
+        const error = SagaError(
+          message: 'Failed',
+          compensatedSteps: ['step-1'],
+          failedCompensations: ['step-2'],
+        );
+        expect(error.wasFullyCompensated, isFalse);
+      });
+    });
+
+    group('toString', () {
+      test('should include base error info', () {
+        const error = SagaError(message: 'Saga failed');
+        final str = error.toString();
+
+        expect(str, contains('SagaError'));
+        expect(str, contains('Saga failed'));
+      });
+
+      test('should include failed step when present', () {
+        const error = SagaError(
+          message: 'Saga failed',
+          failedStep: 'payment-step',
+        );
+        final str = error.toString();
+
+        expect(str, contains('Failed step: payment-step'));
+      });
+
+      test('should include compensated steps when present', () {
+        const error = SagaError(
+          message: 'Saga failed',
+          compensatedSteps: ['order', 'inventory'],
+        );
+        final str = error.toString();
+
+        expect(str, contains('Compensated:'));
+        expect(str, contains('order'));
+        expect(str, contains('inventory'));
+      });
+
+      test('should include failed compensations when present', () {
+        const error = SagaError(
+          message: 'Saga failed',
+          failedCompensations: ['notification', 'email'],
+        );
+        final str = error.toString();
+
+        expect(str, contains('Failed compensations:'));
+        expect(str, contains('notification'));
+        expect(str, contains('email'));
+      });
+
+      test('should include all sections when all present', () {
+        const error = SagaError(
+          message: 'Saga failed',
+          failedStep: 'payment',
+          compensatedSteps: ['order'],
+          failedCompensations: ['notification'],
+        );
+        final str = error.toString();
+
+        expect(str, contains('SagaError'));
+        expect(str, contains('Saga failed'));
+        expect(str, contains('Failed step: payment'));
+        expect(str, contains('Compensated:'));
+        expect(str, contains('Failed compensations:'));
+      });
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original failure');
+      final stackTrace = StackTrace.current;
+      final error = SagaError(
+        message: 'Saga failed',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
+  });
 }

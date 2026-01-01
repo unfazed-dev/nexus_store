@@ -10,7 +10,7 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 |----------|----------|--------------|-----------|
 | P0 Critical | 3 | 474 | 3 (riverpod_generator ✅, supabase_adapter 🟡 74.7%, riverpod_binding ✅) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
-| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store 🟡 90%+, crdt_adapter 🟡 84.9%, bloc_binding 🟡 93.2%, drift_adapter 🟡 86.8%) |
+| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store 🟡 89.8%, crdt_adapter 🟡 87.2%, bloc_binding 🟡 94.0%, drift_adapter ✅ 94.4%) |
 | P3-P4 Lower | 4 | 133 | 0 |
 | **Total** | **13** | **1,415** | **9** |
 
@@ -366,6 +366,47 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-01**: Session 3 - Core package coverage improvements
+  - **nexus_store** core (87.9% → 89.8%, +1.9%)
+    - Enhanced `test/src/interceptors/store_operation_test.dart` (26 new tests)
+      - StoreOperationExtension methods: isRead, isStream, isWrite, isDelete, isSync, modifiesData
+      - Coverage: 0% → 100%
+    - Enhanced `test/src/errors/store_errors_test.dart` (18 new tests)
+      - CircuitBreakerOpenException tests (4 tests)
+      - SagaError comprehensive tests (14 tests)
+        - wasPartiallyCompensated/wasFullyCompensated
+        - toString with all sections
+      - Coverage: 59.4% → 76.0%
+    - Enhanced `test/src/core/composite_backend_test.dart` (28 new tests)
+      - Field operations: getField/getFieldBatch with fallback paths (7 tests)
+      - saveAll strategies: all, primaryAndCache (2 tests)
+      - Sync operations: retryChange, cancelChange, syncStatusStream, pendingChangesStream, conflictsStream (7 tests)
+      - Pagination: getAllPaged, watchAllPaged, supportsPagination (7 tests)
+      - Transaction delegation: beginTransaction, commitTransaction, rollbackTransaction, runInTransaction (4 tests)
+      - supportsFieldOperations, deleteWhere (1 test)
+      - Coverage: 59.6% → 98.1%
+  - Total: 72 new tests added to core package
+
+- **2026-01-01**: Session 2 - Exception mapping and array filter tests
+  - **nexus_store_drift_adapter** (86.8% → 94.4%, +7.6%)
+    - Enhanced `test/drift_backend_test.dart` (18 new tests)
+      - Complete `_mapException()` error mapping tests (14 tests)
+      - Unique/foreign key constraint → ValidationError
+      - Database locked → TransactionError
+      - No such table → StateError
+      - Generic errors → SyncError
+      - Watch stream error handling tests (4 tests)
+  - **nexus_store_bloc_binding** (93.2% → 94.0%, +0.8%)
+    - Enhanced `test/cubit/nexus_store_cubit_test.dart` (6 new tests)
+      - saveAll/deleteAll error handling tests
+      - Protected lifecycle hook tests (onSave/onDelete)
+  - **nexus_store_crdt_adapter** (84.9% → 87.2%, +2.3%)
+    - Enhanced `test/crdt_query_translator_test.dart` (5 new tests)
+      - arrayContains filter → LIKE pattern
+      - arrayContainsAny filter → json_each SQL
+      - Empty/non-list arrayContainsAny → 1=0
+  - Total: 29 new tests added across 3 packages
 
 - **2026-01-01**: P2 nexus_store_drift_adapter - pagination and query translator tests
   - Enhanced `test/integration/drift_integration_test.dart` (16 new tests)

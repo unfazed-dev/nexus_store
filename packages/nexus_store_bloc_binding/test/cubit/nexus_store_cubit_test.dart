@@ -263,6 +263,49 @@ void main() {
               .having((s) => s.previousData?.length, 'previousData.length', 3),
         ],
       );
+
+      blocTest<NexusStoreCubit<TestUser, String>, NexusStoreState<TestUser>>(
+        'emits error state on saveAll failure',
+        build: () {
+          when(() => mockStore.saveAll(any(),
+              policy: any(named: 'policy'),
+              tags: any(named: 'tags'))).thenThrow(Exception('SaveAll failed'));
+          return NexusStoreCubit<TestUser, String>(mockStore);
+        },
+        seed: () => NexusStoreLoaded<TestUser>(data: TestFixtures.sampleUsers),
+        act: (cubit) async {
+          try {
+            await cubit.saveAll([TestFixtures.sampleUser]);
+          } catch (_) {
+            // Expected error
+          }
+        },
+        expect: () => [
+          isA<NexusStoreError<TestUser>>()
+              .having((s) => s.previousData?.length, 'previousData.length', 3),
+        ],
+      );
+
+      blocTest<NexusStoreCubit<TestUser, String>, NexusStoreState<TestUser>>(
+        'emits error state on deleteAll failure',
+        build: () {
+          when(() => mockStore.deleteAll(any(), policy: any(named: 'policy')))
+              .thenThrow(Exception('DeleteAll failed'));
+          return NexusStoreCubit<TestUser, String>(mockStore);
+        },
+        seed: () => NexusStoreLoaded<TestUser>(data: TestFixtures.sampleUsers),
+        act: (cubit) async {
+          try {
+            await cubit.deleteAll(['user-1', 'user-2']);
+          } catch (_) {
+            // Expected error
+          }
+        },
+        expect: () => [
+          isA<NexusStoreError<TestUser>>()
+              .having((s) => s.previousData?.length, 'previousData.length', 3),
+        ],
+      );
     });
 
     group('store getter', () {
@@ -272,5 +315,56 @@ void main() {
         cubit.close();
       });
     });
+
+    group('lifecycle hooks', () {
+      blocTest<_TestableNexusStoreCubit, NexusStoreState<TestUser>>(
+        'onSave is called before save operation',
+        build: () => _TestableNexusStoreCubit(mockStore),
+        act: (cubit) async {
+          await cubit.save(TestFixtures.sampleUser);
+        },
+        verify: (cubit) {
+          expect(cubit.onSaveCalled, isTrue);
+          expect(cubit.savedItem, equals(TestFixtures.sampleUser));
+        },
+      );
+
+      blocTest<_TestableNexusStoreCubit, NexusStoreState<TestUser>>(
+        'onDelete is called before delete operation',
+        build: () => _TestableNexusStoreCubit(mockStore),
+        act: (cubit) async {
+          await cubit.delete('user-1');
+        },
+        verify: (cubit) {
+          expect(cubit.onDeleteCalled, isTrue);
+          expect(cubit.deletedId, equals('user-1'));
+        },
+      );
+    });
   });
+}
+
+/// Testable subclass to verify protected hook calls
+class _TestableNexusStoreCubit extends NexusStoreCubit<TestUser, String> {
+  _TestableNexusStoreCubit(super.store);
+
+  bool onSaveCalled = false;
+  TestUser? savedItem;
+
+  bool onDeleteCalled = false;
+  String? deletedId;
+
+  @override
+  void onSave(TestUser item) {
+    onSaveCalled = true;
+    savedItem = item;
+    super.onSave(item);
+  }
+
+  @override
+  void onDelete(String id) {
+    onDeleteCalled = true;
+    deletedId = id;
+    super.onDelete(id);
+  }
 }

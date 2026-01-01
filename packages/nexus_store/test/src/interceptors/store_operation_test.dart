@@ -120,4 +120,121 @@ void main() {
       expect(ops, contains(StoreOperation.save));
     });
   });
+
+  group('StoreOperationExtension', () {
+    group('isRead', () {
+      test('returns true for get operation', () {
+        expect(StoreOperation.get.isRead, isTrue);
+      });
+
+      test('returns true for getAll operation', () {
+        expect(StoreOperation.getAll.isRead, isTrue);
+      });
+
+      test('returns false for save operation', () {
+        expect(StoreOperation.save.isRead, isFalse);
+      });
+
+      test('returns false for watch operation', () {
+        expect(StoreOperation.watch.isRead, isFalse);
+      });
+
+      test('returns false for sync operation', () {
+        expect(StoreOperation.sync.isRead, isFalse);
+      });
+    });
+
+    group('isStream', () {
+      test('returns true for watch operation', () {
+        expect(StoreOperation.watch.isStream, isTrue);
+      });
+
+      test('returns true for watchAll operation', () {
+        expect(StoreOperation.watchAll.isStream, isTrue);
+      });
+
+      test('returns false for get operation', () {
+        expect(StoreOperation.get.isStream, isFalse);
+      });
+
+      test('returns false for save operation', () {
+        expect(StoreOperation.save.isStream, isFalse);
+      });
+    });
+
+    group('isWrite', () {
+      test('returns true for save operation', () {
+        expect(StoreOperation.save.isWrite, isTrue);
+      });
+
+      test('returns true for saveAll operation', () {
+        expect(StoreOperation.saveAll.isWrite, isTrue);
+      });
+
+      test('returns false for get operation', () {
+        expect(StoreOperation.get.isWrite, isFalse);
+      });
+
+      test('returns false for delete operation', () {
+        expect(StoreOperation.delete.isWrite, isFalse);
+      });
+    });
+
+    group('isDelete', () {
+      test('returns true for delete operation', () {
+        expect(StoreOperation.delete.isDelete, isTrue);
+      });
+
+      test('returns true for deleteAll operation', () {
+        expect(StoreOperation.deleteAll.isDelete, isTrue);
+      });
+
+      test('returns false for save operation', () {
+        expect(StoreOperation.save.isDelete, isFalse);
+      });
+
+      test('returns false for get operation', () {
+        expect(StoreOperation.get.isDelete, isFalse);
+      });
+    });
+
+    group('isSync', () {
+      test('returns true for sync operation', () {
+        expect(StoreOperation.sync.isSync, isTrue);
+      });
+
+      test('returns false for other operations', () {
+        expect(StoreOperation.get.isSync, isFalse);
+        expect(StoreOperation.save.isSync, isFalse);
+        expect(StoreOperation.delete.isSync, isFalse);
+        expect(StoreOperation.watch.isSync, isFalse);
+      });
+    });
+
+    group('modifiesData', () {
+      test('returns true for save operations', () {
+        expect(StoreOperation.save.modifiesData, isTrue);
+        expect(StoreOperation.saveAll.modifiesData, isTrue);
+      });
+
+      test('returns true for delete operations', () {
+        expect(StoreOperation.delete.modifiesData, isTrue);
+        expect(StoreOperation.deleteAll.modifiesData, isTrue);
+      });
+
+      test('returns true for sync operation', () {
+        expect(StoreOperation.sync.modifiesData, isTrue);
+      });
+
+      test('returns false for read operations', () {
+        expect(StoreOperation.get.modifiesData, isFalse);
+        expect(StoreOperation.getAll.modifiesData, isFalse);
+      });
+
+      test('returns false for stream operations', () {
+        expect(StoreOperation.watch.modifiesData, isFalse);
+        expect(StoreOperation.watchAll.modifiesData, isFalse);
+      });
+    });
+  });
 }

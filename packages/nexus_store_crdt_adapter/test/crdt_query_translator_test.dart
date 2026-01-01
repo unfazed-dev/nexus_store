@@ -229,6 +229,86 @@ void main() {
         expect(args, contains('%@example.com'));
       });
 
+      test('handles arrayContains filter via QueryFilter', () {
+        final query = const Query<Map<String, dynamic>>().copyWith(
+          filters: [
+            const QueryFilter(
+              field: 'tags',
+              operator: FilterOperator.arrayContains,
+              value: 'dart',
+            ),
+          ],
+        );
+        final (sql, args) = translator.toSelectSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(sql, contains('tags LIKE ?'));
+        expect(args, contains('%dart%'));
+      });
+
+      test('handles arrayContainsAny filter via QueryFilter', () {
+        final query = const Query<Map<String, dynamic>>().copyWith(
+          filters: [
+            const QueryFilter(
+              field: 'tags',
+              operator: FilterOperator.arrayContainsAny,
+              value: ['dart', 'flutter'],
+            ),
+          ],
+        );
+        final (sql, args) = translator.toSelectSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(
+          sql,
+          contains(
+            'EXISTS (SELECT 1 FROM json_each(tags) WHERE value IN (?, ?))',
+          ),
+        );
+        expect(args, containsAll(['dart', 'flutter']));
+      });
+
+      test('handles arrayContainsAny with empty list returns always false', () {
+        final query = const Query<Map<String, dynamic>>().copyWith(
+          filters: [
+            const QueryFilter(
+              field: 'tags',
+              operator: FilterOperator.arrayContainsAny,
+              value: <String>[],
+            ),
+          ],
+        );
+        final (sql, args) = translator.toSelectSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(sql, contains('1 = 0'));
+      });
+
+      test('handles arrayContainsAny with non-list value returns always false',
+          () {
+        final query = const Query<Map<String, dynamic>>().copyWith(
+          filters: [
+            const QueryFilter(
+              field: 'tags',
+              operator: FilterOperator.arrayContainsAny,
+              value: 'not-a-list',
+            ),
+          ],
+        );
+        final (sql, args) = translator.toSelectSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(sql, contains('1 = 0'));
+      });
+
       test('handles multiple filters with AND', () {
         final query = const Query<Map<String, dynamic>>()
             .where('age', isGreaterThan: 18)

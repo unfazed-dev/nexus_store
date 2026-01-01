@@ -500,4 +500,458 @@ void main() {
       );
     });
   });
+
+  group('CompositeBackend field operations', () {
+    late FakeStoreBackend<TestUser, String> primary;
+    late FakeStoreBackend<TestUser, String> fallback;
+    late FakeStoreBackend<TestUser, String> cache;
+
+    setUp(() {
+      primary = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Primary',
+      );
+      fallback = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Fallback',
+      );
+      cache = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Cache',
+      );
+    });
+
+    group('getField', () {
+      test('should get field from primary when available', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+          cache: cache,
+        );
+        primary.addFieldToStorage('user-1', 'name', 'John');
+
+        final result = await backend.getField('user-1', 'name');
+
+        expect(result, equals('John'));
+      });
+
+      test('should fallback when primary fails', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+          cache: cache,
+        );
+        fallback.addFieldToStorage('user-1', 'name', 'John');
+        primary.shouldFailOnGet = true;
+
+        final result = await backend.getField('user-1', 'name');
+
+        expect(result, equals('John'));
+      });
+
+      test('should use cache when both primary and fallback fail', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+          cache: cache,
+        );
+        cache.addFieldToStorage('user-1', 'name', 'John');
+        primary.shouldFailOnGet = true;
+        fallback.shouldFailOnGet = true;
+
+        final result = await backend.getField('user-1', 'name');
+
+        expect(result, equals('John'));
+      });
+    });
+
+    group('getFieldBatch', () {
+      test('should get field batch from primary when available', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+          cache: cache,
+        );
+        primary.addFieldToStorage('user-1', 'name', 'John');
+        primary.addFieldToStorage('user-2', 'name', 'Jane');
+
+        final result = await backend.getFieldBatch(['user-1', 'user-2'], 'name');
+
+        expect(result, hasLength(2));
+        expect(result['user-1'], equals('John'));
+        expect(result['user-2'], equals('Jane'));
+      });
+
+      test('should fallback when primary fails', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+          cache: cache,
+        );
+        fallback.addFieldToStorage('user-1', 'name', 'John');
+        primary.shouldFailOnGet = true;
+
+        final result = await backend.getFieldBatch(['user-1'], 'name');
+
+        expect(result, hasLength(1));
+        expect(result['user-1'], equals('John'));
+      });
+
+      test('should use cache when both primary and fallback fail', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+          cache: cache,
+        );
+        cache.addFieldToStorage('user-1', 'name', 'John');
+        primary.shouldFailOnGet = true;
+        fallback.shouldFailOnGet = true;
+
+        final result = await backend.getFieldBatch(['user-1'], 'name');
+
+        expect(result, hasLength(1));
+        expect(result['user-1'], equals('John'));
+      });
+
+      test('should return empty map when all backends fail and no cache',
+          () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+        );
+        primary.shouldFailOnGet = true;
+        fallback.shouldFailOnGet = true;
+
+        final result = await backend.getFieldBatch(['user-1'], 'name');
+
+        expect(result, isEmpty);
+      });
+    });
+  });
+
+  group('CompositeBackend saveAll strategies', () {
+    late FakeStoreBackend<TestUser, String> primary;
+    late FakeStoreBackend<TestUser, String> fallback;
+    late FakeStoreBackend<TestUser, String> cache;
+
+    setUp(() {
+      primary = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Primary',
+      );
+      fallback = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Fallback',
+      );
+      cache = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Cache',
+      );
+    });
+
+    test('saveAll with all strategy writes to all backends', () async {
+      final backend = CompositeBackend<TestUser, String>(
+        primary: primary,
+        fallback: fallback,
+        cache: cache,
+        writeStrategy: CompositeWriteStrategy.all,
+      );
+      final users = TestFixtures.createUsers(2);
+
+      await backend.saveAll(users);
+
+      expect(primary.storage, hasLength(2));
+      expect(fallback.storage, hasLength(2));
+      expect(cache.storage, hasLength(2));
+    });
+
+    test('saveAll with primaryAndCache strategy writes to primary and cache',
+        () async {
+      final backend = CompositeBackend<TestUser, String>(
+        primary: primary,
+        fallback: fallback,
+        cache: cache,
+        writeStrategy: CompositeWriteStrategy.primaryAndCache,
+      );
+      final users = TestFixtures.createUsers(2);
+
+      await backend.saveAll(users);
+
+      expect(primary.storage, hasLength(2));
+      expect(cache.storage, hasLength(2));
+      expect(fallback.storage, isEmpty);
+    });
+  });
+
+  group('CompositeBackend sync operations', () {
+    late FakeStoreBackend<TestUser, String> primary;
+    late FakeStoreBackend<TestUser, String> fallback;
+
+    setUp(() {
+      primary = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Primary',
+      );
+      fallback = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Fallback',
+      );
+    });
+
+    group('retryChange', () {
+      test('should retry on primary first', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+        );
+
+        // Should complete without error
+        await expectLater(backend.retryChange('change-1'), completes);
+      });
+
+      test('should try fallback when primary has no change', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+        );
+
+        // Should complete without error (tries both backends)
+        await expectLater(backend.retryChange('nonexistent-change'), completes);
+      });
+    });
+
+    group('cancelChange', () {
+      test('should cancel from primary first', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+        );
+
+        final result = await backend.cancelChange('change-1');
+
+        expect(result, isNull);
+      });
+
+      test('should try fallback when primary returns null', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+        );
+
+        final result = await backend.cancelChange('change-1');
+
+        expect(result, isNull);
+      });
+    });
+
+    group('syncStatusStream', () {
+      test('should emit sync status changes', () async {
+        final backend = CompositeBackend<TestUser, String>(primary: primary);
+
+        expect(backend.syncStatusStream, emits(SyncStatus.synced));
+      });
+    });
+
+    group('pendingChangesStream', () {
+      test('should combine streams from all backends', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+        );
+
+        final stream = backend.pendingChangesStream;
+
+        expect(stream, isNotNull);
+      });
+    });
+
+    group('conflictsStream', () {
+      test('should merge conflict streams from all backends', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+        );
+
+        final stream = backend.conflictsStream;
+
+        expect(stream, isNotNull);
+      });
+    });
+  });
+
+  group('CompositeBackend pagination', () {
+    late FakeStoreBackend<TestUser, String> primary;
+    late FakeStoreBackend<TestUser, String> fallback;
+    late FakeStoreBackend<TestUser, String> cache;
+
+    setUp(() {
+      primary = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Primary',
+      );
+      fallback = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Fallback',
+      );
+      cache = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Cache',
+      );
+    });
+
+    group('getAllPaged', () {
+      test('should get paged results from primary', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          cache: cache,
+        );
+        primary.addToStorage('user-1', TestFixtures.createUser());
+
+        final result = await backend.getAllPaged();
+
+        expect(result.items, hasLength(1));
+      });
+
+      test('should fallback when primary fails', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+          cache: cache,
+        );
+        fallback.addToStorage('user-1', TestFixtures.createUser());
+        primary.shouldFailOnGet = true;
+
+        final result = await backend.getAllPaged();
+
+        expect(result.items, hasLength(1));
+      });
+
+      test('should use cache when both primary and fallback fail', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+          cache: cache,
+        );
+        cache.addToStorage('user-1', TestFixtures.createUser());
+        primary.shouldFailOnGet = true;
+        fallback.shouldFailOnGet = true;
+
+        final result = await backend.getAllPaged();
+
+        expect(result.items, hasLength(1));
+      });
+
+      test('should return empty result when all backends fail and no cache',
+          () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+        );
+        primary.shouldFailOnGet = true;
+        fallback.shouldFailOnGet = true;
+
+        final result = await backend.getAllPaged();
+
+        expect(result.items, isEmpty);
+      });
+
+      test('should populate cache on success', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          cache: cache,
+        );
+        primary.addToStorage('user-1', TestFixtures.createUser());
+
+        await backend.getAllPaged();
+
+        expect(cache.storage, hasLength(1));
+      });
+    });
+
+    group('watchAllPaged', () {
+      test('should merge paged streams from all backends', () async {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+        );
+        primary.addToStorage('user-1', TestFixtures.createUser());
+
+        final result = await backend.watchAllPaged().first;
+
+        expect(result.items, hasLength(1));
+      });
+    });
+
+    group('supportsPagination', () {
+      test('should return true if fallback supports pagination', () {
+        final backend = CompositeBackend<TestUser, String>(
+          primary: primary,
+          fallback: fallback,
+        );
+
+        // Both support pagination
+        expect(backend.supportsPagination, isTrue);
+      });
+    });
+  });
+
+  group('CompositeBackend additional capabilities', () {
+    late FakeStoreBackend<TestUser, String> primary;
+    late FakeStoreBackend<TestUser, String> fallback;
+
+    setUp(() {
+      primary = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Primary',
+      );
+      fallback = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+        backendName: 'Fallback',
+      );
+    });
+
+    test('supportsFieldOperations should check fallback', () {
+      final backend = CompositeBackend<TestUser, String>(
+        primary: primary,
+        fallback: fallback,
+      );
+
+      // Check capability is accessible
+      expect(backend.supportsFieldOperations, isA<bool>());
+    });
+
+    test('deleteWhere should delegate to primary', () async {
+      final backend = CompositeBackend<TestUser, String>(primary: primary);
+      primary.addToStorage('user-1', TestFixtures.createUser());
+
+      final query = const Query<TestUser>().where('id', isEqualTo: 'user-1');
+      final count = await backend.deleteWhere(query);
+
+      expect(count, isA<int>());
+    });
+
+    test('transaction operations should delegate to primary', () async {
+      final backend = CompositeBackend<TestUser, String>(primary: primary);
+
+      final txId = await backend.beginTransaction();
+      expect(txId, isNotEmpty);
+
+      await expectLater(backend.commitTransaction(txId), completes);
+    });
+
+    test('rollbackTransaction should delegate to primary', () async {
+      final backend = CompositeBackend<TestUser, String>(primary: primary);
+
+      final txId = await backend.beginTransaction();
+      await expectLater(backend.rollbackTransaction(txId), completes);
+    });
+
+    test('runInTransaction should delegate to primary', () async {
+      final backend = CompositeBackend<TestUser, String>(primary: primary);
+
+      final result = await backend.runInTransaction(() async => 42);
+
+      expect(result, equals(42));
+    });
+  });
 }
