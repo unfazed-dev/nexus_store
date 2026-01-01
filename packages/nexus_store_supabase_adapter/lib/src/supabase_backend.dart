@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:nexus_store/nexus_store.dart' as nexus;
+import 'package:nexus_store_supabase_adapter/src/supabase_client_wrapper.dart';
 import 'package:nexus_store_supabase_adapter/src/supabase_query_translator.dart';
 import 'package:nexus_store_supabase_adapter/src/supabase_realtime_manager.dart';
 import 'package:rxdart/rxdart.dart';
@@ -55,7 +56,7 @@ class SupabaseBackend<T, ID>
     SupabaseQueryTranslator<T>? queryTranslator,
     Map<String, String>? fieldMapping,
     String schema = 'public',
-  })  : _client = client,
+  })  : _wrapper = DefaultSupabaseClientWrapper(client),
         _tableName = tableName,
         _getId = getId,
         _fromJson = fromJson,
@@ -65,7 +66,42 @@ class SupabaseBackend<T, ID>
             SupabaseQueryTranslator<T>(fieldMapping: fieldMapping),
         _schema = schema;
 
-  final SupabaseClient _client;
+  /// Creates a [SupabaseBackend] with a custom [SupabaseClientWrapper].
+  ///
+  /// This constructor is primarily intended for testing, allowing injection
+  /// of a mock wrapper to test CRUD operations without a real database.
+  ///
+  /// ```dart
+  /// final mockWrapper = MockSupabaseClientWrapper();
+  /// final backend = SupabaseBackend.withWrapper(
+  ///   wrapper: mockWrapper,
+  ///   tableName: 'users',
+  ///   getId: (user) => user.id,
+  ///   fromJson: User.fromJson,
+  ///   toJson: (user) => user.toJson(),
+  /// );
+  /// ```
+  SupabaseBackend.withWrapper({
+    required SupabaseClientWrapper wrapper,
+    required String tableName,
+    required ID Function(T item) getId,
+    required T Function(Map<String, dynamic> json) fromJson,
+    required Map<String, dynamic> Function(T item) toJson,
+    String primaryKeyColumn = 'id',
+    SupabaseQueryTranslator<T>? queryTranslator,
+    Map<String, String>? fieldMapping,
+    String schema = 'public',
+  })  : _wrapper = wrapper,
+        _tableName = tableName,
+        _getId = getId,
+        _fromJson = fromJson,
+        _toJson = toJson,
+        _primaryKeyColumn = primaryKeyColumn,
+        _queryTranslator = queryTranslator ??
+            SupabaseQueryTranslator<T>(fieldMapping: fieldMapping),
+        _schema = schema;
+
+  final SupabaseClientWrapper _wrapper;
   final String _tableName;
   final ID Function(T item) _getId;
   final T Function(Map<String, dynamic> json) _fromJson;
@@ -117,7 +153,7 @@ class SupabaseBackend<T, ID>
     try {
       // Initialize realtime manager
       _realtimeManager = SupabaseRealtimeManager<T, ID>(
-        client: _client,
+        client: _wrapper.client,
         tableName: _tableName,
         fromJson: _fromJson,
         getId: _getId,
@@ -171,11 +207,11 @@ class SupabaseBackend<T, ID>
     _ensureInitialized();
 
     try {
-      final response = await _client
-          .from(_tableName)
-          .select()
-          .eq(_primaryKeyColumn, id as Object)
-          .maybeSingle();
+      final response = await _wrapper.get(
+        _tableName,
+        _primaryKeyColumn,
+        id as Object,
+      );
 
       if (response == null) {
         return null;
@@ -192,14 +228,15 @@ class SupabaseBackend<T, ID>
     _ensureInitialized();
 
     try {
-      final builder = _client.from(_tableName).select();
-
       final List<Map<String, dynamic>> response;
       if (query != null && query.isNotEmpty) {
-        final transformedBuilder = _queryTranslator.apply(builder, query);
-        response = await transformedBuilder;
+        response = await _wrapper.getAll(
+          _tableName,
+          queryBuilder: (builder) async =>
+              _queryTranslator.apply(builder, query),
+        );
       } else {
-        response = await builder;
+        response = await _wrapper.getAll(_tableName);
       }
 
       return response.map(_fromJson).toList();
@@ -298,8 +335,7 @@ class SupabaseBackend<T, ID>
       _syncStatusSubject.add(nexus.SyncStatus.pending);
 
       final json = _toJson(item);
-      final response =
-          await _client.from(_tableName).upsert(json).select().single();
+      final response = await _wrapper.upsert(_tableName, json);
 
       final result = _fromJson(response);
 
@@ -321,7 +357,7 @@ class SupabaseBackend<T, ID>
       _syncStatusSubject.add(nexus.SyncStatus.pending);
 
       final jsonList = items.map(_toJson).toList();
-      final response = await _client.from(_tableName).upsert(jsonList).select();
+      final response = await _wrapper.upsertAll(_tableName, jsonList);
 
       final results = response.map(_fromJson).toList();
 
@@ -351,10 +387,7 @@ class SupabaseBackend<T, ID>
         return false;
       }
 
-      await _client
-          .from(_tableName)
-          .delete()
-          .eq(_primaryKeyColumn, id as Object);
+      await _wrapper.delete(_tableName, _primaryKeyColumn, id as Object);
 
       _notifyDeletion(id);
       _syncStatusSubject.add(nexus.SyncStatus.synced);
@@ -375,10 +408,11 @@ class SupabaseBackend<T, ID>
     try {
       _syncStatusSubject.add(nexus.SyncStatus.pending);
 
-      await _client
-          .from(_tableName)
-          .delete()
-          .inFilter(_primaryKeyColumn, ids.cast<Object>());
+      await _wrapper.deleteByIds(
+        _tableName,
+        _primaryKeyColumn,
+        ids.cast<Object>(),
+      );
 
       for (final id in ids) {
         _notifyDeletion(id);
@@ -407,13 +441,8 @@ class SupabaseBackend<T, ID>
       }
 
       // Delete each item by ID - more reliable than complex delete queries
-      for (final item in items) {
-        final id = _getId(item);
-        await _client
-            .from(_tableName)
-            .delete()
-            .eq(_primaryKeyColumn, id as Object);
-      }
+      final idsToDelete = items.map((item) => _getId(item) as Object).toList();
+      await _wrapper.deleteByIds(_tableName, _primaryKeyColumn, idsToDelete);
 
       // Notify watchers
       for (final item in items) {

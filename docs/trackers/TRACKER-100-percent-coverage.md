@@ -10,7 +10,7 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 |----------|----------|--------------|-----------|
 | P0 Critical | 3 | 474 | 3 (riverpod_generator ✅, supabase_adapter 🟡, riverpod_binding ✅) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
-| P2 Medium | 5 | 720 | 0 |
+| P2 Medium | 5 | 720 | 1 (nexus_store_flutter 🟡 89.9%) |
 | P3-P4 Lower | 4 | 133 | 0 |
 | **Total** | **13** | **1,415** | **4** |
 
@@ -37,24 +37,30 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ---
 
-#### nexus_store_supabase_adapter (12.4% → 36.1%) 🟡 IN PROGRESS
+#### nexus_store_supabase_adapter (12.4% → 60.3%) 🟡 IN PROGRESS
 **Path:** `packages/nexus_store_supabase_adapter`
-**Lines to cover:** 318 → 232 remaining
+**Lines to cover:** 318 → 151 remaining
 
 - [x] Create `test/supabase_realtime_manager_test.dart` (100% ✅)
   - [x] Test channel subscription creation
   - [x] Test INSERT/UPDATE/DELETE event handling
   - [x] Test stream broadcasting
   - [x] Test disposal and cleanup
-- [ ] Add error handling tests for `supabase_backend.dart` (18.8% - 177 lines)
-  - Requires complex Supabase fluent builder mocking
-  - Integration tests marked as skip (need real client)
+- [x] Create `SupabaseClientWrapper` abstraction (like PowerSync pattern) ✅
+  - [x] Interface with get/getAll/upsert/upsertAll/delete/deleteByIds methods
+  - [x] DefaultSupabaseClientWrapper for production use
+  - [x] `.withWrapper` constructor for dependency injection in tests
+- [x] Add CRUD tests via mock wrapper injection ✅
+  - [x] get/getAll/save/saveAll/delete/deleteAll/deleteWhere tests (17 tests)
+  - [x] Error mapping tests (PostgrestException → nexus errors)
+  - [x] Sync status transition tests
 - [ ] Add query operator tests for `supabase_query_translator.dart` (6.8% - 55 lines)
   - Requires PostgrestFilterBuilder mocking
 
 **Files:**
 - `lib/src/supabase_realtime_manager.dart` (100% ✅)
-- `lib/src/supabase_backend.dart` (18.8%)
+- `lib/src/supabase_backend.dart` (64.2% ✅ - up from 18.8%)
+- `lib/src/supabase_client_wrapper.dart` (5% - DefaultWrapper needs real client)
 - `lib/src/supabase_query_translator.dart` (6.8%)
 
 ---
@@ -153,21 +159,23 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ### P2: Medium Priority (69-72% coverage)
 
-#### nexus_store_flutter (69.0% → 100%)
+#### nexus_store_flutter (69.0% → 89.9%) 🟡 IN PROGRESS
 **Path:** `packages/nexus_store_flutter`
-**Lines to cover:** 213
+**Lines to cover:** 213 → 69 remaining
 
-- [ ] Create `test/widgets/store_lifecycle_observer_test.dart` (0% - 49 lines)
-- [ ] Create `test/widgets/nexus_store_item_builder_test.dart` (0% - 49 lines)
-- [ ] Create `test/widgets/store_result_stream_builder_test.dart` (0% - 51 lines)
+- [x] Create `test/utils/store_lifecycle_observer_test.dart` (98% ✅)
+- [x] Create `test/widgets/nexus_store_item_builder_test.dart` (100% ✅)
+- [x] Create `test/widgets/store_result_stream_builder_test.dart` (92.2% ✅)
 - [ ] Complete background_sync_factory tests (25% - 9 lines)
 - [ ] Complete build_context_extensions tests (50% - 3 lines)
-- [ ] Add multi_nexus_store_provider tests
+- [ ] Complete store_result.dart tests (78.5% - 23 lines)
+- [ ] Complete pagination_state_builder tests (78.9% - 4 lines)
 
 **Files:**
-- `lib/src/utils/store_lifecycle_observer.dart` (0%)
-- `lib/src/widgets/nexus_store_item_builder.dart` (0%)
-- `lib/src/widgets/store_result_stream_builder.dart` (0%)
+- `lib/src/utils/store_lifecycle_observer.dart` (98% ✅)
+- `lib/src/widgets/nexus_store_item_builder.dart` (100% ✅)
+- `lib/src/widgets/store_result_stream_builder.dart` (92.2% ✅)
+- `lib/src/widgets/nexus_store_builder.dart` (100% ✅)
 - `lib/src/background_sync/background_sync_factory.dart` (25%)
 - `lib/src/extensions/build_context_extensions.dart` (50%)
 
@@ -290,6 +298,27 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-01**: P0 supabase_adapter - wrapper abstraction for CRUD testing
+  - Created `SupabaseClientWrapper` abstraction to enable mocking (like PowerSync pattern)
+  - Added `DefaultSupabaseClientWrapper` for production use
+  - Added `.withWrapper` constructor to SupabaseBackend for testing
+  - Updated all CRUD methods (get/getAll/save/saveAll/delete/deleteAll/deleteWhere) to use wrapper
+  - Added 17 CRUD tests via mock wrapper injection
+  - supabase_backend.dart: 18.8% → 64.2% (+45.4%)
+  - supabase_realtime_manager.dart: 100% (unchanged)
+  - Overall package: 36.1% → 60.3% (+24.2%)
+  - Remaining: query_translator (6.8%) needs PostgrestFilterBuilder mocking
+
+- **2026-01-01**: P2 nexus_store_flutter - widget test coverage improvement
+  - Created `test/utils/store_lifecycle_observer_test.dart` (22 tests)
+  - Created `test/widgets/nexus_store_item_builder_test.dart` (12 tests)
+  - Created `test/widgets/store_result_stream_builder_test.dart` (23 tests)
+  - store_lifecycle_observer.dart: 0% → 98%
+  - nexus_store_item_builder.dart: 0% → 100%
+  - store_result_stream_builder.dart: 0% → 92.2%
+  - Overall package: 69% → 89.9%
+  - 57 new widget tests added
 
 - **2026-01-01**: P1 powersync_adapter - wrapper abstraction breakthrough
   - Created `PowerSyncDatabaseWrapper` abstraction to enable mocking
