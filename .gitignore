@@ -26,3 +26,4 @@ coverage/
 
 # Generated
 doc/api/
+tests_reports/
