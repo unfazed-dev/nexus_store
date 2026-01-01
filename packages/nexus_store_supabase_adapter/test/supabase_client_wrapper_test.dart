@@ -1,5 +1,4 @@
 import 'package:mocktail/mocktail.dart';
-import 'package:nexus_store/nexus_store.dart' as nexus;
 import 'package:nexus_store_supabase_adapter/src/supabase_client_wrapper.dart';
 import 'package:test/test.dart';
 

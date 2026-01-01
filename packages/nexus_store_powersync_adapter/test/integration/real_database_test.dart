@@ -86,7 +86,9 @@ void main() {
 
       // Clean up any existing database
       final dbFile = File(dbPath);
+      // ignore: avoid_slow_async_io
       if (await dbFile.exists()) {
+        // ignore: avoid_slow_async_io
         await dbFile.delete();
       }
     });
@@ -121,7 +123,9 @@ void main() {
 
       // Clean up database file
       final dbFile = File(dbPath);
+      // ignore: avoid_slow_async_io
       if (await dbFile.exists()) {
+        // ignore: avoid_slow_async_io
         await dbFile.delete();
       }
     });
@@ -380,7 +384,7 @@ void main() {
             id: '$i',
             name: 'User $i',
             age: 20 + i,
-          ));
+          ),);
         }
       });
 

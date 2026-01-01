@@ -64,7 +64,7 @@ void main() {
           throwsA(
             isA<nexus.StateError>()
                 .having((e) => e.message, 'message',
-                    contains('Backend not initialized'))
+                    contains('Backend not initialized'),)
                 .having((e) => e.currentState, 'currentState', 'uninitialized')
                 .having((e) => e.expectedState, 'expectedState', 'initialized'),
           ),
@@ -203,7 +203,9 @@ void main() {
           tableName: 'test_models_bad',
           getId: (m) => m.id,
           fromJson: (json) {
-            throw nexus.ValidationError(message: 'Custom validation error');
+            throw const nexus.ValidationError(
+              message: 'Custom validation error',
+            );
           },
           toJson: (m) => m.toJson(),
           primaryKeyField: 'id',

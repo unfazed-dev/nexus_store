@@ -421,14 +421,12 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: StatefulBuilder(
-              builder: (context, setState) {
-                return DataStreamBuilder<TestModel>(
+              builder: (context, setState) => DataStreamBuilder<TestModel>(
                   stream: streamController.stream,
                   builder: (context, data) => Text(data.name),
                   pending: (context, previous) =>
                       Text('Pending: ${previous?.name ?? "none"}'),
-                );
-              },
+                ),
             ),
           ),
         );

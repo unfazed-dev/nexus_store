@@ -399,6 +399,142 @@ void main() {
           throwsA(isA<nexus.NetworkError>()),
         );
       });
+
+      test('maps timeout error appropriately', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1'))
+            .thenThrow(Exception('timeout error'));
+
+        await backend.initialize();
+
+        expect(
+          () => backend.get('1'),
+          throwsA(isA<nexus.TimeoutError>()),
+        );
+      });
+
+      test('maps AuthException to AuthenticationError', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1'))
+            .thenThrow(const AuthException('Session expired'));
+
+        await backend.initialize();
+
+        expect(
+          () => backend.get('1'),
+          throwsA(isA<nexus.AuthenticationError>()),
+        );
+      });
+
+      test('maps PostgrestException 23505 to ValidationError', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenThrow(
+          const PostgrestException(
+            message: 'unique constraint violation',
+            code: '23505',
+          ),
+        );
+
+        await backend.initialize();
+
+        expect(
+          () => backend.get('1'),
+          throwsA(isA<nexus.ValidationError>()),
+        );
+      });
+
+      test('maps PostgrestException 23503 to ValidationError', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenThrow(
+          const PostgrestException(
+            message: 'foreign key constraint violation',
+            code: '23503',
+          ),
+        );
+
+        await backend.initialize();
+
+        expect(
+          () => backend.get('1'),
+          throwsA(isA<nexus.ValidationError>()),
+        );
+      });
+
+      test('maps PostgrestException 42501 to AuthorizationError', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenThrow(
+          const PostgrestException(
+            message: 'permission denied',
+            code: '42501',
+          ),
+        );
+
+        await backend.initialize();
+
+        expect(
+          () => backend.get('1'),
+          throwsA(isA<nexus.AuthorizationError>()),
+        );
+      });
+
+      test('maps PostgrestException with jwt error to AuthenticationError',
+          () async {
+        // Note: PGRST301 alone triggers AuthorizationError due to RLS mapping
+        // Use a different code with jwt message to trigger AuthenticationError
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenThrow(
+          const PostgrestException(
+            message: 'jwt token expired',
+            code: 'some_code',
+          ),
+        );
+
+        await backend.initialize();
+
+        expect(
+          () => backend.get('1'),
+          throwsA(isA<nexus.AuthenticationError>()),
+        );
+      });
+
+      test('maps PostgrestException PGRST301 to AuthorizationError', () async {
+        // PGRST301 is mapped to AuthorizationError first (RLS policy)
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenThrow(
+          const PostgrestException(
+            message: 'some rls error',
+            code: 'PGRST301',
+          ),
+        );
+
+        await backend.initialize();
+
+        expect(
+          () => backend.get('1'),
+          throwsA(isA<nexus.AuthorizationError>()),
+        );
+      });
+
+      test('maps unknown PostgrestException to SyncError', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1')).thenThrow(
+          const PostgrestException(
+            message: 'some unknown error',
+            code: 'UNKNOWN',
+          ),
+        );
+
+        await backend.initialize();
+
+        expect(
+          () => backend.get('1'),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
+
+      test('maps unknown exception to SyncError', () async {
+        when(() => mockWrapper.get('test_models', 'id', '1'))
+            .thenThrow(Exception('some random error'));
+
+        await backend.initialize();
+
+        expect(
+          () => backend.get('1'),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
     });
 
     group('getAll', () {

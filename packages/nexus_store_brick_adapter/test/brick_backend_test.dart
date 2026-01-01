@@ -175,8 +175,9 @@ void main() {
             .thenAnswer((_) async => [testModel]);
 
         // Call watch twice for same id
-        backend.watch('1');
-        backend.watch('1');
+        backend
+          ..watch('1')
+          ..watch('1');
 
         // Allow initial load to complete
         await Future<void>.delayed(Duration.zero);
@@ -192,8 +193,9 @@ void main() {
             .thenAnswer((_) async => items);
 
         // Call watchAll twice (no query = same key)
-        backend.watchAll();
-        backend.watchAll();
+        backend
+          ..watchAll()
+          ..watchAll();
 
         // Allow initial load to complete
         await Future<void>.delayed(Duration.zero);
@@ -576,9 +578,10 @@ void main() {
             .where('name', isEqualTo: 'Bob');
 
         // Watch with different queries
-        backend.watchAll(query: query1);
-        backend.watchAll(query: query2);
-        backend.watchAll(); // _all_ key
+        backend
+          ..watchAll(query: query1)
+          ..watchAll(query: query2)
+          ..watchAll(); // _all_ key
 
         // Allow initial loads to complete
         await Future<void>.delayed(Duration.zero);
@@ -610,10 +613,11 @@ void main() {
         // Start watching with a query (filtered)
         final filteredQuery = const nexus.Query<TestModel>()
             .where('name', isEqualTo: 'Test');
-        backend.watchAll(query: filteredQuery);
 
-        // Start watching all (no query)
-        backend.watchAll();
+        // Start watching all (no query) and with filtered query
+        backend
+          ..watchAll(query: filteredQuery)
+          ..watchAll();
 
         // Wait for initial values
         await Future<void>.delayed(Duration.zero);

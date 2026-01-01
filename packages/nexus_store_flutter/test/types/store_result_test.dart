@@ -456,14 +456,14 @@ void main() {
       test('requireData rethrows Error directly when error is Error', () {
         final result = StoreResult<String>.error(ArgumentError('test'));
 
-        expect(() => result.requireData(), throwsArgumentError);
+        expect(result.requireData, throwsArgumentError);
       });
 
       test('requireData wraps in Exception when error is plain Object', () {
-        final result = StoreResult<String>.error('plain string error');
+        const result = StoreResult<String>.error('plain string error');
 
         expect(
-          () => result.requireData(),
+          result.requireData,
           throwsA(isA<Exception>()),
         );
       });

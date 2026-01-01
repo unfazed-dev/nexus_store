@@ -16,7 +16,8 @@ import 'package:powersync/powersync.dart' as ps;
 /// Example usage in tests:
 /// ```dart
 /// final mockWrapper = MockPowerSyncDatabaseWrapper();
-/// when(() => mockWrapper.execute(any(), any())).thenAnswer((_) async => [...]);
+/// when(() => mockWrapper.execute(any(), any()))
+///     .thenAnswer((_) async => [...]);
 /// final backend = PowerSyncBackend(db: mockWrapper, ...);
 /// ```
 abstract class PowerSyncDatabaseWrapper {
@@ -45,6 +46,7 @@ abstract class PowerSyncDatabaseWrapper {
 }
 
 /// Transaction context for write operations.
+// ignore: one_member_abstracts
 abstract class PowerSyncTransactionContext {
   /// Executes a SQL statement within the transaction.
   Future<void> execute(String sql, [List<Object?> parameters = const []]);
@@ -63,29 +65,25 @@ class DefaultPowerSyncDatabaseWrapper implements PowerSyncDatabaseWrapper {
     List<Object?> parameters = const [],
   ]) async {
     final results = await _db.execute(sql, parameters);
-    return results.map((row) => Map<String, dynamic>.from(row)).toList();
+    return results.map(Map<String, dynamic>.from).toList();
   }
 
   @override
   Stream<List<Map<String, dynamic>>> watch(
     String sql, {
     List<Object?> parameters = const [],
-  }) {
-    return _db.watch(sql, parameters: parameters).map(
+  }) => _db.watch(sql, parameters: parameters).map(
           (results) =>
-              results.map((row) => Map<String, dynamic>.from(row)).toList(),
+              results.map(Map<String, dynamic>.from).toList(),
         );
-  }
 
   @override
   Future<T> writeTransaction<T>(
     Future<T> Function(PowerSyncTransactionContext tx) callback,
-  ) async {
-    return _db.writeTransaction((tx) async {
+  ) async => _db.writeTransaction((tx) async {
       final wrappedTx = _DefaultTransactionContext(tx);
       return callback(wrappedTx);
     });
-  }
 
   @override
   Stream<ps.SyncStatus> get statusStream => _db.statusStream;
@@ -100,7 +98,11 @@ class _DefaultTransactionContext implements PowerSyncTransactionContext {
   final dynamic _tx;
 
   @override
-  Future<void> execute(String sql, [List<Object?> parameters = const []]) async {
+  Future<void> execute(
+    String sql, [
+    List<Object?> parameters = const [],
+  ]) async {
+    // ignore: avoid_dynamic_calls
     await _tx.execute(sql, parameters);
   }
 }

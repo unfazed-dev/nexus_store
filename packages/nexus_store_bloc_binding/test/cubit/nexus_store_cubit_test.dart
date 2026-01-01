@@ -322,7 +322,7 @@ void main() {
         'passes query parameter to watchAll',
         build: () => NexusStoreCubit<TestUser, String>(mockStore),
         act: (cubit) async {
-          final query = Query<TestUser>().where('name', isEqualTo: 'Alice');
+          final query = const Query<TestUser>().where('name', isEqualTo: 'Alice');
           await cubit.load(query: query);
           watchAllController.add([TestFixtures.sampleUser]);
           await Future<void>.delayed(Duration.zero);
@@ -338,7 +338,7 @@ void main() {
         'refresh preserves the current query',
         build: () => NexusStoreCubit<TestUser, String>(mockStore),
         act: (cubit) async {
-          final query = Query<TestUser>().where('name', isEqualTo: 'Alice');
+          final query = const Query<TestUser>().where('name', isEqualTo: 'Alice');
           await cubit.load(query: query);
           watchAllController.add([TestFixtures.sampleUser]);
           await Future<void>.delayed(Duration.zero);

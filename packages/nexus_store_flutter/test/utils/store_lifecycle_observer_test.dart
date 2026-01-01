@@ -55,6 +55,7 @@ void main() {
           onStateChange: (state) => receivedState = state,
         );
 
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.paused);
 
         expect(receivedState, equals(AppLifecycleState.paused));
@@ -67,6 +68,7 @@ void main() {
 
         expect(observer.isPaused, isFalse);
 
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.paused);
 
         expect(observer.isPaused, isTrue);
@@ -77,6 +79,7 @@ void main() {
           stores: [mockStore1],
         );
 
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.inactive);
 
         expect(observer.isPaused, isTrue);
@@ -87,6 +90,7 @@ void main() {
           stores: [mockStore1],
         );
 
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.detached);
 
         expect(observer.isPaused, isTrue);
@@ -97,6 +101,7 @@ void main() {
           stores: [mockStore1],
         );
 
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.hidden);
 
         expect(observer.isPaused, isTrue);
@@ -108,10 +113,12 @@ void main() {
         );
 
         // First pause
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.paused);
         expect(observer.isPaused, isTrue);
 
         // Then resume
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.resumed);
 
         expect(observer.isPaused, isFalse);
@@ -123,6 +130,7 @@ void main() {
           pauseOnBackground: false,
         );
 
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.paused);
 
         expect(observer.isPaused, isFalse);
@@ -134,9 +142,11 @@ void main() {
         );
 
         // Pause first
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.paused);
 
         // Then resume
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.resumed);
 
         // Allow async sync to be called
@@ -155,9 +165,11 @@ void main() {
         );
 
         // Pause first
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.paused);
 
         // This should not throw even though sync fails
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.resumed);
 
         // Allow async to complete
@@ -171,10 +183,12 @@ void main() {
           stores: [mockStore1],
         );
 
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.paused);
         expect(observer.isPaused, isTrue);
 
         // Pause again - should be idempotent
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.inactive);
         expect(observer.isPaused, isTrue);
       });
@@ -185,6 +199,7 @@ void main() {
         );
 
         // Resume without pausing first
+        // ignore: cascade_invocations
         observer.didChangeAppLifecycleState(AppLifecycleState.resumed);
 
         await Future<void>.delayed(Duration.zero);
@@ -200,12 +215,14 @@ void main() {
           stores: [mockStore1],
         );
 
+        // ignore: cascade_invocations
         observer.attach();
 
         // Verify it's attached by triggering a lifecycle event
         // This is an integration test with WidgetsBinding
         expect(observer.isPaused, isFalse);
 
+        // ignore: cascade_invocations
         observer.detach();
       });
 
@@ -215,8 +232,10 @@ void main() {
           stores: [mockStore1],
         );
 
-        observer.attach();
-        observer.detach();
+        // ignore: cascade_invocations
+        observer
+          ..attach()
+          ..detach();
 
         // After detach, the observer should still work but not receive events
         expect(observer.isPaused, isFalse);
@@ -393,7 +412,6 @@ void main() {
       await tester.pumpWidget(
         NexusStoreLifecycleObserverWidget(
           stores: [mockStore1],
-          pauseOnBackground: true,
           onStateChange: (state) {
             receivedState = state;
             if (state == AppLifecycleState.paused) {

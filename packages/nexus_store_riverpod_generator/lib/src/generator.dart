@@ -78,7 +78,7 @@ class NexusStoreRiverpodGenerator
     return type.element.name == 'NexusStore';
   }
 
-  /// Extracts the type arguments (T, ID) from a NexusStore<T, ID> type.
+  /// Extracts the type arguments (T, ID) from a `NexusStore<T, ID>` type.
   ///
   /// Returns null if the type is not an InterfaceType or doesn't have
   /// exactly 2 type arguments.

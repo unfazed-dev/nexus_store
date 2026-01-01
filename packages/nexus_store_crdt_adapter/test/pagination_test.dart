@@ -151,8 +151,11 @@ void main() {
           await backend.save(TestModel(id: '$i', name: 'User$i', age: 20 + i));
         }
 
-        // Create cursor pointing beyond the data - should be clamped to items.length
-        final outOfBoundsCursor = nexus.Cursor.fromValues({'_index': 100});
+        // Create cursor pointing beyond the data
+        // Should be clamped to items.length
+        final outOfBoundsCursor = nexus.Cursor.fromValues(
+          const {'_index': 100},
+        );
         final query = const nexus.Query<TestModel>()
             .first(3)
             .after(outOfBoundsCursor);
@@ -171,7 +174,7 @@ void main() {
         }
 
         // Create cursor with null _index
-        final nullIndexCursor = nexus.Cursor.fromValues({'_index': null});
+        final nullIndexCursor = nexus.Cursor.fromValues(const {'_index': null});
         final query = const nexus.Query<TestModel>()
             .first(3)
             .after(nullIndexCursor);
@@ -307,7 +310,7 @@ void main() {
         }
 
         // Cursor beyond data - should be clamped to items.length
-        final largeCursor = nexus.Cursor.fromValues({'_index': 1000});
+        final largeCursor = nexus.Cursor.fromValues(const {'_index': 1000});
         final query = const nexus.Query<TestModel>()
             .first(3)
             .after(largeCursor);

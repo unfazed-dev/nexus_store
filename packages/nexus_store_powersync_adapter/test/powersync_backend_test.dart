@@ -249,7 +249,7 @@ void main() {
       test('get returns item when found', () async {
         when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
               {'id': '1', 'name': 'John', 'age': 25},
-            ]);
+            ],);
 
         final result = await backend.get('1');
 
@@ -271,7 +271,7 @@ void main() {
         when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
               {'id': '1', 'name': 'John'},
               {'id': '2', 'name': 'Jane'},
-            ]);
+            ],);
 
         final result = await backend.getAll();
 
@@ -283,7 +283,7 @@ void main() {
       test('getAll with query applies filters', () async {
         when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
               {'id': '1', 'name': 'John'},
-            ]);
+            ],);
 
         final query =
             const nexus.Query<TestUser>().where('name', isEqualTo: 'John');
@@ -301,7 +301,7 @@ void main() {
       test('save inserts or replaces item', () async {
         when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
               {'id': '1', 'name': 'John'},
-            ]);
+            ],);
 
         final user = TestUser(id: '1', name: 'John');
         final result = await backend.save(user);
@@ -315,7 +315,7 @@ void main() {
       test('save updates sync status to pending then synced', () async {
         when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
               {'id': '1', 'name': 'John'},
-            ]);
+            ],);
 
         final statuses = <nexus.SyncStatus>[];
         backend.syncStatusStream.listen(statuses.add);
@@ -533,7 +533,7 @@ void main() {
               {'id': '1', 'name': 'John'},
               {'id': '2', 'name': 'Jane'},
               {'id': '3', 'name': 'Bob'},
-            ]);
+            ],);
 
         final result = await backend.getAllPaged();
 
@@ -548,7 +548,7 @@ void main() {
               {'id': '1', 'name': 'John'},
               {'id': '2', 'name': 'Jane'},
               {'id': '3', 'name': 'Bob'},
-            ]);
+            ],);
 
         final query = const nexus.Query<TestUser>().first(2);
         final result = await backend.getAllPaged(query: query);
@@ -564,7 +564,7 @@ void main() {
               {'id': '1', 'name': 'John'},
               {'id': '2', 'name': 'Jane'},
               {'id': '3', 'name': 'Bob'},
-            ]);
+            ],);
 
         final cursor = nexus.Cursor.fromValues(const {'_index': 1});
         final query = const nexus.Query<TestUser>().after(cursor).first(2);
@@ -616,6 +616,7 @@ void main() {
 
       test('maps uploading status to syncing', () async {
         syncStatusController.add(
+          // ignore: invalid_use_of_internal_member
           const ps.SyncStatus(connected: true, uploading: true),
         );
 
@@ -626,6 +627,7 @@ void main() {
 
       test('maps download error to error status', () async {
         syncStatusController.add(
+          // ignore: invalid_use_of_internal_member
           ps.SyncStatus(
             connected: true,
             downloadError: Exception('download failed'),
@@ -639,6 +641,7 @@ void main() {
 
       test('maps upload error to error status', () async {
         syncStatusController.add(
+          // ignore: invalid_use_of_internal_member
           ps.SyncStatus(
             connected: true,
             uploadError: Exception('upload failed'),
@@ -651,6 +654,7 @@ void main() {
       });
 
       test('maps disconnected to paused status', () async {
+        // ignore: invalid_use_of_internal_member
         syncStatusController.add(const ps.SyncStatus());
 
         await Future<void>.delayed(Duration.zero);
@@ -659,6 +663,7 @@ void main() {
       });
 
       test('maps connected without errors to synced', () async {
+        // ignore: invalid_use_of_internal_member
         syncStatusController.add(const ps.SyncStatus(connected: true));
 
         await Future<void>.delayed(Duration.zero);
@@ -693,6 +698,7 @@ void main() {
 
       test('pendingChangesCount returns 1 when not synced', () async {
         when(() => mockDb.currentStatus).thenReturn(
+          // ignore: invalid_use_of_internal_member
           const ps.SyncStatus(connected: true, hasSynced: false),
         );
 
@@ -703,6 +709,7 @@ void main() {
 
       test('pendingChangesCount returns 0 when synced', () async {
         when(() => mockDb.currentStatus).thenReturn(
+          // ignore: invalid_use_of_internal_member
           const ps.SyncStatus(connected: true, hasSynced: true),
         );
 
@@ -882,7 +889,8 @@ void main() {
 
     group('configuration', () {
       test('uses custom primary key column', () {
-        final backendWithCustomPK = PowerSyncBackend<TestUser, String>.withWrapper(
+        final backendWithCustomPK =
+            PowerSyncBackend<TestUser, String>.withWrapper(
           db: mockDb,
           tableName: 'users',
           getId: (user) => user.id,
@@ -895,7 +903,8 @@ void main() {
       });
 
       test('uses custom field mapping', () {
-        final backendWithMapping = PowerSyncBackend<TestUser, String>.withWrapper(
+        final backendWithMapping =
+            PowerSyncBackend<TestUser, String>.withWrapper(
           db: mockDb,
           tableName: 'users',
           getId: (user) => user.id,

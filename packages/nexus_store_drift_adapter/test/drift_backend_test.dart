@@ -309,7 +309,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get()).thenThrow(originalError);
 
       expect(
@@ -318,7 +318,7 @@ void main() {
           (e) => e.message,
           'message',
           'Original error',
-        )),
+        ),),
       );
     });
 
@@ -326,7 +326,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('UNIQUE CONSTRAINT failed: test_models.id'));
 
@@ -336,7 +336,7 @@ void main() {
           (e) => e.message,
           'message',
           'Unique constraint violation',
-        )),
+        ),),
       );
     });
 
@@ -344,7 +344,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('UniqueViolation: duplicate key'));
 
@@ -354,7 +354,7 @@ void main() {
           (e) => e.message,
           'message',
           'Unique constraint violation',
-        )),
+        ),),
       );
     });
 
@@ -362,7 +362,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('FOREIGN KEY constraint failed'));
 
@@ -372,7 +372,7 @@ void main() {
           (e) => e.message,
           'message',
           'Foreign key constraint violation',
-        )),
+        ),),
       );
     });
 
@@ -380,7 +380,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('ForeignKeyViolation: reference missing'));
 
@@ -390,7 +390,7 @@ void main() {
           (e) => e.message,
           'message',
           'Foreign key constraint violation',
-        )),
+        ),),
       );
     });
 
@@ -398,7 +398,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('database is locked'));
 
@@ -408,7 +408,7 @@ void main() {
           (e) => e.message,
           'message',
           'Database is locked',
-        )),
+        ),),
       );
     });
 
@@ -416,7 +416,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('SQLITE_BUSY: database is busy'));
 
@@ -426,7 +426,7 @@ void main() {
           (e) => e.message,
           'message',
           'Database is locked',
-        )),
+        ),),
       );
     });
 
@@ -434,7 +434,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('no such table: test_models'));
 
@@ -444,7 +444,7 @@ void main() {
           (e) => e.message,
           'message',
           'Table does not exist',
-        )),
+        ),),
       );
     });
 
@@ -452,7 +452,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('Some unknown database error'));
 
@@ -462,7 +462,7 @@ void main() {
           (e) => e.message,
           'message',
           contains('Drift operation failed'),
-        )),
+        ),),
       );
     });
 
@@ -483,7 +483,7 @@ void main() {
             any(),
             variables: any(named: 'variables'),
             updates: any(named: 'updates'),
-          )).thenThrow(Exception('FOREIGN KEY constraint failed'));
+          ),).thenThrow(Exception('FOREIGN KEY constraint failed'));
 
       expect(
         () => backend.delete('1'),
@@ -495,7 +495,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('no such table: test_models'));
 
@@ -509,7 +509,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('database is locked'));
 
@@ -548,7 +548,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('database connection failed'));
 
@@ -564,7 +564,7 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('no such table: test_models'));
 
@@ -580,38 +580,38 @@ void main() {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get()).thenAnswer((_) async => []);
 
-      // First call creates the subject
-      backend.watch('1');
-      // Second call should reuse existing subject (only one get() call)
-      backend.watch('1');
+      // First call creates the subject, second reuses existing subject
+      backend
+        ..watch('1')
+        ..watch('1');
 
       // Verify customSelect was only called once (for initial load)
       verify(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).called(1);
+          ),).called(1);
     });
 
     test('watchAll() uses cached subject for same query', () async {
       when(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).thenReturn(mockSelectable);
+          ),).thenReturn(mockSelectable);
       when(() => mockSelectable.get()).thenAnswer((_) async => []);
 
-      // First call creates the subject
-      backend.watchAll();
-      // Second call should reuse existing subject
-      backend.watchAll();
+      // First call creates the subject, second reuses existing subject
+      backend
+        ..watchAll()
+        ..watchAll();
 
       // Verify customSelect was only called once (for initial load)
       verify(() => mockExecutor.customSelect(
             any(),
             variables: any(named: 'variables'),
-          )).called(1);
+          ),).called(1);
     });
   });
 
@@ -677,7 +677,7 @@ void main() {
             any(),
             variables: any(named: 'variables'),
             updates: any(named: 'updates'),
-          )).thenAnswer((_) async => 1);
+          ),).thenAnswer((_) async => 1);
 
       // Cancel the change - should delete the created item
       final result = await backend.cancelChange(change.id);
@@ -690,7 +690,7 @@ void main() {
             any(),
             variables: any(named: 'variables'),
             updates: any(named: 'updates'),
-          )).called(1);
+          ),).called(1);
     });
 
     test('cancelChange with DELETE operation restores original value',

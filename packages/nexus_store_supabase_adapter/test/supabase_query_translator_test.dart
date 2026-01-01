@@ -4,15 +4,16 @@ import 'package:supabase/supabase.dart';
 import 'package:test/test.dart';
 
 /// Tracks method calls on PostgrestFilterBuilder without needing mocktail.
-/// This avoids issues with mocktail's Future detection on PostgrestBuilder types.
+/// This avoids issues with mocktail's Future detection on
+/// PostgrestBuilder types.
 class SpyPostgrestFilterBuilder
     implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {
-  final List<String> calls = [];
-  late final SpyPostgrestTransformBuilder transformBuilder;
 
   SpyPostgrestFilterBuilder() {
     transformBuilder = SpyPostgrestTransformBuilder(this);
   }
+  final List<String> calls = [];
+  late final SpyPostgrestTransformBuilder transformBuilder;
 
   @override
   PostgrestFilterBuilder<List<Map<String, dynamic>>> eq(
@@ -144,9 +145,9 @@ class SpyPostgrestFilterBuilder
 /// Tracks method calls on PostgrestTransformBuilder.
 class SpyPostgrestTransformBuilder
     implements PostgrestTransformBuilder<List<Map<String, dynamic>>> {
-  final SpyPostgrestFilterBuilder parent;
 
   SpyPostgrestTransformBuilder(this.parent);
+  final SpyPostgrestFilterBuilder parent;
 
   List<String> get calls => parent.calls;
 
@@ -665,7 +666,10 @@ void main() {
 
         translator.applyOrderBy(spyBuilder, query.orderBy);
 
-        expect(spyBuilder.calls, contains('order(createdAt, ascending: false)'));
+        expect(
+          spyBuilder.calls,
+          contains('order(createdAt, ascending: false)'),
+        );
       });
 
       test('applies multiple order by clauses', () {
@@ -675,8 +679,14 @@ void main() {
 
         translator.applyOrderBy(spyBuilder, query.orderBy);
 
-        expect(spyBuilder.calls, contains('order(name, ascending: true)'));
-        expect(spyBuilder.calls, contains('order(createdAt, ascending: false)'));
+        expect(
+          spyBuilder.calls,
+          contains('order(name, ascending: true)'),
+        );
+        expect(
+          spyBuilder.calls,
+          contains('order(createdAt, ascending: false)'),
+        );
       });
     });
 
@@ -730,7 +740,10 @@ void main() {
         translator.apply(spyBuilder, query);
 
         expect(spyBuilder.calls, contains('eq(status, active)'));
-        expect(spyBuilder.calls, contains('order(createdAt, ascending: false)'));
+        expect(
+          spyBuilder.calls,
+          contains('order(createdAt, ascending: false)'),
+        );
         expect(spyBuilder.calls, contains('range(10, 29)'));
       });
 

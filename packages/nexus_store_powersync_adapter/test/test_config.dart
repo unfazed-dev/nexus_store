@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 /// Test configuration for PowerSync integration tests.
 ///
 /// These credentials are for testing purposes only.

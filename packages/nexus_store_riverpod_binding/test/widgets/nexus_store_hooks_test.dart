@@ -237,10 +237,10 @@ void main() {
   group('useStoreDebouncedSearch', () {
     testWidgets('debounces search term updates', (tester) async {
       await tester.pumpWidget(
-        ProviderScope(
+        const ProviderScope(
           child: MaterialApp(
             home: Scaffold(
-              body: const _UseStoreDebouncedSearchWidget(),
+              body: _UseStoreDebouncedSearchWidget(),
             ),
           ),
         ),
@@ -262,10 +262,10 @@ void main() {
 
     testWidgets('uses initial value', (tester) async {
       await tester.pumpWidget(
-        ProviderScope(
+        const ProviderScope(
           child: MaterialApp(
             home: Scaffold(
-              body: const _UseStoreDebouncedSearchWidget(initialValue: 'initial'),
+              body: _UseStoreDebouncedSearchWidget(initialValue: 'initial'),
             ),
           ),
         ),

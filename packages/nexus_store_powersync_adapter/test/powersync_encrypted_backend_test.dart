@@ -261,7 +261,7 @@ void main() {
           .thenAnswer((_) => syncStatusController.stream);
 
       final keyProvider = MockEncryptionKeyProvider();
-      when(() => keyProvider.getKey()).thenAnswer((_) async => 'test-key');
+      when(keyProvider.getKey).thenAnswer((_) async => 'test-key');
 
       final backend = PowerSyncEncryptedBackend<TestUser, String>(
         db: mockDb,
@@ -383,6 +383,7 @@ void main() {
         await backend.initialize();
 
         when(() => mockDb.currentStatus).thenReturn(
+          // ignore: invalid_use_of_internal_member
           const ps.SyncStatus(connected: true, hasSynced: true),
         );
 
@@ -426,8 +427,10 @@ void main() {
 
       when(() => mockWrapper.statusStream)
           .thenAnswer((_) => syncStatusController.stream);
-      when(() => mockWrapper.currentStatus)
-          .thenReturn(const ps.SyncStatus(connected: true, hasSynced: true));
+      when(() => mockWrapper.currentStatus).thenReturn(
+        // ignore: invalid_use_of_internal_member
+        const ps.SyncStatus(connected: true, hasSynced: true),
+      );
       when(() => mockKeyProvider.getKey()).thenAnswer((_) async => 'test-key');
 
       innerBackend = PowerSyncBackend<TestUser, String>.withWrapper(
@@ -628,7 +631,7 @@ void main() {
       await provider.dispose();
 
       expect(
-        () => provider.getKey(),
+        provider.getKey,
         throwsA(isA<StateError>()),
       );
     });

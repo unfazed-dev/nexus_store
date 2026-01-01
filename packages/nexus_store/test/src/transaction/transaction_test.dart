@@ -431,5 +431,68 @@ void main() {
       context.isRolledBack = true;
       expect(context.isActive, isFalse);
     });
+
+    test('rollbackToSavepoint throws ArgumentError for invalid index', () {
+      final context = TransactionContext<TestUser, String>(id: 'tx-1');
+      context.operations.add(SaveOperation(
+        item: TestFixtures.createUser(id: 'user-1'),
+        id: 'user-1',
+        timestamp: DateTime.now(),
+      ));
+      // Create savepoint at index 1
+      context.createSavepoint();
+
+      // Try to rollback to an invalid savepoint index (999 was never created)
+      expect(
+        () => context.rollbackToSavepoint(999),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('operationsReversed returns operations in reverse order', () {
+      final context = TransactionContext<TestUser, String>(id: 'tx-1');
+      context.operations.add(SaveOperation(
+        item: TestFixtures.createUser(id: 'user-1'),
+        id: 'user-1',
+        timestamp: DateTime.now(),
+      ));
+      context.operations.add(SaveOperation(
+        item: TestFixtures.createUser(id: 'user-2'),
+        id: 'user-2',
+        timestamp: DateTime.now(),
+      ));
+      context.operations.add(DeleteOperation<TestUser, String>(
+        id: 'user-3',
+        timestamp: DateTime.now(),
+      ));
+
+      final reversed = context.operationsReversed;
+
+      expect(reversed.length, equals(3));
+      // Last added should be first in reversed list
+      expect(reversed[0], isA<DeleteOperation<TestUser, String>>());
+      expect((reversed[0] as DeleteOperation).id, equals('user-3'));
+      // First added should be last in reversed list
+      expect(reversed[2], isA<SaveOperation<TestUser, String>>());
+      expect((reversed[2] as SaveOperation).id, equals('user-1'));
+    });
+
+    test('toString contains context details', () {
+      final context = TransactionContext<TestUser, String>(id: 'tx-123');
+      context.operations.add(SaveOperation(
+        item: TestFixtures.createUser(id: 'user-1'),
+        id: 'user-1',
+        timestamp: DateTime.now(),
+      ));
+      context.createSavepoint();
+
+      final str = context.toString();
+
+      expect(str, contains('TransactionContext'));
+      expect(str, contains('tx-123'));
+      expect(str, contains('operations: 1'));
+      expect(str, contains('savepoints: 1'));
+      expect(str, contains('isActive: true'));
+    });
   });
 }

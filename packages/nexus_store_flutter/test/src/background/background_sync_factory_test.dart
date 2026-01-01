@@ -123,7 +123,8 @@ void main() {
       test('create without parameters uses platform detection', () {
         // Calling create() without parameters uses the internal _isAndroid
         // and _isIOS getters which check Platform.isAndroid and Platform.isIOS.
-        // On desktop test runners, both return false, so we get NoOpSyncService.
+        // On desktop test runners, both return false,
+        // so we get NoOpSyncService.
         final service = BackgroundSyncServiceFactory.create();
 
         // On non-mobile platforms (where unit tests run), this returns NoOp
@@ -135,7 +136,6 @@ void main() {
       test('create with null android uses platform detection', () {
         // isAndroid is null, so it falls back to _isAndroid getter
         final service = BackgroundSyncServiceFactory.create(
-          isAndroid: null,
           isIOS: false,
         );
 
@@ -147,7 +147,6 @@ void main() {
         // isIOS is null, so it falls back to _isIOS getter
         final service = BackgroundSyncServiceFactory.create(
           isAndroid: false,
-          isIOS: null,
         );
 
         // On desktop test runner, Platform.isIOS returns false
@@ -157,8 +156,7 @@ void main() {
       test('create with both null uses platform detection for both', () {
         // Both are null, so both fall back to their respective getters
         final service = BackgroundSyncServiceFactory.create(
-          isAndroid: null,
-          isIOS: null,
+          
         );
 
         // On desktop test runner, both Platform checks return false
