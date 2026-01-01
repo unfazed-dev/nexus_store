@@ -240,5 +240,56 @@ void main() {
 
       expect(find.text('Data: 1'), findsOneWidget);
     });
+
+    testWidgets('maybeWhen uses orElse for loading state', (tester) async {
+      final state = PaginationState<String>.loading();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PaginationStateBuilder<String>.maybeWhen(
+            state: state,
+            data: (items, _) => Text('Data: ${items.length}'),
+            orElse: () => const Text('Fallback for loading'),
+          ),
+        ),
+      );
+
+      expect(find.text('Fallback for loading'), findsOneWidget);
+    });
+
+    testWidgets('maybeWhen uses orElse for loadingMore state', (tester) async {
+      final state = PaginationState<String>.loadingMore(
+        items: const ['a', 'b'],
+        pageInfo: const PageInfo(hasNextPage: true, hasPreviousPage: false),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PaginationStateBuilder<String>.maybeWhen(
+            state: state,
+            data: (items, _) => Text('Data: ${items.length}'),
+            orElse: () => const Text('Fallback for loadingMore'),
+          ),
+        ),
+      );
+
+      expect(find.text('Fallback for loadingMore'), findsOneWidget);
+    });
+
+    testWidgets('maybeWhen uses orElse for error state', (tester) async {
+      final state = PaginationState<String>.error(Exception('Test error'));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PaginationStateBuilder<String>.maybeWhen(
+            state: state,
+            data: (items, _) => Text('Data: ${items.length}'),
+            orElse: () => const Text('Fallback for error'),
+          ),
+        ),
+      );
+
+      expect(find.text('Fallback for error'), findsOneWidget);
+    });
   });
 }

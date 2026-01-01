@@ -118,5 +118,52 @@ void main() {
         expect(identical(service1, service2), isFalse);
       });
     });
+
+    group('default platform detection', () {
+      test('create without parameters uses platform detection', () {
+        // Calling create() without parameters uses the internal _isAndroid
+        // and _isIOS getters which check Platform.isAndroid and Platform.isIOS.
+        // On desktop test runners, both return false, so we get NoOpSyncService.
+        final service = BackgroundSyncServiceFactory.create();
+
+        // On non-mobile platforms (where unit tests run), this returns NoOp
+        expect(service, isA<BackgroundSyncService>());
+        // On desktop/web test environments, mobile platforms are not detected
+        expect(service, isA<NoOpSyncService>());
+      });
+
+      test('create with null android uses platform detection', () {
+        // isAndroid is null, so it falls back to _isAndroid getter
+        final service = BackgroundSyncServiceFactory.create(
+          isAndroid: null,
+          isIOS: false,
+        );
+
+        // On desktop test runner, Platform.isAndroid returns false
+        expect(service, isA<NoOpSyncService>());
+      });
+
+      test('create with null iOS uses platform detection', () {
+        // isIOS is null, so it falls back to _isIOS getter
+        final service = BackgroundSyncServiceFactory.create(
+          isAndroid: false,
+          isIOS: null,
+        );
+
+        // On desktop test runner, Platform.isIOS returns false
+        expect(service, isA<NoOpSyncService>());
+      });
+
+      test('create with both null uses platform detection for both', () {
+        // Both are null, so both fall back to their respective getters
+        final service = BackgroundSyncServiceFactory.create(
+          isAndroid: null,
+          isIOS: null,
+        );
+
+        // On desktop test runner, both Platform checks return false
+        expect(service, isA<NoOpSyncService>());
+      });
+    });
   });
 }

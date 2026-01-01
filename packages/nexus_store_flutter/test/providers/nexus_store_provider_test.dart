@@ -266,5 +266,113 @@ void main() {
 
       expect(result, isNull);
     });
+
+    testWidgets('watchNexusStore() returns stream from store.watchAll',
+        (tester) async {
+      final testUsers = [
+        const User(id: '1', name: 'Alice'),
+        const User(id: '2', name: 'Bob'),
+      ];
+      when(() => mockStore.watchAll(query: any(named: 'query')))
+          .thenAnswer((_) => Stream.value(testUsers));
+
+      Stream<List<User>>? result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NexusStoreProvider<User, String>(
+            store: mockStore,
+            child: Builder(
+              builder: (context) {
+                result = context.watchNexusStore<User, String>();
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(result, isNotNull);
+      await expectLater(result, emits(testUsers));
+      verify(() => mockStore.watchAll(query: null)).called(1);
+    });
+
+    testWidgets('watchNexusStore() passes query parameter',
+        (tester) async {
+      final testUsers = [const User(id: '1', name: 'Alice')];
+      when(() => mockStore.watchAll(query: any(named: 'query')))
+          .thenAnswer((_) => Stream.value(testUsers));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NexusStoreProvider<User, String>(
+            store: mockStore,
+            child: Builder(
+              builder: (context) {
+                context.watchNexusStore<User, String>(
+                  query: const Query<User>().limitTo(10),
+                );
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      verify(() => mockStore.watchAll(query: any(named: 'query'))).called(1);
+    });
+
+    testWidgets('watchNexusStoreItem() returns stream from store.watch',
+        (tester) async {
+      const testUser = User(id: '123', name: 'Alice');
+      when(() => mockStore.watch('123'))
+          .thenAnswer((_) => Stream.value(testUser));
+
+      Stream<User?>? result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NexusStoreProvider<User, String>(
+            store: mockStore,
+            child: Builder(
+              builder: (context) {
+                result = context.watchNexusStoreItem<User, String>('123');
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(result, isNotNull);
+      await expectLater(result, emits(testUser));
+      verify(() => mockStore.watch('123')).called(1);
+    });
+
+    testWidgets('watchNexusStoreItem() returns null for non-existent item',
+        (tester) async {
+      when(() => mockStore.watch('non-existent'))
+          .thenAnswer((_) => Stream.value(null));
+
+      Stream<User?>? result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NexusStoreProvider<User, String>(
+            store: mockStore,
+            child: Builder(
+              builder: (context) {
+                result =
+                    context.watchNexusStoreItem<User, String>('non-existent');
+                return const SizedBox();
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(result, isNotNull);
+      await expectLater(result, emits(null));
+    });
   });
 }

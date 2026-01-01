@@ -161,6 +161,56 @@ void main() {
         expect(result1, isNot(equals(result3)));
         expect(result1, isNot(equals(result4)));
       });
+
+      test('hashCode is consistent for equal results', () {
+        const result1 = StoreResult<String>.pending('data');
+        const result2 = StoreResult<String>.pending('data');
+
+        expect(result1.hashCode, equals(result2.hashCode));
+      });
+
+      test('maybeWhen() calls orElse when pending not provided', () {
+        const result = StoreResult<String>.pending('data');
+
+        final value = result.maybeWhen(
+          success: (_) => 'success',
+          orElse: () => 'orElse',
+        );
+
+        expect(value, 'orElse');
+      });
+
+      test('copyWith() with error returns error preserving data', () {
+        const result = StoreResult<String>.pending('previous');
+
+        final copied = result.copyWith(error: Exception('test'));
+
+        expect(copied, isA<StoreResultError<String>>());
+        expect(copied.data, 'previous');
+        expect(copied.hasError, isTrue);
+      });
+
+      test('copyWith() with both data and error returns error with new data',
+          () {
+        const result = StoreResult<String>.pending('previous');
+
+        final copied = result.copyWith(data: 'new', error: Exception('test'));
+
+        expect(copied, isA<StoreResultError<String>>());
+        expect(copied.data, 'new');
+      });
+
+      test('toString returns readable format', () {
+        const result = StoreResult<String>.pending('data');
+
+        expect(result.toString(), 'StoreResult<String>.pending(data)');
+      });
+
+      test('toString returns readable format without data', () {
+        const result = StoreResult<String>.pending();
+
+        expect(result.toString(), 'StoreResult<String>.pending(null)');
+      });
     });
 
     group('StoreResultSuccess', () {
@@ -222,6 +272,33 @@ void main() {
         expect(result1.hashCode, equals(result2.hashCode));
         expect(result1, isNot(equals(result3)));
       });
+
+      test('maybeWhen() calls orElse when success not provided', () {
+        const result = StoreResult<String>.success('hello');
+
+        final value = result.maybeWhen(
+          pending: (_) => 'pending',
+          orElse: () => 'orElse',
+        );
+
+        expect(value, 'orElse');
+      });
+
+      test('copyWith() with both data and error returns error with new data',
+          () {
+        const result = StoreResult<String>.success('old');
+
+        final copied = result.copyWith(data: 'new', error: Exception('test'));
+
+        expect(copied, isA<StoreResultError<String>>());
+        expect(copied.data, 'new');
+      });
+
+      test('toString returns readable format', () {
+        const result = StoreResult<String>.success('hello');
+
+        expect(result.toString(), 'StoreResult<String>.success(hello)');
+      });
     });
 
     group('StoreResultError', () {
@@ -280,6 +357,69 @@ void main() {
         expect(result1, equals(result2));
         expect(result1, isNot(equals(result3)));
       });
+
+      test('hashCode is consistent for equal results', () {
+        final error = Exception('test');
+        final result1 = StoreResult<String>.error(error, 'prev');
+        final result2 = StoreResult<String>.error(error, 'prev');
+
+        expect(result1.hashCode, equals(result2.hashCode));
+      });
+
+      test('maybeWhen() calls orElse when error not provided', () {
+        final result = StoreResult<String>.error(Exception('test'));
+
+        final value = result.maybeWhen(
+          success: (_) => 'success',
+          orElse: () => 'orElse',
+        );
+
+        expect(value, 'orElse');
+      });
+
+      test('map() with null previous data returns error with null', () {
+        final result = StoreResult<int>.error(Exception('test'));
+
+        final mapped = result.map((data) => data.toString());
+
+        expect(mapped, isA<StoreResultError<String>>());
+        expect(mapped.data, isNull);
+      });
+
+      test('copyWith() updates error', () {
+        final result = StoreResult<String>.error(Exception('old'), 'data');
+
+        final copied = result.copyWith(error: Exception('new'));
+
+        expect(copied, isA<StoreResultError<String>>());
+        expect(copied.error.toString(), contains('new'));
+        expect(copied.data, 'data');
+      });
+
+      test('copyWith() updates data', () {
+        final result = StoreResult<String>.error(Exception('test'), 'old');
+
+        final copied = result.copyWith(data: 'new');
+
+        expect(copied, isA<StoreResultError<String>>());
+        expect(copied.data, 'new');
+      });
+
+      test('toString returns readable format', () {
+        final error = Exception('test');
+        final result = StoreResult<String>.error(error, 'data');
+
+        expect(result.toString(), contains('StoreResult<String>.error'));
+        expect(result.toString(), contains('data'));
+      });
+
+      test('toString returns readable format without data', () {
+        final error = Exception('test');
+        final result = StoreResult<String>.error(error);
+
+        expect(result.toString(), contains('StoreResult<String>.error'));
+        expect(result.toString(), contains('null'));
+      });
     });
 
     group('StoreResultExtensions', () {
@@ -309,6 +449,27 @@ void main() {
 
       test('requireData throws StateError when idle', () {
         const result = StoreResult<String>.idle();
+
+        expect(() => result.requireData(), throwsStateError);
+      });
+
+      test('requireData rethrows Error directly when error is Error', () {
+        final result = StoreResult<String>.error(ArgumentError('test'));
+
+        expect(() => result.requireData(), throwsArgumentError);
+      });
+
+      test('requireData wraps in Exception when error is plain Object', () {
+        final result = StoreResult<String>.error('plain string error');
+
+        expect(
+          () => result.requireData(),
+          throwsA(isA<Exception>()),
+        );
+      });
+
+      test('requireData throws StateError when pending without data', () {
+        const result = StoreResult<String>.pending();
 
         expect(() => result.requireData(), throwsStateError);
       });
