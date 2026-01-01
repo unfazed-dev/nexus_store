@@ -270,5 +270,133 @@ void main() {
         expect(filteredItems.first.name, equals('Alice'));
       });
     });
+
+    group('cancelChange with pending changes', () {
+      test('cancelChange with UPDATE operation restores original value',
+          () async {
+        final originalModel = TestModel(id: '1', name: 'Original', age: 25);
+        final updatedModel = TestModel(id: '1', name: 'Updated', age: 30);
+
+        // Save initial data
+        await backend.save(originalModel);
+
+        // Add a pending UPDATE change with original value
+        final change =
+            await backend.pendingChangesManagerForTesting.addChange(
+          item: updatedModel,
+          operation: nexus.PendingChangeOperation.update,
+          originalValue: originalModel,
+        );
+
+        // Cancel the change - should restore original
+        final result = await backend.cancelChange(change.id);
+
+        expect(result, isNotNull);
+        expect(result!.id, equals(change.id));
+        expect(result.operation, equals(nexus.PendingChangeOperation.update));
+
+        // Verify original was restored
+        final saved = await backend.get('1');
+        expect(saved, isNotNull);
+        expect(saved!.name, equals('Original'));
+        expect(saved.age, equals(25));
+      });
+
+      test('cancelChange with CREATE operation deletes the item', () async {
+        final createdModel = TestModel(id: '2', name: 'NewItem', age: 20);
+
+        // Save the item first
+        await backend.save(createdModel);
+
+        // Add a pending CREATE change
+        final change =
+            await backend.pendingChangesManagerForTesting.addChange(
+          item: createdModel,
+          operation: nexus.PendingChangeOperation.create,
+        );
+
+        // Cancel the change - should delete the created item
+        final result = await backend.cancelChange(change.id);
+
+        expect(result, isNotNull);
+        expect(result!.operation, equals(nexus.PendingChangeOperation.create));
+
+        // Verify item was deleted
+        final deleted = await backend.get('2');
+        expect(deleted, isNull);
+      });
+
+      test('cancelChange with DELETE operation restores original value',
+          () async {
+        final deletedModel = TestModel(id: '3', name: 'Deleted', age: 35);
+
+        // Item was deleted - add pending DELETE change
+        final change =
+            await backend.pendingChangesManagerForTesting.addChange(
+          item: deletedModel,
+          operation: nexus.PendingChangeOperation.delete,
+          originalValue: deletedModel,
+        );
+
+        // Cancel the change - should restore the deleted item
+        final result = await backend.cancelChange(change.id);
+
+        expect(result, isNotNull);
+        expect(result!.operation, equals(nexus.PendingChangeOperation.delete));
+
+        // Verify item was restored
+        final restored = await backend.get('3');
+        expect(restored, isNotNull);
+        expect(restored!.name, equals('Deleted'));
+      });
+    });
+
+    group('retryChange with pending changes', () {
+      test('retryChange increments retry count and updates lastAttempt',
+          () async {
+        final model = TestModel(id: '1', name: 'Test', age: 25);
+
+        // Add a pending change
+        final change =
+            await backend.pendingChangesManagerForTesting.addChange(
+          item: model,
+          operation: nexus.PendingChangeOperation.update,
+        );
+
+        expect(change.retryCount, equals(0));
+        expect(change.lastAttempt, isNull);
+
+        // Retry the change
+        await backend.retryChange(change.id);
+
+        // Verify retry count was incremented
+        final updatedChange =
+            backend.pendingChangesManagerForTesting.getChange(change.id);
+        expect(updatedChange, isNotNull);
+        expect(updatedChange!.retryCount, equals(1));
+        expect(updatedChange.lastAttempt, isNotNull);
+      });
+
+      test('retryChange can be called multiple times', () async {
+        final model = TestModel(id: '2', name: 'Test2', age: 30);
+
+        // Add a pending change
+        final change =
+            await backend.pendingChangesManagerForTesting.addChange(
+          item: model,
+          operation: nexus.PendingChangeOperation.create,
+        );
+
+        // Retry multiple times
+        await backend.retryChange(change.id);
+        await backend.retryChange(change.id);
+        await backend.retryChange(change.id);
+
+        // Verify retry count was incremented each time
+        final updatedChange =
+            backend.pendingChangesManagerForTesting.getChange(change.id);
+        expect(updatedChange!.retryCount, equals(3));
+      });
+    });
   });
 }

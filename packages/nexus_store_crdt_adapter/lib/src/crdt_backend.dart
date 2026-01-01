@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
 import 'package:nexus_store_crdt_adapter/src/crdt_query_translator.dart';
 import 'package:rxdart/rxdart.dart';
@@ -84,6 +85,11 @@ class CrdtBackend<T, ID>
   // Pending changes and conflicts
   late final nexus.PendingChangesManager<T, ID> _pendingChangesManager;
   final _conflictsSubject = BehaviorSubject<nexus.ConflictDetails<T>>();
+
+  /// Exposes the pending changes manager for testing purposes only.
+  @visibleForTesting
+  nexus.PendingChangesManager<T, ID> get pendingChangesManagerForTesting =>
+      _pendingChangesManager;
 
   // ---------------------------------------------------------------------------
   // Public Getters

@@ -1,8 +1,6 @@
 // ignore_for_file: unreachable_from_main
 
-import 'dart:async';
-
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
 import 'package:nexus_store_drift_adapter/nexus_store_drift_adapter.dart';
@@ -614,6 +612,176 @@ void main() {
             any(),
             variables: any(named: 'variables'),
           )).called(1);
+    });
+  });
+
+  group('cancelChange operations with pending changes', () {
+    late DriftBackend<TestModel, String> backend;
+    late MockDatabaseConnectionUser mockExecutor;
+
+    setUp(() async {
+      backend = DriftBackend<TestModel, String>(
+        tableName: 'test_models',
+        getId: (model) => model.id,
+        fromJson: TestModel.fromJson,
+        toJson: (model) => model.toJson(),
+        primaryKeyField: 'id',
+      );
+
+      mockExecutor = MockDatabaseConnectionUser();
+      await backend.initializeWithExecutor(mockExecutor);
+    });
+
+    tearDown(() async {
+      await backend.close();
+    });
+
+    test('cancelChange with UPDATE operation restores original value',
+        () async {
+      final originalModel = TestModel(id: '1', name: 'Original', age: 25);
+      final updatedModel = TestModel(id: '1', name: 'Updated', age: 30);
+
+      // Add a pending UPDATE change with original value
+      final change = await backend.pendingChangesManagerForTesting.addChange(
+        item: updatedModel,
+        operation: nexus.PendingChangeOperation.update,
+        originalValue: originalModel,
+      );
+
+      // Mock the save operation (restore original)
+      when(() => mockExecutor.customStatement(any(), any()))
+          .thenAnswer((_) async {});
+
+      // Cancel the change - should restore original
+      final result = await backend.cancelChange(change.id);
+
+      expect(result, isNotNull);
+      expect(result!.id, equals(change.id));
+      expect(result.operation, equals(nexus.PendingChangeOperation.update));
+
+      // Verify save was called (to restore original)
+      verify(() => mockExecutor.customStatement(any(), any())).called(1);
+    });
+
+    test('cancelChange with CREATE operation deletes the item', () async {
+      final createdModel = TestModel(id: '2', name: 'NewItem', age: 20);
+
+      // Add a pending CREATE change
+      final change = await backend.pendingChangesManagerForTesting.addChange(
+        item: createdModel,
+        operation: nexus.PendingChangeOperation.create,
+      );
+
+      // Mock the delete operation
+      when(() => mockExecutor.customUpdate(
+            any(),
+            variables: any(named: 'variables'),
+            updates: any(named: 'updates'),
+          )).thenAnswer((_) async => 1);
+
+      // Cancel the change - should delete the created item
+      final result = await backend.cancelChange(change.id);
+
+      expect(result, isNotNull);
+      expect(result!.operation, equals(nexus.PendingChangeOperation.create));
+
+      // Verify delete was called
+      verify(() => mockExecutor.customUpdate(
+            any(),
+            variables: any(named: 'variables'),
+            updates: any(named: 'updates'),
+          )).called(1);
+    });
+
+    test('cancelChange with DELETE operation restores original value',
+        () async {
+      final deletedModel = TestModel(id: '3', name: 'Deleted', age: 35);
+
+      // Add a pending DELETE change with original value
+      final change = await backend.pendingChangesManagerForTesting.addChange(
+        item: deletedModel,
+        operation: nexus.PendingChangeOperation.delete,
+        originalValue: deletedModel,
+      );
+
+      // Mock the save operation (restore deleted)
+      when(() => mockExecutor.customStatement(any(), any()))
+          .thenAnswer((_) async {});
+
+      // Cancel the change - should restore the deleted item
+      final result = await backend.cancelChange(change.id);
+
+      expect(result, isNotNull);
+      expect(result!.operation, equals(nexus.PendingChangeOperation.delete));
+
+      // Verify save was called (to restore deleted item)
+      verify(() => mockExecutor.customStatement(any(), any())).called(1);
+    });
+  });
+
+  group('retryChange operations with pending changes', () {
+    late DriftBackend<TestModel, String> backend;
+    late MockDatabaseConnectionUser mockExecutor;
+
+    setUp(() async {
+      backend = DriftBackend<TestModel, String>(
+        tableName: 'test_models',
+        getId: (model) => model.id,
+        fromJson: TestModel.fromJson,
+        toJson: (model) => model.toJson(),
+        primaryKeyField: 'id',
+      );
+
+      mockExecutor = MockDatabaseConnectionUser();
+      await backend.initializeWithExecutor(mockExecutor);
+    });
+
+    tearDown(() async {
+      await backend.close();
+    });
+
+    test('retryChange increments retry count and updates lastAttempt',
+        () async {
+      final model = TestModel(id: '1', name: 'Test', age: 25);
+
+      // Add a pending change
+      final change = await backend.pendingChangesManagerForTesting.addChange(
+        item: model,
+        operation: nexus.PendingChangeOperation.update,
+      );
+
+      expect(change.retryCount, equals(0));
+      expect(change.lastAttempt, isNull);
+
+      // Retry the change
+      await backend.retryChange(change.id);
+
+      // Verify retry count was incremented
+      final updatedChange =
+          backend.pendingChangesManagerForTesting.getChange(change.id);
+      expect(updatedChange, isNotNull);
+      expect(updatedChange!.retryCount, equals(1));
+      expect(updatedChange.lastAttempt, isNotNull);
+    });
+
+    test('retryChange can be called multiple times', () async {
+      final model = TestModel(id: '2', name: 'Test2', age: 30);
+
+      // Add a pending change
+      final change = await backend.pendingChangesManagerForTesting.addChange(
+        item: model,
+        operation: nexus.PendingChangeOperation.create,
+      );
+
+      // Retry multiple times
+      await backend.retryChange(change.id);
+      await backend.retryChange(change.id);
+      await backend.retryChange(change.id);
+
+      // Verify retry count was incremented each time
+      final updatedChange =
+          backend.pendingChangesManagerForTesting.getChange(change.id);
+      expect(updatedChange!.retryCount, equals(3));
     });
   });
 }

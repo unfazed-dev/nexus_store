@@ -428,6 +428,28 @@ flutter test test/<test_file>.dart
 
 ## History
 
+- **2026-01-01**: Session 9 - cancelChange/retryChange pending changes tests
+  - **nexus_store_drift_adapter** (94.4% → improved)
+    - Added `@visibleForTesting` getter for `pendingChangesManagerForTesting`
+    - Added `meta` package dependency for annotation
+    - Enhanced `test/drift_backend_test.dart` (5 new tests)
+      - cancelChange with UPDATE operation restores original value
+      - cancelChange with CREATE operation deletes the item
+      - cancelChange with DELETE operation restores original value
+      - retryChange increments retry count and updates lastAttempt
+      - retryChange can be called multiple times
+  - **nexus_store_crdt_adapter** (87.2% → improved)
+    - Added `@visibleForTesting` getter for `pendingChangesManagerForTesting`
+    - Added `meta` package dependency for annotation
+    - Enhanced `test/conflict_resolution_test.dart` (5 new tests)
+      - cancelChange with UPDATE operation restores original value
+      - cancelChange with CREATE operation deletes the item
+      - cancelChange with DELETE operation restores original value
+      - retryChange increments retry count and updates lastAttempt
+      - retryChange can be called multiple times
+  - Total: 10 new tests added across 2 packages
+  - Pattern established: `@visibleForTesting` getters enable testing private pending changes manager
+
 - **2026-01-01**: Session 8 - TDD coverage improvements (bloc_binding, brick_adapter, delta_merger)
   - **nexus_store_bloc_binding** (94.0% → 96.2%, +2.2%)
     - Enhanced `test/state/nexus_store_state_test.dart` (7 new tests)
