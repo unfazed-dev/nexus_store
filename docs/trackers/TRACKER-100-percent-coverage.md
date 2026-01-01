@@ -10,9 +10,9 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 |----------|----------|--------------|-----------|
 | P0 Critical | 3 | 474 | 3 (riverpod_generator ✅, supabase_adapter 🟡 74.7%, riverpod_binding ✅) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
-| P2 Medium | 5 | 720 | 3 (nexus_store_flutter ✅ 94.8%, nexus_store 🟡 90%+) |
+| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store 🟡 90%+, crdt_adapter 🟡 84.9%, bloc_binding 🟡 93.2%, drift_adapter 🟡 86.8%) |
 | P3-P4 Lower | 4 | 133 | 0 |
-| **Total** | **13** | **1,415** | **6** |
+| **Total** | **13** | **1,415** | **9** |
 
 ---
 
@@ -195,13 +195,29 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ---
 
-#### nexus_store_crdt_adapter (70.6% → 100%)
+#### nexus_store_crdt_adapter (70.6% → 84.9%) 🟡 IN PROGRESS
 **Path:** `packages/nexus_store_crdt_adapter`
-**Lines to cover:** 112
+**Lines to cover:** 112 → ~58 remaining
 
-- [ ] Add error handling tests
-- [ ] Add pagination tests
-- [ ] Add conflict resolution tests
+- [x] Add error handling tests ✅
+  - [x] Uninitialized state guards for all operations (18 tests)
+  - [x] Exception mapping verification
+  - [x] Empty input edge cases
+- [x] Add pagination tests ✅
+  - [x] getAllPaged cursor edge cases (out-of-bounds clamping)
+  - [x] watchAllPaged stream emissions
+  - [x] Query filter + pagination combinations
+  - [x] Fixed RangeError bug in cursor handling
+- [x] Add conflict resolution tests ✅
+  - [x] retryChange/cancelChange operations
+  - [x] CRDT merge behavior (getChangeset, tombstones)
+  - [x] Watch subscription caching
+  - [x] Sync status stream emissions
+- [ ] Remaining: Cross-database CRDT merge tests (require Hlc format handling)
+
+**Files:**
+- `lib/src/crdt_backend.dart` (83.9%)
+- `lib/src/crdt_query_translator.dart` (86.9%)
 
 ---
 
@@ -223,21 +239,51 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ---
 
-#### nexus_store_bloc_binding (71.8% → 100%)
+#### nexus_store_bloc_binding (71.8% → 93.2%) 🟡 IN PROGRESS
 **Path:** `packages/nexus_store_bloc_binding`
-**Lines to cover:** 150
+**Lines to cover:** 150 → ~36 remaining
 
-- [ ] Review uncovered lines from coverage report
-- [ ] Add missing test cases
+- [x] Add event equality/hashCode/toString tests ✅
+  - [x] nexus_store_event.dart: 19.1% → 96.6% (40 new tests)
+  - [x] nexus_item_event.dart: 8.6% → 94.8% (35 new tests)
+- [x] Add comprehensive event tests (DataReceived, ErrorReceived)
+- [ ] Remaining: cubit protected methods, state edge cases
+
+**Files:**
+- `lib/src/bloc/nexus_item_event.dart` (94.8% ✅)
+- `lib/src/bloc/nexus_store_event.dart` (96.6% ✅)
+- `lib/src/bloc/nexus_item_bloc.dart` (100% ✅)
+- `lib/src/bloc/nexus_store_bloc.dart` (92.2%)
+- `lib/src/cubit/nexus_item_cubit.dart` (100% ✅)
+- `lib/src/cubit/nexus_store_cubit.dart` (90.2%)
+- `lib/src/state/nexus_item_state.dart` (90.2%)
+- `lib/src/state/nexus_store_state.dart` (85.7%)
+- `lib/src/utils/bloc_observer.dart` (100% ✅)
 
 ---
 
-#### nexus_store_drift_adapter (71.9% → 100%)
+#### nexus_store_drift_adapter (71.9% → 86.8%) 🟡 IN PROGRESS
 **Path:** `packages/nexus_store_drift_adapter`
-**Lines to cover:** 95
+**Lines to cover:** 95 → ~45 remaining
 
-- [ ] Add pagination tests
-- [ ] Add error handling tests
+- [x] Add pagination tests ✅
+  - [x] getAllPaged first page, navigation, cursor handling (5 tests)
+  - [x] watchAllPaged stream emissions and cursor handling (3 tests)
+  - [x] Out-of-bounds cursor clamping (2 tests)
+  - [x] Empty result handling (1 test)
+  - [x] Fixed RangeError bug in cursor handling (same as crdt_adapter)
+- [x] Add pending changes tests ✅
+  - [x] retryChange/cancelChange with non-existent IDs (2 tests)
+  - [x] pendingChangesStream/conflictsStream accessibility (2 tests)
+  - [x] Uninitialized state guards for pagination and pending changes (7 tests)
+- [x] Add query translator tests ✅
+  - [x] translate() with offset only (4 tests)
+  - [x] DriftQueryExtension.toSql() (3 tests)
+- [ ] Remaining: Error mapping (_mapException), cancel operations with original values
+
+**Files:**
+- `lib/src/drift_backend.dart` (79.7%)
+- `lib/src/drift_query_translator.dart` (100% ✅)
 
 ---
 
@@ -320,6 +366,51 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-01**: P2 nexus_store_drift_adapter - pagination and query translator tests
+  - Enhanced `test/integration/drift_integration_test.dart` (16 new tests)
+    - Cursor-based pagination: getAllPaged/watchAllPaged tests (11 tests)
+    - Pending changes: retryChange/cancelChange/stream tests (4 tests)
+    - Fixed RangeError bug in out-of-bounds cursor handling
+  - Enhanced `test/drift_backend_test.dart` (8 new tests)
+    - Uninitialized state guards for pagination and pending changes
+    - supportsPagination property test
+  - Enhanced `test/drift_query_translator_test.dart` (8 new tests)
+    - translate() with offset, empty query
+    - DriftQueryExtension.toSql() tests
+  - drift_backend.dart: 58.7% → 79.7% (+21%)
+  - drift_query_translator.dart: 95.8% → 100%
+  - Overall package: 71.9% → 86.8% (+14.9%)
+  - 32 new tests added
+
+- **2026-01-01**: P2 nexus_store_bloc_binding - event equality/hashCode/toString tests
+  - Enhanced `test/bloc/nexus_store_event_test.dart` (40 new tests)
+    - hashCode, toString, equality edge cases for all events
+    - DataReceived and ErrorReceived internal event tests
+  - Created `test/bloc/nexus_item_event_test.dart` (35 new tests)
+    - Complete coverage for LoadItem, SaveItem, DeleteItem, RefreshItem
+    - ItemDataReceived and ItemErrorReceived tests
+  - nexus_store_event.dart: 19.1% → 96.6%
+  - nexus_item_event.dart: 8.6% → 94.8%
+  - Overall package: 70.9% → 93.2% (+22.3%)
+  - 75 new tests added
+
+- **2026-01-01**: P2 nexus_store_crdt_adapter - error handling, pagination, conflict resolution
+  - Created `test/error_handling_test.dart` (25 tests)
+    - Uninitialized state guards for all 18 operations
+    - Exception mapping and empty input edge cases
+  - Created `test/pagination_test.dart` (18 tests)
+    - getAllPaged/watchAllPaged cursor edge cases
+    - Fixed RangeError bug in out-of-bounds cursor handling
+    - Query filter + pagination combinations
+  - Created `test/conflict_resolution_test.dart` (16 tests)
+    - retryChange/cancelChange operations
+    - CRDT merge behavior, tombstone revival
+    - Watch subscription caching, sync status streams
+  - crdt_backend.dart: ~70% → 83.9%
+  - crdt_query_translator.dart: ~70% → 86.9%
+  - Overall package: 70.6% → 84.9% (+14.3%)
+  - 59 new tests added
 
 - **2026-01-01**: P2 nexus_store core - saga_state and saga_event 100% coverage
   - Created `test/src/coordination/saga_state_test.dart` (44 tests)

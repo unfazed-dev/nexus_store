@@ -529,7 +529,8 @@ class CrdtBackend<T, ID>
       if (afterCursor != null) {
         final cursorIndex = afterCursor.toValues()['_index'] as int?;
         if (cursorIndex != null) {
-          startIndex = cursorIndex;
+          // Clamp to valid range to handle out-of-bounds cursors
+          startIndex = cursorIndex.clamp(0, items.length);
         }
       }
 
@@ -579,7 +580,8 @@ class CrdtBackend<T, ID>
       if (afterCursor != null) {
         final cursorIndex = afterCursor.toValues()['_index'] as int?;
         if (cursorIndex != null) {
-          startIndex = cursorIndex;
+          // Clamp to valid range to handle out-of-bounds cursors
+          startIndex = cursorIndex.clamp(0, items.length);
         }
       }
 

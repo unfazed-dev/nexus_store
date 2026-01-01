@@ -470,7 +470,8 @@ class DriftBackend<T, ID>
       if (afterCursor != null) {
         final cursorIndex = afterCursor.toValues()['_index'] as int?;
         if (cursorIndex != null) {
-          startIndex = cursorIndex;
+          // Clamp to valid range to handle out-of-bounds cursors
+          startIndex = cursorIndex.clamp(0, items.length);
         }
       }
 
@@ -479,6 +480,8 @@ class DriftBackend<T, ID>
         endIndex = (startIndex + firstCount).clamp(0, items.length);
       }
 
+      // Ensure valid sublist range
+      startIndex = startIndex.clamp(0, endIndex);
       final pageItems = items.sublist(startIndex, endIndex);
       final hasNextPage = endIndex < items.length;
       final hasPreviousPage = startIndex > 0;
@@ -520,7 +523,8 @@ class DriftBackend<T, ID>
       if (afterCursor != null) {
         final cursorIndex = afterCursor.toValues()['_index'] as int?;
         if (cursorIndex != null) {
-          startIndex = cursorIndex;
+          // Clamp to valid range to handle out-of-bounds cursors
+          startIndex = cursorIndex.clamp(0, items.length);
         }
       }
 
@@ -529,6 +533,8 @@ class DriftBackend<T, ID>
         endIndex = (startIndex + firstCount).clamp(0, items.length);
       }
 
+      // Ensure valid sublist range
+      startIndex = startIndex.clamp(0, endIndex);
       final pageItems = items.sublist(startIndex, endIndex);
       final hasNextPage = endIndex < items.length;
       final hasPreviousPage = startIndex > 0;

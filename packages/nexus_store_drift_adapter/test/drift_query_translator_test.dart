@@ -430,6 +430,39 @@ void main() {
         expect(result, 'WHERE name = ? ORDER BY name ASC LIMIT 10');
       });
 
+      test('translate with offset only', () {
+        final query = const Query<TestModel>().offsetBy(10);
+
+        final result = translator.translate(query);
+
+        expect(result, 'OFFSET 10');
+      });
+
+      test('translate with limit and offset', () {
+        final query = const Query<TestModel>().limitTo(5).offsetBy(10);
+
+        final result = translator.translate(query);
+
+        expect(result, 'LIMIT 5 OFFSET 10');
+      });
+
+      test('translate with orderBy and offset', () {
+        final query =
+            const Query<TestModel>().orderByField('name').offsetBy(5);
+
+        final result = translator.translate(query);
+
+        expect(result, 'ORDER BY name ASC OFFSET 5');
+      });
+
+      test('translate empty query returns empty string', () {
+        const query = Query<TestModel>();
+
+        final result = translator.translate(query);
+
+        expect(result, '');
+      });
+
       test('translateFilters returns WHERE clause content', () {
         final result = translator.translateFilters([
           const QueryFilter(
@@ -449,6 +482,43 @@ void main() {
         ]);
 
         expect(result, 'name ASC, age DESC');
+      });
+    });
+
+    group('DriftQueryExtension', () {
+      test('toSql generates SELECT statement from Query', () {
+        final query = const Query<TestModel>().where('name', isEqualTo: 'John');
+
+        final (sql, args) = query.toSql('users');
+
+        expect(sql, 'SELECT * FROM users WHERE name = ?');
+        expect(args, ['John']);
+      });
+
+      test('toSql with fieldMapping', () {
+        final query = const Query<TestModel>()
+            .where('name', isEqualTo: 'John')
+            .orderByField('age');
+
+        final (sql, args) = query.toSql(
+          'users',
+          fieldMapping: {'name': 'user_name', 'age': 'user_age'},
+        );
+
+        expect(
+          sql,
+          'SELECT * FROM users WHERE user_name = ? ORDER BY user_age ASC',
+        );
+        expect(args, ['John']);
+      });
+
+      test('toSql with empty query', () {
+        const query = Query<TestModel>();
+
+        final (sql, args) = query.toSql('users');
+
+        expect(sql, 'SELECT * FROM users');
+        expect(args, isEmpty);
       });
     });
 

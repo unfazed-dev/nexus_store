@@ -427,6 +427,165 @@ void main() {
       });
     });
 
+    group('Cursor-Based Pagination', () {
+      test('getAllPaged returns first page with cursor info', () async {
+        for (var i = 1; i <= 10; i++) {
+          await backend.save(TestModel(id: '$i', name: 'User$i', age: 20 + i));
+        }
+
+        final query = const nexus.Query<TestModel>().first(5);
+        final result = await backend.getAllPaged(query: query);
+
+        expect(result.items.length, equals(5));
+        expect(result.pageInfo.hasNextPage, isTrue);
+        expect(result.pageInfo.hasPreviousPage, isFalse);
+        expect(result.pageInfo.totalCount, equals(10));
+        expect(result.pageInfo.startCursor, isNotNull);
+        expect(result.pageInfo.endCursor, isNotNull);
+      });
+
+      test('getAllPaged navigates with afterCursor', () async {
+        for (var i = 1; i <= 10; i++) {
+          await backend.save(TestModel(id: '$i', name: 'User$i', age: 20 + i));
+        }
+
+        // Get first page
+        final firstQuery = const nexus.Query<TestModel>().first(5);
+        final firstPage = await backend.getAllPaged(query: firstQuery);
+
+        // Get second page using endCursor
+        final secondQuery = const nexus.Query<TestModel>()
+            .first(5)
+            .after(firstPage.pageInfo.endCursor!);
+        final secondPage = await backend.getAllPaged(query: secondQuery);
+
+        expect(secondPage.items.length, equals(5));
+        expect(secondPage.pageInfo.hasNextPage, isFalse);
+        expect(secondPage.pageInfo.hasPreviousPage, isTrue);
+      });
+
+      test('getAllPaged returns empty page for out-of-bounds cursor', () async {
+        for (var i = 1; i <= 3; i++) {
+          await backend.save(TestModel(id: '$i', name: 'User$i', age: 20 + i));
+        }
+
+        // Create cursor beyond data bounds
+        final cursor = nexus.Cursor.fromValues(const {'_index': 100});
+        final query = const nexus.Query<TestModel>().first(5).after(cursor);
+        final result = await backend.getAllPaged(query: query);
+
+        expect(result.items, isEmpty);
+        expect(result.pageInfo.hasNextPage, isFalse);
+      });
+
+      test('getAllPaged without firstCount returns all items', () async {
+        for (var i = 1; i <= 5; i++) {
+          await backend.save(TestModel(id: '$i', name: 'User$i', age: 20 + i));
+        }
+
+        final result = await backend.getAllPaged();
+
+        expect(result.items.length, equals(5));
+        expect(result.pageInfo.hasNextPage, isFalse);
+        expect(result.pageInfo.totalCount, equals(5));
+      });
+
+      test('getAllPaged with query filters', () async {
+        for (var i = 1; i <= 10; i++) {
+          final name = i <= 5 ? 'GroupA' : 'GroupB';
+          await backend.save(TestModel(id: '$i', name: name, age: 20 + i));
+        }
+
+        final query = const nexus.Query<TestModel>()
+            .where('name', isEqualTo: 'GroupA')
+            .first(3);
+        final result = await backend.getAllPaged(query: query);
+
+        expect(result.items.length, equals(3));
+        expect(result.items.every((m) => m.name == 'GroupA'), isTrue);
+        expect(result.pageInfo.hasNextPage, isTrue);
+        expect(result.pageInfo.totalCount, equals(5));
+      });
+
+      test('watchAllPaged emits paged results', () async {
+        for (var i = 1; i <= 10; i++) {
+          await backend.save(TestModel(id: '$i', name: 'User$i', age: 20 + i));
+        }
+
+        final query = const nexus.Query<TestModel>().first(5);
+        final stream = backend.watchAllPaged(query: query);
+        final result = await stream.first;
+
+        expect(result.items.length, equals(5));
+        expect(result.pageInfo.hasNextPage, isTrue);
+        expect(result.pageInfo.totalCount, equals(10));
+      });
+
+      test('watchAllPaged with afterCursor', () async {
+        for (var i = 1; i <= 10; i++) {
+          await backend.save(TestModel(id: '$i', name: 'User$i', age: 20 + i));
+        }
+
+        final cursor = nexus.Cursor.fromValues(const {'_index': 5});
+        final query = const nexus.Query<TestModel>().first(3).after(cursor);
+        final stream = backend.watchAllPaged(query: query);
+        final result = await stream.first;
+
+        expect(result.items.length, equals(3));
+        expect(result.pageInfo.hasPreviousPage, isTrue);
+        expect(result.pageInfo.hasNextPage, isTrue);
+      });
+
+      test('watchAllPaged with out-of-bounds cursor returns empty', () async {
+        for (var i = 1; i <= 3; i++) {
+          await backend.save(TestModel(id: '$i', name: 'User$i', age: 20 + i));
+        }
+
+        final cursor = nexus.Cursor.fromValues(const {'_index': 100});
+        final query = const nexus.Query<TestModel>().first(5).after(cursor);
+        final stream = backend.watchAllPaged(query: query);
+        final result = await stream.first;
+
+        expect(result.items, isEmpty);
+        expect(result.pageInfo.hasNextPage, isFalse);
+      });
+
+      test('getAllPaged empty result has no cursors', () async {
+        final result = await backend.getAllPaged();
+
+        expect(result.items, isEmpty);
+        expect(result.pageInfo.startCursor, isNull);
+        expect(result.pageInfo.endCursor, isNull);
+        expect(result.pageInfo.hasNextPage, isFalse);
+        expect(result.pageInfo.hasPreviousPage, isFalse);
+      });
+    });
+
+    group('Pending Changes Operations', () {
+      test('pendingChangesStream emits empty list initially', () async {
+        final changes = await backend.pendingChangesStream.first;
+        expect(changes, isEmpty);
+      });
+
+      test('conflictsStream is accessible', () {
+        // Just verify we can access the stream without errors
+        expect(backend.conflictsStream, isNotNull);
+      });
+
+      test('retryChange with non-existent ID does nothing', () async {
+        // Should complete without error
+        await expectLater(
+          backend.retryChange('non-existent-change-id'),
+          completes,
+        );
+      });
+
+      test('cancelChange with non-existent ID returns null', () async {
+        final result = await backend.cancelChange('non-existent-change-id');
+        expect(result, isNull);
+      });
+    });
+
     group('Complex Queries', () {
       test('multiple filters combined with AND', () async {
         await backend.save(TestModel(id: '1', name: 'Alice', age: 30));

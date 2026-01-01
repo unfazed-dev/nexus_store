@@ -171,6 +171,66 @@ void main() {
       });
     });
 
+    group('pagination properties', () {
+      test('supportsPagination returns true', () {
+        expect(backend.supportsPagination, isTrue);
+      });
+    });
+
+    group('uninitialized state guards', () {
+      test('throws StateError when using deleteAll before initialize', () {
+        expect(
+          () => backend.deleteAll(['1']),
+          throwsA(isA<nexus.StateError>()),
+        );
+      });
+
+      test('throws StateError when using deleteWhere before initialize', () {
+        final query =
+            const nexus.Query<TestModel>().where('name', isEqualTo: 'Test');
+        expect(
+          () => backend.deleteWhere(query),
+          throwsA(isA<nexus.StateError>()),
+        );
+      });
+
+      test('throws StateError when using saveAll before initialize', () {
+        final model = TestModel(id: '1', name: 'Test');
+        expect(
+          () => backend.saveAll([model]),
+          throwsA(isA<nexus.StateError>()),
+        );
+      });
+
+      test('throws StateError when using getAllPaged before initialize', () {
+        expect(
+          () => backend.getAllPaged(),
+          throwsA(isA<nexus.StateError>()),
+        );
+      });
+
+      test('throws StateError when using watchAllPaged before initialize', () {
+        expect(
+          () => backend.watchAllPaged(),
+          throwsA(isA<nexus.StateError>()),
+        );
+      });
+
+      test('throws StateError when using retryChange before initialize', () {
+        expect(
+          () => backend.retryChange('change-id'),
+          throwsA(isA<nexus.StateError>()),
+        );
+      });
+
+      test('throws StateError when using cancelChange before initialize', () {
+        expect(
+          () => backend.cancelChange('change-id'),
+          throwsA(isA<nexus.StateError>()),
+        );
+      });
+    });
+
     group('lifecycle', () {
       test('initialize is idempotent', () async {
         // Create backend with mock executor
