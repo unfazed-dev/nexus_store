@@ -248,6 +248,240 @@ void main() {
       });
     });
 
+    group('_mapException error mapping', () {
+      // These tests verify that SQLite-specific errors are correctly mapped
+      // to nexus_store error types. We test via public API methods that
+      // call _mapException internally.
+
+      test('UNIQUE constraint violation maps to ValidationError', () async {
+        // Create a backend with a fromJson that throws a simulated unique
+        // constraint error
+        final backendWithUniqueError = CrdtBackend<TestModel, String>(
+          tableName: 'unique_test',
+          getId: (m) => m.id,
+          fromJson: (json) {
+            throw Exception('UNIQUE constraint failed: test.id');
+          },
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await backendWithUniqueError.initialize();
+        await backendWithUniqueError.save(TestModel(id: '1', name: 'Test'));
+
+        expect(
+          () => backendWithUniqueError.get('1'),
+          throwsA(
+            isA<nexus.ValidationError>().having(
+              (e) => e.message,
+              'message',
+              contains('Unique constraint violation'),
+            ),
+          ),
+        );
+
+        await backendWithUniqueError.close();
+      });
+
+      test('uniqueviolation (lowercase) maps to ValidationError', () async {
+        final backendWithUniqueError = CrdtBackend<TestModel, String>(
+          tableName: 'unique_test2',
+          getId: (m) => m.id,
+          fromJson: (json) {
+            throw Exception('uniqueviolation on column id');
+          },
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await backendWithUniqueError.initialize();
+        await backendWithUniqueError.save(TestModel(id: '1', name: 'Test'));
+
+        expect(
+          () => backendWithUniqueError.get('1'),
+          throwsA(isA<nexus.ValidationError>()),
+        );
+
+        await backendWithUniqueError.close();
+      });
+
+      test('FOREIGN KEY violation maps to ValidationError', () async {
+        final backendWithFkError = CrdtBackend<TestModel, String>(
+          tableName: 'fk_test',
+          getId: (m) => m.id,
+          fromJson: (json) {
+            throw Exception('FOREIGN KEY constraint failed');
+          },
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await backendWithFkError.initialize();
+        await backendWithFkError.save(TestModel(id: '1', name: 'Test'));
+
+        expect(
+          () => backendWithFkError.get('1'),
+          throwsA(
+            isA<nexus.ValidationError>().having(
+              (e) => e.message,
+              'message',
+              contains('Foreign key constraint violation'),
+            ),
+          ),
+        );
+
+        await backendWithFkError.close();
+      });
+
+      test('foreignkeyviolation (lowercase) maps to ValidationError', () async {
+        final backendWithFkError = CrdtBackend<TestModel, String>(
+          tableName: 'fk_test2',
+          getId: (m) => m.id,
+          fromJson: (json) {
+            throw Exception('foreignkeyviolation');
+          },
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await backendWithFkError.initialize();
+        await backendWithFkError.save(TestModel(id: '1', name: 'Test'));
+
+        expect(
+          () => backendWithFkError.get('1'),
+          throwsA(isA<nexus.ValidationError>()),
+        );
+
+        await backendWithFkError.close();
+      });
+
+      test('database is locked maps to TransactionError', () async {
+        final backendWithLockError = CrdtBackend<TestModel, String>(
+          tableName: 'lock_test',
+          getId: (m) => m.id,
+          fromJson: (json) {
+            throw Exception('database is locked');
+          },
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await backendWithLockError.initialize();
+        await backendWithLockError.save(TestModel(id: '1', name: 'Test'));
+
+        expect(
+          () => backendWithLockError.get('1'),
+          throwsA(
+            isA<nexus.TransactionError>()
+                .having((e) => e.message, 'message', contains('locked')),
+          ),
+        );
+
+        await backendWithLockError.close();
+      });
+
+      test('busy error maps to TransactionError', () async {
+        final backendWithBusyError = CrdtBackend<TestModel, String>(
+          tableName: 'busy_test',
+          getId: (m) => m.id,
+          fromJson: (json) {
+            throw Exception('SQLITE_BUSY: database is busy');
+          },
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await backendWithBusyError.initialize();
+        await backendWithBusyError.save(TestModel(id: '1', name: 'Test'));
+
+        expect(
+          () => backendWithBusyError.get('1'),
+          throwsA(isA<nexus.TransactionError>()),
+        );
+
+        await backendWithBusyError.close();
+      });
+
+      test('no such table maps to StateError', () async {
+        final backendWithTableError = CrdtBackend<TestModel, String>(
+          tableName: 'missing_test',
+          getId: (m) => m.id,
+          fromJson: (json) {
+            throw Exception('no such table: missing_table');
+          },
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await backendWithTableError.initialize();
+        await backendWithTableError.save(TestModel(id: '1', name: 'Test'));
+
+        expect(
+          () => backendWithTableError.get('1'),
+          throwsA(
+            isA<nexus.StateError>()
+                .having((e) => e.message, 'message', contains('Table'))
+                .having(
+                  (e) => e.currentState,
+                  'currentState',
+                  'table_missing',
+                )
+                .having(
+                  (e) => e.expectedState,
+                  'expectedState',
+                  'table_exists',
+                ),
+          ),
+        );
+
+        await backendWithTableError.close();
+      });
+
+      test('unknown exception maps to SyncError', () async {
+        final backendWithUnknownError = CrdtBackend<TestModel, String>(
+          tableName: 'unknown_test',
+          getId: (m) => m.id,
+          fromJson: (json) {
+            throw Exception('Some random database error occurred');
+          },
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await backendWithUnknownError.initialize();
+        await backendWithUnknownError.save(TestModel(id: '1', name: 'Test'));
+
+        expect(
+          () => backendWithUnknownError.get('1'),
+          throwsA(
+            isA<nexus.SyncError>().having(
+              (e) => e.message,
+              'message',
+              contains('CRDT operation failed'),
+            ),
+          ),
+        );
+
+        await backendWithUnknownError.close();
+      });
+
+      test('error includes stackTrace', () async {
+        final backendWithError = CrdtBackend<TestModel, String>(
+          tableName: 'stack_test',
+          getId: (m) => m.id,
+          fromJson: (json) {
+            throw Exception('Test error for stacktrace');
+          },
+          toJson: (m) => m.toJson(),
+          primaryKeyField: 'id',
+        );
+        await backendWithError.initialize();
+        await backendWithError.save(TestModel(id: '1', name: 'Test'));
+
+        try {
+          await backendWithError.get('1');
+          fail('Expected exception');
+        } on nexus.SyncError catch (e) {
+          expect(e.stackTrace, isNotNull);
+          expect(e.cause, isNotNull);
+        }
+
+        await backendWithError.close();
+      });
+    });
+
     group('pendingChangesStream', () {
       setUp(() async {
         await backend.initialize();

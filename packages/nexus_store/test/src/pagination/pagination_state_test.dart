@@ -195,6 +195,52 @@ void main() {
       });
     });
 
+    group('getter coverage', () {
+      test('PaginationInitial.pageInfo returns null', () {
+        final state = PaginationState<String>.initial();
+        expect(state.pageInfo, isNull);
+      });
+
+      test('PaginationLoading.hasMore returns true', () {
+        final state = PaginationState<String>.loading();
+        expect(state.hasMore, isTrue);
+      });
+
+      test('PaginationLoading.pageInfo returns null', () {
+        final state = PaginationState<String>.loading();
+        expect(state.pageInfo, isNull);
+      });
+
+      test('PaginationLoadingMore.error returns null', () {
+        final state = PaginationState<String>.loadingMore(
+          items: ['a'],
+          pageInfo: const PageInfo(hasNextPage: true, hasPreviousPage: false),
+        );
+        expect(state.error, isNull);
+      });
+
+      test('PaginationData.error returns null', () {
+        final state = PaginationState<String>.data(
+          items: ['a'],
+          pageInfo: const PageInfo.empty(),
+        );
+        expect(state.error, isNull);
+      });
+
+      test('PaginationError.hasMore with null pageInfo returns false', () {
+        final state = PaginationState<String>.error(Exception('error'));
+        expect(state.hasMore, isFalse);
+      });
+
+      test('PaginationError.hasMore with pageInfo uses hasNextPage', () {
+        final state = PaginationState<String>.error(
+          Exception('error'),
+          pageInfo: const PageInfo(hasNextPage: true, hasPreviousPage: false),
+        );
+        expect(state.hasMore, isTrue);
+      });
+    });
+
     group('common properties', () {
       test('itemCount returns correct count', () {
         final state = PaginationState<String>.data(
@@ -405,6 +451,35 @@ void main() {
         expect(updated.hasMore, isTrue);
       });
 
+      test('data state copyWith updates pageInfo', () {
+        final state = PaginationState<String>.data(
+          items: ['a', 'b'],
+          pageInfo: const PageInfo(hasNextPage: true, hasPreviousPage: false),
+        ) as PaginationData<String>;
+
+        final newPageInfo = const PageInfo(
+          hasNextPage: false,
+          hasPreviousPage: true,
+        );
+        final updated = state.copyWith(pageInfo: newPageInfo);
+
+        expect(updated.pageInfo.hasNextPage, isFalse);
+        expect(updated.pageInfo.hasPreviousPage, isTrue);
+        expect(updated.items, equals(['a', 'b']));
+      });
+
+      test('data state copyWith with no changes returns equivalent state', () {
+        final state = PaginationState<String>.data(
+          items: ['a', 'b'],
+          pageInfo: const PageInfo(hasNextPage: true, hasPreviousPage: false),
+        ) as PaginationData<String>;
+
+        final updated = state.copyWith();
+
+        expect(updated.items, equals(state.items));
+        expect(updated.pageInfo, equals(state.pageInfo));
+      });
+
       test('error state copyWith updates error', () {
         final state = PaginationState<String>.error(
           Exception('old error'),
@@ -417,6 +492,49 @@ void main() {
 
         expect(updated.error.toString(), contains('new error'));
         expect(updated.items, equals(['a']));
+      });
+
+      test('error state copyWith updates previousItems', () {
+        final state = PaginationState<String>.error(
+          Exception('error'),
+          previousItems: ['a'],
+        ) as PaginationError<String>;
+
+        final updated = state.copyWith(previousItems: ['x', 'y', 'z']);
+
+        expect(updated.items, equals(['x', 'y', 'z']));
+        expect(updated.error.toString(), contains('error'));
+      });
+
+      test('error state copyWith updates pageInfo', () {
+        final state = PaginationState<String>.error(
+          Exception('error'),
+          previousItems: ['a'],
+          pageInfo: const PageInfo(hasNextPage: true, hasPreviousPage: false),
+        ) as PaginationError<String>;
+
+        final newPageInfo = const PageInfo(
+          hasNextPage: false,
+          hasPreviousPage: true,
+        );
+        final updated = state.copyWith(pageInfo: newPageInfo);
+
+        expect(updated.pageInfo!.hasNextPage, isFalse);
+        expect(updated.pageInfo!.hasPreviousPage, isTrue);
+      });
+
+      test('error state copyWith with no changes returns equivalent state', () {
+        final state = PaginationState<String>.error(
+          Exception('error'),
+          previousItems: ['a'],
+          pageInfo: const PageInfo(hasNextPage: true, hasPreviousPage: false),
+        ) as PaginationError<String>;
+
+        final updated = state.copyWith();
+
+        expect(updated.items, equals(state.items));
+        expect(updated.pageInfo, equals(state.pageInfo));
+        expect(updated.error.toString(), equals(state.error.toString()));
       });
     });
 

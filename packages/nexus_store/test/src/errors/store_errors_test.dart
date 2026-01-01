@@ -575,4 +575,223 @@ void main() {
       expect(error.stackTrace, equals(stackTrace));
     });
   });
+
+  // ============================================================================
+  // Pool Error Types
+  // ============================================================================
+
+  group('PoolError', () {
+    test('should be a sealed class with correct subclasses', () {
+      expect(
+        const PoolNotInitializedError(message: 'test'),
+        isA<PoolError>(),
+      );
+      expect(
+        const PoolDisposedError(message: 'test'),
+        isA<PoolError>(),
+      );
+      expect(
+        const PoolAcquireTimeoutError(message: 'test'),
+        isA<PoolError>(),
+      );
+      expect(
+        const PoolClosedError(message: 'test'),
+        isA<PoolError>(),
+      );
+      expect(
+        const PoolExhaustedError(message: 'test'),
+        isA<PoolError>(),
+      );
+      expect(
+        const PoolConnectionError(message: 'test'),
+        isA<PoolError>(),
+      );
+    });
+
+    test('should be a StoreError', () {
+      const error = PoolNotInitializedError(message: 'test');
+      expect(error, isA<StoreError>());
+    });
+
+    test('base errorName returns PoolError', () {
+      // PoolError is sealed, but we test via subclass casting
+      const PoolError error = PoolNotInitializedError(message: 'test');
+      // Subclass overrides errorName
+      expect(error.errorName, equals('PoolNotInitializedError'));
+    });
+  });
+
+  group('PoolNotInitializedError', () {
+    test('should have correct properties', () {
+      const error = PoolNotInitializedError(message: 'Pool not initialized');
+
+      expect(error.message, equals('Pool not initialized'));
+      expect(error.code, equals('POOL_NOT_INITIALIZED'));
+      expect(error.errorName, equals('PoolNotInitializedError'));
+    });
+
+    test('should not be retryable', () {
+      const error = PoolNotInitializedError(message: 'test');
+      expect(error.isRetryable, isFalse);
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original failure');
+      final stackTrace = StackTrace.current;
+      final error = PoolNotInitializedError(
+        message: 'Pool not initialized',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
+  });
+
+  group('PoolDisposedError', () {
+    test('should have correct properties', () {
+      const error = PoolDisposedError(message: 'Pool has been disposed');
+
+      expect(error.message, equals('Pool has been disposed'));
+      expect(error.code, equals('POOL_DISPOSED'));
+      expect(error.errorName, equals('PoolDisposedError'));
+    });
+
+    test('should not be retryable', () {
+      const error = PoolDisposedError(message: 'test');
+      expect(error.isRetryable, isFalse);
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original failure');
+      final stackTrace = StackTrace.current;
+      final error = PoolDisposedError(
+        message: 'Pool disposed',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
+  });
+
+  group('PoolAcquireTimeoutError', () {
+    test('should have correct properties', () {
+      const error = PoolAcquireTimeoutError(
+        message: 'Timed out acquiring connection',
+      );
+
+      expect(error.message, equals('Timed out acquiring connection'));
+      expect(error.code, equals('POOL_ACQUIRE_TIMEOUT'));
+      expect(error.errorName, equals('PoolAcquireTimeoutError'));
+    });
+
+    test('should be retryable', () {
+      const error = PoolAcquireTimeoutError(message: 'test');
+      expect(error.isRetryable, isTrue);
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original failure');
+      final stackTrace = StackTrace.current;
+      final error = PoolAcquireTimeoutError(
+        message: 'Timeout',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
+  });
+
+  group('PoolClosedError', () {
+    test('should have correct properties', () {
+      const error = PoolClosedError(message: 'Pool is closed');
+
+      expect(error.message, equals('Pool is closed'));
+      expect(error.code, equals('POOL_CLOSED'));
+      expect(error.errorName, equals('PoolClosedError'));
+    });
+
+    test('should not be retryable', () {
+      const error = PoolClosedError(message: 'test');
+      expect(error.isRetryable, isFalse);
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original failure');
+      final stackTrace = StackTrace.current;
+      final error = PoolClosedError(
+        message: 'Pool closed',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
+  });
+
+  group('PoolExhaustedError', () {
+    test('should have correct properties', () {
+      const error = PoolExhaustedError(
+        message: 'All connections in use',
+      );
+
+      expect(error.message, equals('All connections in use'));
+      expect(error.code, equals('POOL_EXHAUSTED'));
+      expect(error.errorName, equals('PoolExhaustedError'));
+    });
+
+    test('should be retryable', () {
+      const error = PoolExhaustedError(message: 'test');
+      expect(error.isRetryable, isTrue);
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original failure');
+      final stackTrace = StackTrace.current;
+      final error = PoolExhaustedError(
+        message: 'Pool exhausted',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
+  });
+
+  group('PoolConnectionError', () {
+    test('should have correct properties', () {
+      const error = PoolConnectionError(
+        message: 'Failed to create connection',
+      );
+
+      expect(error.message, equals('Failed to create connection'));
+      expect(error.code, equals('POOL_CONNECTION_ERROR'));
+      expect(error.errorName, equals('PoolConnectionError'));
+    });
+
+    test('should be retryable', () {
+      const error = PoolConnectionError(message: 'test');
+      expect(error.isRetryable, isTrue);
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original failure');
+      final stackTrace = StackTrace.current;
+      final error = PoolConnectionError(
+        message: 'Connection failed',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
+  });
 }

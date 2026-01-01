@@ -428,6 +428,37 @@ flutter test test/<test_file>.dart
 
 ## History
 
+- **2026-01-01**: Session 10 - Multi-package TDD coverage improvements
+  - **nexus_store_crdt_adapter** (87.2% → improved)
+    - Enhanced `test/error_handling_test.dart` (9 new tests)
+      - UNIQUE constraint violation → ValidationError
+      - FOREIGN KEY constraint violation → ValidationError
+      - Database locked → TransactionError
+      - SQLITE_BUSY → TransactionError
+      - No such table → StateError
+      - Unknown exception → SyncError
+      - Error with stackTrace propagation
+  - **nexus_store core** (89.8% → improved)
+    - Enhanced `test/src/errors/store_errors_test.dart` (21 new tests)
+      - PoolError sealed class verification
+      - PoolNotInitializedError properties, isRetryable, cause/stackTrace
+      - PoolDisposedError properties, isRetryable, cause/stackTrace
+      - PoolAcquireTimeoutError properties, isRetryable=true, cause/stackTrace
+      - PoolClosedError properties, isRetryable, cause/stackTrace
+      - PoolExhaustedError properties, isRetryable=true, cause/stackTrace
+      - PoolConnectionError properties, isRetryable=true, cause/stackTrace
+    - Enhanced `test/src/pagination/pagination_state_test.dart` (13 new tests)
+      - PaginationInitial.pageInfo returns null
+      - PaginationLoading.hasMore returns true
+      - PaginationLoading.pageInfo returns null
+      - PaginationLoadingMore.error returns null
+      - PaginationData.error returns null
+      - PaginationError.hasMore with null/with pageInfo
+      - PaginationData.copyWith edge cases (pageInfo, no changes)
+      - PaginationError.copyWith edge cases (previousItems, pageInfo, no changes)
+  - Total: 43 new tests added across 2 packages
+  - TDD methodology followed (test first approach)
+
 - **2026-01-01**: Session 9 - cancelChange/retryChange pending changes tests
   - **nexus_store_drift_adapter** (94.4% → improved)
     - Added `@visibleForTesting` getter for `pendingChangesManagerForTesting`
