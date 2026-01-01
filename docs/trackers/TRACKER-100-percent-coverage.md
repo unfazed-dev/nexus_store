@@ -11,7 +11,7 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 | P0 Critical | 3 | 474 | 3 (riverpod_generator ✅, supabase_adapter 🟡 74.7%, riverpod_binding ✅) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
 | P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store 🟡 89.8%, crdt_adapter 🟡 87.2%, bloc_binding 🟡 94.0%, drift_adapter ✅ 94.4%) |
-| P3-P4 Lower | 4 | 133 | 3 (entity_generator ✅ 100%, generator ✅ 100%, brick_adapter 🟡 90.9%, signals_binding 🟡 96.1%) |
+| P3-P4 Lower | 4 | 133 | 4 (entity_generator ✅ 100%, generator ✅ 100%, brick_adapter 🟡 90.9%, signals_binding ✅ 100%) |
 | **Total** | **13** | **1,415** | **9** |
 
 ---
@@ -289,9 +289,9 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ### P3-P4: Lower Priority (76-97% coverage)
 
-#### nexus_store_signals_binding (75.7% → 96.1%) 🟡 NEAR COMPLETE
+#### nexus_store_signals_binding (75.7% → 100%) ✅ COMPLETE
 **Path:** `packages/nexus_store_signals_binding`
-**Lines to cover:** 81 → ~13 remaining
+**Lines to cover:** 81 → **0 remaining (100%)**
 
 - [x] Create `test/nexus_signals_mixin_test.dart` (22 tests)
   - [x] createSignal - creates tracked signal
@@ -315,16 +315,19 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 - [x] Add store extension error handling tests (2 tests)
   - [x] toSignal silently ignores errors
   - [x] toItemSignal silently ignores errors
-- [ ] Remaining: state classes internal branches (~4%)
+- [x] Add remaining coverage tests (Session 6)
+  - [x] Non-identical equality tests for state classes
+  - [x] Dispose subscription cancellation tests for extension methods
+  - [x] Query parameter tests for toSignal/toStateSignal
 
 **Files:**
 - `lib/src/lifecycle/signal_scope.dart` (100% ✅)
 - `lib/src/signals/nexus_signal.dart` (100% ✅)
 - `lib/src/signals/nexus_list_signal.dart` (100% ✅)
 - `lib/src/computed/computed_utils.dart` (100% ✅)
-- `lib/src/extensions/store_signal_extension.dart` (90.9%)
-- `lib/src/state/nexus_signal_state.dart` (98.8%)
-- `lib/src/state/nexus_item_signal_state.dart` (91.2%)
+- `lib/src/extensions/store_signal_extension.dart` (100% ✅)
+- `lib/src/state/nexus_signal_state.dart` (100% ✅)
+- `lib/src/state/nexus_item_signal_state.dart` (100% ✅)
 
 ---
 
@@ -414,6 +417,19 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-01**: Session 6 - signals_binding 100% coverage achieved (+3.9%)
+  - **nexus_store_signals_binding** (96.1% → 100%, +3.9%)
+    - Enhanced `test/state_test.dart` (3 new tests)
+      - Non-identical equality tests for NexusSignalInitial, NexusItemSignalInitial, NexusItemSignalNotFound
+      - Tests create non-const instances to cover the `other is ... && runtimeType == other.runtimeType` branch
+    - Enhanced `test/signal_extension_test.dart` (6 new tests)
+      - dispose cancels subscription tests for toSignal, toItemSignal, toStateSignal, toItemStateSignal
+      - Query parameter tests for toSignal and toStateSignal
+    - Per-file improvements:
+      - state/nexus_item_signal_state.dart: 91.2% → 100%
+      - state/nexus_signal_state.dart: 98.8% → 100%
+      - extensions/store_signal_extension.dart: 90.9% → 100%
 
 - **2026-01-01**: Session 5 - signals_binding coverage improvement (+20.4%)
   - **nexus_store_signals_binding** (75.7% → 96.1%, +20.4%)

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:nexus_store/nexus_store.dart';
 import 'package:nexus_store_signals_binding/src/extensions/store_signal_extension.dart';
 import 'package:nexus_store_signals_binding/src/state/nexus_signal_state.dart';
 import 'package:nexus_store_signals_binding/src/state/nexus_item_signal_state.dart';
@@ -81,6 +82,31 @@ void main() {
         controller.close();
       });
 
+      test('dispose cancels subscription', () async {
+        final controller = StreamController<List<TestUser>>.broadcast();
+        when(() => mockStore.watchAll(query: any(named: 'query')))
+            .thenAnswer((_) => controller.stream);
+
+        final signal = mockStore.toSignal();
+
+        // First emit some data
+        controller.add([testUser1]);
+        await Future<void>.delayed(Duration.zero);
+        expect(signal.value, equals([testUser1]));
+
+        // Dispose the signal
+        signal.dispose();
+
+        // Add more data - should not be received
+        controller.add([testUser1, testUser2]);
+        await Future<void>.delayed(Duration.zero);
+
+        // Value should still be the old value since subscription was cancelled
+        expect(signal.value, equals([testUser1]));
+
+        controller.close();
+      });
+
       test('silently ignores stream errors', () async {
         final controller = StreamController<List<TestUser>>.broadcast();
         when(() => mockStore.watchAll(query: any(named: 'query')))
@@ -93,6 +119,18 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         // Signal should remain empty (no crash)
+        expect(signal.value, isEmpty);
+
+        controller.close();
+      });
+
+      test('accepts query parameter', () async {
+        final controller = StreamController<List<TestUser>>.broadcast();
+        when(() => mockStore.watchAll(query: any(named: 'query')))
+            .thenAnswer((_) => controller.stream);
+
+        final signal = mockStore.toSignal(query: const Query<TestUser>());
+
         expect(signal.value, isEmpty);
 
         controller.close();
@@ -152,6 +190,30 @@ void main() {
 
         // Signal should remain null (no crash)
         expect(signal.value, isNull);
+
+        controller.close();
+      });
+
+      test('dispose cancels subscription', () async {
+        final controller = StreamController<TestUser?>.broadcast();
+        when(() => mockStore.watch(any())).thenAnswer((_) => controller.stream);
+
+        final signal = mockStore.toItemSignal('1');
+
+        // First emit some data
+        controller.add(testUser1);
+        await Future<void>.delayed(Duration.zero);
+        expect(signal.value, equals(testUser1));
+
+        // Dispose the signal
+        signal.dispose();
+
+        // Add more data - should not be received
+        controller.add(testUser2);
+        await Future<void>.delayed(Duration.zero);
+
+        // Value should still be the old value since subscription was cancelled
+        expect(signal.value, equals(testUser1));
 
         controller.close();
       });
@@ -227,6 +289,44 @@ void main() {
         expect(signal.value, isA<NexusSignalError<TestUser>>());
         final errorState = signal.value as NexusSignalError<TestUser>;
         expect(errorState.previousData, equals(testUsers));
+
+        controller.close();
+      });
+
+      test('accepts query parameter', () async {
+        final controller = StreamController<List<TestUser>>.broadcast();
+        when(() => mockStore.watchAll(query: any(named: 'query')))
+            .thenAnswer((_) => controller.stream);
+
+        final signal = mockStore.toStateSignal(query: const Query<TestUser>());
+
+        expect(signal.value, isA<NexusSignalInitial<TestUser>>());
+
+        controller.close();
+      });
+
+      test('dispose cancels subscription', () async {
+        final controller = StreamController<List<TestUser>>.broadcast();
+        when(() => mockStore.watchAll(query: any(named: 'query')))
+            .thenAnswer((_) => controller.stream);
+
+        final signal = mockStore.toStateSignal();
+
+        // First emit some data
+        controller.add([testUser1]);
+        await Future<void>.delayed(Duration.zero);
+        expect(signal.value, isA<NexusSignalData<TestUser>>());
+
+        // Dispose the signal
+        signal.dispose();
+
+        // Add more data - should not be received
+        controller.add([testUser1, testUser2]);
+        await Future<void>.delayed(Duration.zero);
+
+        // Value should still be the old value since subscription was cancelled
+        final state = signal.value as NexusSignalData<TestUser>;
+        expect(state.data, equals([testUser1]));
 
         controller.close();
       });
@@ -306,6 +406,31 @@ void main() {
         expect(signal.value, isA<NexusItemSignalError<TestUser>>());
         final errorState = signal.value as NexusItemSignalError<TestUser>;
         expect(errorState.previousData, equals(testUser1));
+
+        controller.close();
+      });
+
+      test('dispose cancels subscription', () async {
+        final controller = StreamController<TestUser?>.broadcast();
+        when(() => mockStore.watch(any())).thenAnswer((_) => controller.stream);
+
+        final signal = mockStore.toItemStateSignal('1');
+
+        // First emit some data
+        controller.add(testUser1);
+        await Future<void>.delayed(Duration.zero);
+        expect(signal.value, isA<NexusItemSignalData<TestUser>>());
+
+        // Dispose the signal
+        signal.dispose();
+
+        // Add more data - should not be received
+        controller.add(testUser2);
+        await Future<void>.delayed(Duration.zero);
+
+        // Value should still be the old value since subscription was cancelled
+        final state = signal.value as NexusItemSignalData<TestUser>;
+        expect(state.data, equals(testUser1));
 
         controller.close();
       });

@@ -60,6 +60,18 @@ void main() {
         expect(state1.hashCode, equals(state2.hashCode));
       });
 
+      test('equality compares non-identical instances', () {
+        // Create non-const instances to fully test the == operator
+        // ignore: prefer_const_constructors
+        final state1 = NexusSignalInitial<TestUser>();
+        // ignore: prefer_const_constructors
+        final state2 = NexusSignalInitial<TestUser>();
+
+        // These are not identical but should be equal
+        expect(identical(state1, state2), isFalse);
+        expect(state1, equals(state2));
+      });
+
       test('toString returns correct value', () {
         const state = NexusSignalInitial<TestUser>();
 
@@ -368,6 +380,16 @@ void main() {
         expect(state1, equals(state2));
         expect(state1.hashCode, equals(state2.hashCode));
       });
+
+      test('equality compares non-identical instances', () {
+        // ignore: prefer_const_constructors
+        final state1 = NexusItemSignalInitial<TestUser>();
+        // ignore: prefer_const_constructors
+        final state2 = NexusItemSignalInitial<TestUser>();
+
+        expect(identical(state1, state2), isFalse);
+        expect(state1, equals(state2));
+      });
     });
 
     group('NexusItemSignalLoading', () {
@@ -377,7 +399,10 @@ void main() {
         expect(state.dataOrNull, isNull);
         expect(state.isLoading, isTrue);
         expect(state.hasData, isFalse);
+        expect(state.hasError, isFalse);
         expect(state.isNotFound, isFalse);
+        expect(state.error, isNull);
+        expect(state.stackTrace, isNull);
       });
 
       test('has correct properties with previous data', () {
@@ -453,6 +478,8 @@ void main() {
         expect(state.hasData, isTrue);
         expect(state.hasError, isFalse);
         expect(state.isNotFound, isFalse);
+        expect(state.error, isNull);
+        expect(state.stackTrace, isNull);
         expect(state.data, equals(testUser1));
       });
 
@@ -520,6 +547,8 @@ void main() {
         expect(state.hasData, isFalse);
         expect(state.hasError, isFalse);
         expect(state.isNotFound, isTrue);
+        expect(state.error, isNull);
+        expect(state.stackTrace, isNull);
       });
 
       test('when() returns notFound handler result', () {
@@ -572,6 +601,16 @@ void main() {
 
         expect(state1, equals(state2));
         expect(state1.hashCode, equals(state2.hashCode));
+      });
+
+      test('equality compares non-identical instances', () {
+        // ignore: prefer_const_constructors
+        final state1 = NexusItemSignalNotFound<TestUser>();
+        // ignore: prefer_const_constructors
+        final state2 = NexusItemSignalNotFound<TestUser>();
+
+        expect(identical(state1, state2), isFalse);
+        expect(state1, equals(state2));
       });
     });
 
