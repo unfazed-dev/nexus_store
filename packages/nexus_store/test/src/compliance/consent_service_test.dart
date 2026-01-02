@@ -91,6 +91,49 @@ void main() {
       expect(json['granted'], isTrue);
       expect(json['source'], equals('web'));
     });
+
+    test('deserializes from JSON with required fields', () {
+      final json = {
+        'granted': true,
+      };
+
+      final status = ConsentStatus.fromJson(json);
+
+      expect(status.granted, isTrue);
+      expect(status.grantedAt, isNull);
+      expect(status.withdrawnAt, isNull);
+      expect(status.source, isNull);
+    });
+
+    test('deserializes from JSON with all fields', () {
+      final json = {
+        'granted': true,
+        'grantedAt': '2024-01-15T00:00:00.000Z',
+        'withdrawnAt': '2024-02-01T12:00:00.000Z',
+        'source': 'signup-form',
+      };
+
+      final status = ConsentStatus.fromJson(json);
+
+      expect(status.granted, isTrue);
+      expect(status.grantedAt, equals(DateTime.utc(2024, 1, 15)));
+      expect(status.withdrawnAt, equals(DateTime.utc(2024, 2, 1, 12)));
+      expect(status.source, equals('signup-form'));
+    });
+
+    test('round-trips through JSON', () {
+      final original = ConsentStatus(
+        granted: false,
+        grantedAt: DateTime.utc(2024, 1, 15),
+        withdrawnAt: DateTime.utc(2024, 2, 1),
+        source: 'settings-page',
+      );
+
+      final json = original.toJson();
+      final restored = ConsentStatus.fromJson(json);
+
+      expect(restored, equals(original));
+    });
   });
 
   group('ConsentEvent', () {
@@ -133,6 +176,55 @@ void main() {
 
       expect(json['purpose'], equals('marketing'));
       expect(json['action'], equals('granted'));
+    });
+
+    test('deserializes from JSON with required fields', () {
+      final json = {
+        'purpose': 'marketing',
+        'action': 'granted',
+        'timestamp': '2024-01-15T00:00:00.000Z',
+      };
+
+      final event = ConsentEvent.fromJson(json);
+
+      expect(event.purpose, equals('marketing'));
+      expect(event.action, equals(ConsentAction.granted));
+      expect(event.timestamp, equals(DateTime.utc(2024, 1, 15)));
+      expect(event.source, isNull);
+      expect(event.ipAddress, isNull);
+    });
+
+    test('deserializes from JSON with all fields', () {
+      final json = {
+        'purpose': 'analytics',
+        'action': 'withdrawn',
+        'timestamp': '2024-01-15T14:30:00.000Z',
+        'source': 'settings-page',
+        'ipAddress': '192.168.1.1',
+      };
+
+      final event = ConsentEvent.fromJson(json);
+
+      expect(event.purpose, equals('analytics'));
+      expect(event.action, equals(ConsentAction.withdrawn));
+      expect(event.timestamp, equals(DateTime.utc(2024, 1, 15, 14, 30)));
+      expect(event.source, equals('settings-page'));
+      expect(event.ipAddress, equals('192.168.1.1'));
+    });
+
+    test('round-trips through JSON', () {
+      final original = ConsentEvent(
+        purpose: 'personalization',
+        action: ConsentAction.granted,
+        timestamp: DateTime.utc(2024, 1, 15, 10, 30),
+        source: 'mobile-app',
+        ipAddress: '10.0.0.1',
+      );
+
+      final json = original.toJson();
+      final restored = ConsentEvent.fromJson(json);
+
+      expect(restored, equals(original));
     });
   });
 
@@ -197,6 +289,81 @@ void main() {
 
       expect(json['userId'], equals('user-456'));
       expect(json['purposes'], isNotEmpty);
+    });
+
+    test('deserializes from JSON with required fields', () {
+      final json = {
+        'userId': 'user-123',
+        'purposes': {
+          'marketing': {'granted': true},
+        },
+        'history': <Map<String, dynamic>>[],
+        'lastUpdated': '2024-01-15T00:00:00.000Z',
+      };
+
+      final record = ConsentRecord.fromJson(json);
+
+      expect(record.userId, equals('user-123'));
+      expect(record.purposes['marketing']?.granted, isTrue);
+      expect(record.history, isEmpty);
+      expect(record.lastUpdated, equals(DateTime.utc(2024, 1, 15)));
+    });
+
+    test('deserializes from JSON with nested purposes', () {
+      final json = {
+        'userId': 'user-456',
+        'purposes': {
+          'marketing': {
+            'granted': true,
+            'grantedAt': '2024-01-15T10:00:00.000Z',
+            'source': 'signup-form',
+          },
+          'analytics': {
+            'granted': false,
+            'withdrawnAt': '2024-02-01T00:00:00.000Z',
+          },
+        },
+        'history': <Map<String, dynamic>>[],
+        'lastUpdated': '2024-02-01T00:00:00.000Z',
+      };
+
+      final record = ConsentRecord.fromJson(json);
+
+      expect(record.purposes.length, equals(2));
+      expect(record.purposes['marketing']?.granted, isTrue);
+      expect(record.purposes['marketing']?.source, equals('signup-form'));
+      expect(record.purposes['analytics']?.granted, isFalse);
+    });
+
+    test('deserializes from JSON with history', () {
+      final json = {
+        'userId': 'user-789',
+        'purposes': <String, dynamic>{},
+        'history': [
+          {
+            'purpose': 'marketing',
+            'action': 'granted',
+            'timestamp': '2024-01-15T10:00:00.000Z',
+            'source': 'signup',
+          },
+          {
+            'purpose': 'marketing',
+            'action': 'withdrawn',
+            'timestamp': '2024-02-01T14:30:00.000Z',
+            'ipAddress': '192.168.1.1',
+          },
+        ],
+        'lastUpdated': '2024-02-01T14:30:00.000Z',
+      };
+
+      final record = ConsentRecord.fromJson(json);
+
+      expect(record.history.length, equals(2));
+      expect(record.history[0].purpose, equals('marketing'));
+      expect(record.history[0].action, equals(ConsentAction.granted));
+      expect(record.history[0].source, equals('signup'));
+      expect(record.history[1].action, equals(ConsentAction.withdrawn));
+      expect(record.history[1].ipAddress, equals('192.168.1.1'));
     });
   });
 

@@ -3,6 +3,7 @@
 /// These annotations are used with `build_runner` and the
 /// `nexus_store_entity_generator` package to generate type-safe
 /// field accessor classes.
+// coverage:ignore-file
 library;
 
 /// Marks a class for entity field code generation.

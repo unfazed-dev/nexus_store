@@ -231,6 +231,90 @@ void main() {
       expect(json['deletedCount'], equals(2));
       expect(json['archivedCount'], equals(3));
     });
+
+    test('deserializes from JSON with all fields', () {
+      final json = {
+        'processedAt': '2024-01-15T10:30:00.000Z',
+        'nullifiedCount': 10,
+        'anonymizedCount': 5,
+        'deletedCount': 2,
+        'archivedCount': 3,
+        'errors': <Map<String, dynamic>>[],
+      };
+
+      final result = RetentionResult.fromJson(json);
+
+      expect(result.processedAt, equals(DateTime.utc(2024, 1, 15, 10, 30)));
+      expect(result.nullifiedCount, equals(10));
+      expect(result.anonymizedCount, equals(5));
+      expect(result.deletedCount, equals(2));
+      expect(result.archivedCount, equals(3));
+      expect(result.errors, isEmpty);
+      expect(result.totalProcessed, equals(20));
+      expect(result.hasErrors, isFalse);
+    });
+
+    test('deserializes from JSON with errors', () {
+      final json = {
+        'processedAt': '2024-01-15T14:00:00.000Z',
+        'nullifiedCount': 5,
+        'anonymizedCount': 2,
+        'deletedCount': 0,
+        'archivedCount': 1,
+        'errors': [
+          {
+            'entityId': 'user-123',
+            'field': 'email',
+            'message': 'Failed to anonymize',
+          },
+          {
+            'entityId': 'user-456',
+            'field': 'ipAddress',
+            'message': 'Record locked',
+          },
+        ],
+      };
+
+      final result = RetentionResult.fromJson(json);
+
+      expect(result.errors.length, equals(2));
+      expect(result.errors[0].entityId, equals('user-123'));
+      expect(result.errors[0].field, equals('email'));
+      expect(result.errors[0].message, equals('Failed to anonymize'));
+      expect(result.errors[1].entityId, equals('user-456'));
+      expect(result.hasErrors, isTrue);
+    });
+
+    test('round-trips through JSON', () {
+      final original = RetentionResult(
+        processedAt: DateTime.utc(2024, 1, 15, 12, 0),
+        nullifiedCount: 100,
+        anonymizedCount: 50,
+        deletedCount: 25,
+        archivedCount: 25,
+        errors: [
+          RetentionError(
+            entityId: 'user-999',
+            field: 'ssn',
+            message: 'Compliance hold',
+          ),
+        ],
+      );
+
+      final json = original.toJson();
+      // Note: toJson doesn't recursively convert nested objects
+      // So we manually convert errors for round-trip test
+      json['errors'] =
+          original.errors.map((e) => e.toJson()).toList();
+      final restored = RetentionResult.fromJson(json);
+
+      expect(restored.processedAt, equals(original.processedAt));
+      expect(restored.nullifiedCount, equals(original.nullifiedCount));
+      expect(restored.anonymizedCount, equals(original.anonymizedCount));
+      expect(restored.deletedCount, equals(original.deletedCount));
+      expect(restored.archivedCount, equals(original.archivedCount));
+      expect(restored.errors.length, equals(original.errors.length));
+    });
   });
 
   group('RetentionError', () {
@@ -274,6 +358,33 @@ void main() {
       expect(json['entityId'], equals('user-789'));
       expect(json['field'], equals('email'));
       expect(json['message'], equals('Anonymization failed'));
+    });
+
+    test('deserializes from JSON', () {
+      final json = {
+        'entityId': 'user-123',
+        'field': 'ipAddress',
+        'message': 'Record locked for legal hold',
+      };
+
+      final error = RetentionError.fromJson(json);
+
+      expect(error.entityId, equals('user-123'));
+      expect(error.field, equals('ipAddress'));
+      expect(error.message, equals('Record locked for legal hold'));
+    });
+
+    test('round-trips through JSON', () {
+      final original = RetentionError(
+        entityId: 'user-888',
+        field: 'ssn',
+        message: 'Compliance requirement prevents deletion',
+      );
+
+      final json = original.toJson();
+      final restored = RetentionError.fromJson(json);
+
+      expect(restored, equals(original));
     });
   });
 }

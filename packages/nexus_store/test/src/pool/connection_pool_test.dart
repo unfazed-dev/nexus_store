@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:nexus_store/src/pool/connection_health_check.dart';
 import 'package:nexus_store/src/pool/connection_pool.dart';
 import 'package:nexus_store/src/pool/connection_pool_config.dart';
 import 'package:nexus_store/src/pool/pool_errors.dart';
@@ -10,6 +11,19 @@ import 'package:test/test.dart';
 import '../../fixtures/fake_connection.dart';
 import '../../fixtures/fake_connection_factory.dart';
 import 'connection_health_check_test.dart';
+
+/// A health check that throws an exception for testing error handling.
+class ThrowingHealthCheck implements ConnectionHealthCheck<FakeConnection> {
+  @override
+  Future<bool> isHealthy(FakeConnection connection) async {
+    throw Exception('Health check failed with exception');
+  }
+
+  @override
+  Future<bool> reset(FakeConnection connection) async {
+    return true;
+  }
+}
 
 void main() {
   group('ConnectionPool', () {
@@ -575,6 +589,31 @@ void main() {
 
         expect(pool.currentMetrics.totalConnectionsCreated, equals(3));
       });
+
+      test('should limit acquire time history to 100 entries', () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          config: const ConnectionPoolConfig(
+            minConnections: 0,
+            maxConnections: 200,
+          ),
+        );
+        await pool.initialize();
+
+        // Perform more than 100 acquires to trigger the removeAt(0) path
+        final connections = <PooledConnection<FakeConnection>>[];
+        for (var i = 0; i < 105; i++) {
+          connections.add(await pool.acquire());
+        }
+
+        // Release all connections
+        for (final conn in connections) {
+          pool.release(conn);
+        }
+
+        // Average acquire time should still be calculated correctly
+        expect(pool.currentMetrics.averageAcquireTime, isNotNull);
+      });
     });
 
     group('config access', () {
@@ -747,6 +786,27 @@ void main() {
 
         // Reset should have been called
         expect(healthCheck.resetCallCount, greaterThan(0));
+      });
+
+      test('should destroy connection when health check throws exception',
+          () async {
+        final throwingHealthCheck = ThrowingHealthCheck();
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          healthCheck: throwingHealthCheck,
+          config: ConnectionPoolConfig(
+            minConnections: 1,
+            healthCheckInterval: const Duration(milliseconds: 50),
+          ),
+        );
+        await pool.initialize();
+        final initialDestroyCount = factory.destroyCount;
+
+        // Wait for health check to run and throw
+        await Future.delayed(const Duration(milliseconds: 150));
+
+        // Connection should have been destroyed due to exception
+        expect(factory.destroyCount, greaterThan(initialDestroyCount));
       });
     });
 

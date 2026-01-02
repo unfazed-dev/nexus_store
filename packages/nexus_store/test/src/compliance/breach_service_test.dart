@@ -76,6 +76,51 @@ void main() {
       expect(json['action'], equals('detected'));
       expect(json['actor'], equals('system'));
     });
+
+    test('deserializes from JSON with required fields', () {
+      final json = {
+        'timestamp': '2024-01-15T00:00:00.000Z',
+        'action': 'detected',
+        'actor': 'security-team',
+      };
+
+      final event = BreachEvent.fromJson(json);
+
+      expect(event.timestamp, equals(DateTime.utc(2024, 1, 15)));
+      expect(event.action, equals('detected'));
+      expect(event.actor, equals('security-team'));
+      expect(event.notes, isNull);
+    });
+
+    test('deserializes from JSON with all fields', () {
+      final json = {
+        'timestamp': '2024-01-15T10:30:00.000Z',
+        'action': 'contained',
+        'actor': 'incident-response',
+        'notes': 'Access revoked for compromised accounts',
+      };
+
+      final event = BreachEvent.fromJson(json);
+
+      expect(event.timestamp, equals(DateTime.utc(2024, 1, 15, 10, 30)));
+      expect(event.action, equals('contained'));
+      expect(event.actor, equals('incident-response'));
+      expect(event.notes, equals('Access revoked for compromised accounts'));
+    });
+
+    test('round-trips through JSON', () {
+      final original = BreachEvent(
+        timestamp: DateTime.utc(2024, 1, 15, 12, 45, 30),
+        action: 'notified',
+        actor: 'compliance-team',
+        notes: 'Authorities notified within 72 hours',
+      );
+
+      final json = original.toJson();
+      final restored = BreachEvent.fromJson(json);
+
+      expect(restored, equals(original));
+    });
   });
 
   group('AffectedUserInfo', () {
@@ -129,6 +174,65 @@ void main() {
 
       expect(json['userId'], equals('user-789'));
       expect(json['notified'], isTrue);
+    });
+
+    test('deserializes from JSON with required fields', () {
+      final json = {
+        'userId': 'user-123',
+        'affectedFields': ['email', 'password'],
+      };
+
+      final info = AffectedUserInfo.fromJson(json);
+
+      expect(info.userId, equals('user-123'));
+      expect(info.affectedFields, containsAll(['email', 'password']));
+      expect(info.accessedAt, isNull);
+      expect(info.notified, isFalse);
+    });
+
+    test('deserializes from JSON with all fields', () {
+      final json = {
+        'userId': 'user-456',
+        'affectedFields': ['name', 'address', 'phone'],
+        'accessedAt': '2024-01-15T14:30:00.000Z',
+        'notified': true,
+      };
+
+      final info = AffectedUserInfo.fromJson(json);
+
+      expect(info.userId, equals('user-456'));
+      expect(info.affectedFields, containsAll(['name', 'address', 'phone']));
+      expect(info.accessedAt, equals(DateTime.utc(2024, 1, 15, 14, 30)));
+      expect(info.notified, isTrue);
+    });
+
+    test('deserializes from JSON with notified defaulting to false', () {
+      final json = {
+        'userId': 'user-789',
+        'affectedFields': ['ssn'],
+        // notified is omitted, should default to false
+      };
+
+      final info = AffectedUserInfo.fromJson(json);
+
+      expect(info.notified, isFalse);
+    });
+
+    test('round-trips through JSON', () {
+      final original = AffectedUserInfo(
+        userId: 'user-999',
+        affectedFields: {'email', 'password', 'ssn'},
+        accessedAt: DateTime.utc(2024, 1, 15, 10, 0),
+        notified: true,
+      );
+
+      final json = original.toJson();
+      final restored = AffectedUserInfo.fromJson(json);
+
+      expect(restored.userId, equals(original.userId));
+      expect(restored.affectedFields, equals(original.affectedFields));
+      expect(restored.accessedAt, equals(original.accessedAt));
+      expect(restored.notified, equals(original.notified));
     });
   });
 
@@ -205,6 +309,92 @@ void main() {
 
       expect(json['id'], equals('breach-003'));
       expect(json['description'], equals('Breach occurred'));
+    });
+
+    test('deserializes from JSON with required fields', () {
+      final json = {
+        'id': 'breach-001',
+        'detectedAt': '2024-01-15T00:00:00.000Z',
+        'affectedUsers': ['user-1', 'user-2'],
+        'affectedDataCategories': ['email', 'password'],
+        'description': 'Unauthorized access detected',
+      };
+
+      final report = BreachReport.fromJson(json);
+
+      expect(report.id, equals('breach-001'));
+      expect(report.detectedAt, equals(DateTime.utc(2024, 1, 15)));
+      expect(report.affectedUsers, containsAll(['user-1', 'user-2']));
+      expect(report.affectedDataCategories, containsAll(['email', 'password']));
+      expect(report.description, equals('Unauthorized access detected'));
+      expect(report.timeline, isEmpty);
+    });
+
+    test('deserializes from JSON with timeline', () {
+      final json = {
+        'id': 'breach-002',
+        'detectedAt': '2024-01-15T10:00:00.000Z',
+        'affectedUsers': ['user-1'],
+        'affectedDataCategories': ['name'],
+        'description': 'Data leak',
+        'timeline': [
+          {
+            'timestamp': '2024-01-15T10:00:00.000Z',
+            'action': 'detected',
+            'actor': 'monitoring-system',
+          },
+          {
+            'timestamp': '2024-01-15T10:30:00.000Z',
+            'action': 'contained',
+            'actor': 'security-team',
+            'notes': 'Blocked malicious IP',
+          },
+        ],
+      };
+
+      final report = BreachReport.fromJson(json);
+
+      expect(report.timeline.length, equals(2));
+      expect(report.timeline[0].action, equals('detected'));
+      expect(report.timeline[0].actor, equals('monitoring-system'));
+      expect(report.timeline[1].action, equals('contained'));
+      expect(report.timeline[1].notes, equals('Blocked malicious IP'));
+    });
+
+    test('deserializes from JSON with null timeline defaults to empty', () {
+      final json = {
+        'id': 'breach-003',
+        'detectedAt': '2024-01-15T00:00:00.000Z',
+        'affectedUsers': <String>[],
+        'affectedDataCategories': <String>[],
+        'description': 'Empty breach',
+        // timeline is omitted
+      };
+
+      final report = BreachReport.fromJson(json);
+
+      expect(report.timeline, isEmpty);
+    });
+
+    test('round-trips through JSON without timeline', () {
+      final original = BreachReport(
+        id: 'breach-round-trip',
+        detectedAt: DateTime.utc(2024, 1, 15, 12, 0),
+        affectedUsers: ['user-1', 'user-2', 'user-3'],
+        affectedDataCategories: {'email', 'password', 'ssn'},
+        description: 'Complete breach report for round-trip test',
+      );
+
+      final json = original.toJson();
+      final restored = BreachReport.fromJson(json);
+
+      expect(restored.id, equals(original.id));
+      expect(restored.detectedAt, equals(original.detectedAt));
+      expect(restored.affectedUsers, equals(original.affectedUsers));
+      expect(restored.affectedDataCategories,
+          equals(original.affectedDataCategories));
+      expect(restored.description, equals(original.description));
+      expect(restored.timeline, isEmpty);
     });
   });
 

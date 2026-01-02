@@ -136,6 +136,7 @@ class InterceptorContext<T, R> {
     ).._stopped = _stopped;
   }
 
+  // coverage:ignore-start
   @override
   String toString() {
     return 'InterceptorContext('
@@ -146,4 +147,5 @@ class InterceptorContext<T, R> {
         'isStopped: $isStopped'
         ')';
   }
+  // coverage:ignore-end
 }

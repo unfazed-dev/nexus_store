@@ -195,6 +195,78 @@ void main() {
       expect(config.breachSupport, isTrue);
     });
 
+    test('deserializes from JSON with Duration and webhooks', () {
+      final json = {
+        'enabled': true,
+        'pseudonymizeFields': <String>[],
+        'retainedFields': <String>[],
+        'retentionPolicies': <Map<String, dynamic>>[],
+        'autoProcessRetention': true,
+        'retentionCheckInterval': 86400000000, // 24 hours in microseconds
+        'consentTracking': true,
+        'requiredPurposes': ['marketing', 'analytics'],
+        'breachSupport': true,
+        'notificationWebhooks': [
+          'https://example.com/webhook1',
+          'https://example.com/webhook2',
+        ],
+      };
+
+      final config = GdprConfig.fromJson(json);
+
+      expect(config.retentionCheckInterval,
+          equals(const Duration(hours: 24)));
+      expect(config.notificationWebhooks?.length, equals(2));
+      expect(config.notificationWebhooks,
+          contains('https://example.com/webhook1'));
+      expect(config.notificationWebhooks,
+          contains('https://example.com/webhook2'));
+      expect(config.requiredPurposes, containsAll(['marketing', 'analytics']));
+    });
+
+    test('round-trips through JSON', () {
+      final original = GdprConfig(
+        enabled: true,
+        pseudonymizeFields: const ['email', 'phone'],
+        retainedFields: const ['id'],
+        retentionPolicies: [
+          RetentionPolicy(
+            field: 'loginHistory',
+            duration: const Duration(days: 90),
+            action: RetentionAction.deleteRecord,
+          ),
+        ],
+        autoProcessRetention: true,
+        retentionCheckInterval: const Duration(hours: 12),
+        consentTracking: true,
+        requiredPurposes: const {'marketing'},
+        breachSupport: true,
+        notificationWebhooks: const ['https://notify.example.com'],
+      );
+
+      final json = original.toJson();
+      // Manually convert nested RetentionPolicy for round-trip
+      json['retentionPolicies'] = original.retentionPolicies
+          .map((p) => p.toJson())
+          .toList();
+      final restored = GdprConfig.fromJson(json);
+
+      expect(restored.enabled, equals(original.enabled));
+      expect(restored.pseudonymizeFields, equals(original.pseudonymizeFields));
+      expect(restored.retainedFields, equals(original.retainedFields));
+      expect(restored.retentionPolicies.length,
+          equals(original.retentionPolicies.length));
+      expect(restored.autoProcessRetention,
+          equals(original.autoProcessRetention));
+      expect(restored.retentionCheckInterval,
+          equals(original.retentionCheckInterval));
+      expect(restored.consentTracking, equals(original.consentTracking));
+      expect(restored.requiredPurposes, equals(original.requiredPurposes));
+      expect(restored.breachSupport, equals(original.breachSupport));
+      expect(restored.notificationWebhooks,
+          equals(original.notificationWebhooks));
+    });
+
     group('disabled mode', () {
       test('can be disabled', () {
         const config = GdprConfig(enabled: false);

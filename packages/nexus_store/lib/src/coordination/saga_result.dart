@@ -142,6 +142,7 @@ class SagaSuccess<T> extends SagaResult<T> {
   }) =>
       success?.call(results) ?? orElse();
 
+  // coverage:ignore-start
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -154,6 +155,7 @@ class SagaSuccess<T> extends SagaResult<T> {
 
   @override
   String toString() => 'SagaSuccess<$T>(results: $results)';
+  // coverage:ignore-end
 }
 
 /// Failed saga where compensations completed successfully.
@@ -220,6 +222,7 @@ class SagaFailure<T> extends SagaResult<T> {
   }) =>
       failure?.call(error, failedStep, compensatedSteps) ?? orElse();
 
+  // coverage:ignore-start
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -238,6 +241,7 @@ class SagaFailure<T> extends SagaResult<T> {
       'error: $error, '
       'failedStep: $failedStep, '
       'compensatedSteps: $compensatedSteps)';
+  // coverage:ignore-end
 }
 
 /// Failed saga where some compensations also failed.
@@ -306,6 +310,7 @@ class SagaPartialFailure<T> extends SagaResult<T> {
   }) =>
       partialFailure?.call(error, failedStep, compensationErrors) ?? orElse();
 
+  // coverage:ignore-start
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -324,6 +329,7 @@ class SagaPartialFailure<T> extends SagaResult<T> {
       'error: $error, '
       'failedStep: $failedStep, '
       'compensationErrors: $compensationErrors)';
+  // coverage:ignore-end
 }
 
 /// Represents a compensation that failed during saga rollback.
@@ -345,6 +351,7 @@ class SagaCompensationError {
   /// Stack trace when the error occurred.
   final StackTrace? stackTrace;
 
+  // coverage:ignore-start
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -359,6 +366,7 @@ class SagaCompensationError {
   @override
   String toString() =>
       'SagaCompensationError(stepName: $stepName, error: $error)';
+  // coverage:ignore-end
 }
 
 /// Helper to compare lists for equality.

@@ -1394,7 +1394,7 @@ void main() {
         ),
       ).thenAnswer((_) async => [
             {'id': '1', 'name': 'Filtered'},
-          ]);
+          ],);
 
       backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
         wrapper: mockClientWrapper,

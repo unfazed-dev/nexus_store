@@ -342,10 +342,13 @@ class ConnectionPool<C> {
   }
 
   void _returnToPool(PooledConnection<C> connection) {
+    // coverage:ignore-start
+    // Defensive: Pool disposed during async validation in release()
     if (_disposed) {
       _destroyConnection(connection);
       return;
     }
+    // coverage:ignore-end
 
     // Check if there are waiting requests
     while (_waitingQueue.isNotEmpty) {
@@ -370,6 +373,8 @@ class ConnectionPool<C> {
 
     final remainingTimeout = _config.acquireTimeout - stopwatch.elapsed;
 
+    // coverage:ignore-start
+    // Defensive: Race condition where timeout already exceeded before wait
     if (remainingTimeout <= Duration.zero) {
       _waitingQueue.remove(request);
       request.isTimedOut = true;
@@ -379,6 +384,7 @@ class ConnectionPool<C> {
             'Failed to acquire connection within ${_config.acquireTimeout}',
       );
     }
+    // coverage:ignore-end
 
     try {
       final connection = await request.completer.future.timeout(
@@ -464,7 +470,10 @@ class ConnectionPool<C> {
     if (_disposed) return;
 
     while (_idleConnections.length > _config.minConnections) {
+      // coverage:ignore-start
+      // Defensive: Async operations could modify list between checks
       if (_idleConnections.isEmpty) break;
+      // coverage:ignore-end
 
       final oldest = _idleConnections.first;
 

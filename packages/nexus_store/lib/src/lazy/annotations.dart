@@ -2,6 +2,7 @@
 ///
 /// These annotations are used with `build_runner` to generate
 /// typed accessor methods for lazy-loaded fields.
+// coverage:ignore-file
 library;
 
 /// Marks a field as lazy-loaded.

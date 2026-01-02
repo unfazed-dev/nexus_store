@@ -333,6 +333,67 @@ void main() {
         expect(entity, isNull);
       });
 
+      test('archives expired record when action is archive', () async {
+        final expiredDate = DateTime.now().subtract(const Duration(days: 91));
+        backend.addEntity(TestEntity(
+          id: 'user-1',
+          userId: 'u1',
+          createdAt: expiredDate,
+        ));
+
+        final service = DataMinimizationService<TestEntity, String>(
+          backend: backend,
+          policies: [
+            RetentionPolicy(
+              field: '*',
+              duration: const Duration(days: 90),
+              action: RetentionAction.archive,
+            ),
+          ],
+          timestampExtractor: (entity) => entity.createdAt,
+          idExtractor: (entity) => entity.id,
+          auditService: mockAuditService,
+        );
+
+        final result = await service.processRetention();
+
+        expect(result.archivedCount, equals(1));
+        expect(result.totalProcessed, equals(1));
+      });
+
+      test('captures errors in errors list when action fails', () async {
+        final expiredDate = DateTime.now().subtract(const Duration(days: 91));
+        backend.addEntity(TestEntity(
+          id: 'user-1',
+          userId: 'u1',
+          createdAt: expiredDate,
+        ));
+
+        final service = DataMinimizationService<TestEntity, String>(
+          backend: backend,
+          policies: [
+            RetentionPolicy(
+              field: 'ipAddress',
+              duration: const Duration(days: 90),
+              action: RetentionAction.nullify,
+            ),
+          ],
+          timestampExtractor: (entity) => entity.createdAt,
+          idExtractor: (entity) => entity.id,
+          fieldNullifier: (entity, field) {
+            throw Exception('Nullification failed');
+          },
+        );
+
+        final result = await service.processRetention();
+
+        expect(result.hasErrors, isTrue);
+        expect(result.errors.length, equals(1));
+        expect(result.errors.first.entityId, equals('user-1'));
+        expect(result.errors.first.field, equals('ipAddress'));
+        expect(result.errors.first.message, contains('Nullification failed'));
+      });
+
       test('creates audit log for retention action', () async {
         final expiredDate = DateTime.now().subtract(const Duration(days: 31));
         backend.addEntity(TestEntity(

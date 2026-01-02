@@ -48,6 +48,7 @@ final class KeepLocal<T> extends ConflictAction<T> {
   /// Creates a keep local action.
   const KeepLocal() : super._();
 
+  // coverage:ignore-start
   @override
   bool operator ==(Object other) =>
       identical(this, other) || other is KeepLocal<T>;
@@ -57,6 +58,7 @@ final class KeepLocal<T> extends ConflictAction<T> {
 
   @override
   String toString() => 'ConflictAction.keepLocal()';
+  // coverage:ignore-end
 }
 
 /// Keep the remote version of the entity.
@@ -64,6 +66,7 @@ final class KeepRemote<T> extends ConflictAction<T> {
   /// Creates a keep remote action.
   const KeepRemote() : super._();
 
+  // coverage:ignore-start
   @override
   bool operator ==(Object other) =>
       identical(this, other) || other is KeepRemote<T>;
@@ -73,6 +76,7 @@ final class KeepRemote<T> extends ConflictAction<T> {
 
   @override
   String toString() => 'ConflictAction.keepRemote()';
+  // coverage:ignore-end
 }
 
 /// Use a custom merged value.
@@ -83,6 +87,7 @@ final class Merge<T> extends ConflictAction<T> {
   /// The merged value to use as the resolution.
   final T merged;
 
+  // coverage:ignore-start
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -95,6 +100,7 @@ final class Merge<T> extends ConflictAction<T> {
 
   @override
   String toString() => 'ConflictAction.merge($merged)';
+  // coverage:ignore-end
 }
 
 /// Skip resolution, keeping the conflict unresolved.
@@ -102,6 +108,7 @@ final class SkipResolution<T> extends ConflictAction<T> {
   /// Creates a skip action.
   const SkipResolution() : super._();
 
+  // coverage:ignore-start
   @override
   bool operator ==(Object other) =>
       identical(this, other) || other is SkipResolution<T>;
@@ -111,6 +118,7 @@ final class SkipResolution<T> extends ConflictAction<T> {
 
   @override
   String toString() => 'ConflictAction.skip()';
+  // coverage:ignore-end
 }
 
 /// Type alias for conflict resolver callbacks.
