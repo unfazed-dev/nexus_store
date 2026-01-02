@@ -13,7 +13,6 @@
 /// 2. Run with: dart test test/integration/real_database_test.dart --tags=real_db
 @Tags(['integration', 'real_db'])
 @Timeout(Duration(minutes: 2))
-@Skip('Requires PowerSync native SQLite extension')
 library;
 
 import 'dart:async';

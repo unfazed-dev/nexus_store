@@ -668,54 +668,16 @@ void main() {
       });
     });
 
-    // Note: The following CRUD tests require a real PowerSync database
-    // because sqlite3's ResultSet is a final class that cannot be mocked.
-    // See the unit tests for SQL generation verification.
-
-    group(
-      'Database CRUD Operations',
-      skip: 'Requires real PowerSync database - ResultSet is final class',
-      () {
-        test('save creates a new record', () async {
-          // Would test: await backend.save(TestUser(id: '1', name: 'Alice'))
-        });
-
-        test('save updates existing record (upsert)', () async {
-          // Would test upsert behavior
-        });
-
-        test('get retrieves existing record', () async {
-          // Would test: await backend.get('1')
-        });
-
-        test('get returns null for non-existent id', () async {
-          // Would test null return
-        });
-
-        test('getAll returns all records', () async {
-          // Would test: await backend.getAll()
-        });
-
-        test('getAll with query filters results', () async {
-          // Would test query filtering
-        });
-
-        test('delete removes existing record', () async {
-          // Would test: await backend.delete('1')
-        });
-
-        test('deleteAll removes multiple records', () async {
-          // Would test: await backend.deleteAll(['1', '2'])
-        });
-
-        test('watch returns stream for record', () async {
-          // Would test: backend.watch('1')
-        });
-
-        test('watchAll returns stream for all records', () async {
-          // Would test: backend.watchAll()
-        });
-      },
-    );
+    // Note: Full CRUD tests with real PowerSync database are in
+    // real_database_test.dart. These tests cover:
+    // - save creates/updates records
+    // - get retrieves/returns null
+    // - getAll with/without query
+    // - delete/deleteAll
+    // - watch/watchAll
+    // - pagination
+    // - query operations
+    //
+    // Run with: dart test test/integration/real_database_test.dart --tags=real_db
   });
 }
