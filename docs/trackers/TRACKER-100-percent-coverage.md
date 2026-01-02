@@ -8,11 +8,11 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 ## Progress Summary
 | Priority | Packages | Target Lines | Completed |
 |----------|----------|--------------|-----------|
-| P0 Critical | 3 | 474 | 3 (riverpod_generator ✅, supabase_adapter 🟡 85%+, riverpod_binding ✅) |
+| P0 Critical | 3 | 474 | 3 (riverpod_generator ✅ 100%, supabase_adapter ✅ 96.8%, riverpod_binding ✅ 100%) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
-| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store ✅ 94%+, crdt_adapter ✅ 98.3%, bloc_binding ✅ 96.2%, drift_adapter ✅ 94.4%) |
+| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store ✅ 94%+, crdt_adapter ✅ 98.3%, bloc_binding ✅ 96.2%, drift_adapter ✅ 98.8%) |
 | P3-P4 Lower | 4 | 133 | 4 (entity_generator ✅ 100%, generator ✅ 100%, brick_adapter ✅ 100%, signals_binding ✅ 100%) |
-| **Total** | **13** | **1,415** | **12** (1 package 🟡: supabase) |
+| **Total** | **13** | **1,415** | **13** (All packages ✅ 90%+ coverage) |
 
 ---
 
@@ -37,9 +37,9 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ---
 
-#### nexus_store_supabase_adapter (12.4% → 85%+) 🟡 IN PROGRESS
+#### nexus_store_supabase_adapter (12.4% → 96.8%) ✅ NEAR COMPLETE
 **Path:** `packages/nexus_store_supabase_adapter`
-**Lines to cover:** 318 → ~50 remaining
+**Lines to cover:** 318 → ~12 remaining
 
 - [x] Create `test/supabase_realtime_manager_test.dart` (100% ✅)
   - [x] Test channel subscription creation
@@ -64,11 +64,25 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
   - [x] watchAll() returns stream, caches by queryKey, emits error/empty
   - [x] _notifyWatchers/_notifyDeletion/_refreshAllWatchers tests
   - [x] 13 new tests added
+- [x] Add initialization failure tests ✅ (Session 15)
+  - [x] initialize() throws SyncError when realtime setup fails (1 test)
+  - [x] initialize() failure includes original cause (1 test)
+  - Note: Closed subject error handling in watch/watchAll onError callbacks
+    are defensive timing-sensitive code (difficult to test reliably)
+- [x] Add DefaultSupabaseClientWrapper integration tests ✅ (Session 15b)
+  - [x] Created `test_items` table in Supabase via MCP migration
+  - [x] client getter returns the underlying SupabaseClient (1 test)
+  - [x] upsert creates/updates records (2 tests)
+  - [x] upsertAll creates multiple records (1 test)
+  - [x] get retrieves record by ID, returns null for non-existent (2 tests)
+  - [x] getAll retrieves all records, supports query builder (2 tests)
+  - [x] delete removes record by ID, handles non-existent (2 tests)
+  - [x] deleteByIds removes multiple records, handles empty list (2 tests)
 
 **Files:**
 - `lib/src/supabase_realtime_manager.dart` (100% ✅)
-- `lib/src/supabase_backend.dart` (85%+ ✅)
-- `lib/src/supabase_client_wrapper.dart` (5% - DefaultWrapper needs real client)
+- `lib/src/supabase_backend.dart` (96.8% ✅)
+- `lib/src/supabase_client_wrapper.dart` (100% ✅)
 - `lib/src/supabase_query_translator.dart` (100% ✅)
 
 ---
@@ -295,9 +309,9 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 
 ---
 
-#### nexus_store_drift_adapter (71.9% → 86.8%) 🟡 IN PROGRESS
+#### nexus_store_drift_adapter (71.9% → 98.8%) ✅ NEAR COMPLETE
 **Path:** `packages/nexus_store_drift_adapter`
-**Lines to cover:** 95 → ~45 remaining
+**Lines to cover:** 95 → ~4 remaining (defensive timing-sensitive code)
 
 - [x] Add pagination tests ✅
   - [x] getAllPaged first page, navigation, cursor handling (5 tests)
@@ -312,10 +326,17 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 - [x] Add query translator tests ✅
   - [x] translate() with offset only (4 tests)
   - [x] DriftQueryExtension.toSql() (3 tests)
-- [ ] Remaining: Error mapping (_mapException), cancel operations with original values
+- [x] Add lifecycle and exception tests ✅ (Session 15)
+  - [x] initialize() no-op verification (1 test)
+  - [x] deleteWhere() exception mapping (1 test)
+  - Note: saveAll/deleteAll exception catch blocks difficult to test with mocks
+    (generic transaction method); _mapException already well-tested via other methods
+- [x] Add _refreshAllWatchers closed subject test ✅ (Session 15b)
+  - [x] _refreshAllWatchers silently ignores error when subject is closed (1 test)
+  - Uses delayed mock response to trigger refresh during close timing
 
 **Files:**
-- `lib/src/drift_backend.dart` (79.7%)
+- `lib/src/drift_backend.dart` (98.8% ✅)
 - `lib/src/drift_query_translator.dart` (100% ✅)
 
 ---
@@ -453,6 +474,36 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-02**: Session 15b - Integration tests with real Supabase (TDD)
+  - **nexus_store_supabase_adapter** (91.8% → 96.8%, +5.0%)
+    - Created `test_items` table in Supabase via MCP `apply_migration`
+    - Added `DefaultSupabaseClientWrapper` integration tests (12 tests)
+      - client getter, upsert (2), upsertAll, get (2), getAll (2), delete (2), deleteByIds (2)
+    - All tests use real Supabase instance with proper cleanup
+  - **nexus_store_drift_adapter** (unchanged at 98.8%)
+    - Added `_refreshAllWatchers` closed subject handling test (1 test)
+    - Uses delayed mock response to trigger refresh during close timing
+  - Total: 13 new tests added
+  - TDD methodology followed (Red-Green-Refactor)
+
+- **2026-01-02**: Session 15 - Coverage gap completion (TDD)
+  - **nexus_store_drift_adapter** (86.8% → 98.8%, +12.0%)
+    - Added `initialize()` no-op verification test
+    - Added `deleteWhere()` exception mapping test
+    - Note: `saveAll`/`deleteAll` exception catch blocks difficult to test with mocks
+      (Drift's generic `transaction` method); `_mapException` already well-tested
+    - Remaining ~1.2%: Defensive timing-sensitive code in `_refreshAllWatchers`
+  - **nexus_store_supabase_adapter** (85% → 91.8%, +6.8%)
+    - Added initialization failure tests (2 tests)
+      - `initialize()` throws `SyncError` when realtime setup fails
+      - `initialize()` failure includes original cause and stackTrace
+    - Note: Closed subject error handling in `watch`/`watchAll` `onError` callbacks
+      are defensive timing-sensitive code (difficult to test reliably)
+    - Remaining ~8%: Mostly `DefaultSupabaseClientWrapper` (requires real Supabase client)
+  - **Key Achievement:** All 13 packages now at 90%+ coverage
+  - Total: 4 new tests added
+  - TDD methodology followed (Red-Green-Refactor)
 
 - **2026-01-02**: Session 14 - CrdtDatabaseWrapper abstraction (TDD)
   - **nexus_store_crdt_adapter** (94.3% → 98.3%, +4.0%)

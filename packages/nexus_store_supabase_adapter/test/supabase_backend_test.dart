@@ -1048,6 +1048,42 @@ void main() {
       });
     });
 
+    group('initialization failure', () {
+      test('initialize throws SyncError when realtime setup fails', () async {
+        // Reset the channel mock to throw during initialization
+        reset(mockChannel);
+        when(() => mockWrapper.client).thenReturn(mockClient);
+        when(() => mockClient.channel(any()))
+            .thenThrow(Exception('Failed to create channel'));
+
+        expect(
+          () => backend.initialize(),
+          throwsA(
+            isA<nexus.SyncError>().having(
+              (e) => e.message,
+              'message',
+              contains('Failed to initialize Supabase backend'),
+            ),
+          ),
+        );
+      });
+
+      test('initialize failure includes original cause', () async {
+        reset(mockChannel);
+        when(() => mockWrapper.client).thenReturn(mockClient);
+        final originalError = Exception('Channel creation failed');
+        when(() => mockClient.channel(any())).thenThrow(originalError);
+
+        try {
+          await backend.initialize();
+          fail('Expected SyncError');
+        } on nexus.SyncError catch (e) {
+          expect(e.cause, equals(originalError));
+          expect(e.stackTrace, isNotNull);
+        }
+      });
+    });
+
     group('Constraint Violation Error Handling', () {
       test('save throws ValidationError on 23505 (unique)', () async {
         when(() => mockWrapper.upsert('test_models', any())).thenThrow(

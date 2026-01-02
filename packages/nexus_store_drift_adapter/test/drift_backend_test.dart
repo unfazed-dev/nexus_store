@@ -1,5 +1,7 @@
 // ignore_for_file: unreachable_from_main
 
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
@@ -12,6 +14,11 @@ class MockDatabaseConnectionUser extends Mock
 
 // Mock for Selectable to return results
 class MockSelectable<T> extends Mock implements Selectable<T> {}
+
+// Fake for transaction callback
+class FakeTransactionCallback extends Fake {
+  Future<void> call() async {}
+}
 
 // Test model
 class TestModel {
@@ -47,6 +54,10 @@ class TestModel {
 }
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(() async {});
+  });
+
   group('DriftBackend', () {
     late DriftBackend<TestModel, String> backend;
 
@@ -241,6 +252,12 @@ void main() {
     });
 
     group('lifecycle', () {
+      test('initialize() completes without error (no-op)', () async {
+        // The initialize() method is a no-op stub that should complete
+        // without error. Use initializeWithExecutor() for actual init.
+        await expectLater(backend.initialize(), completes);
+      });
+
       test('initialize is idempotent', () async {
         // Create backend with mock executor
         final backendWithExecutor = DriftBackend<TestModel, String>(
@@ -505,6 +522,31 @@ void main() {
       );
     });
 
+    // Note: saveAll and deleteAll exception tests are difficult to implement
+    // with mocks due to Drift's generic transaction method. The _mapException
+    // logic is already well-tested through get/save/delete/getAll operations.
+    // Integration tests in drift_integration_test.dart cover real DB errors.
+
+    test('exception mapping in deleteWhere operation', () async {
+      when(() => mockExecutor.customUpdate(
+            any(),
+            variables: any(named: 'variables'),
+            updates: any(named: 'updates'),
+          ),).thenThrow(Exception('database is locked'));
+
+      final query =
+          const nexus.Query<TestModel>().where('name', isEqualTo: 'Test');
+
+      expect(
+        () => backend.deleteWhere(query),
+        throwsA(isA<nexus.TransactionError>().having(
+          (e) => e.message,
+          'message',
+          'Database is locked',
+        ),),
+      );
+    });
+
     test('exception mapping in getAllPaged operation', () async {
       when(() => mockExecutor.customSelect(
             any(),
@@ -612,6 +654,50 @@ void main() {
             any(),
             variables: any(named: 'variables'),
           ),).called(1);
+    });
+
+    test('_refreshAllWatchers silently ignores error when subject is closed',
+        () async {
+      // Set up initial watchAll - first call succeeds
+      var callCount = 0;
+      when(() => mockExecutor.customSelect(
+            any(),
+            variables: any(named: 'variables'),
+          ),).thenReturn(mockSelectable);
+      when(() => mockSelectable.get()).thenAnswer((_) async {
+        callCount++;
+        if (callCount == 1) {
+          // Initial watchAll load succeeds
+          return [];
+        } else {
+          // Subsequent calls (from _refreshAllWatchers) throw after delay
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          throw Exception('Database error during refresh');
+        }
+      });
+
+      // Set up save mock
+      when(() => mockExecutor.customStatement(any(), any()))
+          .thenAnswer((_) async {});
+
+      // Start watching - creates the subject
+      final stream = backend.watchAll();
+      await stream.first; // Wait for initial load
+
+      // Start a save operation which triggers _refreshAllWatchers
+      // Don't await - let it run in background
+      // ignore: unawaited_futures
+      backend.save(TestModel(id: '1', name: 'Test')).ignore();
+
+      // Close backend immediately - this closes the watchAll subject
+      await backend.close();
+
+      // Wait for the delayed error to occur
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      // Test passes if no unhandled error is thrown
+      // The _refreshAllWatchers catchError handler should silently ignore
+      // the error because subject.isClosed is true
     });
   });
 
