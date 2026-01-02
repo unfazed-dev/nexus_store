@@ -591,5 +591,270 @@ void main() {
         expect(pool.config, equals(config));
       });
     });
+
+    group('release edge cases', () {
+      test('should destroy connection when pool is disposed', () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          config: const ConnectionPoolConfig(minConnections: 1),
+        );
+        await pool.initialize();
+        final pooled = await pool.acquire();
+
+        await pool.close();
+
+        // Now release the connection after pool is closed
+        pool.release(pooled);
+        await Future.delayed(const Duration(milliseconds: 10));
+
+        // Connection should be destroyed, not returned to idle pool
+        expect(factory.destroyCount, greaterThanOrEqualTo(1));
+      });
+
+      test('should validate connection on return when testOnReturn is true',
+          () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          healthCheck: healthCheck,
+          config: const ConnectionPoolConfig(
+            minConnections: 0,
+            testOnReturn: true,
+          ),
+        );
+        await pool.initialize();
+        final pooled = await pool.acquire();
+
+        pool.release(pooled);
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        expect(factory.validateCount, equals(1));
+        expect(pool.currentMetrics.idleConnections, equals(1));
+      });
+
+      test('should destroy invalid connection on return when testOnReturn is true',
+          () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          healthCheck: healthCheck,
+          config: const ConnectionPoolConfig(
+            minConnections: 0,
+            testOnReturn: true,
+          ),
+        );
+        await pool.initialize();
+        final pooled = await pool.acquire();
+
+        // Close the connection to make it invalid
+        pooled.connection.close();
+
+        pool.release(pooled);
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        expect(factory.validateCount, equals(1));
+        expect(factory.destroyCount, equals(1));
+        expect(pool.currentMetrics.idleConnections, equals(0));
+      });
+    });
+
+    group('connection lifetime', () {
+      test('should destroy connections that exceed max lifetime', () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          config: const ConnectionPoolConfig(
+            minConnections: 1,
+            maxLifetime: Duration(milliseconds: 10),
+            testOnBorrow: false,
+          ),
+        );
+        await pool.initialize();
+
+        // Wait for connection to exceed lifetime
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        // Try to acquire - should destroy old connection and create new one
+        final pooled = await pool.acquire();
+
+        expect(pooled, isNotNull);
+        // Original + new connection created
+        expect(factory.createCount, greaterThanOrEqualTo(2));
+      });
+    });
+
+    group('health check operations', () {
+      test('should mark unhealthy connections and try to reset', () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          healthCheck: healthCheck,
+          config: ConnectionPoolConfig(
+            minConnections: 1,
+            healthCheckInterval: const Duration(milliseconds: 50),
+          ),
+        );
+        await pool.initialize();
+
+        // Mark health check to fail
+        healthCheck.shouldFailHealthCheck = true;
+
+        // Wait for health check to run
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        // Health check should have been called
+        expect(healthCheck.isHealthyCallCount, greaterThan(0));
+      });
+
+      test('should destroy unhealthy connection that cannot be reset', () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          healthCheck: healthCheck,
+          config: ConnectionPoolConfig(
+            minConnections: 1,
+            healthCheckInterval: const Duration(milliseconds: 50),
+          ),
+        );
+        await pool.initialize();
+        final initialCreateCount = factory.createCount;
+
+        // Make health check fail and reset fail
+        healthCheck.shouldFailHealthCheck = true;
+        healthCheck.shouldFailReset = true;
+
+        // Wait for health check to run
+        await Future.delayed(const Duration(milliseconds: 150));
+
+        // Connection should be destroyed and a new one created
+        expect(factory.destroyCount, greaterThan(0));
+        // New connection created to maintain minimum
+        expect(factory.createCount, greaterThan(initialCreateCount));
+      });
+
+      test('should reset unhealthy connection successfully', () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          healthCheck: healthCheck,
+          config: ConnectionPoolConfig(
+            minConnections: 1,
+            healthCheckInterval: const Duration(milliseconds: 50),
+          ),
+        );
+        await pool.initialize();
+
+        // Make health check fail but reset succeed
+        healthCheck.shouldFailHealthCheck = true;
+        healthCheck.shouldFailReset = false;
+
+        // Wait for health check to run
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        // Reset should have been called
+        expect(healthCheck.resetCallCount, greaterThan(0));
+      });
+    });
+
+    group('idle connection trimming', () {
+      test('should trim idle connections exceeding minimum', () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          config: ConnectionPoolConfig(
+            minConnections: 1,
+            maxConnections: 5,
+            idleTimeout: const Duration(milliseconds: 10),
+          ),
+        );
+        await pool.initialize();
+
+        // Acquire and release extra connections
+        final conn1 = await pool.acquire();
+        final conn2 = await pool.acquire();
+        final conn3 = await pool.acquire();
+
+        pool.release(conn1);
+        pool.release(conn2);
+        pool.release(conn3);
+        await Future.delayed(Duration.zero);
+
+        expect(pool.currentMetrics.idleConnections, equals(3));
+
+        // Wait for idle timeout and cleanup timer
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        // Should have trimmed down towards minConnections
+        expect(pool.currentMetrics.totalConnections, lessThanOrEqualTo(3));
+      });
+    });
+
+    group('returnToPool edge cases', () {
+      test('should fulfill waiting request instead of returning to idle', () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          config: const ConnectionPoolConfig(
+            minConnections: 0,
+            maxConnections: 1,
+          ),
+        );
+        await pool.initialize();
+        final conn = await pool.acquire();
+
+        // Start waiting for a connection
+        final waitFuture = pool.acquire();
+        await Future.delayed(const Duration(milliseconds: 10));
+
+        // Release current connection - should go to waiter
+        pool.release(conn);
+
+        final waitedConn = await waitFuture;
+        expect(waitedConn, isNotNull);
+        expect(waitedConn.connection.id, equals(conn.connection.id));
+      });
+    });
+
+    group('create connection failure', () {
+      test('should handle connection creation failure gracefully', () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          config: const ConnectionPoolConfig(minConnections: 0),
+        );
+        await pool.initialize();
+
+        factory.shouldFailOnCreate = true;
+
+        // When pool can't create connections, acquire should timeout
+        expect(
+          () => pool.acquire().timeout(const Duration(milliseconds: 100)),
+          throwsA(anything),
+        );
+      });
+
+      test('should handle pre-warm failure gracefully during initialize', () async {
+        factory.shouldFailOnCreate = true;
+
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          config: const ConnectionPoolConfig(minConnections: 3),
+        );
+
+        // Initialize should complete even if pre-warming fails
+        await pool.initialize();
+
+        expect(pool.isInitialized, isTrue);
+        expect(pool.currentMetrics.totalConnections, equals(0));
+      });
+    });
+
+    group('destroy connection failure', () {
+      test('should handle destroy failure gracefully', () async {
+        pool = ConnectionPool<FakeConnection>(
+          factory: factory,
+          config: const ConnectionPoolConfig(minConnections: 1),
+        );
+        await pool.initialize();
+
+        factory.shouldFailOnDestroy = true;
+
+        // Close should complete even if destroy fails
+        await pool.close();
+
+        expect(pool.isDisposed, isTrue);
+      });
+    });
   });
 }

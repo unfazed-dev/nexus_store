@@ -433,5 +433,229 @@ void main() {
         expect(expr.value, equals(18));
       });
     });
+
+    group('Expression toString', () {
+      test('ComparisonExpression toString includes type, field, operator and value', () {
+        final expr = ComparisonExpression<String>(
+          fieldName: 'age',
+          operator: FilterOperator.greaterThan,
+          value: 18,
+        );
+
+        final str = expr.toString();
+
+        expect(str, contains('ComparisonExpression<String>'));
+        expect(str, contains('age'));
+        expect(str, contains('greaterThan'));
+        expect(str, contains('18'));
+      });
+
+      test('AndExpression toString includes left AND right', () {
+        final left = ComparisonExpression<String>(
+          fieldName: 'a',
+          operator: FilterOperator.equals,
+          value: 1,
+        );
+        final right = ComparisonExpression<String>(
+          fieldName: 'b',
+          operator: FilterOperator.equals,
+          value: 2,
+        );
+
+        final andExpr = AndExpression<String>(left, right);
+        final str = andExpr.toString();
+
+        expect(str, contains('AndExpression<String>'));
+        expect(str, contains('AND'));
+      });
+
+      test('OrExpression toString includes left OR right', () {
+        final left = ComparisonExpression<String>(
+          fieldName: 'role',
+          operator: FilterOperator.equals,
+          value: 'admin',
+        );
+        final right = ComparisonExpression<String>(
+          fieldName: 'role',
+          operator: FilterOperator.equals,
+          value: 'moderator',
+        );
+
+        final orExpr = OrExpression<String>(left, right);
+        final str = orExpr.toString();
+
+        expect(str, contains('OrExpression<String>'));
+        expect(str, contains('OR'));
+      });
+
+      test('NotExpression toString includes NOT and inner expression', () {
+        final inner = ComparisonExpression<String>(
+          fieldName: 'deleted',
+          operator: FilterOperator.equals,
+          value: true,
+        );
+
+        final notExpr = NotExpression<String>(inner);
+        final str = notExpr.toString();
+
+        expect(str, contains('NotExpression<String>'));
+        expect(str, contains('NOT'));
+      });
+    });
+
+    group('OrExpression equality', () {
+      test('OrExpression equals with same children', () {
+        final left = ComparisonExpression<String>(
+          fieldName: 'role',
+          operator: FilterOperator.equals,
+          value: 'admin',
+        );
+        final right = ComparisonExpression<String>(
+          fieldName: 'role',
+          operator: FilterOperator.equals,
+          value: 'moderator',
+        );
+
+        final or1 = OrExpression<String>(left, right);
+        final or2 = OrExpression<String>(left, right);
+
+        expect(or1, equals(or2));
+        expect(or1.hashCode, equals(or2.hashCode));
+      });
+
+      test('OrExpression not equals with different children', () {
+        final left = ComparisonExpression<String>(
+          fieldName: 'role',
+          operator: FilterOperator.equals,
+          value: 'admin',
+        );
+        final right1 = ComparisonExpression<String>(
+          fieldName: 'role',
+          operator: FilterOperator.equals,
+          value: 'moderator',
+        );
+        final right2 = ComparisonExpression<String>(
+          fieldName: 'role',
+          operator: FilterOperator.equals,
+          value: 'user',
+        );
+
+        final or1 = OrExpression<String>(left, right1);
+        final or2 = OrExpression<String>(left, right2);
+
+        expect(or1, isNot(equals(or2)));
+      });
+    });
+
+    group('NotExpression equality', () {
+      test('NotExpression equals with same inner expression', () {
+        final inner = ComparisonExpression<String>(
+          fieldName: 'deleted',
+          operator: FilterOperator.equals,
+          value: true,
+        );
+
+        final not1 = NotExpression<String>(inner);
+        final not2 = NotExpression<String>(inner);
+
+        expect(not1, equals(not2));
+        expect(not1.hashCode, equals(not2.hashCode));
+      });
+
+      test('NotExpression not equals with different inner expression', () {
+        final inner1 = ComparisonExpression<String>(
+          fieldName: 'deleted',
+          operator: FilterOperator.equals,
+          value: true,
+        );
+        final inner2 = ComparisonExpression<String>(
+          fieldName: 'active',
+          operator: FilterOperator.equals,
+          value: false,
+        );
+
+        final not1 = NotExpression<String>(inner1);
+        final not2 = NotExpression<String>(inner2);
+
+        expect(not1, isNot(equals(not2)));
+      });
+    });
+
+    group('NotExpression _invertOperator UnsupportedError', () {
+      test('toFilters throws UnsupportedError for contains operator', () {
+        final inner = ComparisonExpression<String>(
+          fieldName: 'name',
+          operator: FilterOperator.contains,
+          value: 'test',
+        );
+
+        final notExpr = NotExpression<String>(inner);
+
+        expect(
+          () => notExpr.toFilters(),
+          throwsA(isA<UnsupportedError>()),
+        );
+      });
+
+      test('toFilters throws UnsupportedError for startsWith operator', () {
+        final inner = ComparisonExpression<String>(
+          fieldName: 'name',
+          operator: FilterOperator.startsWith,
+          value: 'test',
+        );
+
+        final notExpr = NotExpression<String>(inner);
+
+        expect(
+          () => notExpr.toFilters(),
+          throwsA(isA<UnsupportedError>()),
+        );
+      });
+
+      test('toFilters throws UnsupportedError for endsWith operator', () {
+        final inner = ComparisonExpression<String>(
+          fieldName: 'name',
+          operator: FilterOperator.endsWith,
+          value: 'test',
+        );
+
+        final notExpr = NotExpression<String>(inner);
+
+        expect(
+          () => notExpr.toFilters(),
+          throwsA(isA<UnsupportedError>()),
+        );
+      });
+
+      test('toFilters throws UnsupportedError for arrayContains operator', () {
+        final inner = ComparisonExpression<String>(
+          fieldName: 'tags',
+          operator: FilterOperator.arrayContains,
+          value: 'important',
+        );
+
+        final notExpr = NotExpression<String>(inner);
+
+        expect(
+          () => notExpr.toFilters(),
+          throwsA(isA<UnsupportedError>()),
+        );
+      });
+
+      test('toFilters throws UnsupportedError for arrayContainsAny operator', () {
+        final inner = ComparisonExpression<String>(
+          fieldName: 'tags',
+          operator: FilterOperator.arrayContainsAny,
+          value: ['a', 'b'],
+        );
+
+        final notExpr = NotExpression<String>(inner);
+
+        expect(
+          () => notExpr.toFilters(),
+          throwsA(isA<UnsupportedError>()),
+        );
+      });
+    });
   });
 }

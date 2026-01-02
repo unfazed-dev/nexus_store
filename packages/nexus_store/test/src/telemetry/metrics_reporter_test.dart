@@ -1,3 +1,4 @@
+import 'package:nexus_store/src/pool/pool_metric.dart';
 import 'package:nexus_store/src/telemetry/cache_metric.dart';
 import 'package:nexus_store/src/telemetry/error_metric.dart';
 import 'package:nexus_store/src/telemetry/metrics_reporter.dart';
@@ -127,6 +128,43 @@ void main() {
         );
 
         expect(() => reporter.reportError(metric), returnsNormally);
+      });
+    });
+
+    group('reportPoolEvent', () {
+      test('should accept PoolMetric without error', () {
+        final metric = PoolMetric(
+          event: PoolEvent.acquired,
+          poolName: 'test-pool',
+          timestamp: DateTime.now(),
+        );
+
+        expect(() => reporter.reportPoolEvent(metric), returnsNormally);
+      });
+
+      test('should accept all pool event types', () {
+        for (final event in PoolEvent.values) {
+          reporter.reportPoolEvent(PoolMetric(
+            event: event,
+            timestamp: DateTime.now(),
+          ));
+        }
+
+        expect(true, isTrue);
+      });
+
+      test('should handle pool metric with all fields', () {
+        final metric = PoolMetric(
+          event: PoolEvent.timeout,
+          poolName: 'connection-pool',
+          duration: const Duration(milliseconds: 500),
+          activeConnections: 10,
+          idleConnections: 5,
+          waitingRequests: 3,
+          timestamp: DateTime.now(),
+        );
+
+        expect(() => reporter.reportPoolEvent(metric), returnsNormally);
       });
     });
 

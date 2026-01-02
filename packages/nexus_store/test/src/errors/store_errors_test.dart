@@ -51,6 +51,19 @@ void main() {
       const error = NotFoundError(id: 'test');
       expect(error.isRetryable, isFalse);
     });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original error');
+      final stackTrace = StackTrace.current;
+      final error = NotFoundError(
+        id: 'user-123',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
   });
 
   group('NetworkError', () {
@@ -164,6 +177,19 @@ void main() {
       const error = ValidationError(message: 'test');
       expect(error.isRetryable, isFalse);
     });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original error');
+      final stackTrace = StackTrace.current;
+      final error = ValidationError(
+        message: 'Validation failed',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
   });
 
   group('ValidationViolation', () {
@@ -213,6 +239,19 @@ void main() {
       const error = ConflictError(message: 'test');
       expect(error.isRetryable, isFalse);
     });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original error');
+      final stackTrace = StackTrace.current;
+      final error = ConflictError(
+        message: 'Conflict',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
   });
 
   group('SyncError', () {
@@ -232,6 +271,19 @@ void main() {
       const error = SyncError(message: 'test');
       expect(error.isRetryable, isTrue);
     });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original error');
+      final stackTrace = StackTrace.current;
+      final error = SyncError(
+        message: 'Sync failed',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
   });
 
   group('AuthenticationError', () {
@@ -246,6 +298,19 @@ void main() {
     test('should not be retryable', () {
       const error = AuthenticationError(message: 'test');
       expect(error.isRetryable, isFalse);
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original error');
+      final stackTrace = StackTrace.current;
+      final error = AuthenticationError(
+        message: 'Auth failed',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
     });
   });
 
@@ -265,6 +330,19 @@ void main() {
     test('should not be retryable', () {
       const error = AuthorizationError(message: 'test');
       expect(error.isRetryable, isFalse);
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original error');
+      final stackTrace = StackTrace.current;
+      final error = AuthorizationError(
+        message: 'Access denied',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
     });
   });
 
@@ -311,6 +389,19 @@ void main() {
       const error = StateError(message: 'test');
       expect(error.isRetryable, isFalse);
     });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original error');
+      final stackTrace = StackTrace.current;
+      final error = StateError(
+        message: 'Invalid state',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
   });
 
   group('CancellationError', () {
@@ -340,6 +431,19 @@ void main() {
       const error = CancellationError();
       expect(error.isRetryable, isFalse);
     });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original error');
+      final stackTrace = StackTrace.current;
+      final error = CancellationError(
+        operation: 'download',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
+    });
   });
 
   group('QuotaExceededError', () {
@@ -362,6 +466,19 @@ void main() {
     test('should not be retryable', () {
       const error = QuotaExceededError(message: 'test');
       expect(error.isRetryable, isFalse);
+    });
+
+    test('should support cause and stackTrace', () {
+      final cause = Exception('Original error');
+      final stackTrace = StackTrace.current;
+      final error = QuotaExceededError(
+        message: 'Quota exceeded',
+        cause: cause,
+        stackTrace: stackTrace,
+      );
+
+      expect(error.cause, equals(cause));
+      expect(error.stackTrace, equals(stackTrace));
     });
   });
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
+import 'package:nexus_store/src/pool/pool_metric.dart';
 import 'package:nexus_store/src/telemetry/cache_metric.dart';
 import 'package:nexus_store/src/telemetry/console_metrics_reporter.dart';
 import 'package:nexus_store/src/telemetry/error_metric.dart';
@@ -184,6 +185,100 @@ void main() {
         ));
 
         expect(logs.first.message, contains('fatal'));
+      });
+
+      test('should show unknown when operation is null', () {
+        reporter.reportError(ErrorMetric(
+          error: Exception('Unknown operation error'),
+          timestamp: DateTime.now(),
+        ));
+
+        expect(logs.first.message, contains('unknown'));
+      });
+    });
+
+    group('reportPoolEvent', () {
+      test('should log pool acquired event', () {
+        reporter.reportPoolEvent(PoolMetric(
+          event: PoolEvent.acquired,
+          timestamp: DateTime.now(),
+        ));
+
+        expect(logs, hasLength(1));
+        expect(logs.first.message, contains('acquired'));
+      });
+
+      test('should include pool name when present', () {
+        reporter.reportPoolEvent(PoolMetric(
+          event: PoolEvent.released,
+          poolName: 'MainPool',
+          timestamp: DateTime.now(),
+        ));
+
+        expect(logs.first.message, contains('released'));
+        expect(logs.first.message, contains('MainPool'));
+      });
+
+      test('should include duration when present', () {
+        reporter.reportPoolEvent(PoolMetric(
+          event: PoolEvent.acquired,
+          duration: const Duration(milliseconds: 50),
+          timestamp: DateTime.now(),
+        ));
+
+        expect(logs.first.message, contains('50'));
+      });
+
+      test('should include connection counts when present', () {
+        reporter.reportPoolEvent(PoolMetric(
+          event: PoolEvent.acquired,
+          activeConnections: 5,
+          idleConnections: 3,
+          timestamp: DateTime.now(),
+        ));
+
+        expect(logs.first.message, contains('active=5'));
+        expect(logs.first.message, contains('idle=3'));
+      });
+
+      test('should include waiting requests when greater than zero', () {
+        reporter.reportPoolEvent(PoolMetric(
+          event: PoolEvent.timeout,
+          waitingRequests: 10,
+          timestamp: DateTime.now(),
+        ));
+
+        expect(logs.first.message, contains('waiting=10'));
+      });
+
+      test('should not include waiting requests when zero', () {
+        reporter.reportPoolEvent(PoolMetric(
+          event: PoolEvent.acquired,
+          waitingRequests: 0,
+          timestamp: DateTime.now(),
+        ));
+
+        expect(logs.first.message, isNot(contains('waiting')));
+      });
+
+      test('should log all optional fields together', () {
+        reporter.reportPoolEvent(PoolMetric(
+          event: PoolEvent.acquired,
+          poolName: 'TestPool',
+          duration: const Duration(milliseconds: 25),
+          activeConnections: 2,
+          idleConnections: 8,
+          waitingRequests: 3,
+          timestamp: DateTime.now(),
+        ));
+
+        final message = logs.first.message;
+        expect(message, contains('acquired'));
+        expect(message, contains('TestPool'));
+        expect(message, contains('25'));
+        expect(message, contains('active=2'));
+        expect(message, contains('idle=8'));
+        expect(message, contains('waiting=3'));
       });
     });
 

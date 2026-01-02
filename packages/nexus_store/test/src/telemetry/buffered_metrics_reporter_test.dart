@@ -13,6 +13,7 @@ class MockMetricsReporter implements MetricsReporter {
   final List<CacheMetric> cacheEvents = [];
   final List<SyncMetric> syncEvents = [];
   final List<ErrorMetric> errors = [];
+  final List<PoolMetric> poolEvents = [];
   int flushCount = 0;
   int disposeCount = 0;
 
@@ -29,7 +30,7 @@ class MockMetricsReporter implements MetricsReporter {
   void reportError(ErrorMetric metric) => errors.add(metric);
 
   @override
-  void reportPoolEvent(PoolMetric metric) {}
+  void reportPoolEvent(PoolMetric metric) => poolEvents.add(metric);
 
   @override
   Future<void> flush() async => flushCount++;
@@ -212,6 +213,90 @@ void main() {
         await reporter.flush();
 
         expect(reporter.currentBufferSize, equals(0));
+      });
+    });
+
+    group('timer', () {
+      test('should trigger flush at flushInterval', () async {
+        final timerMock = MockMetricsReporter();
+        final timerReporter = BufferedMetricsReporter(
+          delegate: timerMock,
+          bufferSize: 100, // High to prevent auto-flush
+          flushInterval: const Duration(milliseconds: 50),
+        );
+
+        timerReporter.reportOperation(_createOperationMetric());
+        expect(timerMock.operations, isEmpty);
+
+        // Wait for timer to fire
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(timerMock.operations, hasLength(1));
+        expect(timerMock.flushCount, equals(1));
+
+        await timerReporter.dispose();
+      });
+
+      test('should cancel timer on dispose', () async {
+        final timerMock = MockMetricsReporter();
+        final timerReporter = BufferedMetricsReporter(
+          delegate: timerMock,
+          bufferSize: 100,
+          flushInterval: const Duration(milliseconds: 50),
+        );
+
+        timerReporter.reportOperation(_createOperationMetric());
+
+        // Dispose before timer fires
+        await timerReporter.dispose();
+
+        // Metrics should be flushed during dispose
+        expect(timerMock.operations, hasLength(1));
+
+        // Wait past the timer interval
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        // Should not have flushed again (only once during dispose)
+        expect(timerMock.flushCount, equals(1));
+      });
+    });
+
+    group('PoolMetric forwarding', () {
+      test('should forward PoolMetric to delegate on flush', () async {
+        final poolMetric = PoolMetric(
+          event: PoolEvent.acquired,
+          timestamp: DateTime.now(),
+        );
+
+        reporter.reportPoolEvent(poolMetric);
+        expect(reporter.currentBufferSize, equals(1));
+        expect(mockDelegate.poolEvents, isEmpty);
+
+        await reporter.flush();
+
+        expect(mockDelegate.poolEvents, hasLength(1));
+        expect(mockDelegate.poolEvents.first.event, equals(PoolEvent.acquired));
+      });
+
+      test('should buffer multiple PoolMetrics', () async {
+        reporter.reportPoolEvent(PoolMetric(
+          event: PoolEvent.acquired,
+          timestamp: DateTime.now(),
+        ));
+        reporter.reportPoolEvent(PoolMetric(
+          event: PoolEvent.released,
+          timestamp: DateTime.now(),
+        ));
+        reporter.reportPoolEvent(PoolMetric(
+          event: PoolEvent.timeout,
+          timestamp: DateTime.now(),
+        ));
+
+        expect(reporter.currentBufferSize, equals(3));
+
+        await reporter.flush();
+
+        expect(mockDelegate.poolEvents, hasLength(3));
       });
     });
   });

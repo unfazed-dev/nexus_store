@@ -196,4 +196,132 @@ void main() {
       expect(SyncStatus.values, contains(SyncStatus.conflict));
     });
   });
+
+  group('StoreBackendDefaults field operations', () {
+    late TestBackendWithDefaults backend;
+
+    setUp(() {
+      backend = TestBackendWithDefaults();
+    });
+
+    test('supportsFieldOperations returns false by default', () {
+      expect(backend.supportsFieldOperations, isFalse);
+    });
+
+    test('supportsPagination returns false by default', () {
+      expect(backend.supportsPagination, isFalse);
+    });
+
+    test('getField throws UnsupportedError', () async {
+      expect(
+        () => backend.getField('id', 'fieldName'),
+        throwsA(isA<UnsupportedError>()),
+      );
+    });
+
+    test('getFieldBatch iterates over ids and catches errors', () async {
+      // Since getField throws UnsupportedError, all calls will fail
+      // and getFieldBatch should return empty map
+      final result = await backend.getFieldBatch(['id1', 'id2'], 'fieldName');
+      expect(result, isEmpty);
+    });
+  });
+
+  group('StoreBackendDefaults transaction operations', () {
+    late TestBackendWithDefaults backend;
+
+    setUp(() {
+      backend = TestBackendWithDefaults();
+    });
+
+    test('beginTransaction generates unique transaction ID', () async {
+      final tx1 = await backend.beginTransaction();
+      // Small delay to ensure different timestamps
+      await Future.delayed(const Duration(milliseconds: 1));
+      final tx2 = await backend.beginTransaction();
+
+      expect(tx1, startsWith('tx_'));
+      expect(tx2, startsWith('tx_'));
+      expect(tx1, isNot(equals(tx2)));
+    });
+
+    test('commitTransaction completes without error', () async {
+      final txId = await backend.beginTransaction();
+      await expectLater(backend.commitTransaction(txId), completes);
+    });
+
+    test('rollbackTransaction completes without error', () async {
+      final txId = await backend.beginTransaction();
+      await expectLater(backend.rollbackTransaction(txId), completes);
+    });
+
+    test('runInTransaction executes callback and returns result', () async {
+      final result = await backend.runInTransaction(() async {
+        return 'test-result';
+      });
+      expect(result, equals('test-result'));
+    });
+
+    test('runInTransaction propagates errors from callback', () async {
+      expect(
+        () => backend.runInTransaction(() async {
+          throw Exception('test error');
+        }),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
+  group('StoreBackendDefaults pagination operations', () {
+    late TestBackendWithDefaults backend;
+
+    setUp(() {
+      backend = TestBackendWithDefaults();
+    });
+
+    test('getAllPaged wraps getAll result in PagedResult', () async {
+      await backend.saveAll(['item-1', 'item-2', 'item-3']);
+
+      final result = await backend.getAllPaged();
+
+      expect(result.items, hasLength(3));
+      expect(result.pageInfo, isNotNull);
+    });
+
+    test('watchAllPaged wraps watchAll stream in PagedResult', () async {
+      await backend.saveAll(['a', 'b']);
+
+      final result = await backend.watchAllPaged().first;
+
+      expect(result.items, hasLength(2));
+      expect(result.pageInfo, isNotNull);
+    });
+  });
+
+  group('StoreBackendDefaults sync operations', () {
+    late TestBackendWithDefaults backend;
+
+    setUp(() {
+      backend = TestBackendWithDefaults();
+    });
+
+    test('pendingChangesStream emits empty list', () async {
+      final changes = await backend.pendingChangesStream.first;
+      expect(changes, isEmpty);
+    });
+
+    test('conflictsStream is empty stream', () async {
+      final conflicts = await backend.conflictsStream.toList();
+      expect(conflicts, isEmpty);
+    });
+
+    test('retryChange completes without error', () async {
+      await expectLater(backend.retryChange('any-id'), completes);
+    });
+
+    test('cancelChange returns null', () async {
+      final result = await backend.cancelChange('any-id');
+      expect(result, isNull);
+    });
+  });
 }

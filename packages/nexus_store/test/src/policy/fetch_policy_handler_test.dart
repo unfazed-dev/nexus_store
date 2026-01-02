@@ -1,3 +1,4 @@
+import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart';
 import 'package:test/test.dart';
 
@@ -94,6 +95,7 @@ void main() {
 
         expect(results, hasLength(2));
       });
+
     });
 
     group('networkFirst policy', () {
@@ -600,6 +602,263 @@ void main() {
           expect(handler.getTags('user-1'), isEmpty);
           expect(handler.getCacheStats().totalCount, equals(0));
         });
+      });
+    });
+
+    group('background revalidation', () {
+      test('get with staleWhileRevalidate silently ignores sync errors', () async {
+        handler = FetchPolicyHandler(
+          backend: backend,
+          defaultPolicy: FetchPolicy.staleWhileRevalidate,
+        );
+
+        final user = TestFixtures.createUser();
+        backend.addToStorage('user-1', user);
+        backend.shouldFailOnSync = true;
+
+        // Should return cached data immediately
+        final result = await handler.get('user-1');
+        expect(result, equals(user));
+
+        // Wait for background revalidation to complete (with error)
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        // No exception should have propagated - test passes if we reach here
+        expect(true, isTrue);
+      });
+
+      test('getAll with staleWhileRevalidate silently ignores sync errors', () async {
+        handler = FetchPolicyHandler(
+          backend: backend,
+          defaultPolicy: FetchPolicy.staleWhileRevalidate,
+        );
+
+        backend.addToStorage('user-1', TestFixtures.createUser());
+        backend.addToStorage('user-2', TestFixtures.createUser(id: 'user-2'));
+        backend.shouldFailOnSync = true;
+
+        // Should return cached data immediately
+        final results = await handler.getAll();
+        expect(results, hasLength(2));
+
+        // Wait for background revalidation to complete (with error)
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        // No exception should have propagated
+        expect(true, isTrue);
+      });
+
+      test('background revalidation updates lastFetchTime on success', () async {
+        handler = FetchPolicyHandler(
+          backend: backend,
+          defaultPolicy: FetchPolicy.staleWhileRevalidate,
+          staleDuration: const Duration(minutes: 5),
+        );
+
+        final user = TestFixtures.createUser();
+        backend.addToStorage('user-1', user);
+
+        // Initially stale (no fetch time recorded)
+        expect(handler.isStale('user-1'), isTrue);
+
+        // Get triggers background revalidation
+        await handler.get('user-1');
+
+        // Wait for background revalidation
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        // Should no longer be stale after successful revalidation
+        expect(handler.isStale('user-1'), isFalse);
+      });
+    });
+
+    group('coverage gaps with mock backend', () {
+      late MockStoreBackend<TestUser, String> mockBackend;
+
+      setUp(() {
+        mockBackend = MockStoreBackend<TestUser, String>();
+        when(() => mockBackend.syncStatusStream)
+            .thenAnswer((_) => const Stream.empty());
+        when(() => mockBackend.syncStatus).thenReturn(SyncStatus.synced);
+      });
+
+      test('getAllCacheFirst with empty cache triggers sync then returns data', () async {
+        // First getAll returns empty, then after sync returns data
+        var callCount = 0;
+        when(() => mockBackend.getAll(query: any(named: 'query')))
+            .thenAnswer((_) async {
+          callCount++;
+          if (callCount == 1) return []; // First call: empty cache
+          return [TestFixtures.createUser()]; // After sync: has data
+        });
+        when(() => mockBackend.sync()).thenAnswer((_) async {});
+
+        handler = FetchPolicyHandler(
+          backend: mockBackend,
+          defaultPolicy: FetchPolicy.cacheFirst,
+        );
+
+        final results = await handler.getAll();
+
+        expect(results, hasLength(1));
+        verify(() => mockBackend.sync()).called(1);
+      });
+
+      test('getAllNetworkFirst returns data after successful sync', () async {
+        when(() => mockBackend.sync()).thenAnswer((_) async {});
+        when(() => mockBackend.getAll(query: any(named: 'query')))
+            .thenAnswer((_) async => [TestFixtures.createUser()]);
+
+        handler = FetchPolicyHandler(
+          backend: mockBackend,
+          defaultPolicy: FetchPolicy.networkFirst,
+        );
+
+        final results = await handler.getAll();
+
+        expect(results, hasLength(1));
+        verify(() => mockBackend.sync()).called(1);
+      });
+
+      test('getAllCacheAndNetwork returns data after successful sync', () async {
+        when(() => mockBackend.sync()).thenAnswer((_) async {});
+        when(() => mockBackend.getAll(query: any(named: 'query')))
+            .thenAnswer((_) async => [TestFixtures.createUser()]);
+
+        handler = FetchPolicyHandler(
+          backend: mockBackend,
+          defaultPolicy: FetchPolicy.cacheAndNetwork,
+        );
+
+        final results = await handler.getAll();
+
+        expect(results, hasLength(1));
+        verify(() => mockBackend.sync()).called(1);
+      });
+
+      test('getAllCacheAndNetwork returns cached data on network failure', () async {
+        when(() => mockBackend.sync()).thenThrow(Exception('Network error'));
+        when(() => mockBackend.getAll(query: any(named: 'query')))
+            .thenAnswer((_) async => [TestFixtures.createUser()]);
+
+        handler = FetchPolicyHandler(
+          backend: mockBackend,
+          defaultPolicy: FetchPolicy.cacheAndNetwork,
+        );
+
+        final results = await handler.getAll();
+
+        expect(results, hasLength(1));
+      });
+
+      test('getAllNetworkOnly returns data after successful sync', () async {
+        when(() => mockBackend.sync()).thenAnswer((_) async {});
+        when(() => mockBackend.getAll(query: any(named: 'query')))
+            .thenAnswer((_) async => [
+              TestFixtures.createUser(),
+              TestFixtures.createUser(id: 'user-2'),
+            ]);
+
+        handler = FetchPolicyHandler(
+          backend: mockBackend,
+          defaultPolicy: FetchPolicy.networkOnly,
+        );
+
+        final results = await handler.getAll();
+
+        expect(results, hasLength(2));
+        verify(() => mockBackend.sync()).called(1);
+      });
+
+      test('getStaleWhileRevalidate with no cache waits for network', () async {
+        when(() => mockBackend.get(any())).thenAnswer((_) async => null);
+        when(() => mockBackend.sync()).thenAnswer((_) async {});
+        // After sync, get returns the user
+        var getCallCount = 0;
+        when(() => mockBackend.get('user-1')).thenAnswer((_) async {
+          getCallCount++;
+          if (getCallCount == 1) return null;
+          return TestFixtures.createUser();
+        });
+
+        handler = FetchPolicyHandler(
+          backend: mockBackend,
+          defaultPolicy: FetchPolicy.staleWhileRevalidate,
+        );
+
+        final result = await handler.get('user-1');
+
+        expect(result, isNotNull);
+        verify(() => mockBackend.sync()).called(1);
+      });
+
+      test('getAllStaleWhileRevalidate with empty cache waits for network', () async {
+        // First getAll returns empty, then after sync returns data
+        var callCount = 0;
+        when(() => mockBackend.getAll(query: any(named: 'query')))
+            .thenAnswer((_) async {
+          callCount++;
+          if (callCount == 1) return []; // First call: empty cache
+          return [TestFixtures.createUser()]; // After sync: has data
+        });
+        when(() => mockBackend.sync()).thenAnswer((_) async {});
+
+        handler = FetchPolicyHandler(
+          backend: mockBackend,
+          defaultPolicy: FetchPolicy.staleWhileRevalidate,
+        );
+
+        final results = await handler.getAll();
+
+        expect(results, hasLength(1));
+        verify(() => mockBackend.sync()).called(1);
+      });
+
+      test('recordCachedItem handles empty tags set', () {
+        handler = FetchPolicyHandler(
+          backend: mockBackend,
+          defaultPolicy: FetchPolicy.cacheFirst,
+          staleDuration: const Duration(minutes: 5),
+        );
+
+        // Should not throw with empty set
+        handler.recordCachedItem('user-1', tags: {});
+
+        // Item should be tracked but without tags
+        expect(handler.getTags('user-1'), isEmpty);
+        expect(handler.isStale('user-1'), isFalse);
+      });
+
+      test('invalidateWhere with no matching items does not invalidate', () async {
+        when(() => mockBackend.get('user-1')).thenAnswer(
+          (_) async => TestFixtures.createUser(id: 'user-1', isActive: true),
+        );
+        when(() => mockBackend.get('user-2')).thenAnswer(
+          (_) async => TestFixtures.createUser(id: 'user-2', isActive: true),
+        );
+
+        handler = FetchPolicyHandler(
+          backend: mockBackend,
+          defaultPolicy: FetchPolicy.cacheFirst,
+          staleDuration: const Duration(minutes: 5),
+        );
+
+        handler.recordCachedItem('user-1');
+        handler.recordCachedItem('user-2');
+
+        // Query for inactive users - none match
+        final query = Query<TestUser>().where('isActive', isEqualTo: false);
+        await handler.invalidateWhere(
+          query,
+          fieldAccessor: (user, field) => switch (field) {
+            'isActive' => user.isActive,
+            _ => null,
+          },
+        );
+
+        // All items should still be fresh
+        expect(handler.isStale('user-1'), isFalse);
+        expect(handler.isStale('user-2'), isFalse);
       });
     });
   });

@@ -355,5 +355,49 @@ void main() {
         );
       });
     });
+
+    group('background sync (cacheFirst)', () {
+      setUp(() {
+        handler = WritePolicyHandler(
+          backend: backend,
+          defaultPolicy: WritePolicy.cacheFirst,
+        );
+      });
+
+      test('saveAll should not throw on background sync failure', () async {
+        backend.shouldFailOnSync = true;
+
+        final users = TestFixtures.createUsers(3);
+
+        // Should not throw because sync is in background
+        final results = await handler.saveAll(users);
+
+        expect(results, hasLength(3));
+        expect(backend.storage, hasLength(3));
+
+        // Wait for background sync to complete (with error)
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        // No exception should propagate
+        expect(true, isTrue);
+      });
+
+      test('delete should not throw on background sync failure', () async {
+        backend.addToStorage('user-1', TestFixtures.createUser());
+        backend.shouldFailOnSync = true;
+
+        // Should not throw because sync is in background
+        final result = await handler.delete('user-1');
+
+        expect(result, isTrue);
+        expect(backend.storage.containsKey('user-1'), isFalse);
+
+        // Wait for background sync to complete (with error)
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        // No exception should propagate
+        expect(true, isTrue);
+      });
+    });
   });
 }

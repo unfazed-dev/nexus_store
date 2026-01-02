@@ -475,6 +475,86 @@ flutter test test/<test_file>.dart
 
 ## History
 
+- **2026-01-02**: Session 23 - fetch_policy_handler and metrics_reporter 100% coverage (TDD)
+  - **nexus_store (core)** - Final coverage gaps closed
+    - **fetch_policy_handler.dart**: 89.3% → **100%** (+10.7%)
+      - Added getAllCacheFirst empty cache sync test (1 test)
+      - Added getAllNetworkFirst success path test (1 test)
+      - Added getAllCacheAndNetwork success and failure tests (2 tests)
+      - Added getAllNetworkOnly success path test (1 test)
+      - Added getStaleWhileRevalidate no cache test (1 test)
+      - Added getAllStaleWhileRevalidate empty cache test (1 test)
+      - Added recordCachedItem empty tags set test (1 test)
+      - Added invalidateWhere no matches test (1 test)
+      - 9 new tests added using MockStoreBackend with mocktail
+    - **metrics_reporter.dart**: 87.5% → **100%** (+12.5%)
+      - Added reportPoolEvent tests (3 tests)
+        - PoolMetric with minimal fields
+        - All PoolEvent types iteration
+        - PoolMetric with all optional fields
+  - Total: 12 new tests added
+  - TDD methodology followed (Red-Green-Refactor)
+
+- **2026-01-02**: Session 22 - ConsoleMetricsReporter 100% coverage (TDD)
+  - **nexus_store (core)** - Telemetry coverage completion
+    - **console_metrics_reporter.dart**: 71.8% → **100%** (+28.2%)
+      - Added reportPoolEvent tests (8 tests)
+        - Pool event logging, pool name, duration, connection counts
+        - Waiting requests conditional (> 0), all optional fields together
+      - Added reportError edge case (1 test)
+        - Unknown operation fallback when operation is null
+  - Total: 9 new tests added
+  - TDD methodology followed (Red-Green-Refactor)
+
+- **2026-01-02**: Session 21 - Policy and Telemetry coverage improvements (TDD)
+  - **nexus_store (core)** - Policy and Telemetry coverage
+    - **buffered_metrics_reporter.dart**: → **100%**
+      - Added timer periodic flush verification tests
+      - Added timer cancellation on dispose tests
+      - Added PoolMetric forwarding tests
+      - 4 new tests added
+    - **fetch_policy_handler.dart**: → **90.9%** (now **100%** via Session 23)
+      - Added background revalidation error handling tests (staleWhileRevalidate)
+      - Added getAll background revalidation tests
+      - Added lastFetchTime update verification
+      - 3 new tests added
+    - **write_policy_handler.dart**: → **98.0%**
+      - Added cacheFirst saveAll background sync error handling tests
+      - Added cacheFirst delete background sync error handling tests
+      - 2 new tests added
+    - **store_stats.dart**: Confirmed **100%** coverage
+  - Total: 9 new tests added
+  - TDD methodology followed (Red-Green-Refactor)
+
+- **2026-01-02**: Session 19 - Core package coverage improvements (TDD)
+  - **nexus_store (core)** - Major coverage improvements
+    - **expression.dart**: 66.2% → **100%** (+33.8%)
+      - Added toString tests for ComparisonExpression, AndExpression, OrExpression, NotExpression
+      - Added OrExpression and NotExpression equality/hashCode tests
+      - Added _invertOperator UnsupportedError tests for contains, startsWith, endsWith, arrayContains, arrayContainsAny
+      - 18 new tests added
+    - **store_backend.dart**: 44.4% → **97.2%** (+52.8%)
+      - Added StoreBackendDefaults field operations tests (supportsFieldOperations, getField, getFieldBatch)
+      - Added transaction operations tests (beginTransaction, commitTransaction, rollbackTransaction, runInTransaction)
+      - Added pagination operations tests (getAllPaged, watchAllPaged)
+      - Added sync operations tests (pendingChangesStream, conflictsStream, retryChange, cancelChange)
+      - 17 new tests added
+    - **connection_pool.dart**: 74.3% → **88.5%** (+14.2%)
+      - Added release edge case tests (destroy when disposed, testOnReturn validation)
+      - Added connection lifetime tests (max lifetime exceeded)
+      - Added health check operations tests (unhealthy connection reset/destroy)
+      - Added idle connection trimming tests
+      - Added returnToPool edge cases tests
+      - Added create/destroy failure handling tests
+      - 12 new tests added
+    - **store_errors.dart** - Added cause/stackTrace tests for:
+      - NotFoundError, ValidationError, ConflictError, SyncError
+      - AuthenticationError, AuthorizationError, StateError
+      - CancellationError, QuotaExceededError
+      - 9 new tests added
+  - Total: 56 new tests added
+  - TDD methodology followed (Red-Green-Refactor)
+
 - **2026-01-02**: Session 18 - Unskip all integration tests across packages
   - **nexus_store_powersync_adapter**
     - Removed `@Skip` annotation from `test/integration/real_database_test.dart`
