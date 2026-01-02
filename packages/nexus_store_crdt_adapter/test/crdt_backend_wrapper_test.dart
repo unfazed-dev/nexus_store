@@ -321,11 +321,10 @@ void main() {
       });
 
       test('watch caches subject for same ID', () async {
-        // First call creates a new subscription
-        backend.watch('1');
-
-        // Second call should reuse cached subject, not create new subscription
-        backend.watch('1');
+        // First call creates new subscription, second reuses cached subject
+        backend
+          ..watch('1')
+          ..watch('1');
 
         // mockDb.watch should only be called once due to caching
         verify(() => mockDb.watch(any(), any())).called(1);
@@ -354,11 +353,10 @@ void main() {
       });
 
       test('watchAll caches subject for same query', () async {
-        // First call creates a new subscription
-        backend.watchAll();
-
-        // Second call should reuse cached subject, not create new subscription
-        backend.watchAll();
+        // First call creates new subscription, second reuses cached subject
+        backend
+          ..watchAll()
+          ..watchAll();
 
         // mockDb.watch should only be called once due to caching
         verify(() => mockDb.watch(any(), any())).called(1);
@@ -385,8 +383,9 @@ void main() {
             {'id': '1', 'name': 'John', 'hlc': 'timestamp'},
           ],
         };
-        when(() => mockDb.getChangeset(modifiedAfter: any(named: 'modifiedAfter')))
-            .thenAnswer((_) async => mockChangeset);
+        when(
+          () => mockDb.getChangeset(modifiedAfter: any(named: 'modifiedAfter')),
+        ).thenAnswer((_) async => mockChangeset);
 
         final changeset = await backend.getChangeset();
 
@@ -396,8 +395,9 @@ void main() {
 
       test('getChangeset with since parameter', () async {
         final hlc = Hlc.zero('testnode');
-        when(() => mockDb.getChangeset(modifiedAfter: any(named: 'modifiedAfter')))
-            .thenAnswer((_) async => {});
+        when(
+          () => mockDb.getChangeset(modifiedAfter: any(named: 'modifiedAfter')),
+        ).thenAnswer((_) async => {});
 
         await backend.getChangeset(since: hlc);
 
