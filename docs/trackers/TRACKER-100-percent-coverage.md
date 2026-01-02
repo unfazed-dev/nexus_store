@@ -10,7 +10,7 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 |----------|----------|--------------|-----------|
 | P0 Critical | 3 | 474 | 3 (riverpod_generator ✅ 100%, supabase_adapter ✅ 96.8%, riverpod_binding ✅ 100%) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
-| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store ✅ 94%+, crdt_adapter ✅ 98.3%, bloc_binding ✅ 96.2%, drift_adapter ✅ 98.8%) |
+| P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store ✅ 94%+, crdt_adapter ✅ 98.3%, bloc_binding ✅ 97.0%, drift_adapter ✅ 98.8%) |
 | P3-P4 Lower | 4 | 133 | 4 (entity_generator ✅ 100%, generator ✅ 100%, brick_adapter ✅ 100%, signals_binding ✅ 100%) |
 | **Total** | **13** | **1,415** | **13** (All packages ✅ 90%+ coverage) |
 
@@ -474,6 +474,29 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-02**: Session 16 - Bloc binding edge case tests (TDD)
+  - **nexus_store_bloc_binding** (96.2% → 97.0%, +0.8%)
+    - Enhanced `test/bloc/nexus_store_bloc_test.dart` (8 new tests)
+      - Refresh with null query calls watchAll with null query
+      - Multiple LoadAll events cancel previous subscription (verified via separate controllers)
+      - LoadAll with empty Query object passes query to watchAll
+      - Error state includes stackTrace from stream error
+      - Save/SaveAll/DeleteAll error includes stackTrace
+      - Refresh preserves query from previous LoadAll
+    - Enhanced `test/bloc/nexus_item_bloc_test.dart` (10 new tests)
+      - LoadItem from NotFound state triggers reload
+      - Loading -> NotFound -> Loading state transitions
+      - Delete from Initial/NotFound/Error states
+      - Error state includes stackTrace from stream error
+      - Save error includes stackTrace
+      - Multiple LoadItem events cancel previous subscription
+      - RefreshItem without prior LoadItem triggers fresh load
+  - **nexus_store_supabase_adapter** (unchanged at 96.8%)
+    - Remaining ~3%: Defensive timing-sensitive `onError` callbacks in watch/watchAll
+    - Require realtime manager injection (not currently possible without architectural changes)
+  - Total: 18 new tests added
+  - TDD methodology followed (Red-Green-Refactor)
 
 - **2026-01-02**: Session 15b - Integration tests with real Supabase (TDD)
   - **nexus_store_supabase_adapter** (91.8% → 96.8%, +5.0%)

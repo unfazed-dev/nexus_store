@@ -348,5 +348,176 @@ void main() {
         ],
       );
     });
+
+    group('edge cases', () {
+      blocTest<NexusStoreBloc<TestUser, String>, NexusStoreState<TestUser>>(
+        'refresh with null query calls watchAll with null query',
+        build: () => NexusStoreBloc<TestUser, String>(mockStore),
+        act: (bloc) async {
+          // Refresh without prior LoadAll - _currentQuery is null
+          bloc.add(const Refresh<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+          watchAllController.add(TestFixtures.sampleUsers);
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusStoreLoading<TestUser>>(),
+          isA<NexusStoreLoaded<TestUser>>()
+              .having((s) => s.data.length, 'data.length', 3),
+        ],
+        verify: (_) {
+          verify(() => mockStore.watchAll(query: null)).called(1);
+        },
+      );
+
+      test('multiple LoadAll events cancel previous subscription', () async {
+        // Use separate controllers to simulate different streams
+        final controller1 = StreamController<List<TestUser>>.broadcast();
+        final controller2 = StreamController<List<TestUser>>.broadcast();
+        var callCount = 0;
+
+        when(() => mockStore.watchAll(query: any(named: 'query'))).thenAnswer((_) {
+          callCount++;
+          return callCount == 1 ? controller1.stream : controller2.stream;
+        });
+
+        final bloc = NexusStoreBloc<TestUser, String>(mockStore);
+
+        // First load
+        bloc.add(const LoadAll<TestUser, String>());
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state, isA<NexusStoreLoading<TestUser>>());
+
+        // Second load - cancels first subscription
+        bloc.add(const LoadAll<TestUser, String>());
+        await Future<void>.delayed(Duration.zero);
+
+        // Emit on first controller - should not affect bloc (subscription cancelled)
+        controller1.add([TestFixtures.sampleUser]);
+        await Future<void>.delayed(Duration.zero);
+        // State should still be loading (from second LoadAll)
+        expect(bloc.state, isA<NexusStoreLoading<TestUser>>());
+
+        // Emit on second controller - should update bloc
+        controller2.add(TestFixtures.sampleUsers);
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state, isA<NexusStoreLoaded<TestUser>>());
+        expect((bloc.state as NexusStoreLoaded<TestUser>).data.length, 3);
+
+        // Verify watchAll was called twice
+        verify(() => mockStore.watchAll(query: any(named: 'query'))).called(2);
+
+        await bloc.close();
+        await controller1.close();
+        await controller2.close();
+      });
+
+      blocTest<NexusStoreBloc<TestUser, String>, NexusStoreState<TestUser>>(
+        'LoadAll with empty Query object passes query to watchAll',
+        build: () => NexusStoreBloc<TestUser, String>(mockStore),
+        act: (bloc) async {
+          const emptyQuery = Query<TestUser>();
+          bloc.add(const LoadAll<TestUser, String>(query: emptyQuery));
+          await Future<void>.delayed(Duration.zero);
+        },
+        verify: (_) {
+          verify(() => mockStore.watchAll(query: const Query<TestUser>()))
+              .called(1);
+        },
+      );
+
+      blocTest<NexusStoreBloc<TestUser, String>, NexusStoreState<TestUser>>(
+        'error state includes stackTrace from stream error',
+        build: () => NexusStoreBloc<TestUser, String>(mockStore),
+        act: (bloc) async {
+          bloc.add(const LoadAll<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+          watchAllController.addError(
+            Exception('Test error'),
+            StackTrace.fromString('test stack trace'),
+          );
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusStoreLoading<TestUser>>(),
+          isA<NexusStoreError<TestUser>>()
+              .having((s) => s.stackTrace, 'stackTrace', isNotNull),
+        ],
+      );
+
+      blocTest<NexusStoreBloc<TestUser, String>, NexusStoreState<TestUser>>(
+        'save error includes stackTrace',
+        build: () {
+          when(() => mockStore.save(any(),
+              policy: any(named: 'policy'),
+              tags: any(named: 'tags'))).thenThrow(Exception('Save failed'));
+          return NexusStoreBloc<TestUser, String>(mockStore);
+        },
+        act: (bloc) async {
+          bloc.add(Save<TestUser, String>(TestFixtures.sampleUser));
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusStoreError<TestUser>>()
+              .having((s) => s.stackTrace, 'stackTrace', isNotNull),
+        ],
+      );
+
+      blocTest<NexusStoreBloc<TestUser, String>, NexusStoreState<TestUser>>(
+        'saveAll error includes stackTrace',
+        build: () {
+          when(() => mockStore.saveAll(any(),
+              policy: any(named: 'policy'),
+              tags: any(named: 'tags'))).thenThrow(Exception('SaveAll failed'));
+          return NexusStoreBloc<TestUser, String>(mockStore);
+        },
+        act: (bloc) async {
+          bloc.add(SaveAll<TestUser, String>(TestFixtures.sampleUsers));
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusStoreError<TestUser>>()
+              .having((s) => s.stackTrace, 'stackTrace', isNotNull),
+        ],
+      );
+
+      blocTest<NexusStoreBloc<TestUser, String>, NexusStoreState<TestUser>>(
+        'deleteAll error includes stackTrace',
+        build: () {
+          when(() => mockStore.deleteAll(any(), policy: any(named: 'policy')))
+              .thenThrow(Exception('DeleteAll failed'));
+          return NexusStoreBloc<TestUser, String>(mockStore);
+        },
+        act: (bloc) async {
+          bloc.add(const DeleteAll<TestUser, String>(['user-1', 'user-2']));
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusStoreError<TestUser>>()
+              .having((s) => s.stackTrace, 'stackTrace', isNotNull),
+        ],
+      );
+
+      blocTest<NexusStoreBloc<TestUser, String>, NexusStoreState<TestUser>>(
+        'refresh preserves query from previous LoadAll',
+        build: () => NexusStoreBloc<TestUser, String>(mockStore),
+        act: (bloc) async {
+          final query = const Query<TestUser>().limitTo(10);
+          // First load with query
+          bloc.add(LoadAll<TestUser, String>(query: query));
+          await Future<void>.delayed(Duration.zero);
+          watchAllController.add([TestFixtures.sampleUser]);
+          await Future<void>.delayed(Duration.zero);
+
+          // Refresh should use the same query
+          bloc.add(const Refresh<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+        },
+        verify: (_) {
+          // watchAll should be called twice (LoadAll + Refresh)
+          verify(() => mockStore.watchAll(query: any(named: 'query'))).called(2);
+        },
+      );
+    });
   });
 }

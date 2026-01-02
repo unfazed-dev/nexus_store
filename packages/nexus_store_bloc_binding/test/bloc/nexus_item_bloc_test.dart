@@ -357,5 +357,198 @@ void main() {
         ],
       );
     });
+
+    group('edge cases', () {
+      blocTest<NexusItemBloc<TestUser, String>, NexusItemState<TestUser>>(
+        'LoadItem from NotFound state triggers reload',
+        build: () => NexusItemBloc<TestUser, String>(mockStore, 'user-1'),
+        seed: () => const NexusItemNotFound<TestUser>(),
+        act: (bloc) async {
+          bloc.add(const LoadItem<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+          watchController.add(TestFixtures.sampleUser);
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusItemLoading<TestUser>>(),
+          isA<NexusItemLoaded<TestUser>>()
+              .having((s) => s.data.id, 'data.id', 'user-1'),
+        ],
+      );
+
+      blocTest<NexusItemBloc<TestUser, String>, NexusItemState<TestUser>>(
+        'Loading -> NotFound -> Loading state transitions work correctly',
+        build: () => NexusItemBloc<TestUser, String>(mockStore, 'user-1'),
+        act: (bloc) async {
+          // First load - item not found
+          bloc.add(const LoadItem<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+          watchController.add(null);
+          await Future<void>.delayed(Duration.zero);
+
+          // Reload - item now exists
+          bloc.add(const LoadItem<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+          watchController.add(TestFixtures.sampleUser);
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusItemLoading<TestUser>>(),
+          isA<NexusItemNotFound<TestUser>>(),
+          isA<NexusItemLoading<TestUser>>(),
+          isA<NexusItemLoaded<TestUser>>(),
+        ],
+      );
+
+      blocTest<NexusItemBloc<TestUser, String>, NexusItemState<TestUser>>(
+        'delete from Initial state',
+        build: () => NexusItemBloc<TestUser, String>(mockStore, 'user-1'),
+        act: (bloc) async {
+          bloc.add(const DeleteItem<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+        },
+        verify: (_) {
+          verify(() => mockStore.delete('user-1', policy: any(named: 'policy')))
+              .called(1);
+        },
+      );
+
+      blocTest<NexusItemBloc<TestUser, String>, NexusItemState<TestUser>>(
+        'delete from NotFound state',
+        build: () => NexusItemBloc<TestUser, String>(mockStore, 'user-1'),
+        seed: () => const NexusItemNotFound<TestUser>(),
+        act: (bloc) async {
+          bloc.add(const DeleteItem<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+        },
+        verify: (_) {
+          verify(() => mockStore.delete('user-1', policy: any(named: 'policy')))
+              .called(1);
+        },
+      );
+
+      blocTest<NexusItemBloc<TestUser, String>, NexusItemState<TestUser>>(
+        'delete from Error state preserves previousData on new error',
+        build: () {
+          when(() => mockStore.delete(any(), policy: any(named: 'policy')))
+              .thenThrow(Exception('Delete failed'));
+          return NexusItemBloc<TestUser, String>(mockStore, 'user-1');
+        },
+        seed: () => NexusItemError<TestUser>(
+          error: Exception('Previous error'),
+          previousData: TestFixtures.sampleUser,
+        ),
+        act: (bloc) async {
+          bloc.add(const DeleteItem<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusItemError<TestUser>>()
+              .having((s) => s.previousData?.id, 'previousData.id', 'user-1'),
+        ],
+      );
+
+      blocTest<NexusItemBloc<TestUser, String>, NexusItemState<TestUser>>(
+        'error state includes stackTrace from stream error',
+        build: () => NexusItemBloc<TestUser, String>(mockStore, 'user-1'),
+        act: (bloc) async {
+          bloc.add(const LoadItem<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+          watchController.addError(
+            Exception('Test error'),
+            StackTrace.fromString('test stack trace'),
+          );
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusItemLoading<TestUser>>(),
+          isA<NexusItemError<TestUser>>()
+              .having((s) => s.stackTrace, 'stackTrace', isNotNull),
+        ],
+      );
+
+      blocTest<NexusItemBloc<TestUser, String>, NexusItemState<TestUser>>(
+        'save error includes stackTrace',
+        build: () {
+          when(() => mockStore.save(any(),
+              policy: any(named: 'policy'),
+              tags: any(named: 'tags'))).thenThrow(Exception('Save failed'));
+          return NexusItemBloc<TestUser, String>(mockStore, 'user-1');
+        },
+        act: (bloc) async {
+          bloc.add(SaveItem<TestUser, String>(TestFixtures.sampleUser));
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusItemError<TestUser>>()
+              .having((s) => s.stackTrace, 'stackTrace', isNotNull),
+        ],
+      );
+
+      test('multiple LoadItem events cancel previous subscription', () async {
+        // Use separate controllers to simulate different streams
+        final controller1 = StreamController<TestUser?>.broadcast();
+        final controller2 = StreamController<TestUser?>.broadcast();
+        var callCount = 0;
+
+        when(() => mockStore.watch(any())).thenAnswer((_) {
+          callCount++;
+          return callCount == 1 ? controller1.stream : controller2.stream;
+        });
+
+        final bloc = NexusItemBloc<TestUser, String>(mockStore, 'user-1');
+
+        // First load
+        bloc.add(const LoadItem<TestUser, String>());
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state, isA<NexusItemLoading<TestUser>>());
+
+        // Second load - cancels first subscription
+        bloc.add(const LoadItem<TestUser, String>());
+        await Future<void>.delayed(Duration.zero);
+
+        // Emit on first controller - should not affect bloc (subscription cancelled)
+        controller1.add(TestFixtures.sampleUser);
+        await Future<void>.delayed(Duration.zero);
+        // State should still be loading (from second LoadItem)
+        expect(bloc.state, isA<NexusItemLoading<TestUser>>());
+
+        // Emit on second controller - should update bloc
+        const updatedUser = TestUser(
+          id: 'user-1',
+          name: 'Updated User',
+          email: 'updated@test.com',
+          age: 40,
+        );
+        controller2.add(updatedUser);
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state, isA<NexusItemLoaded<TestUser>>());
+        expect((bloc.state as NexusItemLoaded<TestUser>).data.name, 'Updated User');
+
+        // Verify watch was called twice
+        verify(() => mockStore.watch('user-1')).called(2);
+
+        await bloc.close();
+        await controller1.close();
+        await controller2.close();
+      });
+
+      blocTest<NexusItemBloc<TestUser, String>, NexusItemState<TestUser>>(
+        'RefreshItem without prior LoadItem triggers fresh load',
+        build: () => NexusItemBloc<TestUser, String>(mockStore, 'user-1'),
+        act: (bloc) async {
+          // Refresh without prior LoadItem
+          bloc.add(const RefreshItem<TestUser, String>());
+          await Future<void>.delayed(Duration.zero);
+          watchController.add(TestFixtures.sampleUser);
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          isA<NexusItemLoading<TestUser>>(),
+          isA<NexusItemLoaded<TestUser>>()
+              .having((s) => s.data.id, 'data.id', 'user-1'),
+        ],
+      );
+    });
   });
 }
