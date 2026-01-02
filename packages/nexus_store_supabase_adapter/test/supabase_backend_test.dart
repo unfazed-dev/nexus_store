@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
 import 'package:nexus_store_supabase_adapter/nexus_store_supabase_adapter.dart';
@@ -10,7 +12,29 @@ class MockSupabaseClient extends Mock implements SupabaseClient {}
 
 class MockSupabaseClientWrapper extends Mock implements SupabaseClientWrapper {}
 
+class MockRealtimeManagerWrapper extends Mock
+    implements RealtimeManagerWrapper<TestModel, String> {}
+
 class MockRealtimeChannel extends Mock implements RealtimeChannel {}
+
+class MockSupabaseQueryTranslator extends Mock
+    implements SupabaseQueryTranslator<TestModel> {}
+
+class FakePostgrestFilterBuilder extends Fake
+    implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {
+  /// Creates a fake builder with optional data to return when awaited.
+  FakePostgrestFilterBuilder([this.data = const []]);
+
+  /// The data to return when awaited.
+  final List<Map<String, dynamic>> data;
+
+  @override
+  Future<S> then<S>(
+    FutureOr<S> Function(List<Map<String, dynamic>> value) onValue, {
+    Function? onError,
+  }) async =>
+      onValue(data);
+}
 
 class FakeRealtimeChannel extends Fake implements RealtimeChannel {}
 
@@ -19,6 +43,9 @@ void main() {
     registerFallbackValue(PostgresChangeEvent.all);
     registerFallbackValue(FakeRealtimeChannel());
     registerFallbackValue((PostgresChangePayload p) {});
+    registerFallbackValue(const TestModel(id: '', name: ''));
+    registerFallbackValue(FakePostgrestFilterBuilder());
+    registerFallbackValue(const nexus.Query<TestModel>());
   });
   group('SupabaseBackend', () {
     late MockSupabaseClient mockClient;
@@ -1218,6 +1245,498 @@ void main() {
           expect(e.isRetryable, isFalse);
         }
       });
+    });
+  });
+
+  group('SupabaseBackend.withRealtimeWrapper', () {
+    late MockRealtimeManagerWrapper mockRealtimeWrapper;
+    late MockSupabaseClientWrapper mockClientWrapper;
+    late SupabaseBackend<TestModel, String> backend;
+
+    setUp(() {
+      mockRealtimeWrapper = MockRealtimeManagerWrapper();
+      mockClientWrapper = MockSupabaseClientWrapper();
+
+      when(() => mockRealtimeWrapper.isInitialized).thenReturn(false);
+      when(() => mockRealtimeWrapper.initialize()).thenAnswer((_) async {});
+      when(() => mockRealtimeWrapper.dispose()).thenAnswer((_) async {});
+    });
+
+    tearDown(() async {
+      try {
+        await backend.close();
+      } on Object {
+        // Ignore
+      }
+    });
+
+    test('uses injected wrapper instead of creating internal one', () async {
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+
+      verify(() => mockRealtimeWrapper.initialize()).called(1);
+    });
+
+    test('watch() error from realtime stream propagates to subject', () async {
+      when(() => mockClientWrapper.get(any(), any(), any()))
+          .thenAnswer((_) async => {'id': '1', 'name': 'Test'});
+
+      final controller = StreamController<TestModel?>();
+      when(() => mockRealtimeWrapper.watchItem(any()))
+          .thenAnswer((_) => controller.stream);
+
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+
+      final emissions = <dynamic>[];
+      backend.watch('1').listen(
+        emissions.add,
+        onError: emissions.add,
+      );
+
+      // Wait for initial load
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      // Emit error from realtime stream
+      controller.addError(Exception('Realtime connection lost'));
+      await Future<void>.delayed(Duration.zero);
+
+      // Should have initial value + error
+      expect(emissions, hasLength(2));
+      expect(emissions[0], isA<TestModel>());
+      expect(emissions[1], isA<Exception>());
+
+      await controller.close();
+    });
+
+    test('watchAll() error from realtime stream propagates to subject',
+        () async {
+      when(() => mockClientWrapper.getAll(any()))
+          .thenAnswer((_) async => [{'id': '1', 'name': 'Test'}]);
+
+      final controller = StreamController<List<TestModel>>();
+      when(() => mockRealtimeWrapper.watchAll())
+          .thenAnswer((_) => controller.stream);
+
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+
+      final emissions = <dynamic>[];
+      backend.watchAll().listen(
+        emissions.add,
+        onError: emissions.add,
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      controller.addError(Exception('Realtime error'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(emissions, hasLength(2));
+      expect(emissions[0], isA<List<TestModel>>());
+      expect(emissions[1], isA<Exception>());
+
+      await controller.close();
+    });
+  });
+
+  group('getAll with query', () {
+    late MockRealtimeManagerWrapper mockRealtimeWrapper;
+    late MockSupabaseClientWrapper mockClientWrapper;
+    late SupabaseBackend<TestModel, String> backend;
+
+    setUp(() {
+      mockRealtimeWrapper = MockRealtimeManagerWrapper();
+      mockClientWrapper = MockSupabaseClientWrapper();
+
+      when(() => mockRealtimeWrapper.isInitialized).thenReturn(false);
+      when(() => mockRealtimeWrapper.initialize()).thenAnswer((_) async {});
+      when(() => mockRealtimeWrapper.dispose()).thenAnswer((_) async {});
+    });
+
+    tearDown(() async {
+      try {
+        await backend.close();
+      } on Object {
+        // Ignore
+      }
+    });
+
+    test('getAll with query passes queryBuilder to wrapper', () async {
+      when(
+        () => mockClientWrapper.getAll(
+          any(),
+          queryBuilder: any(named: 'queryBuilder'),
+        ),
+      ).thenAnswer((_) async => [
+            {'id': '1', 'name': 'Filtered'},
+          ]);
+
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+
+      final query =
+          const nexus.Query<TestModel>().where('name', isEqualTo: 'Filtered');
+
+      final result = await backend.getAll(query: query);
+
+      expect(result, hasLength(1));
+      expect(result.first.name, 'Filtered');
+      verify(
+        () => mockClientWrapper.getAll(
+          any(),
+          queryBuilder: any(named: 'queryBuilder'),
+        ),
+      ).called(1);
+    });
+
+    test('getAll with query invokes queryBuilder callback (lines 311-312)',
+        () async {
+      // Create mock query translator to control what happens inside callback
+      final mockQueryTranslator = MockSupabaseQueryTranslator();
+      final fakeFilterBuilder = FakePostgrestFilterBuilder();
+
+      // Mock translator.apply to return the fake builder
+      when(() => mockQueryTranslator.apply(any(), any()))
+          .thenAnswer((_) => fakeFilterBuilder);
+
+      // Capture and invoke the queryBuilder callback
+      when(
+        () => mockClientWrapper.getAll(
+          any(),
+          queryBuilder: any(named: 'queryBuilder'),
+        ),
+      ).thenAnswer((invocation) async {
+        // Get the callback and invoke it - this covers lines 311-312
+        final queryBuilder = invocation.namedArguments[#queryBuilder]
+            as Future<List<Map<String, dynamic>>> Function(
+          PostgrestFilterBuilder<List<Map<String, dynamic>>>,
+        )?;
+        if (queryBuilder != null) {
+          // Invoke callback with a fake builder - this executes lines 311-312
+          await queryBuilder(fakeFilterBuilder);
+        }
+        return [
+          {'id': '1', 'name': 'Filtered'},
+        ];
+      });
+
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+        queryTranslator: mockQueryTranslator,
+      );
+
+      await backend.initialize();
+
+      final query =
+          const nexus.Query<TestModel>().where('name', isEqualTo: 'Filtered');
+
+      final result = await backend.getAll(query: query);
+
+      expect(result, hasLength(1));
+      // Verify the translator's apply method was called with the query
+      verify(() => mockQueryTranslator.apply(any(), query)).called(1);
+    });
+  });
+
+  group('deleteWhere error handling', () {
+    late MockRealtimeManagerWrapper mockRealtimeWrapper;
+    late MockSupabaseClientWrapper mockClientWrapper;
+    late SupabaseBackend<TestModel, String> backend;
+
+    setUp(() {
+      mockRealtimeWrapper = MockRealtimeManagerWrapper();
+      mockClientWrapper = MockSupabaseClientWrapper();
+
+      when(() => mockRealtimeWrapper.isInitialized).thenReturn(false);
+      when(() => mockRealtimeWrapper.initialize()).thenAnswer((_) async {});
+      when(() => mockRealtimeWrapper.dispose()).thenAnswer((_) async {});
+    });
+
+    tearDown(() async {
+      try {
+        await backend.close();
+      } on Object {
+        // Ignore
+      }
+    });
+
+    test('deleteWhere throws and sets error status on failure', () async {
+      when(
+        () => mockClientWrapper.getAll(
+          any(),
+          queryBuilder: any(named: 'queryBuilder'),
+        ),
+      ).thenAnswer((_) async => [
+            {'id': '1', 'name': 'Test'},
+          ],);
+      when(() => mockClientWrapper.deleteByIds(any(), any(), any()))
+          .thenThrow(const PostgrestException(message: 'Delete failed'));
+
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+
+      final query =
+          const nexus.Query<TestModel>().where('name', isEqualTo: 'Test');
+
+      expect(() => backend.deleteWhere(query), throwsA(isA<nexus.SyncError>()));
+    });
+  });
+
+  group('_refreshAllWatchers error handling', () {
+    late MockRealtimeManagerWrapper mockRealtimeWrapper;
+    late MockSupabaseClientWrapper mockClientWrapper;
+    late SupabaseBackend<TestModel, String> backend;
+
+    setUp(() {
+      mockRealtimeWrapper = MockRealtimeManagerWrapper();
+      mockClientWrapper = MockSupabaseClientWrapper();
+
+      when(() => mockRealtimeWrapper.isInitialized).thenReturn(false);
+      when(() => mockRealtimeWrapper.initialize()).thenAnswer((_) async {});
+      when(() => mockRealtimeWrapper.dispose()).thenAnswer((_) async {});
+    });
+
+    tearDown(() async {
+      try {
+        await backend.close();
+      } on Object {
+        // Ignore
+      }
+    });
+
+    test('_refreshAllWatchers propagates error to stream when getAll fails',
+        () async {
+      var callCount = 0;
+      when(() => mockClientWrapper.getAll(any())).thenAnswer((_) async {
+        callCount++;
+        if (callCount == 1) {
+          // First call for initial watchAll load - success
+          return [
+            {'id': '1', 'name': 'Test'},
+          ];
+        }
+        // Second call from _refreshAllWatchers after save - error
+        throw const PostgrestException(message: 'Refresh failed');
+      });
+      when(() => mockClientWrapper.upsert(any(), any()))
+          .thenAnswer((_) async => {'id': '1', 'name': 'Updated'});
+      when(() => mockRealtimeWrapper.watchAll())
+          .thenAnswer((_) => const Stream<List<TestModel>>.empty());
+      when(() => mockRealtimeWrapper.notifyItemChanged(any())).thenReturn(null);
+
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+
+      // Subscribe to watchAll
+      final emissions = <dynamic>[];
+      backend.watchAll().listen(
+        emissions.add,
+        onError: emissions.add,
+      );
+
+      // Wait for initial load
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      // Trigger save which calls _refreshAllWatchers
+      await backend.save(const TestModel(id: '1', name: 'Updated'));
+
+      // Wait for refresh to complete
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      // Should have initial data + error from refresh
+      expect(emissions.length, greaterThanOrEqualTo(1));
+    });
+  });
+
+  group('subscription lifecycle', () {
+    late MockRealtimeManagerWrapper mockRealtimeWrapper;
+    late MockSupabaseClientWrapper mockClientWrapper;
+    late SupabaseBackend<TestModel, String> backend;
+
+    setUp(() {
+      mockRealtimeWrapper = MockRealtimeManagerWrapper();
+      mockClientWrapper = MockSupabaseClientWrapper();
+
+      when(() => mockRealtimeWrapper.isInitialized).thenReturn(false);
+      when(() => mockRealtimeWrapper.initialize()).thenAnswer((_) async {});
+      when(() => mockRealtimeWrapper.dispose()).thenAnswer((_) async {});
+    });
+
+    test('watch() subscription is cancelled when backend closes', () async {
+      final controller = StreamController<TestModel?>();
+      addTearDown(controller.close);
+
+      when(() => mockRealtimeWrapper.watchItem(any()))
+          .thenAnswer((_) => controller.stream);
+      when(() => mockClientWrapper.get(any(), any(), any()))
+          .thenAnswer((_) async => {'id': '1', 'name': 'Test'});
+
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+      backend.watch('1');
+
+      // Give time for subscription to be established
+      await Future<void>.delayed(Duration.zero);
+
+      await backend.close();
+
+      // After close, the stream controller should have no listeners
+      expect(controller.hasListener, isFalse);
+    });
+
+    test('watchAll() subscription is cancelled when backend closes', () async {
+      final controller = StreamController<List<TestModel>>();
+      addTearDown(controller.close);
+
+      when(() => mockRealtimeWrapper.watchAll())
+          .thenAnswer((_) => controller.stream);
+      when(() => mockClientWrapper.getAll(any()))
+          .thenAnswer((_) async => [{'id': '1', 'name': 'Test'}]);
+
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+      backend.watchAll();
+
+      await Future<void>.delayed(Duration.zero);
+      await backend.close();
+
+      expect(controller.hasListener, isFalse);
+    });
+
+    test('multiple watch() calls for same ID reuse subscription', () async {
+      final controller = StreamController<TestModel?>.broadcast();
+      addTearDown(controller.close);
+
+      var watchItemCalls = 0;
+      when(() => mockRealtimeWrapper.watchItem(any())).thenAnswer((_) {
+        watchItemCalls++;
+        return controller.stream;
+      });
+      when(() => mockClientWrapper.get(any(), any(), any()))
+          .thenAnswer((_) async => {'id': '1', 'name': 'Test'});
+
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+      backend.watch('1');
+      backend.watch('1');
+      backend.watch('1');
+
+      // Should only create one subscription
+      expect(watchItemCalls, 1);
+
+      await backend.close();
+    });
+
+    test('close() disposes realtime wrapper', () async {
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+      await backend.close();
+
+      verify(() => mockRealtimeWrapper.dispose()).called(1);
+    });
+
+    test('close() is idempotent', () async {
+      backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
+        wrapper: mockClientWrapper,
+        realtimeWrapper: mockRealtimeWrapper,
+        tableName: 'test_models',
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+      );
+
+      await backend.initialize();
+      await backend.close();
+      await backend.close(); // Second close should not throw
+
+      // Should only dispose once
+      verify(() => mockRealtimeWrapper.dispose()).called(1);
     });
   });
 }

@@ -32,6 +32,8 @@
 /// ```
 library;
 
+export 'src/realtime_manager_wrapper.dart'
+    show DefaultRealtimeManagerWrapper, RealtimeManagerWrapper;
 export 'src/supabase_backend.dart' show SupabaseBackend;
 export 'src/supabase_query_translator.dart'
     show SupabaseQueryExtension, SupabaseQueryTranslator;

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:nexus_store/nexus_store.dart' as nexus;
+import 'package:nexus_store_supabase_adapter/src/realtime_manager_wrapper.dart';
 import 'package:nexus_store_supabase_adapter/src/supabase_client_wrapper.dart';
 import 'package:nexus_store_supabase_adapter/src/supabase_query_translator.dart';
 import 'package:nexus_store_supabase_adapter/src/supabase_realtime_manager.dart';
@@ -64,7 +65,8 @@ class SupabaseBackend<T, ID>
         _primaryKeyColumn = primaryKeyColumn,
         _queryTranslator = queryTranslator ??
             SupabaseQueryTranslator<T>(fieldMapping: fieldMapping),
-        _schema = schema;
+        _schema = schema,
+        _realtimeManagerWrapper = null;
 
   /// Creates a [SupabaseBackend] with a custom [SupabaseClientWrapper].
   ///
@@ -99,6 +101,49 @@ class SupabaseBackend<T, ID>
         _primaryKeyColumn = primaryKeyColumn,
         _queryTranslator = queryTranslator ??
             SupabaseQueryTranslator<T>(fieldMapping: fieldMapping),
+        _schema = schema,
+        _realtimeManagerWrapper = null;
+
+  /// Creates a [SupabaseBackend] with custom wrappers for full testability.
+  ///
+  /// This constructor allows injection of both the client wrapper and
+  /// realtime manager wrapper, enabling comprehensive testing of:
+  /// - CRUD operations (via mockable [SupabaseClientWrapper])
+  /// - Realtime stream error handling (via mockable [RealtimeManagerWrapper])
+  ///
+  /// ```dart
+  /// final mockClientWrapper = MockSupabaseClientWrapper();
+  /// final mockRealtimeWrapper = MockRealtimeManagerWrapper<User, String>();
+  ///
+  /// final backend = SupabaseBackend<User, String>.withRealtimeWrapper(
+  ///   wrapper: mockClientWrapper,
+  ///   realtimeWrapper: mockRealtimeWrapper,
+  ///   tableName: 'users',
+  ///   getId: (user) => user.id,
+  ///   fromJson: User.fromJson,
+  ///   toJson: (user) => user.toJson(),
+  /// );
+  /// ```
+  SupabaseBackend.withRealtimeWrapper({
+    required SupabaseClientWrapper wrapper,
+    required RealtimeManagerWrapper<T, ID> realtimeWrapper,
+    required String tableName,
+    required ID Function(T item) getId,
+    required T Function(Map<String, dynamic> json) fromJson,
+    required Map<String, dynamic> Function(T item) toJson,
+    String primaryKeyColumn = 'id',
+    SupabaseQueryTranslator<T>? queryTranslator,
+    Map<String, String>? fieldMapping,
+    String schema = 'public',
+  })  : _wrapper = wrapper,
+        _realtimeManagerWrapper = realtimeWrapper,
+        _tableName = tableName,
+        _getId = getId,
+        _fromJson = fromJson,
+        _toJson = toJson,
+        _primaryKeyColumn = primaryKeyColumn,
+        _queryTranslator = queryTranslator ??
+            SupabaseQueryTranslator<T>(fieldMapping: fieldMapping),
         _schema = schema;
 
   final SupabaseClientWrapper _wrapper;
@@ -110,8 +155,17 @@ class SupabaseBackend<T, ID>
   final SupabaseQueryTranslator<T> _queryTranslator;
   final String _schema;
 
-  /// Realtime manager for watch operations.
+  /// Realtime manager wrapper for watch operations.
+  RealtimeManagerWrapper<T, ID>? _realtimeManagerWrapper;
+
+  /// Realtime manager for watch operations (used when wrapper not injected).
   SupabaseRealtimeManager<T, ID>? _realtimeManager;
+
+  /// Subscriptions for individual item watches.
+  final _watchSubscriptions = <ID, StreamSubscription<T?>>{};
+
+  /// Subscriptions for watchAll queries.
+  final _watchAllSubscriptions = <String, StreamSubscription<List<T>>>{};
 
   /// Sync status subject - always synced for online-only backend.
   final _syncStatusSubject =
@@ -151,16 +205,23 @@ class SupabaseBackend<T, ID>
     if (_initialized) return;
 
     try {
-      // Initialize realtime manager
-      _realtimeManager = SupabaseRealtimeManager<T, ID>(
-        client: _wrapper.client,
-        tableName: _tableName,
-        fromJson: _fromJson,
-        getId: _getId,
-        primaryKeyColumn: _primaryKeyColumn,
-        schema: _schema,
-      );
-      await _realtimeManager!.initialize();
+      // If wrapper was injected, just initialize it
+      if (_realtimeManagerWrapper != null) {
+        await _realtimeManagerWrapper!.initialize();
+      } else {
+        // Create default wrapper with real manager (existing behavior)
+        _realtimeManager = SupabaseRealtimeManager<T, ID>(
+          client: _wrapper.client,
+          tableName: _tableName,
+          fromJson: _fromJson,
+          getId: _getId,
+          primaryKeyColumn: _primaryKeyColumn,
+          schema: _schema,
+        );
+        await _realtimeManager!.initialize();
+        _realtimeManagerWrapper =
+            DefaultRealtimeManagerWrapper<T, ID>(_realtimeManager!);
+      }
 
       _initialized = true;
       _syncStatusSubject.add(nexus.SyncStatus.synced);
@@ -175,11 +236,26 @@ class SupabaseBackend<T, ID>
 
   @override
   Future<void> close() async {
-    // Dispose realtime manager
-    if (_realtimeManager != null) {
-      await _realtimeManager!.dispose();
-      _realtimeManager = null;
+    if (!_initialized) return;
+
+    // Cancel all watch subscriptions
+    for (final subscription in _watchSubscriptions.values) {
+      await subscription.cancel();
     }
+    _watchSubscriptions.clear();
+
+    // Cancel all watchAll subscriptions
+    for (final subscription in _watchAllSubscriptions.values) {
+      await subscription.cancel();
+    }
+    _watchAllSubscriptions.clear();
+
+    // Dispose realtime wrapper
+    if (_realtimeManagerWrapper != null) {
+      await _realtimeManagerWrapper!.dispose();
+      _realtimeManagerWrapper = null;
+    }
+    _realtimeManager = null;
 
     // Close all watch subjects
     for (final subject in _watchSubjects.values) {
@@ -264,9 +340,9 @@ class SupabaseBackend<T, ID>
       }
     });
 
-    // Also register with realtime manager for updates
-    if (_realtimeManager != null) {
-      _realtimeManager!.watchItem(id).listen(
+    // Register with realtime manager for updates - store subscription
+    if (_realtimeManagerWrapper != null) {
+      _watchSubscriptions[id] = _realtimeManagerWrapper!.watchItem(id).listen(
         (item) {
           if (!subject.isClosed) {
             subject.add(item);
@@ -304,9 +380,10 @@ class SupabaseBackend<T, ID>
       }
     });
 
-    // For watchAll without query, use realtime manager
-    if (query == null && _realtimeManager != null) {
-      _realtimeManager!.watchAll().listen(
+    // For watchAll without query, use realtime manager - store subscription
+    if (query == null && _realtimeManagerWrapper != null) {
+      _watchAllSubscriptions[queryKey] =
+          _realtimeManagerWrapper!.watchAll().listen(
         (items) {
           if (!subject.isClosed) {
             subject.add(items);

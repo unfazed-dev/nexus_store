@@ -8,11 +8,11 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. C
 ## Progress Summary
 | Priority | Packages | Target Lines | Completed |
 |----------|----------|--------------|-----------|
-| P0 Critical | 3 | 474 | 3 (riverpod_generator ✅ 100%, supabase_adapter ✅ 96.8%, riverpod_binding ✅ 100%) |
+| P0 Critical | 3 | 474 | 3 (riverpod_generator ✅ 100%, supabase_adapter ✅ **100%**, riverpod_binding ✅ 100%) |
 | P1 High | 1 | 184 | 1 (powersync_adapter ✅ 94% - wrapper abstraction enabled mocking) |
 | P2 Medium | 5 | 720 | 5 (nexus_store_flutter ✅ 94.8%, nexus_store ✅ 94%+, crdt_adapter ✅ 98.3%, bloc_binding ✅ 97.0%, drift_adapter ✅ 98.8%) |
 | P3-P4 Lower | 4 | 133 | 4 (entity_generator ✅ 100%, generator ✅ 100%, brick_adapter ✅ 100%, signals_binding ✅ 100%) |
-| **Total** | **13** | **1,415** | **13** (All packages ✅ 90%+ coverage) |
+| **Total** | **13** | **1,415** | **13** (All packages ✅ 90%+ coverage, 7 at 100%) |
 
 ---
 
@@ -474,6 +474,44 @@ flutter test test/<test_file>.dart
 ```
 
 ## History
+
+- **2026-01-02**: Session 17 - RealtimeManagerWrapper architectural refactor (TDD)
+  - **nexus_store_supabase_adapter** (96.8% → **100%**, +3.2%) ✅ **COMPLETE**
+    - **Architectural Changes:**
+      - Created `RealtimeManagerWrapper<T, ID>` abstraction following `SupabaseClientWrapper` pattern
+      - Added `DefaultRealtimeManagerWrapper` implementation delegating to real manager
+      - Added `.withRealtimeWrapper()` constructor to `SupabaseBackend` for test injection
+      - Added subscription storage maps: `_watchSubscriptions`, `_watchAllSubscriptions`
+      - Modified `initialize()` to handle both wrapper injection and default creation
+      - Modified `watch()` and `watchAll()` to store subscriptions for lifecycle management
+      - Modified `close()` to cancel all subscriptions before disposing wrapper
+    - **New Files:**
+      - `lib/src/realtime_manager_wrapper.dart` (15 lines, 100% coverage)
+      - `test/realtime_manager_wrapper_test.dart` (10 tests)
+    - **New Tests in `test/supabase_backend_test.dart`:**
+      - `SupabaseBackend.withRealtimeWrapper` group (3 tests)
+        - Uses injected wrapper instead of creating internal one
+        - watch() error from realtime stream propagates to subject
+        - watchAll() error from realtime stream propagates to subject
+      - `subscription lifecycle` group (5 tests)
+        - watch() subscription is cancelled when backend closes
+        - watchAll() subscription is cancelled when backend closes
+        - Multiple watch() calls for same ID reuse subscription
+        - close() disposes realtime wrapper
+        - close() is idempotent
+      - `getAll with query` group (2 tests)
+        - Passes queryBuilder to wrapper
+        - Invokes queryBuilder callback with mocked translator (covers lines 311-312)
+      - `deleteWhere error handling` group (1 test)
+      - `_refreshAllWatchers error propagation` group (1 test)
+    - Updated `lib/nexus_store_supabase_adapter.dart` exports
+    - Added `FakePostgrestFilterBuilder` with awaitable `then()` implementation
+    - Added `MockSupabaseQueryTranslator` for callback invocation testing
+  - **Key Achievement:** Previously untestable `onError` callbacks in `watch()`/`watchAll()`
+    (lines 269-280, 309-320) and queryBuilder callback (lines 311-312) are now fully covered
+  - Total: 22 new tests added
+  - TDD methodology followed (Red-Green-Refactor)
+  - **Final Coverage:** 410/410 lines (100%)
 
 - **2026-01-02**: Session 16 - Bloc binding edge case tests (TDD)
   - **nexus_store_bloc_binding** (96.2% → 97.0%, +0.8%)
