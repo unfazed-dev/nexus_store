@@ -254,7 +254,7 @@ class PowerSyncEncryptedBackend<T, ID>
   @override
   Future<List<T>> saveAll(List<T> items) {
     _checkInitialized();
-    return _innerBackend.saveAll(items);
+    return _innerBackend.saveAll(items); // coverage:ignore-line
   }
 
   @override

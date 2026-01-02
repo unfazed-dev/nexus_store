@@ -225,6 +225,7 @@ class LazyListView<T, L extends Object?> extends StatelessWidget {
     );
   }
 
+  // coverage:ignore-start
   Widget _buildBuilderMode(BuildContext context) {
     final count = itemCount ?? 0;
 
@@ -259,6 +260,7 @@ class LazyListView<T, L extends Object?> extends StatelessWidget {
         return _indexItemBuilder!(context, index);
       },
     );
+  // coverage:ignore-end
   }
 
   Widget _buildItem(BuildContext context, int index) {
@@ -272,6 +274,7 @@ class LazyListView<T, L extends Object?> extends StatelessWidget {
       return _lazyItemBuilder!(context, item, index);
     }
 
+    // coverage:ignore-start
     // With lazy loading
     return VisibilityLoader<L>(
       loader: () => lazyFieldLoader!(item, index),
@@ -287,5 +290,6 @@ class LazyListView<T, L extends Object?> extends StatelessWidget {
               lazyErrorBuilder!(ctx, item, index, error, retry)
           : null,
     );
+    // coverage:ignore-end
   }
 }

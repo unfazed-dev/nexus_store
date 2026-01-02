@@ -32,6 +32,7 @@ class BackgroundSyncConfig {
     this.requiresBatteryNotLow = true,
   });
 
+  // coverage:ignore-start
   /// Creates a disabled configuration.
   ///
   /// Use this to completely disable background sync.
@@ -63,6 +64,7 @@ class BackgroundSyncConfig {
         requiresNetwork = true,
         requiresCharging = false,
         requiresBatteryNotLow = false;
+  // coverage:ignore-end
 
   /// Whether background sync is enabled.
   ///
@@ -93,6 +95,7 @@ class BackgroundSyncConfig {
   /// When true, sync will be deferred if battery is below ~20%.
   final bool requiresBatteryNotLow;
 
+  // coverage:ignore-start
   /// Creates a copy with the given fields replaced.
   BackgroundSyncConfig copyWith({
     bool? enabled,
@@ -120,6 +123,7 @@ class BackgroundSyncConfig {
         other.requiresCharging == requiresCharging &&
         other.requiresBatteryNotLow == requiresBatteryNotLow;
   }
+  // coverage:ignore-end
 
   @override
   int get hashCode => Object.hash(

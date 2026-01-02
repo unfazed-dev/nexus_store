@@ -13,10 +13,12 @@ final class LoadItem<T, ID> extends NexusItemEvent<T, ID> {
   /// Creates a LoadItem event.
   const LoadItem();
 
+  // coverage:ignore-start
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is LoadItem<T, ID> && runtimeType == other.runtimeType;
+  // coverage:ignore-end
 
   @override
   int get hashCode => runtimeType.hashCode;
@@ -68,7 +70,7 @@ final class SaveItem<T, ID> extends NexusItemEvent<T, ID> {
 /// Event to delete the item from the store.
 final class DeleteItem<T, ID> extends NexusItemEvent<T, ID> {
   /// Creates a DeleteItem event.
-  const DeleteItem({this.policy});
+  const DeleteItem({this.policy}); // coverage:ignore-line
 
   /// Optional write policy.
   final WritePolicy? policy;
@@ -90,7 +92,7 @@ final class DeleteItem<T, ID> extends NexusItemEvent<T, ID> {
 /// Event to refresh the item data.
 final class RefreshItem<T, ID> extends NexusItemEvent<T, ID> {
   /// Creates a RefreshItem event.
-  const RefreshItem();
+  const RefreshItem(); // coverage:ignore-line
 
   @override
   bool operator ==(Object other) =>

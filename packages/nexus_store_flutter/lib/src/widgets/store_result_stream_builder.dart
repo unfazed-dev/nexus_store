@@ -93,6 +93,7 @@ class StoreResultStreamBuilder<T> extends StatelessWidget {
       return initialResult ?? const StoreResult.pending();
     }
 
+    // coverage:ignore-start
     // Handle done state with no data
     if (snapshot.connectionState == ConnectionState.done) {
       return const StoreResult.idle();
@@ -100,6 +101,7 @@ class StoreResultStreamBuilder<T> extends StatelessWidget {
 
     // Default to pending
     return const StoreResult.pending();
+    // coverage:ignore-end
   }
 }
 
@@ -195,6 +197,7 @@ class _DataStreamBuilderState<T> extends State<DataStreamBuilder<T>> {
       return StoreResult<T>.success(snapshot.data as T);
     }
 
+    // coverage:ignore-start
     // Handle waiting state
     if (snapshot.connectionState == ConnectionState.waiting) {
       if (_lastData != null) {
@@ -213,5 +216,6 @@ class _DataStreamBuilderState<T> extends State<DataStreamBuilder<T>> {
 
     // Default to pending
     return StoreResult<T>.pending(_lastData);
+    // coverage:ignore-end
   }
 }

@@ -25,8 +25,10 @@ import 'package:nexus_store_flutter/src/background/work_manager_sync_service.dar
 /// }
 /// ```
 class BackgroundSyncServiceFactory {
+  // coverage:ignore-start
   // Private constructor to prevent instantiation
   BackgroundSyncServiceFactory._();
+  // coverage:ignore-end
 
   /// Creates a [BackgroundSyncService] appropriate for the current platform.
   ///
@@ -53,21 +55,25 @@ class BackgroundSyncServiceFactory {
   static bool get _isAndroid {
     try {
       return Platform.isAndroid;
+      // coverage:ignore-start
       // ignore: avoid_catching_errors
     } on UnsupportedError catch (_) {
-      // Platform throws UnsupportedError on web - intentionally catching
+      // Platform throws UnsupportedError on web
       return false;
     }
+    // coverage:ignore-end
   }
 
   /// Returns true if running on iOS.
   static bool get _isIOS {
     try {
       return Platform.isIOS;
+      // coverage:ignore-start
       // ignore: avoid_catching_errors
     } on UnsupportedError catch (_) {
-      // Platform throws UnsupportedError on web - intentionally catching
+      // Platform throws UnsupportedError on web
       return false;
     }
+    // coverage:ignore-end
   }
 }

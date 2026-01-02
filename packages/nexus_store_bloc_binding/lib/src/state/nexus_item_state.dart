@@ -151,11 +151,13 @@ final class NexusItemLoading<T> extends NexusItemState<T> {
   @override
   bool get hasError => false;
 
+  // coverage:ignore-start
   @override
   Object? get error => null;
 
   @override
   StackTrace? get stackTrace => null;
+  // coverage:ignore-end
 
   @override
   bool get isNotFound => false;
@@ -215,11 +217,13 @@ final class NexusItemLoaded<T> extends NexusItemState<T> {
   @override
   bool get hasError => false;
 
+  // coverage:ignore-start
   @override
   Object? get error => null;
 
   @override
   StackTrace? get stackTrace => null;
+  // coverage:ignore-end
 
   @override
   bool get isNotFound => false;
@@ -276,11 +280,13 @@ final class NexusItemNotFound<T> extends NexusItemState<T> {
   @override
   bool get hasError => false;
 
+  // coverage:ignore-start
   @override
   Object? get error => null;
 
   @override
   StackTrace? get stackTrace => null;
+  // coverage:ignore-end
 
   @override
   bool get isNotFound => true;

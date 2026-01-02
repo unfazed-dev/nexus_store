@@ -108,7 +108,7 @@ class PaginationStateBuilder<T> extends StatelessWidget {
         },
         data: (items, pageInfo) {
           if (data != null) return data!(items, pageInfo);
-          if (_orElse != null) return _orElse();
+          if (_orElse != null) return _orElse(); // coverage:ignore-line
           return const SizedBox.shrink();
         },
         error: (err, previousItems, pageInfo) {

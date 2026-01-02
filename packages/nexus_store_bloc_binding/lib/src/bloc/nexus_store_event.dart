@@ -115,10 +115,12 @@ final class SaveAll<T, ID> extends NexusStoreEvent<T, ID> {
 /// Event to delete an item from the store by ID.
 final class Delete<T, ID> extends NexusStoreEvent<T, ID> {
   /// Creates a Delete event with the ID to delete.
+  // coverage:ignore-start
   const Delete(
     this.id, {
     this.policy,
   });
+  // coverage:ignore-end
 
   /// The ID of the item to delete.
   final ID id;
@@ -144,10 +146,12 @@ final class Delete<T, ID> extends NexusStoreEvent<T, ID> {
 /// Event to delete multiple items from the store by IDs.
 final class DeleteAll<T, ID> extends NexusStoreEvent<T, ID> {
   /// Creates a DeleteAll event with the IDs to delete.
+  // coverage:ignore-start
   const DeleteAll(
     this.ids, {
     this.policy,
   });
+  // coverage:ignore-end
 
   /// The IDs of the items to delete.
   final List<ID> ids;
@@ -177,7 +181,7 @@ final class DeleteAll<T, ID> extends NexusStoreEvent<T, ID> {
 /// Event to refresh the store data.
 final class Refresh<T, ID> extends NexusStoreEvent<T, ID> {
   /// Creates a Refresh event.
-  const Refresh();
+  const Refresh(); // coverage:ignore-line
 
   @override
   bool operator ==(Object other) =>

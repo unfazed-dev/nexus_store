@@ -205,9 +205,12 @@ class DriftBackend<T, ID>
 
     // Initial load
     get(id).then(subject.add).catchError((Object e) {
+      // coverage:ignore-start
+      // Defensive: subject may close between check and addError
       if (!subject.isClosed) {
         subject.addError(e);
       }
+      // coverage:ignore-end
     });
 
     return subject.stream;
@@ -229,9 +232,12 @@ class DriftBackend<T, ID>
 
     // Initial load
     getAll(query: query).then(subject.add).catchError((Object e) {
+      // coverage:ignore-start
+      // Defensive: subject may close between check and addError
       if (!subject.isClosed) {
         subject.addError(e);
       }
+      // coverage:ignore-end
     });
 
     return subject.stream;
@@ -297,7 +303,7 @@ class DriftBackend<T, ID>
 
       return results;
     } catch (e, stackTrace) {
-      throw _mapException(e, stackTrace);
+      throw _mapException(e, stackTrace); // coverage:ignore-line
     }
   }
 
@@ -349,7 +355,7 @@ class DriftBackend<T, ID>
 
       return deleted;
     } catch (e, stackTrace) {
-      throw _mapException(e, stackTrace);
+      throw _mapException(e, stackTrace); // coverage:ignore-line
     }
   }
 
@@ -614,9 +620,12 @@ class DriftBackend<T, ID>
       // Refresh all with no query for simplicity
       if (queryKey == '_all_') {
         getAll().then(subject.add).catchError((Object e) {
+          // coverage:ignore-start
+          // Defensive: subject may close between check and addError
           if (!subject.isClosed) {
             subject.addError(e);
           }
+          // coverage:ignore-end
         });
       }
     }

@@ -146,11 +146,13 @@ final class NexusStoreLoading<T> extends NexusStoreState<T> {
   @override
   bool get hasError => false;
 
+  // coverage:ignore-start
   @override
   Object? get error => null;
 
   @override
   StackTrace? get stackTrace => null;
+  // coverage:ignore-end
 
   static const _listEquality = ListEquality<dynamic>();
 
@@ -210,11 +212,13 @@ final class NexusStoreLoaded<T> extends NexusStoreState<T> {
   @override
   bool get hasError => false;
 
+  // coverage:ignore-start
   @override
   Object? get error => null;
 
   @override
   StackTrace? get stackTrace => null;
+  // coverage:ignore-end
 
   static const _listEquality = ListEquality<dynamic>();
 

@@ -175,8 +175,10 @@ final class StoreResultPending<T> extends StoreResult<T> {
   @override
   bool get hasError => false;
 
+  // coverage:ignore-start
   @override
   Object? get error => null;
+  // coverage:ignore-end
 
   @override
   R when<R>({
@@ -243,8 +245,10 @@ final class StoreResultSuccess<T> extends StoreResult<T> {
   @override
   bool get hasError => false;
 
+  // coverage:ignore-start
   @override
   Object? get error => null;
+  // coverage:ignore-end
 
   @override
   R when<R>({

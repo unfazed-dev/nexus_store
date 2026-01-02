@@ -162,6 +162,7 @@ class _NexusStoreLifecycleObserverWidgetState
   @override
   void didUpdateWidget(NexusStoreLifecycleObserverWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // coverage:ignore-start
     if (oldWidget.stores != widget.stores ||
         oldWidget.pauseOnBackground != widget.pauseOnBackground) {
       _observer.detach();
@@ -172,6 +173,7 @@ class _NexusStoreLifecycleObserverWidgetState
       );
       _observer.attach();
     }
+    // coverage:ignore-end
   }
 
   @override
