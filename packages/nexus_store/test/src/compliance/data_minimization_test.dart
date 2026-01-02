@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/src/compliance/audit_log_entry.dart';
 import 'package:nexus_store/src/compliance/audit_service.dart';

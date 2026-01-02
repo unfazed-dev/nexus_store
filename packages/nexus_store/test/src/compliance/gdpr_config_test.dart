@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:nexus_store/src/compliance/gdpr_config.dart';
 import 'package:nexus_store/src/compliance/retention_policy.dart';
 
