@@ -9,9 +9,6 @@ import 'package:test/test.dart';
 class TestUser {
   const TestUser({required this.id, required this.name});
 
-  factory TestUser.fromJson(Map<String, dynamic> json) =>
-      TestUser(id: json['id'] as String, name: json['name'] as String);
-
   final String id;
   final String name;
 

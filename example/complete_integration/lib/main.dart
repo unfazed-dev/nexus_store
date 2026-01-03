@@ -24,6 +24,7 @@ import 'package:nexus_store_riverpod_binding/nexus_store_riverpod_binding.dart';
 
 /// A Todo item with title, description, and completion status.
 class Todo {
+  /// Creates a new Todo with the given properties.
   Todo({
     required this.id,
     required this.title,
@@ -32,30 +33,22 @@ class Todo {
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
-  factory Todo.fromJson(Map<String, dynamic> json) => Todo(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        description: json['description'] as String? ?? '',
-        isCompleted: json['isCompleted'] as bool? ?? false,
-        createdAt: json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'] as String)
-            : DateTime.now(),
-      );
-
+  /// The unique identifier.
   final String id;
+
+  /// The todo title.
   final String title;
+
+  /// Optional description.
   final String description;
+
+  /// Whether the todo is completed.
   final bool isCompleted;
+
+  /// When the todo was created.
   final DateTime createdAt;
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'description': description,
-        'isCompleted': isCompleted,
-        'createdAt': createdAt.toIso8601String(),
-      };
-
+  /// Creates a copy with updated fields.
   Todo copyWith({String? title, String? description, bool? isCompleted}) =>
       Todo(
         id: id,
@@ -75,13 +68,11 @@ class Todo {
 class InMemoryBackend<T, ID>
     with StoreBackendDefaults<T, ID>
     implements StoreBackend<T, ID> {
-  InMemoryBackend({
-    required this.getId,
-    required this.toJson,
-  });
+  /// Creates an in-memory backend.
+  InMemoryBackend({required this.getId});
 
+  /// Function to extract ID from an item.
   final ID Function(T) getId;
-  final Map<String, dynamic> Function(T) toJson;
   final Map<ID, T> _data = {};
 
   @override
@@ -153,34 +144,20 @@ class InMemoryBackend<T, ID>
 
 /// Provider for the todo store.
 final todoStoreProvider = Provider<NexusStore<Todo, String>>((ref) {
-  final backend = InMemoryBackend<Todo, String>(
-    getId: (todo) => todo.id,
-    toJson: (todo) => todo.toJson(),
-  );
+  final backend = InMemoryBackend<Todo, String>(getId: (todo) => todo.id);
 
-  final store = NexusStore<Todo, String>(
+  return NexusStore<Todo, String>(
     backend: backend,
-    config: StoreConfig(fetchPolicy: FetchPolicy.cacheFirst),
-  );
-
-  // Initialize store and bind lifecycle
-  store.initialize();
-  store.bindToRef(ref);
-
-  return store;
+    config: StoreConfig.defaults,
+  )
+    ..initialize()
+    ..bindToRef(ref);
 });
 
 /// Stream provider for all todos (reactive updates).
 final todosProvider = StreamProvider<List<Todo>>((ref) {
   final store = ref.watch(todoStoreProvider);
   return store.watchAll();
-});
-
-/// Stream provider for a single todo by ID.
-final todoByIdProvider =
-    StreamProvider.family<Todo?, String>((ref, String id) {
-  final store = ref.watch(todoStoreProvider);
-  return store.watch(id);
 });
 
 /// Computed provider for completed todos count.
@@ -202,19 +179,18 @@ void main() {
 
 /// Main application widget.
 class TodoApp extends StatelessWidget {
+  /// Creates the TodoApp.
   const TodoApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'nexus_store Complete Integration',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ),
-      home: const TodoListScreen(),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'nexus_store Complete Integration',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+          useMaterial3: true,
+        ),
+        home: const TodoListScreen(),
+      );
 }
 
 // ============================================================================
@@ -223,6 +199,7 @@ class TodoApp extends StatelessWidget {
 
 /// Main screen showing the todo list.
 class TodoListScreen extends ConsumerWidget {
+  /// Creates the TodoListScreen.
   const TodoListScreen({super.key});
 
   @override
@@ -279,59 +256,57 @@ class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
   @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.check_circle_outline, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
-          Text('No todos yet', style: TextStyle(fontSize: 18)),
-          SizedBox(height: 8),
-          Text('Tap + to add one', style: TextStyle(color: Colors.grey)),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.check_circle_outline, size: 80, color: Colors.grey),
+            SizedBox(height: 16),
+            Text('No todos yet', style: TextStyle(fontSize: 18)),
+            SizedBox(height: 8),
+            Text('Tap + to add one', style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      );
 }
 
 /// Individual todo tile with toggle and delete actions.
 class TodoTile extends ConsumerWidget {
+  /// Creates a TodoTile.
   const TodoTile({super.key, required this.todo});
 
+  /// The todo to display.
   final Todo todo;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Dismissible(
-      key: Key(todo.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      onDismissed: (_) async {
-        final store = ref.read(todoStoreProvider);
-        await store.delete(todo.id);
-      },
-      child: ListTile(
-        leading: Checkbox(
-          value: todo.isCompleted,
-          onChanged: (_) => _toggleComplete(ref),
+  Widget build(BuildContext context, WidgetRef ref) => Dismissible(
+        key: Key(todo.id),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          color: Colors.red,
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 16),
+          child: const Icon(Icons.delete, color: Colors.white),
         ),
-        title: Text(
-          todo.title,
-          style: TextStyle(
-            decoration: todo.isCompleted ? TextDecoration.lineThrough : null,
-            color: todo.isCompleted ? Colors.grey : null,
+        onDismissed: (_) async {
+          final store = ref.read(todoStoreProvider);
+          await store.delete(todo.id);
+        },
+        child: ListTile(
+          leading: Checkbox(
+            value: todo.isCompleted,
+            onChanged: (_) => _toggleComplete(ref),
           ),
+          title: Text(
+            todo.title,
+            style: TextStyle(
+              decoration: todo.isCompleted ? TextDecoration.lineThrough : null,
+              color: todo.isCompleted ? Colors.grey : null,
+            ),
+          ),
+          subtitle: todo.description.isNotEmpty ? Text(todo.description) : null,
         ),
-        subtitle: todo.description.isNotEmpty ? Text(todo.description) : null,
-      ),
-    );
-  }
+      );
 
   Future<void> _toggleComplete(WidgetRef ref) async {
     final store = ref.read(todoStoreProvider);

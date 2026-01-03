@@ -1695,9 +1695,10 @@ void main() {
       );
 
       await backend.initialize();
-      backend.watch('1');
-      backend.watch('1');
-      backend.watch('1');
+      backend
+        ..watch('1')
+        ..watch('1')
+        ..watch('1');
 
       // Should only create one subscription
       expect(watchItemCalls, 1);
