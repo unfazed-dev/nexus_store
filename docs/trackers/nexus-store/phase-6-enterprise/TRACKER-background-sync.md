@@ -77,7 +77,7 @@ Platform-specific background sync services using WorkManager for both Android an
 
 ### Barrel Export
 - [x] Create `background.dart` barrel export
-- [x] Update `nexus_store_flutter.dart` to export background module
+- [x] Update `nexus_store_flutter_widgets.dart` to export background module
 
 ### Unit Tests (139 tests)
 - [x] `test/src/background/sync_priority_test.dart` (8 tests)
@@ -94,7 +94,7 @@ Platform-specific background sync services using WorkManager for both Android an
 
 **Source Files:**
 ```
-packages/nexus_store_flutter/lib/src/background/
+packages/nexus_store_flutter_widgets/lib/src/background/
 ├── background.dart                   # Barrel export
 ├── sync_priority.dart                # SyncPriority enum
 ├── background_sync_status.dart       # BackgroundSyncStatus enum with extensions
@@ -109,7 +109,7 @@ packages/nexus_store_flutter/lib/src/background/
 
 **Test Files:**
 ```
-packages/nexus_store_flutter/test/src/background/
+packages/nexus_store_flutter_widgets/test/src/background/
 ├── sync_priority_test.dart
 ├── background_sync_status_test.dart
 ├── background_sync_config_test.dart

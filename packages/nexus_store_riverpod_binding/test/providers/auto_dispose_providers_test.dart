@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart';
-import 'package:nexus_store_flutter/nexus_store_flutter.dart';
+import 'package:nexus_store_flutter_widgets/nexus_store_flutter_widgets.dart';
 import 'package:nexus_store_riverpod_binding/nexus_store_riverpod_binding.dart';
 
 import '../helpers/mocks.dart';

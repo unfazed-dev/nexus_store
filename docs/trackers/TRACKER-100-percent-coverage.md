@@ -181,8 +181,8 @@ Achieve 100% test coverage across all 13 packages in the nexus_store monorepo. *
 
 ### P2: Medium Priority (69-72% coverage)
 
-#### nexus_store_flutter (69.0% → 100%) ✅ COMPLETE
-**Path:** `packages/nexus_store_flutter`
+#### nexus_store_flutter_widgets (69.0% → 100%) ✅ COMPLETE
+**Path:** `packages/nexus_store_flutter_widgets`
 **Lines to cover:** 213 → **0 remaining (100%)**
 
 - [x] Create `test/utils/store_lifecycle_observer_test.dart` (98% ✅)
@@ -485,7 +485,7 @@ flutter test test/<test_file>.dart
     - Added exclusions for sync error handling catch blocks
     - Added exclusions for retryChange/cancelChange pending change operations
     - Added exclusion for saveAll delegation in encrypted backend
-  - **nexus_store_flutter** (94.8% → **100%**) ✅ COMPLETE
+  - **nexus_store_flutter_widgets** (94.8% → **100%**) ✅ COMPLETE
     - Added exclusions for BackgroundSyncConfig named constructors (disabled, conservative, aggressive)
     - Added exclusions for VisibilityLoader controller getters and didUpdateWidget
     - Added exclusions for LazyListView builder mode and lazy loading with VisibilityLoader
@@ -1103,7 +1103,7 @@ flutter test test/<test_file>.dart
   - Overall package: 60.3% → 74.7% (+14.4%)
   - Remaining: DefaultSupabaseClientWrapper needs real Supabase client
 
-- **2026-01-01**: P2 nexus_store_flutter - edge case test coverage
+- **2026-01-01**: P2 nexus_store_flutter_widgets - edge case test coverage
   - Added 4 watchNexusStore/watchNexusStoreItem extension tests
   - Added 20+ store_result edge case tests (maybeWhen orElse, requireData Error/Object types)
   - Added 3 pagination_state_builder maybeWhen orElse tests
@@ -1123,7 +1123,7 @@ flutter test test/<test_file>.dart
   - Overall package: 36.1% → 60.3% (+24.2%)
   - Remaining: query_translator (6.8%) needs PostgrestFilterBuilder mocking
 
-- **2026-01-01**: P2 nexus_store_flutter - widget test coverage improvement
+- **2026-01-01**: P2 nexus_store_flutter_widgets - widget test coverage improvement
   - Created `test/utils/store_lifecycle_observer_test.dart` (22 tests)
   - Created `test/widgets/nexus_store_item_builder_test.dart` (12 tests)
   - Created `test/widgets/store_result_stream_builder_test.dart` (23 tests)

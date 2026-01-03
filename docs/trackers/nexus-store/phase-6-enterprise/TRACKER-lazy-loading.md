@@ -149,7 +149,7 @@ Implement on-demand loading for heavy fields (blobs, large text) to improve init
 ### Generator Tests (nexus_store_generator)
 - [x] `test/lazy_generator_test.dart` - 4 tests
 
-### Flutter Tests (nexus_store_flutter)
+### Flutter Tests (nexus_store_flutter_widgets)
 - [x] `test/src/lazy/visibility_loader_test.dart` - 14 tests
 - [x] `test/src/lazy/lazy_list_view_test.dart` - 12 tests
 
@@ -186,7 +186,7 @@ packages/nexus_store_generator/
 ├── build.yaml                  # Builder configuration
 └── pubspec.yaml                # Package configuration
 
-packages/nexus_store_flutter/lib/src/lazy/
+packages/nexus_store_flutter_widgets/lib/src/lazy/
 ├── visibility_loader.dart      # VisibilityLoader widget
 └── lazy_list_view.dart         # LazyListView widget
 ```
@@ -211,7 +211,7 @@ packages/nexus_store/test/src/query/
 packages/nexus_store_generator/test/
 └── lazy_generator_test.dart
 
-packages/nexus_store_flutter/test/src/lazy/
+packages/nexus_store_flutter_widgets/test/src/lazy/
 ├── visibility_loader_test.dart
 └── lazy_list_view_test.dart
 ```

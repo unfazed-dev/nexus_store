@@ -98,7 +98,7 @@ Create comprehensive documentation for the nexus_store package ecosystem includi
   - [x] Sync transport options
 
 ### Flutter Extension README
-- [x] `packages/nexus_store_flutter/README.md`
+- [x] `packages/nexus_store_flutter_widgets/README.md`
   - [x] Widget overview
   - [x] Installation
   - [x] StoreResultBuilder usage
@@ -166,7 +166,7 @@ nexus_store/
 ├── CONTRIBUTING.md                        # ✅ Contributor guide
 ├── packages/
 │   ├── nexus_store/README.md              # ✅ Core package docs
-│   ├── nexus_store_flutter/README.md      # ✅ Flutter extension docs
+│   ├── nexus_store_flutter_widgets/README.md      # ✅ Flutter extension docs
 │   ├── nexus_store_powersync_adapter/README.md  # ✅
 │   ├── nexus_store_drift_adapter/README.md      # ✅
 │   ├── nexus_store_supabase_adapter/README.md   # ✅

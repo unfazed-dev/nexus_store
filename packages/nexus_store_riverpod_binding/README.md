@@ -321,5 +321,5 @@ final usersProvider = createWatchAllProvider<User, String>(userStoreProvider);
 ## Related Packages
 
 - [nexus_store](../nexus_store) - Core package
-- [nexus_store_flutter](../nexus_store_flutter) - Flutter widgets
+- [nexus_store_flutter_widgets](../nexus_store_flutter_widgets) - Flutter widgets
 - [nexus_store_bloc_binding](../nexus_store_bloc_binding) - Bloc integration

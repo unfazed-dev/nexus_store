@@ -11,8 +11,8 @@ dependencies:
     sdk: flutter
   nexus_store:
     path: ../../packages/nexus_store
-  nexus_store_flutter:
-    path: ../../packages/nexus_store_flutter
+  nexus_store_flutter_widgets:
+    path: ../../packages/nexus_store_flutter_widgets
 
 dev_dependencies:
   flutter_test:

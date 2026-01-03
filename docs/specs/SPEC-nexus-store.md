@@ -1381,7 +1381,7 @@ So that I can use fine-grained reactivity with NexusStore
 | Constraint | Value | Rationale |
 |------------|-------|-----------|
 | No Flutter dependency | Core package is pure Dart | Usable in CLI, server, edge functions |
-| Optional Flutter extension | `nexus_store_flutter` | For Flutter-specific widgets |
+| Optional Flutter extension | `nexus_store_flutter_widgets` | For Flutter-specific widgets |
 | Minimum dependencies | Only essential deps in core | Keep package lightweight |
 | Backend adapters optional | Separate packages or peer deps | Users only import what they need |
 
@@ -1871,7 +1871,7 @@ class ValidationError extends StoreError { ... }
 | `nexus_store_supabase_adapter` | `supabase: ^2.8.0` | Supabase direct + Realtime subscriptions |
 | `nexus_store_brick_adapter` | `brick_offline_first_with_supabase: ^2.1.0` | Brick offline-first with code generation |
 | `nexus_store_crdt_adapter` | `sqlite_crdt: ^2.1.0`, `crdt: ^5.2.0` | CRDT with HLC timestamps |
-| `nexus_store_flutter` | `flutter: sdk` | Flutter widgets (NexusStoreBuilder, NexusStoreProvider) |
+| `nexus_store_flutter_widgets` | `flutter: sdk` | Flutter widgets (NexusStoreBuilder, NexusStoreProvider) |
 
 ---
 
@@ -1967,7 +1967,7 @@ nexus_store/
 │   │   │           └── store_errors.dart
 │   │   └── test/
 │   │
-│   ├── nexus_store_flutter/              # Flutter extension
+│   ├── nexus_store_flutter_widgets/              # Flutter extension
 │   ├── nexus_store_powersync_adapter/    # PowerSync adapter
 │   ├── nexus_store_drift_adapter/        # Drift adapter
 │   ├── nexus_store_supabase_adapter/     # Supabase adapter
@@ -2317,7 +2317,7 @@ class NexusStore<T, ID> {
 }
 ```
 
-### Flutter Widget Builders (nexus_store_flutter)
+### Flutter Widget Builders (nexus_store_flutter_widgets)
 
 ```dart
 /// Builds UI based on StoreResult state with sensible defaults.
@@ -2664,7 +2664,7 @@ final store = NexusStore<Patient, String>(
 - [ ] Add compliance tests
 
 ### Task 14: Flutter Extension 📦 STUB
-**Package**: `nexus_store_flutter`
+**Package**: `nexus_store_flutter_widgets`
 **Implements**: Flutter widgets
 **Depends On**: Task 1, Task 3
 **Complexity**: Low
@@ -2877,7 +2877,7 @@ final store = NexusStore<Patient, String>(
 - [ ] Add unit tests
 
 ### Task 29: Background Sync Service ⏳ PENDING
-**Package**: `nexus_store_flutter`
+**Package**: `nexus_store_flutter_widgets`
 **Files**: `lib/src/background/background_sync_service.dart`
 **Implements**: REQ-032
 **Depends On**: Task 14
@@ -3037,7 +3037,7 @@ final store = NexusStore<Patient, String>(
 | Question | Status | Resolution |
 |----------|--------|------------|
 | Should backend adapters be separate packages? | ✅ RESOLVED | Yes, separate packages with `_adapter` suffix (e.g., `nexus_store_powersync_adapter`) |
-| Support for Flutter widgets (StreamBuilder helpers)? | ✅ RESOLVED | Yes, via `nexus_store_flutter` package with `NexusStoreBuilder` and `NexusStoreProvider` widgets |
+| Support for Flutter widgets (StreamBuilder helpers)? | ✅ RESOLVED | Yes, via `nexus_store_flutter_widgets` package with `NexusStoreBuilder` and `NexusStoreProvider` widgets |
 | Should we support custom serializers beyond JSON? | ✅ RESOLVED | JSON is primary; backends handle their own serialization needs |
 | Can developers use multiple adapters at the same time? | ✅ RESOLVED | Single store = single backend by design. Use `CompositeBackend` for primary/fallback/cache patterns, or create separate store instances per entity type |
 | How should database migrations be handled? | ✅ RESOLVED | Migrations remain backend-specific. nexus_store abstracts CRUD, not schema management. Each adapter documents how to set up migrations using native tooling. |

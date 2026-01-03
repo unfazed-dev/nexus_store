@@ -14,7 +14,7 @@ Implement the Flutter extension package for nexus_store, providing StreamBuilder
 ### Package Setup
 - [x] Verify Flutter SDK dependency in pubspec.yaml
 - [x] Create lib/src/ directory structure
-- [x] Export public API from nexus_store_flutter.dart
+- [x] Export public API from nexus_store_flutter_widgets.dart
 
 ### StoreResult Type
 - [x] `store_result.dart` - StoreResult<T> sealed class
@@ -138,9 +138,9 @@ Implement the Flutter extension package for nexus_store, providing StreamBuilder
 
 **Package Structure:**
 ```
-packages/nexus_store_flutter/
+packages/nexus_store_flutter_widgets/
 ├── lib/
-│   ├── nexus_store_flutter.dart           # Public exports
+│   ├── nexus_store_flutter_widgets.dart           # Public exports
 │   └── src/
 │       ├── types/
 │       │   └── store_result.dart          # StoreResult<T> sealed class

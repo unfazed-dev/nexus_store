@@ -69,7 +69,7 @@ This is the first public release of nexus_store, a unified reactive data store a
   - `accessSubjectData()` - Article 15 access reports
   - Pseudonymization support
 
-#### Flutter Extension (`nexus_store_flutter`)
+#### Flutter Extension (`nexus_store_flutter_widgets`)
 
 - **StoreResult<T>** - Sealed class for async states
   - `StoreResult.idle()` - Initial state

@@ -72,7 +72,7 @@ Main tracker for implementing the nexus_store package ecosystem - a unified reac
 nexus_store/
 ├── packages/
 │   ├── nexus_store/                      # Core (✅ Complete with 519 tests)
-│   ├── nexus_store_flutter/              # Flutter extension (✅ Complete with 67 tests)
+│   ├── nexus_store_flutter_widgets/              # Flutter extension (✅ Complete with 67 tests)
 │   ├── nexus_store_powersync_adapter/    # PowerSync (✅ Complete with 76 tests)
 │   ├── nexus_store_drift_adapter/        # Drift (✅ Complete with 82 tests)
 │   ├── nexus_store_supabase_adapter/     # Supabase (✅ Complete with 59 tests)

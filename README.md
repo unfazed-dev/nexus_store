@@ -117,12 +117,36 @@ Choose the right backend for your use case:
 - **Brick**: Complex apps with multiple data sources or migration between backends
 - **CRDT**: Collaborative apps, P2P sync, or conflict-free distributed data
 
+### Detailed Feature Matrix
+
+| Feature | PowerSync | Supabase | Drift | Brick | CRDT |
+|---------|:---------:|:--------:|:-----:|:-----:|:----:|
+| **Sync & Connectivity** |
+| Offline Support | ✅ Full | ⚠️ Limited | ✅ Full | ✅ Full | ✅ Full |
+| Real-time Updates | ✅ | ✅ | ❌ | ✅ | ✅ |
+| Bi-directional Sync | ✅ | ❌ | ❌ | ✅ | ✅ |
+| P2P Support | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Security** |
+| Database Encryption | ✅ SQLCipher | ❌ | ✅ SQLCipher | ❌ | ❌ |
+| Field-level Encryption | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Row Level Security | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **Query Capabilities** |
+| Full SQL Support | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Complex Filters | ✅ | ✅ | ✅ | ⚠️ | ⚠️ |
+| Transactions | ✅ | ❌ | ✅ | ✅ | ❌ |
+| **Architecture** |
+| Requires Server | ✅ PostgreSQL | ✅ Supabase | ❌ | Optional | ❌ |
+| Local-only Mode | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Conflict Resolution | Server-wins | Last-write | N/A | Custom | Auto (LWW) |
+
+✅ = Full support | ⚠️ = Partial/Limited | ❌ = Not supported
+
 ## Packages
 
 | Package | Description | Pub |
 |---------|-------------|-----|
 | [nexus_store](packages/nexus_store/) | Core store abstraction | [![pub](https://img.shields.io/pub/v/nexus_store)](https://pub.dev/packages/nexus_store) |
-| [nexus_store_flutter](packages/nexus_store_flutter/) | Flutter widgets and providers | [![pub](https://img.shields.io/pub/v/nexus_store_flutter)](https://pub.dev/packages/nexus_store_flutter) |
+| [nexus_store_flutter_widgets](packages/nexus_store_flutter_widgets/) | Flutter widgets and providers | [![pub](https://img.shields.io/pub/v/nexus_store_flutter_widgets)](https://pub.dev/packages/nexus_store_flutter_widgets) |
 | [nexus_store_powersync_adapter](packages/nexus_store_powersync_adapter/) | PowerSync offline-first backend | [![pub](https://img.shields.io/pub/v/nexus_store_powersync_adapter)](https://pub.dev/packages/nexus_store_powersync_adapter) |
 | [nexus_store_supabase_adapter](packages/nexus_store_supabase_adapter/) | Supabase realtime backend | [![pub](https://img.shields.io/pub/v/nexus_store_supabase_adapter)](https://pub.dev/packages/nexus_store_supabase_adapter) |
 | [nexus_store_drift_adapter](packages/nexus_store_drift_adapter/) | Drift local SQLite backend | [![pub](https://img.shields.io/pub/v/nexus_store_drift_adapter)](https://pub.dev/packages/nexus_store_drift_adapter) |
@@ -155,7 +179,7 @@ dependencies:
   nexus_store_powersync_adapter: ^0.1.0  # Or your preferred backend
 
   # For Flutter apps
-  nexus_store_flutter: ^0.1.0
+  nexus_store_flutter_widgets: ^0.1.0
 ```
 
 ## Requirements
@@ -227,7 +251,7 @@ final store = NexusStore<Patient, String>(
 
 ### Package Documentation
 - [Core Package](packages/nexus_store/README.md)
-- [Flutter Extension](packages/nexus_store_flutter/README.md)
+- [Flutter Widgets](packages/nexus_store_flutter_widgets/README.md)
 
 ### Architecture
 - [Architecture Overview](docs/architecture/overview.md)

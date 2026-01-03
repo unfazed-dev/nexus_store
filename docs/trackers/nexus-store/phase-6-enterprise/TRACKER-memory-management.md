@@ -61,7 +61,7 @@ Implement automatic cache eviction under memory pressure to prevent OOM crashes 
   - [x] For testing and manual control
   - [x] `setLevel()` method
 
-- [x] Create `FlutterMemoryPressureHandler` (nexus_store_flutter)
+- [x] Create `FlutterMemoryPressureHandler` (nexus_store_flutter_widgets)
   - [x] Use `WidgetsBindingObserver.didHaveMemoryPressure`
   - [x] Map system events to pressure levels
   - [x] `setLevel()`, `reset()`, `triggerEmergency()`
@@ -145,7 +145,7 @@ Implement automatic cache eviction under memory pressure to prevent OOM crashes 
   - [x] memory_pressure_handler.dart
   - [x] memory_pressure_level.dart
   - [x] size_estimator.dart
-- [x] Export FlutterMemoryPressureHandler from `nexus_store_flutter.dart`
+- [x] Export FlutterMemoryPressureHandler from `nexus_store_flutter_widgets.dart`
 
 ### Unit Tests
 - [x] `test/src/cache/memory_pressure_level_test.dart` (21 tests)
@@ -177,7 +177,7 @@ packages/nexus_store/lib/src/cache/
 ├── memory_pressure_level.dart      # MemoryPressureLevel enum
 └── size_estimator.dart             # SizeEstimator interface + implementations
 
-packages/nexus_store_flutter/lib/src/cache/
+packages/nexus_store_flutter_widgets/lib/src/cache/
 └── flutter_memory_pressure_handler.dart
 ```
 
@@ -186,8 +186,8 @@ packages/nexus_store_flutter/lib/src/cache/
 packages/nexus_store/lib/src/config/store_config.dart  # Added memory field
 packages/nexus_store/lib/src/core/nexus_store.dart     # Full integration
 packages/nexus_store/lib/nexus_store.dart              # Exports
-packages/nexus_store_flutter/lib/nexus_store_flutter.dart  # Export
-packages/nexus_store_flutter/pubspec.yaml              # Added rxdart
+packages/nexus_store_flutter_widgets/lib/nexus_store_flutter_widgets.dart  # Export
+packages/nexus_store_flutter_widgets/pubspec.yaml              # Added rxdart
 ```
 
 **Test Files (Created):**
@@ -205,7 +205,7 @@ packages/nexus_store/test/src/cache/
 packages/nexus_store/test/src/core/
 └── nexus_store_memory_management_test.dart
 
-packages/nexus_store_flutter/test/src/cache/
+packages/nexus_store_flutter_widgets/test/src/cache/
 └── flutter_memory_pressure_handler_test.dart
 ```
 

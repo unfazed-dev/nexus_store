@@ -32,7 +32,7 @@ nexus_store/
 │   │   │   └── errors/                 # Error types
 │   │   └── test/
 │   │
-│   ├── nexus_store_flutter/            # Flutter widgets
+│   ├── nexus_store_flutter_widgets/            # Flutter widgets
 │   │   └── lib/src/
 │   │       ├── widgets/                # Builder widgets
 │   │       ├── providers/              # DI providers

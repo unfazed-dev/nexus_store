@@ -196,7 +196,7 @@ All six adapter packages are **fully implemented** (not stubs as spec claims):
 | Package | Test Files | Status |
 |---------|------------|--------|
 | nexus_store (core) | 130 | ✅ Extensive |
-| nexus_store_flutter | 17 | ✅ Good |
+| nexus_store_flutter_widgets | 17 | ✅ Good |
 | nexus_store_bloc_binding | 10 (244 tests) | ✅ Extensive |
 | nexus_store_signals_binding | 6 (87 tests) | ✅ Good |
 | nexus_store_powersync_adapter | 4 | ✅ Good |

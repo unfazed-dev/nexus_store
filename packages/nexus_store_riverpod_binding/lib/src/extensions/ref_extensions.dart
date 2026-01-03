@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexus_store/nexus_store.dart';
-import 'package:nexus_store_flutter/nexus_store_flutter.dart';
+import 'package:nexus_store_flutter_widgets/nexus_store_flutter_widgets.dart';
 
 /// Extension methods for Ref to create NexusStore stream providers.
 extension NexusStoreRefX on Ref<Object?> {

@@ -43,7 +43,7 @@ The following packages depend on `nexus_store` core:
 
 | Package | Dependencies |
 |---------|--------------|
-| `nexus_store_flutter` | nexus_store |
+| `nexus_store_flutter_widgets` | nexus_store |
 | `nexus_store_powersync_adapter` | nexus_store |
 | `nexus_store_supabase_adapter` | nexus_store |
 | `nexus_store_drift_adapter` | nexus_store |
@@ -118,7 +118,7 @@ Publish packages in this order to respect dependencies:
    - `nexus_store_signals_binding`
 
 4. **Flutter (depends on core)**
-   - `nexus_store_flutter`
+   - `nexus_store_flutter_widgets`
 
 5. **Generators (depend on core and bindings)**
    - `nexus_store_generator`
@@ -145,7 +145,7 @@ PACKAGES=(
   "nexus_store_bloc_binding"
   "nexus_store_riverpod_binding"
   "nexus_store_signals_binding"
-  "nexus_store_flutter"
+  "nexus_store_flutter_widgets"
   "nexus_store_generator"
   "nexus_store_entity_generator"
   "nexus_store_riverpod_generator"

@@ -1,0 +1,27 @@
+name: complete_integration_example
+description: Complete integration example showing Core + Adapter + Binding together
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Core
+  nexus_store:
+    path: ../../packages/nexus_store
+  # Flutter widgets
+  nexus_store_flutter_widgets:
+    path: ../../packages/nexus_store_flutter_widgets
+  # Riverpod binding
+  nexus_store_riverpod_binding:
+    path: ../../packages/nexus_store_riverpod_binding
+  # Riverpod
+  flutter_riverpod: ^2.6.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

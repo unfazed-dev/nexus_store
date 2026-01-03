@@ -82,7 +82,7 @@ Implement paginated streaming for efficiently watching large datasets without lo
   - [x] Estimate memory per item
   - [x] Warn if exceeding recommended limit
 
-### Flutter Integration (nexus_store_flutter)
+### Flutter Integration (nexus_store_flutter_widgets)
 - [x] Create `PaginationStateBuilder<T>` widget
   - [x] Pattern-matching widget for PaginationState
   - [x] Supports initial, loading, loadingMore, data, error states
@@ -109,7 +109,7 @@ packages/nexus_store/lib/src/core/
 ├── pagination_controller.dart  # Internal pagination logic
 └── nexus_store.dart            # Add watchAllPaginated()
 
-packages/nexus_store_flutter/lib/src/widgets/
+packages/nexus_store_flutter_widgets/lib/src/widgets/
 ├── nexus_paginated_list_view.dart  # Flutter widget
 └── pagination_scroll_controller.dart # Scroll detection
 ```
@@ -206,9 +206,9 @@ StreamBuilder<PagedResult<User>>(
   - `lib/src/pagination/streaming_config.dart`
   - `lib/src/pagination/pagination_state.dart`
   - `lib/src/pagination/pagination_controller.dart`
-  - `nexus_store_flutter/lib/src/widgets/pagination_state_builder.dart`
+  - `nexus_store_flutter_widgets/lib/src/widgets/pagination_state_builder.dart`
 - **Files Modified**:
   - `lib/src/core/nexus_store.dart` - Added watchAllPaginated()
   - `lib/nexus_store.dart` - Added pagination exports
-  - `nexus_store_flutter/lib/nexus_store_flutter.dart` - Added widget exports
+  - `nexus_store_flutter_widgets/lib/nexus_store_flutter_widgets.dart` - Added widget exports
 - **PaginationState** uses sealed class pattern with when()/maybeWhen() for exhaustive pattern matching

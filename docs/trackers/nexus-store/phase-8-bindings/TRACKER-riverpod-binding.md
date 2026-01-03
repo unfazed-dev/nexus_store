@@ -21,7 +21,7 @@ Create `nexus_store_riverpod_binding` package that provides first-class Riverpod
   - [x] `flutter_riverpod: ^2.6.1`
   - [x] `riverpod_annotation: ^2.6.1`
   - [x] `nexus_store: (path)`
-  - [x] `nexus_store_flutter: (path)`
+  - [x] `nexus_store_flutter_widgets: (path)`
   - [x] `flutter_hooks: ^0.20.5`
   - [x] `hooks_riverpod: ^2.6.1`
 
@@ -218,7 +218,7 @@ pubspec.yaml
 ## Dependencies
 
 - Core package (nexus_store) ✅
-- Flutter extension (nexus_store_flutter) ✅
+- Flutter extension (nexus_store_flutter_widgets) ✅
 - `flutter_riverpod: ^2.6.1`
 - `riverpod_annotation: ^2.6.1`
 - `flutter_hooks: ^0.20.5`

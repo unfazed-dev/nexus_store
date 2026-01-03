@@ -13,7 +13,7 @@ dependencies:
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
   nexus_store: ^0.1.0
-  nexus_store_flutter: ^0.1.0
+  nexus_store_flutter_widgets: ^0.1.0
   flutter_hooks: ^0.20.5
   hooks_riverpod: ^2.6.1
   meta: ^1.16.0

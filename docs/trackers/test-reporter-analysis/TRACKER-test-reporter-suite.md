@@ -26,9 +26,9 @@ Comprehensive test suite analysis across all 13 nexus_store packages using `anal
 - [x] Run extract_failures on nexus_store (1 actual failure)
 
 ### Flutter Extension
-- [x] Run analyze_tests on nexus_store_flutter (17 test files)
+- [x] Run analyze_tests on nexus_store_flutter_widgets (17 test files)
 - [x] Run analyze_coverage on nexus_store_flutter
-- [x] Run extract_failures on nexus_store_flutter (N/A - no failures)
+- [x] Run extract_failures on nexus_store_flutter_widgets (N/A - no failures)
 
 ### State Management Bindings
 - [x] Run analyze_tests on nexus_store_riverpod_binding (2 test files)
@@ -76,7 +76,7 @@ Comprehensive test suite analysis across all 13 nexus_store packages using `anal
 | Package | Tests | Pass | Fail | Flaky | Uncovered Lines |
 |---------|-------|------|------|-------|-----------------|
 | nexus_store | 2396 | 2374 | 22 | 0 | 1211 |
-| nexus_store_flutter | 250 | 250 | 0 | 0 | 213 |
+| nexus_store_flutter_widgets | 250 | 250 | 0 | 0 | 213 |
 | nexus_store_riverpod_binding | 33 | 33 | 0 | 0 | 104 |
 | nexus_store_bloc_binding | 252 | 252 | 0 | 0 | 150 |
 | nexus_store_signals_binding | 95 | 95 | 0 | 0 | 81 |

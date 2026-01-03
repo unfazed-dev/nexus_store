@@ -366,7 +366,7 @@ See the [Backend Interface documentation](../../docs/architecture/backend-interf
 
 ## Additional Resources
 
-- [Flutter Extension](../nexus_store_flutter/) - Widgets and providers
+- [Flutter Extension](../nexus_store_flutter_widgets/) - Widgets and providers
 - [PowerSync Adapter](../nexus_store_powersync_adapter/) - Offline-first sync
 - [Supabase Adapter](../nexus_store_supabase_adapter/) - Realtime backend
 - [Drift Adapter](../nexus_store_drift_adapter/) - Local SQLite

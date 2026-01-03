@@ -82,7 +82,7 @@ melos publish
 nexus_store/
 ├── packages/
 │   ├── nexus_store/                    # Core package
-│   ├── nexus_store_flutter/            # Flutter widgets
+│   ├── nexus_store_flutter_widgets/            # Flutter widgets
 │   ├── nexus_store_powersync_adapter/  # PowerSync backend
 │   ├── nexus_store_supabase_adapter/   # Supabase backend
 │   ├── nexus_store_drift_adapter/      # Drift backend

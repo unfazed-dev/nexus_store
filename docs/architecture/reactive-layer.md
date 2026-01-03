@@ -257,4 +257,4 @@ StreamBuilder<List<User>>(
 ## See Also
 
 - [Architecture Overview](overview.md)
-- [Flutter Extension README](../../packages/nexus_store_flutter/README.md)
+- [Flutter Extension README](../../packages/nexus_store_flutter_widgets/README.md)
