@@ -12,6 +12,9 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nexus_store/nexus_store.dart';
+// nexus_store_flutter_widgets provides StoreResultBuilder, etc.
+// This example uses Riverpod's AsyncValue directly instead.
+// ignore: unused_import
 import 'package:nexus_store_flutter_widgets/nexus_store_flutter_widgets.dart';
 import 'package:nexus_store_riverpod_binding/nexus_store_riverpod_binding.dart';
 

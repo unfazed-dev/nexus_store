@@ -1,7 +1,8 @@
-/// Flutter widgets for nexus_store with StreamBuilder, providers, and reactive builders.
+/// Flutter widgets for nexus_store with StreamBuilder, providers, and
+/// reactive builders.
 ///
-/// This package provides Flutter-specific widgets and utilities for working with
-/// [NexusStore] including:
+/// This package provides Flutter-specific widgets and utilities for working
+/// with [NexusStore] including:
 ///
 /// - **StoreResult**: A sealed class for representing async states
 /// - **Widgets**: StreamBuilder-style widgets for reactive UI
