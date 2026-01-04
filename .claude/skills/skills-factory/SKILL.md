@@ -14,8 +14,161 @@ The Skills Factory transforms user requirements into production-ready Claude ski
 ## Workflow
 
 ```
-User Request → Domain Analysis → Skill Architecture → Content Generation → Validation → Package
+User Request → [MCQ Discovery?] → Domain Analysis → Skill Architecture → Content Generation → Validation → Package
+                     │
+                     ├── Detailed request? → Skip MCQ, proceed to Domain Analysis
+                     └── Vague request? → AskUserQuestion (Round 1 + Round 2) → Map answers to parameters
 ```
+
+## Interactive Skill Discovery (AskUserQuestion)
+
+When a user requests skill generation without providing sufficient detail, use Claude Code's `AskUserQuestion` tool to gather requirements through focused multiple-choice questions.
+
+### When to Use MCQ
+
+**USE AskUserQuestion when:**
+- User provides only a vague description (e.g., "create a skill for X")
+- Skill type cannot be confidently determined from keywords
+- User explicitly asks for help deciding skill parameters
+- Multiple valid interpretations exist for the request
+
+**SKIP AskUserQuestion when:**
+- User provides detailed specification with explicit type, complexity, and features
+- User passes command-line arguments specifying all parameters
+- User says "quick" or "just generate" indicating they want defaults
+- Request clearly matches a single skill type with high confidence
+
+### Question Flow
+
+**Round 1: Core Classification (2 Questions)**
+
+Ask these questions to establish the foundation:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Category",
+      "question": "What type of skill are you creating?",
+      "options": [
+        {"label": "Technical/Code", "description": "Scripts, code generation, debugging, testing tools"},
+        {"label": "Workflow/Process", "description": "Step-by-step procedures, decision trees, automation"},
+        {"label": "Reference/Knowledge", "description": "Documentation, standards, compliance, terminology"},
+        {"label": "Integration/API", "description": "External service connections, webhooks, authentication"}
+      ],
+      "multiSelect": false
+    },
+    {
+      "header": "Complexity",
+      "question": "What complexity level should this skill have?",
+      "options": [
+        {"label": "Simple", "description": "Single SKILL.md file, under 200 lines, no dependencies"},
+        {"label": "Standard", "description": "SKILL.md with references folder, 200-500 lines total"},
+        {"label": "Complex", "description": "Full structure with scripts, references, and assets"}
+      ],
+      "multiSelect": false
+    }
+  ]
+}
+```
+
+**Round 2: Features & Technology (2 Questions)**
+
+After receiving Round 1 answers, ask about specific features:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Features",
+      "question": "What should this skill include? (Select all that apply)",
+      "options": [
+        {"label": "Python Scripts", "description": "Executable scripts for deterministic operations"},
+        {"label": "Reference Docs", "description": "Detailed documentation for complex topics"},
+        {"label": "Templates/Assets", "description": "Reusable templates, samples, or configuration files"},
+        {"label": "None Required", "description": "Core SKILL.md only, no additional resources"}
+      ],
+      "multiSelect": true
+    },
+    {
+      "header": "Domain",
+      "question": "What domain or technology is this skill for?",
+      "options": [
+        {"label": "Flutter/Dart", "description": "Mobile/web development with Flutter framework"},
+        {"label": "Python/Backend", "description": "Python scripts, APIs, data processing"},
+        {"label": "DevOps/Tooling", "description": "CI/CD, automation, infrastructure tools"},
+        {"label": "Domain-Agnostic", "description": "Not technology-specific, general purpose"}
+      ],
+      "multiSelect": false
+    }
+  ]
+}
+```
+
+### Answer Mapping
+
+Map user selections to generation parameters:
+
+| Category Selection | Skill Type | Template |
+|-------------------|------------|----------|
+| Technical/Code | `technical` | Code examples, scripts, troubleshooting |
+| Workflow/Process | `workflow` | Decision trees, steps, validation |
+| Reference/Knowledge | `reference` | Concepts, terminology, guidelines |
+| Integration/API | `integration` | Auth, endpoints, error handling |
+
+| Complexity Selection | Structure | Lines Target |
+|---------------------|-----------|--------------|
+| Simple | SKILL.md only | < 200 lines |
+| Standard | SKILL.md + references/ | 200-500 lines |
+| Complex | scripts/ + references/ + assets/ | 500+ lines |
+
+| Features Selection | Generated Folders |
+|-------------------|-------------------|
+| Python Scripts | `scripts/` with example.py |
+| Reference Docs | `references/` with reference.md |
+| Templates/Assets | `assets/` with sample templates |
+| None Required | SKILL.md only |
+
+| Domain Selection | Language for Examples |
+|-----------------|----------------------|
+| Flutter/Dart | `dart` |
+| Python/Backend | `python` |
+| DevOps/Tooling | `bash` or `yaml` |
+| Domain-Agnostic | `python` (default) |
+
+### Adaptive Behavior
+
+1. **Single-round shortcut:** If Round 1 answers indicate simple/focused skill, skip Round 2
+2. **Custom input handling:** When user selects "Other", incorporate their text into domain analysis
+3. **Confirmation before generation:** After MCQ, summarize the planned skill structure before generating
+
+### Example Interaction
+
+**User:** "Create a skill for managing database migrations"
+
+**Claude (recognizing ambiguity):** Uses AskUserQuestion Round 1
+
+**User selections:**
+- Category: Workflow/Process
+- Complexity: Standard
+
+**Claude:** Uses AskUserQuestion Round 2
+
+**User selections:**
+- Features: Python Scripts, Reference Docs
+- Domain: Python/Backend
+
+**Claude generates:**
+```
+database-migrations/
+├── SKILL.md              (workflow template)
+├── scripts/
+│   └── run_migration.py
+└── references/
+    └── migration-patterns.md
+```
+
+---
 
 **Decision Flow:**
 
