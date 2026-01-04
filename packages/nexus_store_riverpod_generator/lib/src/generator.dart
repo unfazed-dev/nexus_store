@@ -87,7 +87,9 @@ class NexusStoreRiverpodGenerator
     final typeArgs = type.typeArguments;
     if (typeArgs.length != 2) return null;
     return (
+      // ignore: deprecated_member_use
       typeArgs[0].getDisplayString(withNullability: false),
+      // ignore: deprecated_member_use
       typeArgs[1].getDisplayString(withNullability: false),
     );
   }

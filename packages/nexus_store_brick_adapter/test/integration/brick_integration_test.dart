@@ -449,7 +449,7 @@ void main() {
         final model = TestModel(id: 'get-1', name: 'Get Test');
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => [model]);
 
         final result = await initBackend.get('get-1');
@@ -460,7 +460,7 @@ void main() {
 
       test('get returns null for non-existent id', () async {
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => <TestModel>[]);
 
         final result = await initBackend.get('non-existent');
@@ -475,7 +475,7 @@ void main() {
         ];
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => models);
 
         final results = await initBackend.getAll();
@@ -487,7 +487,7 @@ void main() {
         final filtered = [TestModel(id: '1', name: 'Filtered')];
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => filtered);
 
         final query = const nexus.Query<TestModel>().where(
@@ -505,7 +505,7 @@ void main() {
         final model = TestModel(id: 'del-1', name: 'To Delete');
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => [model]);
         when(() => initMockRepository.delete<TestModel>(model))
             .thenAnswer((_) async => true);
@@ -517,7 +517,7 @@ void main() {
 
       test('delete returns false for non-existent record', () async {
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => <TestModel>[]);
 
         final deleted = await initBackend.delete('non-existent');
@@ -532,7 +532,7 @@ void main() {
         ];
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => models);
         when(() => initMockRepository.delete<TestModel>(any()))
             .thenAnswer((_) async => true);
@@ -546,7 +546,7 @@ void main() {
         final models = [TestModel(id: 'delw-1', name: 'Match')];
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => models);
         when(() => initMockRepository.delete<TestModel>(any()))
             .thenAnswer((_) async => true);
@@ -588,7 +588,7 @@ void main() {
         final model = TestModel(id: 'watch-1', name: 'Watch Test');
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => [model]);
         when(
           () => initMockRepository.subscribe<TestModel>(
@@ -608,7 +608,7 @@ void main() {
         final updated = TestModel(id: 'watch-2', name: 'Updated');
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => [original]);
         when(
           () => initMockRepository.subscribe<TestModel>(
@@ -616,8 +616,8 @@ void main() {
           ),
         ).thenAnswer((_) => Stream.fromIterable([
               [original],
-              [updated]
-            ]));
+              [updated],
+            ]),);
 
         final stream = initBackend.watch('watch-2');
         // Use timeout to prevent test hanging if stream doesn't emit expected values
@@ -636,7 +636,7 @@ void main() {
         ];
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => models);
         when(
           () => initMockRepository.subscribe<TestModel>(
@@ -658,7 +658,7 @@ void main() {
         ];
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => initial);
         when(
           () => initMockRepository.subscribe<TestModel>(
@@ -680,7 +680,7 @@ void main() {
         final filtered = [TestModel(id: 'wquery-1', name: 'Filtered')];
 
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => filtered);
         when(
           () => initMockRepository.subscribe<TestModel>(
@@ -725,7 +725,7 @@ void main() {
 
       test('sync triggers repository refresh', () async {
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => <TestModel>[]);
 
         await initBackend.sync();
@@ -736,7 +736,7 @@ void main() {
 
       test('sync updates status during operation', () async {
         when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')))
+                initMockRepository.get<TestModel>(query: any(named: 'query')),)
             .thenAnswer((_) async => <TestModel>[]);
 
         final statuses = <nexus.SyncStatus>[];

@@ -1021,7 +1021,7 @@ void main() {
         ).thenAnswer((_) async {
           getAllCallCount++;
           return [
-            {'id': '1', 'name': 'Alice', 'age': 25}
+            {'id': '1', 'name': 'Alice', 'age': 25},
           ];
         });
         when(() => mockWrapper.upsert('test_models', any())).thenAnswer(
@@ -1053,7 +1053,7 @@ void main() {
         ).thenAnswer((_) async {
           getAllCallCount++;
           return [
-            {'id': '1', 'name': 'Alice', 'age': 25}
+            {'id': '1', 'name': 'Alice', 'age': 25},
           ];
         });
         when(() => mockWrapper.get('test_models', 'id', '1')).thenAnswer(
@@ -1331,8 +1331,8 @@ void main() {
     test('watchAll() error from realtime stream propagates to subject',
         () async {
       when(() => mockClientWrapper.getAll(any())).thenAnswer((_) async => [
-            {'id': '1', 'name': 'Test'}
-          ]);
+            {'id': '1', 'name': 'Test'},
+          ],);
 
       final controller = StreamController<List<TestModel>>();
       when(() => mockRealtimeWrapper.watchAll())
@@ -1661,8 +1661,8 @@ void main() {
       when(() => mockRealtimeWrapper.watchAll())
           .thenAnswer((_) => controller.stream);
       when(() => mockClientWrapper.getAll(any())).thenAnswer((_) async => [
-            {'id': '1', 'name': 'Test'}
-          ]);
+            {'id': '1', 'name': 'Test'},
+          ],);
 
       backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
         wrapper: mockClientWrapper,

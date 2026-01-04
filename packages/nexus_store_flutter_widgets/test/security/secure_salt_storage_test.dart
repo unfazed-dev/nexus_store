@@ -77,7 +77,7 @@ void main() {
         verify(() => mockStorage.write(
               key: 'test_salt_user-123',
               value: '01020304ff',
-            )).called(1);
+            ),).called(1);
       });
     });
 
@@ -127,7 +127,7 @@ void main() {
               'test_salt_user-123': 'abc123',
               'test_salt_user-456': 'def456',
               'other_key': 'value',
-            });
+            },);
         when(() => mockStorage.delete(key: any(named: 'key')))
             .thenAnswer((_) async {});
 
@@ -145,7 +145,7 @@ void main() {
               'test_salt_user-123': 'abc123',
               'test_salt_user-456': 'def456',
               'other_key': 'value',
-            });
+            },);
 
         final result = await saltStorage.listSaltKeyIds();
 
@@ -160,7 +160,7 @@ void main() {
         when(() => mockStorage.write(
               key: any(named: 'key'),
               value: any(named: 'value'),
-            )).thenAnswer((_) async {});
+            ),).thenAnswer((_) async {});
 
         final originalSalt = Uint8List.fromList(
           List.generate(16, (i) => i * 16 + i),
@@ -170,7 +170,7 @@ void main() {
         final captured = verify(() => mockStorage.write(
               key: 'test_salt_test',
               value: captureAny(named: 'value'),
-            )).captured.single as String;
+            ),).captured.single as String;
 
         when(() => mockStorage.read(key: 'test_salt_test'))
             .thenAnswer((_) async => captured);
