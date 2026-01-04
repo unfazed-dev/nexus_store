@@ -20,7 +20,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.27.0"
           channel: stable
 
       - name: Install Melos
@@ -42,10 +41,7 @@ jobs:
     strategy:
       matrix:
         package:
-          - nexus_store
           - nexus_store_bloc_binding
-          - nexus_store_riverpod_binding
-          - nexus_store_signals_binding
           - nexus_store_generator
           - nexus_store_entity_generator
           - nexus_store_riverpod_generator
@@ -55,7 +51,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.27.0"
           channel: stable
 
       - name: Install Melos
@@ -90,17 +85,19 @@ jobs:
     strategy:
       matrix:
         package:
+          - nexus_store
           - nexus_store_flutter_widgets
           - nexus_store_drift_adapter
           - nexus_store_brick_adapter
           - nexus_store_crdt_adapter
+          - nexus_store_riverpod_binding
+          - nexus_store_signals_binding
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.27.0"
           channel: stable
 
       - name: Install Melos
@@ -113,7 +110,7 @@ jobs:
         run: |
           cd packages/${{ matrix.package }}
           if grep -q "build_runner" pubspec.yaml; then
-            dart run build_runner build --delete-conflicting-outputs
+            flutter pub run build_runner build --delete-conflicting-outputs
           fi
 
       - name: Run tests
@@ -138,7 +135,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.27.0"
           channel: stable
 
       - name: Install Melos
@@ -169,7 +165,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.27.0"
           channel: stable
 
       - name: Install Melos
@@ -178,10 +173,10 @@ jobs:
       - name: Bootstrap packages
         run: melos bootstrap
 
-      - name: Run tests
+      - name: Run tests (excluding integration tests)
         run: |
           cd packages/nexus_store_supabase_adapter
-          flutter test --coverage
+          flutter test --coverage --exclude-tags integration
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -200,7 +195,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.27.0"
           channel: stable
 
       - name: Install Melos
@@ -243,7 +237,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.27.0"
           channel: stable
 
       - name: Install Melos

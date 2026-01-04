@@ -17,30 +17,51 @@ scripts:
       concurrency: 1
     description: Run dart analyze in all packages
 
-  test:
+  test:dart:
     run: dart test
+    exec:
+      concurrency: 1
     packageFilters:
       dirExists: test
-    description: Run tests in all packages
+      noDependsOn: flutter
+    description: Run tests in Dart packages
+
+  test:flutter:
+    run: flutter test
+    exec:
+      concurrency: 1
+    packageFilters:
+      dirExists: test
+      dependsOn: flutter
+    description: Run tests in Flutter packages
 
   test:coverage:
     run: dart test --coverage=coverage
+    exec:
+      concurrency: 1
     packageFilters:
       dirExists: test
-    description: Run tests with coverage
+      noDependsOn: flutter
+    description: Run tests with coverage in Dart packages
 
   build:runner:
     run: dart run build_runner build --delete-conflicting-outputs
+    exec:
+      concurrency: 1
     packageFilters:
       dependsOn: build_runner
     description: Run build_runner in packages that need it
 
   format:
     run: dart format .
+    exec:
+      concurrency: 1
     description: Format all Dart code
 
   format:check:
     run: dart format --set-exit-if-changed .
+    exec:
+      concurrency: 1
     description: Check formatting without making changes
 
   clean:
