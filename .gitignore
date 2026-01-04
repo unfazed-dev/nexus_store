@@ -27,3 +27,8 @@ coverage/
 # Generated
 doc/api/
 # tests_reports/
+
+# Native binaries (downloaded for testing)
+libpowersync.dylib
+libpowersync.so
+powersync.dll
