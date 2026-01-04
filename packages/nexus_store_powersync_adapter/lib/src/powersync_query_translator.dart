@@ -53,6 +53,9 @@ class PowerSyncQueryTranslator<T>
 
     if (query?.limit != null) {
       buffer.write(' LIMIT ${query!.limit}');
+    } else if (query?.offset != null) {
+      // SQLite requires LIMIT before OFFSET; use -1 for "no limit"
+      buffer.write(' LIMIT -1');
     }
 
     if (query?.offset != null) {
@@ -227,6 +230,9 @@ class PowerSyncQueryTranslator<T>
 
     if (query.limit != null) {
       buffer.write(' LIMIT ${query.limit}');
+    } else if (query.offset != null) {
+      // SQLite requires LIMIT before OFFSET; use -1 for "no limit"
+      buffer.write(' LIMIT -1');
     }
 
     if (query.offset != null) {

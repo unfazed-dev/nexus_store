@@ -182,6 +182,79 @@ backend.supportsRealtime     // true - real-time sync
 backend.supportsTransactions // true - atomic operations
 ```
 
+## Testing
+
+### Running Unit Tests
+
+```bash
+dart test test/powersync_query_translator_test.dart
+dart test test/powersync_backend_test.dart
+```
+
+### Running Integration Tests
+
+Integration tests require the PowerSync native library and SQLite with extension loading support.
+
+#### Prerequisites (macOS)
+
+1. **Install Homebrew SQLite** (required because system SQLite doesn't support extension loading):
+   ```bash
+   brew install sqlite
+   ```
+
+2. **Download PowerSync native binary**:
+   ```bash
+   ./scripts/download_powersync_binary.sh
+   ```
+   Or manually download from [PowerSync releases](https://github.com/powersync-ja/powersync-sqlite-core/releases).
+
+#### Running Tests
+
+```bash
+# Run integration tests
+dart test test/integration/
+
+# Run all tests
+dart test
+```
+
+Tests are automatically skipped if prerequisites are not met, so running without setup will not cause failures.
+
+### Test Utilities
+
+For writing integration tests with real PowerSync databases, see the test utilities in [`test/test_utils/powersync_test_utils.dart`](test/test_utils/powersync_test_utils.dart). Key utilities include:
+
+| Utility | Description |
+|---------|-------------|
+| `TestPowerSyncOpenFactory` | Custom factory that configures SQLite for extension loading |
+| `createTestPowerSyncDatabase()` | Creates a properly configured test database |
+| `checkPowerSyncLibraryAvailable()` | Checks if PowerSync native binary is available |
+| `isHomebrewSqliteAvailable()` | Checks if Homebrew SQLite is installed (macOS) |
+
+Example usage pattern from [`test/integration/real_database_test.dart`](test/integration/real_database_test.dart):
+
+```dart
+import 'test_utils/powersync_test_utils.dart';
+
+void main() {
+  late PowerSyncDatabase db;
+
+  setUpAll(() async {
+    // Check prerequisites - tests are skipped if not met
+    if (!isHomebrewSqliteAvailable()) return;
+    final (available, _) = checkPowerSyncLibraryAvailable();
+    if (!available) return;
+
+    // Create test database with proper SQLite configuration
+    db = createTestPowerSyncDatabase(
+      schema: yourSchema,
+      path: '/tmp/test.db',
+    );
+    await db.initialize();
+  });
+}
+```
+
 ## Migration from Raw PowerSync
 
 If you're migrating from direct PowerSync usage:

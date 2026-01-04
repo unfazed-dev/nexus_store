@@ -4,13 +4,35 @@
 /// database CRUD operations that cannot be tested with mocks due to
 /// PowerSync's final ResultSet class.
 ///
-/// Note: These tests require the PowerSync native SQLite extension to be
-/// available. They are skipped in environments where the native library
-/// is not present (e.g., standard Dart test environments without native setup).
+/// ## Requirements
 ///
-/// To run these tests:
-/// 1. Ensure PowerSync native dependencies are installed
-/// 2. Run with: dart test test/integration/real_database_test.dart --tags=real_db
+/// These tests require:
+/// 1. **PowerSync native library** (`libpowersync.dylib` / `.so` / `.dll`)
+/// 2. **SQLite with extension loading support** (Homebrew SQLite on macOS)
+///
+/// Tests are **automatically skipped** when requirements are not met,
+/// so running without setup will not cause failures.
+///
+/// ## Setup
+///
+/// ### Step 1: Install Homebrew SQLite (macOS)
+/// ```bash
+/// brew install sqlite
+/// ```
+///
+/// ### Step 2: Download PowerSync binary
+/// ```bash
+/// ./scripts/download_powersync_binary.sh
+/// ```
+/// Or manually from: https://github.com/powersync-ja/powersync-sqlite-core/releases
+///
+/// ## Running Tests
+///
+/// ```bash
+/// dart test test/integration/real_database_test.dart
+/// # or
+/// dart test --tags=real_db
+/// ```
 @Tags(['integration', 'real_db'])
 @Timeout(Duration(minutes: 2))
 library;
@@ -23,7 +45,36 @@ import 'package:nexus_store_powersync_adapter/nexus_store_powersync_adapter.dart
 import 'package:powersync/powersync.dart' as ps;
 import 'package:test/test.dart';
 
+// ignore: unused_import
 import '../test_config.dart';
+import '../test_utils/powersync_test_utils.dart';
+
+/// Tracks whether PowerSync native library is available.
+/// Set in setUpAll, checked in tests to skip if unavailable.
+bool _nativeLibraryAvailable = false;
+String? _skipReason;
+
+/// Runs a test only if PowerSync native library is available.
+/// Otherwise, marks the test as skipped.
+void testWithNativeLib(
+  String description,
+  Future<void> Function() body, {
+  Object? skip,
+}) {
+  test(
+    description,
+    () async {
+      if (!_nativeLibraryAvailable) {
+        markTestSkipped(
+          _skipReason ?? 'PowerSync native library not available',
+        );
+        return;
+      }
+      await body();
+    },
+    skip: skip,
+  );
+}
 
 // Test model
 class TestUser {
@@ -79,26 +130,58 @@ void main() {
     late String dbPath;
 
     setUpAll(() async {
-      // Create a unique database path for this test run
-      final tempDir = Directory.systemTemp;
-      dbPath = '${tempDir.path}/${TestConfig.testDatabasePath}';
+      // Check if PowerSync library and Homebrew SQLite are available
+      if (!isHomebrewSqliteAvailable()) {
+        _skipReason = 'Homebrew SQLite not installed. Run: brew install sqlite';
+        _nativeLibraryAvailable = false;
+        return;
+      }
 
-      // Clean up any existing database
-      final dbFile = File(dbPath);
-      // ignore: avoid_slow_async_io
-      if (await dbFile.exists()) {
-        // ignore: avoid_slow_async_io
-        await dbFile.delete();
+      final (available, error) = checkPowerSyncLibraryAvailable();
+      if (!available) {
+        _skipReason = error;
+        _nativeLibraryAvailable = false;
+        return;
+      }
+
+      // Verify by creating a test database using our custom factory
+      final tempDir = Directory.systemTemp;
+      final testPath =
+          '${tempDir.path}/powersync_check_${DateTime.now().microsecondsSinceEpoch}.db';
+
+      try {
+        final testDb = createTestPowerSyncDatabase(
+          schema: testSchema,
+          path: testPath,
+        );
+        await testDb.initialize();
+        await testDb.close();
+
+        // Clean up test database
+        final testFile = File(testPath);
+        if (testFile.existsSync()) {
+          testFile.deleteSync();
+        }
+
+        _nativeLibraryAvailable = true;
+        // ignore: avoid_catches_without_on_clauses
+      } catch (e) {
+        // Catches any remaining errors during database initialization
+        _skipReason = 'PowerSync database initialization failed: $e';
+        _nativeLibraryAvailable = false;
       }
     });
 
     setUp(() async {
-      // Create database for each test
+      // Skip setup if native library is not available
+      if (!_nativeLibraryAvailable) return;
+
+      // Create database for each test using our custom factory
       final tempDir = Directory.systemTemp;
       final uniqueId = DateTime.now().microsecondsSinceEpoch;
       dbPath = '${tempDir.path}/test_powersync_$uniqueId.db';
 
-      db = ps.PowerSyncDatabase(
+      db = createTestPowerSyncDatabase(
         schema: testSchema,
         path: dbPath,
       );
@@ -117,6 +200,9 @@ void main() {
     });
 
     tearDown(() async {
+      // Skip teardown if native library was not available
+      if (!_nativeLibraryAvailable) return;
+
       await backend.close();
       await db.close();
 
@@ -130,7 +216,7 @@ void main() {
     });
 
     group('DefaultPowerSyncDatabaseWrapper CRUD', () {
-      test('save creates a new record', () async {
+      testWithNativeLib('save creates a new record', () async {
         final user = TestUser(id: '1', name: 'Alice', age: 30);
 
         final result = await backend.save(user);
@@ -140,7 +226,7 @@ void main() {
         expect(result.age, equals(30));
       });
 
-      test('save updates existing record (upsert)', () async {
+      testWithNativeLib('save updates existing record (upsert)', () async {
         final user = TestUser(id: '1', name: 'Alice', age: 30);
         await backend.save(user);
 
@@ -152,7 +238,7 @@ void main() {
         expect(result.age, equals(31));
       });
 
-      test('get retrieves existing record', () async {
+      testWithNativeLib('get retrieves existing record', () async {
         final user = TestUser(id: '1', name: 'Alice', age: 30);
         await backend.save(user);
 
@@ -163,13 +249,13 @@ void main() {
         expect(result.name, equals('Alice'));
       });
 
-      test('get returns null for non-existent id', () async {
+      testWithNativeLib('get returns null for non-existent id', () async {
         final result = await backend.get('non-existent');
 
         expect(result, isNull);
       });
 
-      test('getAll returns all records', () async {
+      testWithNativeLib('getAll returns all records', () async {
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
         await backend.save(TestUser(id: '2', name: 'Bob', age: 25));
 
@@ -179,7 +265,7 @@ void main() {
         expect(results.map((u) => u.name), containsAll(['Alice', 'Bob']));
       });
 
-      test('getAll with query filters results', () async {
+      testWithNativeLib('getAll with query filters results', () async {
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
         await backend.save(TestUser(id: '2', name: 'Bob', age: 25));
         await backend.save(TestUser(id: '3', name: 'Charlie', age: 35));
@@ -198,7 +284,7 @@ void main() {
         );
       });
 
-      test('delete removes existing record', () async {
+      testWithNativeLib('delete removes existing record', () async {
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
 
         final deleted = await backend.delete('1');
@@ -209,13 +295,15 @@ void main() {
         expect(result, isNull);
       });
 
-      test('delete returns false for non-existent record', () async {
+      testWithNativeLib(
+        'delete returns false for non-existent record',
+        () async {
         final deleted = await backend.delete('non-existent');
 
         expect(deleted, isFalse);
       });
 
-      test('deleteAll removes multiple records', () async {
+      testWithNativeLib('deleteAll removes multiple records', () async {
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
         await backend.save(TestUser(id: '2', name: 'Bob', age: 25));
         await backend.save(TestUser(id: '3', name: 'Charlie', age: 35));
@@ -229,7 +317,7 @@ void main() {
         expect(remaining.first.name, equals('Charlie'));
       });
 
-      test('deleteWhere removes records matching query', () async {
+      testWithNativeLib('deleteWhere removes records matching query', () async {
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
         await backend.save(TestUser(id: '2', name: 'Bob', age: 25));
         await backend.save(TestUser(id: '3', name: 'Charlie', age: 35));
@@ -246,7 +334,9 @@ void main() {
         expect(remaining.map((u) => u.name), isNot(contains('Bob')));
       });
 
-      test('saveAll inserts multiple records in transaction', () async {
+      testWithNativeLib(
+        'saveAll inserts multiple records in transaction',
+        () async {
         final users = [
           TestUser(id: '1', name: 'Alice', age: 30),
           TestUser(id: '2', name: 'Bob', age: 25),
@@ -263,7 +353,7 @@ void main() {
     });
 
     group('DefaultPowerSyncDatabaseWrapper watch', () {
-      test('watch returns stream for record', () async {
+      testWithNativeLib('watch returns stream for record', () async {
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
 
         final stream = backend.watch('1');
@@ -273,7 +363,7 @@ void main() {
         expect(firstValue!.name, equals('Alice'));
       });
 
-      test('watch emits updates when record changes', () async {
+      testWithNativeLib('watch emits updates when record changes', () async {
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
 
         final stream = backend.watch('1');
@@ -295,7 +385,7 @@ void main() {
         expect(values.any((u) => u?.name == 'Alice'), isTrue);
       });
 
-      test('watch emits null when record is deleted', () async {
+      testWithNativeLib('watch emits null when record is deleted', () async {
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
 
         final stream = backend.watch('1');
@@ -317,7 +407,7 @@ void main() {
         expect(values.last, isNull);
       });
 
-      test('watchAll returns stream for all records', () async {
+      testWithNativeLib('watchAll returns stream for all records', () async {
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
         await backend.save(TestUser(id: '2', name: 'Bob', age: 25));
 
@@ -327,7 +417,7 @@ void main() {
         expect(firstValue, hasLength(2));
       });
 
-      test('watchAll with query filters stream', () async {
+      testWithNativeLib('watchAll with query filters stream', () async {
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
         await backend.save(TestUser(id: '2', name: 'Bob', age: 25));
 
@@ -345,7 +435,9 @@ void main() {
     });
 
     group('DefaultPowerSyncDatabaseWrapper transactions', () {
-      test('writeTransaction commits multiple operations atomically', () async {
+      testWithNativeLib(
+        'writeTransaction commits multiple operations atomically',
+        () async {
         final users = [
           TestUser(id: '1', name: 'Alice', age: 30),
           TestUser(id: '2', name: 'Bob', age: 25),
@@ -357,7 +449,7 @@ void main() {
         expect(all, hasLength(2));
       });
 
-      test('saveAll with empty list returns empty', () async {
+      testWithNativeLib('saveAll with empty list returns empty', () async {
         final results = await backend.saveAll([]);
 
         expect(results, isEmpty);
@@ -365,18 +457,21 @@ void main() {
     });
 
     group('DefaultPowerSyncDatabaseWrapper sync status', () {
-      test('statusStream emits sync status', () async {
+      testWithNativeLib('statusStream emits sync status', () async {
         // The wrapper should provide access to status stream
         expect(backend.syncStatusStream, isA<Stream<nexus.SyncStatus>>());
       });
 
-      test('currentStatus is accessible', () async {
+      testWithNativeLib('currentStatus is accessible', () async {
         expect(backend.syncStatus, isA<nexus.SyncStatus>());
       });
     });
 
     group('Pagination with real database', () {
       setUp(() async {
+        // Skip setup if native library is not available
+        if (!_nativeLibraryAvailable) return;
+
         // Add test data for pagination
         for (var i = 1; i <= 10; i++) {
           await backend.save(TestUser(
@@ -387,7 +482,7 @@ void main() {
         }
       });
 
-      test('getAllPaged returns first page', () async {
+      testWithNativeLib('getAllPaged returns first page', () async {
         final query = const nexus.Query<TestUser>().first(3);
 
         final result = await backend.getAllPaged(query: query);
@@ -398,7 +493,7 @@ void main() {
         expect(result.pageInfo.totalCount, equals(10));
       });
 
-      test('getAllPaged with cursor returns next page', () async {
+      testWithNativeLib('getAllPaged with cursor returns next page', () async {
         // Get first page
         final firstQuery = const nexus.Query<TestUser>().first(3);
         final firstPage = await backend.getAllPaged(query: firstQuery);
@@ -415,7 +510,7 @@ void main() {
         expect(secondPage.pageInfo.hasNextPage, isTrue);
       });
 
-      test('watchAllPaged returns paginated stream', () async {
+      testWithNativeLib('watchAllPaged returns paginated stream', () async {
         final query = const nexus.Query<TestUser>().first(3);
 
         final stream = backend.watchAllPaged(query: query);
@@ -428,13 +523,16 @@ void main() {
 
     group('Query operations with real database', () {
       setUp(() async {
+        // Skip setup if native library is not available
+        if (!_nativeLibraryAvailable) return;
+
         await backend.save(TestUser(id: '1', name: 'Alice', age: 30));
         await backend.save(TestUser(id: '2', name: 'Bob', age: 25));
         await backend.save(TestUser(id: '3', name: 'Charlie', age: 35));
         await backend.save(TestUser(id: '4', name: 'Alice Jr', age: 22));
       });
 
-      test('query with orderBy sorts results', () async {
+      testWithNativeLib('query with orderBy sorts results', () async {
         final query =
             const nexus.Query<TestUser>().orderByField('age', descending: true);
 
@@ -444,7 +542,7 @@ void main() {
         expect(results.last.name, equals('Alice Jr'));
       });
 
-      test('query with limit returns limited results', () async {
+      testWithNativeLib('query with limit returns limited results', () async {
         final query = const nexus.Query<TestUser>().limitTo(2);
 
         final results = await backend.getAll(query: query);
@@ -452,7 +550,7 @@ void main() {
         expect(results, hasLength(2));
       });
 
-      test('query with offset skips results', () async {
+      testWithNativeLib('query with offset skips results', () async {
         final query = const nexus.Query<TestUser>().offsetBy(2);
 
         final results = await backend.getAll(query: query);
@@ -460,7 +558,9 @@ void main() {
         expect(results, hasLength(2));
       });
 
-      test('query with whereIn filters to specific values', () async {
+      testWithNativeLib(
+        'query with whereIn filters to specific values',
+        () async {
         final query = const nexus.Query<TestUser>().where(
           'id',
           whereIn: ['1', '3'],
@@ -472,7 +572,7 @@ void main() {
         expect(results.map((u) => u.name), containsAll(['Alice', 'Charlie']));
       });
 
-      test('query with isNull filters null values', () async {
+      testWithNativeLib('query with isNull filters null values', () async {
         await backend.save(TestUser(id: '5', name: 'NoAge'));
 
         final query = const nexus.Query<TestUser>().where('age', isNull: true);

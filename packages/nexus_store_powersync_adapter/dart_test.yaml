@@ -1,0 +1,27 @@
+# Test configuration for nexus_store_powersync_adapter
+#
+# This file declares test tags and configures test behavior.
+# See: https://github.com/dart-lang/test/blob/master/pkgs/test/doc/configuration.md
+
+# Declare tags used in this package
+tags:
+  integration:
+    # Integration tests that test multiple components together
+    # Run with: dart test --tags=integration
+  real_db:
+    # Tests requiring real PowerSync database with native extension
+    # These tests are automatically skipped when native libs are unavailable
+    # Run with: dart test --tags=real_db
+    #
+    # Setup requirements:
+    # 1. Download powersync-sqlite-core binary from:
+    #    https://github.com/powersync-ja/powersync-sqlite-core/releases
+    # 2. Rename by removing architecture suffix (e.g., powersync_x64.dll -> powersync.dll)
+    # 3. Place in project root directory
+    # 4. Ensure SQLite has ENABLE_LOAD_EXTENSION enabled
+
+# Test timeout configuration
+timeout: 2m
+
+# Retry flaky tests (optional, disabled by default)
+# retry: 1

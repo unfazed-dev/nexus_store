@@ -112,7 +112,8 @@ void main() {
         expect(args, isEmpty);
       });
 
-      test('generates SELECT with OFFSET', () {
+      test('generates SELECT with OFFSET includes LIMIT -1', () {
+        // SQLite requires LIMIT before OFFSET; -1 means "no limit"
         final query = const Query<Map<String, dynamic>>().offsetBy(20);
 
         final (sql, args) = translator.toSelectSql(
@@ -120,7 +121,7 @@ void main() {
           query: query,
         );
 
-        expect(sql, equals('SELECT * FROM users OFFSET 20'));
+        expect(sql, equals('SELECT * FROM users LIMIT -1 OFFSET 20'));
         expect(args, isEmpty);
       });
 
