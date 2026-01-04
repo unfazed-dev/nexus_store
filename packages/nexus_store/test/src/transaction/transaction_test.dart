@@ -263,6 +263,26 @@ void main() {
           throwsA(isA<TransactionError>()),
         );
       });
+
+      test('rollback is called when backend fails during commit (line 791)',
+          () async {
+        // Set backend to fail on save during commit phase
+        backend.shouldFailOnSave = true;
+
+        await expectLater(
+          store.transaction((tx) async {
+            await tx.save(TestFixtures.createUser());
+            // The save above just queues the operation
+            // The actual backend.save() happens during commit
+            // When commit calls _applyOperation, backend.save throws
+            // This triggers line 791: await _rollbackTransaction(context)
+          }),
+          throwsA(isA<TransactionError>()),
+        );
+
+        // Reset for other tests
+        backend.shouldFailOnSave = false;
+      });
     });
 
     group('mixed operations', () {

@@ -954,4 +954,115 @@ void main() {
       expect(result, equals(42));
     });
   });
+
+  group('CompositeBackend supportsFieldOperations', () {
+    test('should check fallback when primary does not support', () {
+      final primary = _FakeBackendWithFieldOps(supportsFieldOps: false);
+      final fallback = _FakeBackendWithFieldOps(supportsFieldOps: true);
+
+      final backend = CompositeBackend<TestUser, String>(
+        primary: primary,
+        fallback: fallback,
+      );
+
+      expect(backend.supportsFieldOperations, isTrue);
+    });
+
+    test('should return false when neither supports', () {
+      final primary = _FakeBackendWithFieldOps(supportsFieldOps: false);
+      final fallback = _FakeBackendWithFieldOps(supportsFieldOps: false);
+
+      final backend = CompositeBackend<TestUser, String>(
+        primary: primary,
+        fallback: fallback,
+      );
+
+      expect(backend.supportsFieldOperations, isFalse);
+    });
+
+    test('should return true when primary supports', () {
+      final primary = _FakeBackendWithFieldOps(supportsFieldOps: true);
+
+      final backend = CompositeBackend<TestUser, String>(
+        primary: primary,
+      );
+
+      expect(backend.supportsFieldOperations, isTrue);
+    });
+  });
+
+  group('CompositeBackend pendingChangesStream', () {
+    test('should combine pending changes from primary and fallback', () async {
+      final primary = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+      );
+      final fallback = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+      );
+      final backend = CompositeBackend<TestUser, String>(
+        primary: primary,
+        fallback: fallback,
+      );
+
+      // Both backends emit empty pending changes initially
+      final changes = await backend.pendingChangesStream.first;
+      expect(changes, isEmpty);
+    });
+  });
+
+  group('CompositeBackend retryChange', () {
+    test('should retry in primary first', () async {
+      final primary = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+      );
+      final fallback = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+      );
+      final backend = CompositeBackend<TestUser, String>(
+        primary: primary,
+        fallback: fallback,
+      );
+
+      // retryChange is a no-op in FakeStoreBackend, just verify it completes
+      await expectLater(backend.retryChange('change-1'), completes);
+    });
+
+    test('should fallback when primary throws (line 309)', () async {
+      final primary = _FailingRetryBackend(
+        idExtractor: (user) => user.id,
+      );
+      final fallback = FakeStoreBackend<TestUser, String>(
+        idExtractor: (user) => user.id,
+      );
+      final backend = CompositeBackend<TestUser, String>(
+        primary: primary,
+        fallback: fallback,
+      );
+
+      // Line 309: await fallback?.retryChange(changeId);
+      // Primary throws, so fallback should be tried
+      await expectLater(backend.retryChange('change-1'), completes);
+    });
+  });
+}
+
+/// Backend that throws on retryChange to test fallback path (line 309).
+class _FailingRetryBackend extends FakeStoreBackend<TestUser, String> {
+  _FailingRetryBackend({required super.idExtractor});
+
+  @override
+  Future<void> retryChange(String changeId) async {
+    throw Exception('Primary retryChange failed');
+  }
+}
+
+/// Helper class to test supportsFieldOperations with configurable value.
+class _FakeBackendWithFieldOps extends FakeStoreBackend<TestUser, String> {
+  _FakeBackendWithFieldOps({required this.supportsFieldOps})
+      : super(idExtractor: (user) => user.id);
+
+  final bool supportsFieldOps;
+
+  @override
+  bool get supportsFieldOperations => supportsFieldOps;
 }

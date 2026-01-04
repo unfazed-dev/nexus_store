@@ -428,6 +428,54 @@ void main() {
         expect(NexusRegistry.isRegistered<TestUser>(), isFalse);
         expect(NexusRegistry.isRegistered<TestProduct>(), isTrue);
       });
+
+      test('error message includes scope when duplicate in scoped registration (line 81)',
+          () async {
+        // First register with scope
+        NexusRegistry.register<TestUser>(userStore, scope: 'my-tenant');
+
+        // Create another store
+        final anotherBackend = FakeStoreBackend<TestUser, String>(
+          idExtractor: (user) => user.id,
+        );
+        final anotherStore = NexusStore<TestUser, String>(
+          backend: anotherBackend,
+          idExtractor: (user) => user.id,
+        );
+        await anotherStore.initialize();
+
+        // Try to register same type in same scope without replace
+        expect(
+          () => NexusRegistry.register<TestUser>(anotherStore, scope: 'my-tenant'),
+          throwsA(
+            isStateError.having(
+              (e) => e.message,
+              'message',
+              allOf(
+                contains('TestUser'),
+                contains("scope 'my-tenant'"), // line 81 coverage
+              ),
+            ),
+          ),
+        );
+
+        await anotherStore.dispose();
+      });
+
+      test('error message includes scope when getting non-existent scoped store',
+          () {
+        // Try to get store in a scope that doesn't exist
+        expect(
+          () => NexusRegistry.get<TestUser, String>(scope: 'nonexistent'),
+          throwsA(
+            isStateError.having(
+              (e) => e.message,
+              'message',
+              contains("scope 'nonexistent'"),
+            ),
+          ),
+        );
+      });
     });
   });
 }

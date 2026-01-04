@@ -113,6 +113,35 @@ void main() {
         expect(value1, equals('avatar-1'));
         expect(value2, equals('avatar-2'));
       });
+
+      test('marks all entities as error when batch load fails (lines 146-147)',
+          () async {
+        // Set up backend to fail
+        backend.shouldFailOnGet = true;
+        backend.errorToThrow = Exception('Batch load failed');
+
+        // Try to batch load - should throw (await to ensure error handling runs)
+        try {
+          await loader.loadFieldBatch(['user-1', 'user-2', 'user-3'], 'avatar');
+          fail('Expected exception');
+        } catch (_) {
+          // Expected - lines 146-147 mark all as error when exception occurs
+        }
+
+        // All entities should be marked as error (lines 146-147)
+        expect(
+          loader.getFieldState('user-1', 'avatar'),
+          equals(LazyFieldState.error),
+        );
+        expect(
+          loader.getFieldState('user-2', 'avatar'),
+          equals(LazyFieldState.error),
+        );
+        expect(
+          loader.getFieldState('user-3', 'avatar'),
+          equals(LazyFieldState.error),
+        );
+      });
     });
 
     group('getFieldState', () {

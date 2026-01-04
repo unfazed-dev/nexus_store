@@ -110,6 +110,30 @@ void main() {
       });
     });
 
+    group('failure without executed steps (lines 122, 125)', () {
+      test('returns failure with empty compensatedSteps when error before any steps',
+          () async {
+        // Lines 122, 125: When exception thrown BEFORE any steps are executed,
+        // context._executedSteps is empty, so we get failure with empty compensatedSteps
+        final result = await coordinator.transaction((ctx) async {
+          // Throw immediately without executing any steps
+          throw Exception('Immediate failure');
+        });
+
+        expect(result.isFailure, isTrue);
+        result.when(
+          success: (_) => fail('Should not succeed'),
+          failure: (error, failedStep, compensatedSteps) {
+            // Line 122-125: Creates failure result with empty compensatedSteps
+            expect(failedStep, equals('transaction-block'));
+            expect(compensatedSteps, isEmpty); // Line 125 coverage
+            expect(error.toString(), contains('Immediate failure'));
+          },
+          partialFailure: (_, __, ___) => fail('Should not be partial failure'),
+        );
+      });
+    });
+
     group('auto-compensation for save', () {
       test('rolls back save on subsequent failure', () async {
         final user = TestFixtures.createUser();

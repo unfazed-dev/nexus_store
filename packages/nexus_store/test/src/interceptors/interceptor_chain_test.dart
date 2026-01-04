@@ -87,6 +87,22 @@ class ErrorInterceptor extends StoreInterceptor {
   }
 }
 
+/// Interceptor that returns an error with null stackTrace.
+/// This covers line 127: stackTrace ?? StackTrace.current
+class ErrorWithNullStackTraceInterceptor extends StoreInterceptor {
+  final Object error;
+
+  ErrorWithNullStackTraceInterceptor(this.error);
+
+  @override
+  Future<InterceptorResult<R>> onRequest<T, R>(
+    InterceptorContext<T, R> ctx,
+  ) async {
+    // Return error with null stackTrace to trigger line 127
+    return InterceptorResult.error(error);
+  }
+}
+
 /// Interceptor that provides a modified response via Continue.
 class ContinueWithResponseInterceptor extends StoreInterceptor {
   final Object response;
@@ -369,6 +385,31 @@ void main() {
         } catch (_) {}
 
         expect(log, isNot(contains('A.onResponse')));
+        expect(log, contains('A.onError'));
+      });
+
+      test(
+          'should use StackTrace.current when error result has null stackTrace (line 127)',
+          () async {
+        final log = <String>[];
+        final chain = InterceptorChain([
+          TrackingInterceptor('A', log),
+          ErrorWithNullStackTraceInterceptor(Exception('Error with null stack')),
+        ]);
+
+        try {
+          await chain.execute<String, String>(
+            operation: StoreOperation.get,
+            request: 'id-1',
+            execute: () async => 'result',
+          );
+        } catch (e) {
+          // Error should be propagated with a stack trace
+          // Line 127: stackTrace ?? StackTrace.current
+          expect(e, isA<Exception>());
+        }
+
+        // Error handler should be called on preceding interceptor
         expect(log, contains('A.onError'));
       });
     });

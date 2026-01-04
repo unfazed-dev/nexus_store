@@ -233,5 +233,56 @@ void main() {
       expect(step1, equals(step2));
       expect(step1, isNot(equals(step3)));
     });
+
+    group('hashCode (line 151)', () {
+      test('returns consistent hashCode based on name', () {
+        final step1 = CompletedStep('test-step', 1);
+        final step2 = CompletedStep('test-step', 2);
+
+        expect(step1.hashCode, equals(step2.hashCode));
+      });
+
+      test('different names produce different hashCodes', () {
+        final step1 = CompletedStep('step-a', 1);
+        final step2 = CompletedStep('step-b', 1);
+
+        // Different names should typically produce different hashCodes
+        // (not guaranteed but very likely)
+        expect(step1.hashCode, isNot(equals(step2.hashCode)));
+      });
+    });
+
+    group('toString (lines 153-154)', () {
+      test('includes step name and result', () {
+        final step = CompletedStep('my-step', 'my-result');
+
+        final str = step.toString();
+
+        expect(str, contains('my-step'));
+        expect(str, contains('my-result'));
+        expect(str, contains('CompletedStep'));
+      });
+    });
+  });
+
+  group('SagaContext toString with isCompleted (line 121)', () {
+    test('shows completed status in toString', () {
+      final context = SagaContext(id: 'saga-123');
+      context.markCompleted();
+
+      final str = context.toString();
+
+      expect(str, contains('completed'));
+      expect(str, contains('saga-123'));
+    });
+
+    test('shows failed status in toString', () {
+      final context = SagaContext(id: 'saga-456');
+      context.markFailed('step-x', Exception('error'));
+
+      final str = context.toString();
+
+      expect(str, contains('failed'));
+    });
   });
 }

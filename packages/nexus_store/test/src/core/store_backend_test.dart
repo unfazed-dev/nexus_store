@@ -1,6 +1,77 @@
 import 'package:nexus_store/nexus_store.dart';
 import 'package:test/test.dart';
 
+/// Backend with field operations support for testing line 322.
+class TestBackendWithFieldSupport with StoreBackendDefaults<String, String> {
+  final Map<String, String> _storage = {};
+
+  @override
+  String get name => 'TestBackendWithFieldSupport';
+
+  @override
+  bool get supportsFieldOperations => true;
+
+  @override
+  Future<String?> get(String id) async => _storage[id];
+
+  @override
+  Future<List<String>> getAll({Query<String>? query}) async =>
+      _storage.values.toList();
+
+  @override
+  Stream<String?> watch(String id) => Stream.value(_storage[id]);
+
+  @override
+  Stream<List<String>> watchAll({Query<String>? query}) =>
+      Stream.value(_storage.values.toList());
+
+  @override
+  Future<String> save(String item) async {
+    _storage[item] = item;
+    return item;
+  }
+
+  @override
+  Future<List<String>> saveAll(List<String> items) async {
+    for (final item in items) {
+      _storage[item] = item;
+    }
+    return items;
+  }
+
+  @override
+  Future<bool> delete(String id) async {
+    final existed = _storage.containsKey(id);
+    _storage.remove(id);
+    return existed;
+  }
+
+  @override
+  Future<int> deleteAll(List<String> ids) async {
+    var count = 0;
+    for (final id in ids) {
+      if (_storage.remove(id) != null) count++;
+    }
+    return count;
+  }
+
+  @override
+  Future<int> deleteWhere(Query<String> query) async {
+    final count = _storage.length;
+    _storage.clear();
+    return count;
+  }
+
+  @override
+  Future<Object?> getField(String id, String fieldName) async {
+    final item = _storage[id];
+    if (item == null) return null;
+    // Return the length of the item string as a field value
+    if (fieldName == 'length') return item.length;
+    return null;
+  }
+}
+
 /// Minimal implementation using StoreBackendDefaults mixin.
 class TestBackendWithDefaults with StoreBackendDefaults<String, String> {
   final Map<String, String> _storage = {};
@@ -224,6 +295,22 @@ void main() {
       // and getFieldBatch should return empty map
       final result = await backend.getFieldBatch(['id1', 'id2'], 'fieldName');
       expect(result, isEmpty);
+    });
+
+    test('getFieldBatch returns values when getField succeeds (line 322)',
+        () async {
+      // Use a backend that supports field operations
+      final fieldBackend = TestBackendWithFieldSupport();
+      await fieldBackend.save('item-1');
+      await fieldBackend.save('item-2');
+
+      final result =
+          await fieldBackend.getFieldBatch(['item-1', 'item-2'], 'length');
+
+      // Line 322: results[id] = value when value is not null
+      expect(result, hasLength(2));
+      expect(result['item-1'], equals(6)); // 'item-1'.length
+      expect(result['item-2'], equals(6)); // 'item-2'.length
     });
   });
 

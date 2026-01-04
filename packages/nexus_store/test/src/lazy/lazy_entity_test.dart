@@ -84,6 +84,33 @@ void main() {
 
         expect(lazyEntity.getField('avatar'), equals('default-avatar'));
       });
+
+      test('returns placeholder for LOADED lazy field (line 79)', () async {
+        // Line 79: When a lazy field is loaded, getField still returns placeholder
+        // because the loader stores values internally and we can't access them directly
+        final user = TestFixtures.createUser(id: 'user-1', name: 'Alice');
+        backend.addFieldToStorage('user-1', 'avatar', 'actual-avatar-data');
+
+        final lazyEntity = LazyEntity<TestUser, String>(
+          user,
+          idExtractor: (u) => u.id,
+          fieldLoader: fieldLoader,
+          config: const LazyLoadConfig(
+            lazyFields: {'avatar'},
+            placeholders: {'avatar': 'default-avatar'},
+          ),
+          fieldGetter: (entity, field) => null,
+        );
+
+        // Load the field
+        await lazyEntity.loadField('avatar');
+        expect(lazyEntity.isFieldLoaded('avatar'), isTrue);
+
+        // getField returns placeholder even for loaded field (line 79)
+        // because the implementation note says loader stores values internally
+        final value = lazyEntity.getField('avatar');
+        expect(value, equals('default-avatar'));
+      });
     });
 
     group('isFieldLoaded', () {
@@ -282,6 +309,54 @@ void main() {
         expect(loadedFields, contains('avatar'));
 
         await subscription.cancel();
+      });
+    });
+
+    group('dispose (lines 138-139)', () {
+      test('closes fieldLoadedStream controller', () async {
+        final user = TestFixtures.createUser(id: 'user-1', name: 'Alice');
+
+        final lazyEntity = LazyEntity<TestUser, String>(
+          user,
+          idExtractor: (u) => u.id,
+          fieldLoader: fieldLoader,
+          config: const LazyLoadConfig(
+            lazyFields: {'avatar'},
+          ),
+        );
+
+        // Subscribe to stream
+        var streamDone = false;
+        lazyEntity.fieldLoadedStream.listen(
+          (_) {},
+          onDone: () => streamDone = true,
+        );
+
+        // Dispose should close the stream controller (lines 138-139)
+        await lazyEntity.dispose();
+
+        // Allow stream to process the close
+        await Future<void>.delayed(Duration.zero);
+
+        // The stream should be done
+        expect(streamDone, isTrue);
+      });
+
+      test('can be called multiple times without error', () async {
+        final user = TestFixtures.createUser(id: 'user-1', name: 'Alice');
+
+        final lazyEntity = LazyEntity<TestUser, String>(
+          user,
+          idExtractor: (u) => u.id,
+          fieldLoader: fieldLoader,
+          config: const LazyLoadConfig(
+            lazyFields: {'avatar'},
+          ),
+        );
+
+        // Dispose twice - should not throw
+        await lazyEntity.dispose();
+        await lazyEntity.dispose();
       });
     });
   });

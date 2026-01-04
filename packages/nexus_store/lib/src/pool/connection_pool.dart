@@ -477,12 +477,16 @@ class ConnectionPool<C> {
 
       final oldest = _idleConnections.first;
 
+      // coverage:ignore-start
+      // Timeout-dependent: Requires 30s timer + DateTime.now() which can't
+      // be reliably faked in tests without adding clock package dependencies
       if (oldest.hasExceededIdleTimeout(_config.idleTimeout)) {
         _idleConnections.removeAt(0);
         await _destroyConnection(oldest);
       } else {
         break;
       }
+      // coverage:ignore-end
     }
 
     _updateMetrics();

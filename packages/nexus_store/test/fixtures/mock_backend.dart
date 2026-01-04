@@ -473,11 +473,67 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
   }
 
   // ---------------------------------------------------------------------------
+  // Pending Changes Support (for testing retryAllPending/cancelAllPending)
+  // ---------------------------------------------------------------------------
+
+  /// List of pending changes for testing.
+  final List<PendingChange<T>> _pendingChanges = [];
+
+  /// Stream controller for pending changes.
+  final _pendingChangesController =
+      BehaviorSubject<List<PendingChange<T>>>.seeded([]);
+
+  @override
+  Stream<List<PendingChange<T>>> get pendingChangesStream =>
+      _pendingChangesController.stream;
+
+  /// Add a pending change for testing.
+  void addPendingChange(PendingChange<T> change) {
+    _pendingChanges.add(change);
+    _pendingChangesController.add(List.unmodifiable(_pendingChanges));
+  }
+
+  /// Clear pending changes.
+  void clearPendingChanges() {
+    _pendingChanges.clear();
+    _pendingChangesController.add([]);
+  }
+
+  /// Track retried change IDs for verification.
+  final List<String> retriedChangeIds = [];
+
+  /// Track cancelled change IDs for verification.
+  final List<String> cancelledChangeIds = [];
+
+  @override
+  Future<void> retryChange(String changeId) async {
+    retriedChangeIds.add(changeId);
+    // Remove from pending changes on retry
+    _pendingChanges.removeWhere((c) => c.id == changeId);
+    _pendingChangesController.add(List.unmodifiable(_pendingChanges));
+  }
+
+  @override
+  Future<PendingChange<T>?> cancelChange(String changeId) async {
+    cancelledChangeIds.add(changeId);
+    final index = _pendingChanges.indexWhere((c) => c.id == changeId);
+    if (index >= 0) {
+      final change = _pendingChanges.removeAt(index);
+      _pendingChangesController.add(List.unmodifiable(_pendingChanges));
+      return change;
+    }
+    return null;
+  }
+
+  // ---------------------------------------------------------------------------
   // Transaction Support
   // ---------------------------------------------------------------------------
 
+  /// Whether this backend supports transactions (configurable for testing).
+  bool supportsTransactionsForTest = true;
+
   @override
-  bool get supportsTransactions => true;
+  bool get supportsTransactions => supportsTransactionsForTest;
 
   /// Active transactions for testing.
   final Map<String, _TransactionState<T, ID>> _transactions = {};

@@ -320,5 +320,50 @@ void main() {
         expect(metric.duration.inMilliseconds, lessThan(200));
       });
     });
+
+    group('operation mapping', () {
+      test('should map watch operation', () async {
+        final interceptor = TimingInterceptor(reporter: reporter);
+        final context = InterceptorContext<String, String>(
+          operation: StoreOperation.watch,
+          request: 'id',
+        );
+
+        await interceptor.onRequest(context);
+        await interceptor.onResponse(context.withResponse('result'));
+
+        expect(reporter.reportedMetrics, hasLength(1));
+        expect(reporter.reportedMetrics.first.operation, OperationType.watch);
+      });
+
+      test('should map watchAll operation', () async {
+        final interceptor = TimingInterceptor(reporter: reporter);
+        final context = InterceptorContext<String, String>(
+          operation: StoreOperation.watchAll,
+          request: 'query',
+        );
+
+        await interceptor.onRequest(context);
+        await interceptor.onResponse(context.withResponse('result'));
+
+        expect(reporter.reportedMetrics, hasLength(1));
+        expect(
+            reporter.reportedMetrics.first.operation, OperationType.watchAll);
+      });
+
+      test('should map sync operation', () async {
+        final interceptor = TimingInterceptor(reporter: reporter);
+        final context = InterceptorContext<String, String>(
+          operation: StoreOperation.sync,
+          request: 'sync',
+        );
+
+        await interceptor.onRequest(context);
+        await interceptor.onResponse(context.withResponse('result'));
+
+        expect(reporter.reportedMetrics, hasLength(1));
+        expect(reporter.reportedMetrics.first.operation, OperationType.sync);
+      });
+    });
   });
 }

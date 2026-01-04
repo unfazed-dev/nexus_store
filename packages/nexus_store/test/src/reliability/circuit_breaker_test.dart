@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:nexus_store/src/reliability/circuit_breaker.dart';
 import 'package:nexus_store/src/reliability/circuit_breaker_config.dart';
+import 'package:nexus_store/src/reliability/circuit_breaker_metrics.dart';
 import 'package:nexus_store/src/reliability/circuit_breaker_state.dart';
 
 void main() {
@@ -214,6 +215,27 @@ void main() {
         // Should only emit once for open state
         expect(states.where((s) => s == CircuitBreakerState.open).length,
             equals(1));
+      });
+    });
+
+    group('metricsStream (line 83)', () {
+      test('emits metrics updates on state changes', () async {
+        final metricsList = <CircuitBreakerMetrics>[];
+        final subscription = circuitBreaker.metricsStream.listen(metricsList.add);
+
+        // Record some operations to trigger metrics updates
+        circuitBreaker.recordSuccess();
+        circuitBreaker.recordFailure();
+        circuitBreaker.recordSuccess();
+
+        await Future.delayed(const Duration(milliseconds: 10));
+        await subscription.cancel();
+
+        // Should have emitted metrics
+        expect(metricsList, isNotEmpty);
+        // Verify metrics contain expected data
+        final lastMetrics = metricsList.last;
+        expect(lastMetrics.totalRequests, greaterThan(0));
       });
     });
 

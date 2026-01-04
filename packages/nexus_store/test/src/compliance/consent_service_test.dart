@@ -651,6 +651,35 @@ void main() {
       });
     });
   });
+
+  group('InMemoryConsentStorage', () {
+    test('clear should remove all stored records', () async {
+      final storage = InMemoryConsentStorage();
+      final record1 = ConsentRecord(
+        userId: 'user-1',
+        purposes: {},
+        history: [],
+        lastUpdated: DateTime.now(),
+      );
+      final record2 = ConsentRecord(
+        userId: 'user-2',
+        purposes: {},
+        history: [],
+        lastUpdated: DateTime.now(),
+      );
+
+      await storage.save(record1);
+      await storage.save(record2);
+
+      final beforeClear = await storage.getAll();
+      expect(beforeClear, hasLength(2));
+
+      storage.clear();
+
+      final afterClear = await storage.getAll();
+      expect(afterClear, isEmpty);
+    });
+  });
 }
 
 AuditLogEntry _createMockAuditEntry() {

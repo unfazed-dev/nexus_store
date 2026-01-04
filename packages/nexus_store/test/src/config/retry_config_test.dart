@@ -271,5 +271,70 @@ void main() {
         );
       });
     });
+
+    group('equality', () {
+      test('should be equal when all fields match', () {
+        const config1 = RetryConfig(
+          maxAttempts: 5,
+          initialDelay: Duration(seconds: 2),
+          maxDelay: Duration(seconds: 60),
+          backoffMultiplier: 3.0,
+          jitterFactor: 0.5,
+        );
+        const config2 = RetryConfig(
+          maxAttempts: 5,
+          initialDelay: Duration(seconds: 2),
+          maxDelay: Duration(seconds: 60),
+          backoffMultiplier: 3.0,
+          jitterFactor: 0.5,
+        );
+
+        expect(config1, equals(config2));
+        expect(config1.hashCode, equals(config2.hashCode));
+      });
+
+      test('should not be equal when initialDelay differs', () {
+        const config1 = RetryConfig(initialDelay: Duration(seconds: 1));
+        const config2 = RetryConfig(initialDelay: Duration(seconds: 2));
+
+        expect(config1, isNot(equals(config2)));
+      });
+
+      test('should not be equal when maxDelay differs', () {
+        const config1 = RetryConfig(maxDelay: Duration(seconds: 30));
+        const config2 = RetryConfig(maxDelay: Duration(seconds: 60));
+
+        expect(config1, isNot(equals(config2)));
+      });
+
+      test('should not be equal when backoffMultiplier differs', () {
+        const config1 = RetryConfig(backoffMultiplier: 2.0);
+        const config2 = RetryConfig(backoffMultiplier: 3.0);
+
+        expect(config1, isNot(equals(config2)));
+      });
+
+      test('should not be equal when jitterFactor differs', () {
+        const config1 = RetryConfig(jitterFactor: 0.1);
+        const config2 = RetryConfig(jitterFactor: 0.2);
+
+        expect(config1, isNot(equals(config2)));
+      });
+
+      test('toString should include all fields', () {
+        const config = RetryConfig(
+          maxAttempts: 5,
+          initialDelay: Duration(seconds: 2),
+          maxDelay: Duration(minutes: 1),
+          backoffMultiplier: 3.0,
+          jitterFactor: 0.5,
+        );
+
+        final str = config.toString();
+        expect(str, contains('maxAttempts: 5'));
+        expect(str, contains('backoffMultiplier: 3.0'));
+        expect(str, contains('jitterFactor: 0.5'));
+      });
+    });
   });
 }

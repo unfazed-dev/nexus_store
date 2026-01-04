@@ -106,6 +106,23 @@ void main() {
     });
 
     group('getDelta', () {
+      test('throws StateError when no entityId and no idExtractor (line 101)',
+          () {
+        // Line 101: throw StateError(...)
+        // When getDelta is called without entityId parameter and no idExtractor
+        final user = TestFixtures.createUser(name: 'John');
+        // Create TrackedEntity without idExtractor
+        final tracked = TrackedEntity(user);
+
+        tracked.current = TestFixtures.createUser(name: 'Jane');
+
+        // Should throw because no entityId provided and no idExtractor
+        expect(
+          () => tracked.getDelta(),
+          throwsStateError,
+        );
+      });
+
       test('should return empty delta when no changes', () {
         final user = TestFixtures.createUser(name: 'John');
         final tracked = TrackedEntity(

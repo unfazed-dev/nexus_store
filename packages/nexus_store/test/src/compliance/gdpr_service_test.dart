@@ -492,4 +492,96 @@ void main() {
       expect(report.purposes, hasLength(2));
     });
   });
+
+  group('GdprService audit logging (lines 107, 109, 130, 132)', () {
+    late TestGdprBackend backend;
+    late MockAuditService mockAuditService;
+    late GdprService<Map<String, dynamic>, String> service;
+
+    setUp(() {
+      backend = TestGdprBackend();
+      mockAuditService = MockAuditService();
+      service = GdprService<Map<String, dynamic>, String>(
+        backend: backend,
+        subjectIdField: 'userId',
+        auditService: mockAuditService,
+      );
+    });
+
+    test('logs audit event during erasure with entity type and metadata (lines 107, 109)',
+        () async {
+      when(() => mockAuditService.log(
+            action: any(named: 'action'),
+            entityType: any(named: 'entityType'),
+            entityId: any(named: 'entityId'),
+            metadata: any(named: 'metadata'),
+          )).thenAnswer((_) async => AuditLogEntry(
+                id: 'log-1',
+                timestamp: DateTime.now(),
+                action: AuditAction.delete,
+                entityType: 'Test',
+                entityId: 'test-id',
+                actorId: 'system',
+              ));
+
+      backend.addEntity({
+        'id': 'record-1',
+        'userId': 'user-123',
+        'name': 'John Doe',
+      });
+
+      await service.eraseSubjectData('user-123');
+
+      verify(() => mockAuditService.log(
+            action: AuditAction.delete,
+            entityType: 'Map<String, dynamic>', // T.toString() - line 107
+            entityId: 'user-123',
+            metadata: {
+              'operation': 'gdpr_erasure', // line 109
+              'deletedCount': 1,
+              'pseudonymizedCount': 0,
+            },
+          )).called(1);
+    });
+
+    test('logs audit event during access with entity type and metadata (lines 130, 132)',
+        () async {
+      when(() => mockAuditService.log(
+            action: any(named: 'action'),
+            entityType: any(named: 'entityType'),
+            entityId: any(named: 'entityId'),
+            metadata: any(named: 'metadata'),
+          )).thenAnswer((_) async => AuditLogEntry(
+                id: 'log-2',
+                timestamp: DateTime.now(),
+                action: AuditAction.read,
+                entityType: 'Test',
+                entityId: 'test-id',
+                actorId: 'system',
+              ));
+
+      backend.addEntity({
+        'id': 'record-1',
+        'userId': 'user-123',
+        'name': 'John Doe',
+      });
+      backend.addEntity({
+        'id': 'record-2',
+        'userId': 'user-123',
+        'email': 'john@example.com',
+      });
+
+      await service.accessSubjectData('user-123');
+
+      verify(() => mockAuditService.log(
+            action: AuditAction.read,
+            entityType: 'Map<String, dynamic>', // T.toString() - line 130
+            entityId: 'user-123',
+            metadata: {
+              'operation': 'gdpr_access', // line 132
+              'entityCount': 2,
+            },
+          )).called(1);
+    });
+  });
 }

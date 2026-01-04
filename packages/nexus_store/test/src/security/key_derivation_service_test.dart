@@ -187,6 +187,19 @@ void main() {
 
         expect(salt1, isNot(equals(salt2)));
       });
+
+      test('should use default length of 16 for raw config (line 154)', () {
+        // Line 154: KeyDerivationRaw() => 16
+        // When using raw config and not providing a custom length,
+        // generateSalt should default to 16 bytes
+        final service = KeyDerivationService(
+          config: const KeyDerivationConfig.raw(),
+        );
+
+        final salt = service.generateSalt();
+
+        expect(salt.length, equals(16));
+      });
     });
 
     group('dispose', () {

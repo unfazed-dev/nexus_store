@@ -118,6 +118,26 @@ void main() {
         expect(result1.hashCode, equals(result2.hashCode));
       });
 
+      test('should support equality with same stack trace (line 138)', () {
+        final stackTrace = StackTrace.current;
+        final result1 = InterceptorResult<String>.error('error', stackTrace);
+        final result2 = InterceptorResult<String>.error('error', stackTrace);
+
+        // Line 138: stackTrace == other.stackTrace
+        expect(result1, equals(result2));
+        expect(result1.hashCode, equals(result2.hashCode));
+      });
+
+      test('should not equal with different stack traces (line 138)', () {
+        final stackTrace1 = StackTrace.current;
+        final stackTrace2 = StackTrace.fromString('different stack');
+        final result1 = InterceptorResult<String>.error('error', stackTrace1);
+        final result2 = InterceptorResult<String>.error('error', stackTrace2);
+
+        // Line 138: stackTrace == other.stackTrace
+        expect(result1, isNot(equals(result2)));
+      });
+
       test('should not equal with different errors', () {
         const result1 = InterceptorResult<String>.error('error1');
         const result2 = InterceptorResult<String>.error('error2');

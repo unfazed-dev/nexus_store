@@ -100,6 +100,23 @@ void main() {
 
           expect(result, isFalse);
         });
+
+        test('should rethrow StoreError on delete sync failure (line 100)',
+            () async {
+          // Line 100: on StoreError { rethrow; } in _deleteCacheAndNetwork
+          final user = TestFixtures.createUser();
+          backend.addToStorage('user-1', user);
+          backend.shouldFailOnSync = true;
+          backend.errorToThrow = const NetworkError(message: 'Delete sync failed');
+
+          expect(
+            () => handler.delete('user-1'),
+            throwsA(isA<NetworkError>()),
+          );
+
+          // Item should still be deleted locally even if sync failed
+          expect(backend.storage.containsKey('user-1'), isFalse);
+        });
       });
     });
 

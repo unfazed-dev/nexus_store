@@ -130,6 +130,26 @@ void main() {
     });
 
     group('evict', () {
+      test('evicts using default batch size when count is null (line 145)',
+          () async {
+        // Add items with delays
+        manager.recordItem('item1', {'name': 'item1'});
+        await Future.delayed(Duration(milliseconds: 2));
+        manager.recordItem('item2', {'name': 'item2'});
+        await Future.delayed(Duration(milliseconds: 2));
+        manager.recordItem('item3', {'name': 'item3'});
+        await Future.delayed(Duration(milliseconds: 2));
+        manager.recordItem('item4', {'name': 'item4'});
+
+        // Call evict without count parameter - line 145: count ?? _config.evictionBatchSize
+        // Config has evictionBatchSize: 2
+        final evicted = manager.evict();
+
+        // Should evict evictionBatchSize (2) items
+        expect(evicted.length, equals(2));
+        expect(manager.itemCount, equals(2));
+      });
+
       test('evicts items in LRU order by default', () async {
         // Add items with delays
         manager.recordItem('old1', {'name': 'old1'});

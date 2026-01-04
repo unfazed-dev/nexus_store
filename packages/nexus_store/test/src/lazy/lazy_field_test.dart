@@ -50,6 +50,18 @@ void main() {
         expect(field.isLoaded, isTrue);
         expect(field.value, equals('initial value'));
       });
+
+      test('loaded constructor creates working loader (line 48)', () async {
+        // Line 48: _loader = (() async => value)
+        // The LazyField.loaded constructor creates a loader that returns the value
+        final field = LazyField<String>.loaded('loaded value');
+
+        // Calling load on an already loaded field should return the cached value
+        final result = await field.load();
+
+        expect(result, equals('loaded value'));
+        expect(field.state, equals(LazyFieldState.loaded));
+      });
     });
 
     group('requireValue', () {

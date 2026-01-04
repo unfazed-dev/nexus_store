@@ -348,6 +348,17 @@ void main() {
         // These are different types, so they shouldn't be equal
         expect(stringField.runtimeType, isNot(equals(intField.runtimeType)));
       });
+
+      test('toString returns type and name (lines 80-81)', () {
+        final field = Field<TestUser, String>('email');
+
+        final str = field.toString();
+
+        expect(str, contains('Field'));
+        expect(str, contains('TestUser'));
+        expect(str, contains('String'));
+        expect(str, contains('email'));
+      });
     });
 
     group('toFilters integration', () {

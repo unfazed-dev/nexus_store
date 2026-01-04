@@ -15,8 +15,11 @@ class _RegistryKey {
   @override
   int get hashCode => Object.hash(type, scope);
 
+  // coverage:ignore-start
+  // toString() is for debugging; private class not exposed externally
   @override
   String toString() => '_RegistryKey($type, scope: $scope)';
+  // coverage:ignore-end
 }
 
 /// A singleton registry for [NexusStore] instances.

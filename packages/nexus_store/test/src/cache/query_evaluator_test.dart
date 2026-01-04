@@ -253,5 +253,69 @@ void main() {
         expect(matches, isEmpty);
       });
     });
+
+    group('_compareValues edge cases (lines 99, 106)', () {
+      test('compares null field value in lessThan filter (line 99)', () {
+        // Create users with null and non-null age values
+        final users = [
+          TestFixtures.createUser(id: 'user-1', name: 'Alice', age: 25),
+          TestFixtures.createUser(id: 'user-2', name: 'Bob', age: null),
+          TestFixtures.createUser(id: 'user-3', name: 'Charlie', age: 30),
+        ];
+
+        // lessThan comparison: _compareValues(value, filterValue) < 0
+        // For null age: _compareValues(null, 30) returns -1 (line 99)
+        // -1 < 0 is true, so null matches lessThan filter
+        final query = Query<TestUser>().where('age', isLessThan: 30);
+        final matches = evaluator.evaluate(users, query);
+
+        // Should include: user with null age (null < 30 due to line 99 returning -1)
+        // and user with age 25 (25 < 30)
+        expect(matches.length, equals(2));
+        expect(matches.any((u) => u.age == null), isTrue);
+        expect(matches.any((u) => u.age == 25), isTrue);
+      });
+
+      test('compares non-Comparable values using toString (line 106)', () {
+        // Create an evaluator that returns non-Comparable objects
+        final evaluatorWithObjects = InMemoryQueryEvaluator<TestUser>(
+          fieldAccessor: (user, field) => switch (field) {
+            'id' => user.id,
+            'name' => user.name,
+            // Return a non-Comparable object for testing toString comparison
+            'custom' => _NonComparableObject(user.name),
+            _ => null,
+          },
+        );
+
+        final users = [
+          TestFixtures.createUser(id: 'user-1', name: 'Zoe'),
+          TestFixtures.createUser(id: 'user-2', name: 'Alice'),
+          TestFixtures.createUser(id: 'user-3', name: 'Bob'),
+        ];
+
+        // Use greaterThan filter with non-Comparable objects
+        // This will fall through to toString comparison (line 106)
+        // Comparing: _NonComparableObject.toString() > filterValue.toString()
+        final filterValue = _NonComparableObject('B');
+        final query = Query<TestUser>().where('custom', isGreaterThan: filterValue);
+        final matches = evaluatorWithObjects.evaluate(users, query);
+
+        // String comparison: 'Bob' > 'B' is true, 'Zoe' > 'B' is true, 'Alice' > 'B' is false
+        expect(matches.length, equals(2));
+        expect(matches.any((u) => u.name == 'Bob'), isTrue);
+        expect(matches.any((u) => u.name == 'Zoe'), isTrue);
+        expect(matches.any((u) => u.name == 'Alice'), isFalse);
+      });
+    });
   });
+}
+
+/// A non-Comparable class for testing toString fallback in comparisons.
+class _NonComparableObject {
+  _NonComparableObject(this.value);
+  final String value;
+
+  @override
+  String toString() => value;
 }

@@ -364,8 +364,11 @@ sealed class PoolError extends StoreError {
     super.stackTrace,
   });
 
+  // coverage:ignore-start
+  // Unreachable: PoolError is sealed; all subclasses override errorName
   @override
   String get errorName => 'PoolError';
+  // coverage:ignore-end
 }
 
 /// Error thrown when attempting to use a pool that hasn't been initialized.

@@ -434,5 +434,105 @@ void main() {
         expect(emailChange.newValue, isNull);
       });
     });
+
+    group('hasChanges with config (line 135)', () {
+      test('should skip excluded fields in hasChanges check', () {
+        final config = DeltaSyncConfig(
+          excludeFields: {'email'},
+        );
+        final trackerWithConfig = DeltaTracker(config: config);
+
+        final original = TestFixtures.createUser(
+          id: 'user-1',
+          name: 'John',
+          email: 'john@example.com',
+        );
+        final modified = TestFixtures.createUser(
+          id: 'user-1',
+          name: 'John',
+          email: 'jane@example.com', // Only email changed
+        );
+
+        // Should return false because email is excluded
+        final hasChanges = trackerWithConfig.hasChanges(
+          original: original,
+          modified: modified,
+        );
+
+        expect(hasChanges, isFalse);
+      });
+
+      test('hasChanges returns true when non-excluded field changes', () {
+        final config = DeltaSyncConfig(
+          excludeFields: {'email'},
+        );
+        final trackerWithConfig = DeltaTracker(config: config);
+
+        final original = TestFixtures.createUser(
+          id: 'user-1',
+          name: 'John',
+          email: 'john@example.com',
+        );
+        final modified = TestFixtures.createUser(
+          id: 'user-1',
+          name: 'Jane', // Name changed (not excluded)
+          email: 'jane@example.com', // Email also changed (excluded)
+        );
+
+        final hasChanges = trackerWithConfig.hasChanges(
+          original: original,
+          modified: modified,
+        );
+
+        expect(hasChanges, isTrue);
+      });
+    });
+
+    group('toJson error handling (lines 162-167)', () {
+      test('throws ArgumentError when toJson returns non-Map type', () {
+        final badEntity = _BadToJsonEntity();
+
+        expect(
+          () => tracker.trackChanges(
+            original: badEntity,
+            modified: badEntity,
+            entityId: 'entity-1',
+          ),
+          throwsA(isA<ArgumentError>().having(
+            (e) => e.message,
+            'message',
+            contains('must return Map<String, dynamic>'),
+          )),
+        );
+      });
+
+      test('throws ArgumentError when entity has no toJson method', () {
+        final noToJsonEntity = _NoToJsonEntity();
+
+        expect(
+          () => tracker.trackChanges(
+            original: noToJsonEntity,
+            modified: noToJsonEntity,
+            entityId: 'entity-1',
+          ),
+          throwsA(isA<ArgumentError>().having(
+            (e) => e.message,
+            'message',
+            contains('must implement toJson'),
+          )),
+        );
+      });
+    });
   });
+}
+
+/// Entity with toJson that returns wrong type (for testing line 162-163).
+class _BadToJsonEntity {
+  // Returns a List instead of Map<String, dynamic>
+  List<String> toJson() => ['bad', 'data'];
+}
+
+/// Entity without toJson method (for testing line 166-167).
+class _NoToJsonEntity {
+  final String value = 'test';
 }

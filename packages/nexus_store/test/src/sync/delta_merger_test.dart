@@ -609,6 +609,176 @@ void main() {
       });
     });
 
+    group('FieldConflict isLocalNewer (line 32)', () {
+      test('isLocalNewer returns true when local timestamp is after remote',
+          () {
+        final localTime = DateTime(2024, 1, 15, 12, 0);
+        final remoteTime = DateTime(2024, 1, 15, 10, 0);
+
+        final conflict = FieldConflict(
+          fieldName: 'name',
+          localValue: 'Local',
+          remoteValue: 'Remote',
+          localTimestamp: localTime,
+          remoteTimestamp: remoteTime,
+        );
+
+        expect(conflict.isLocalNewer, isTrue);
+        expect(conflict.isRemoteNewer, isFalse);
+      });
+
+      test('isLocalNewer returns false when remote timestamp is after local',
+          () {
+        final localTime = DateTime(2024, 1, 15, 10, 0);
+        final remoteTime = DateTime(2024, 1, 15, 12, 0);
+
+        final conflict = FieldConflict(
+          fieldName: 'name',
+          localValue: 'Local',
+          remoteValue: 'Remote',
+          localTimestamp: localTime,
+          remoteTimestamp: remoteTime,
+        );
+
+        expect(conflict.isLocalNewer, isFalse);
+        expect(conflict.isRemoteNewer, isTrue);
+      });
+    });
+
+    group('fieldLevel strategy with remote newer (lines 194-196)', () {
+      test('uses remoteValue when remote is newer in fieldLevel strategy',
+          () async {
+        final config = DeltaSyncConfig(
+          mergeStrategy: DeltaMergeStrategy.fieldLevel,
+        );
+        final mergerWithConfig = DeltaMerger(config: config);
+
+        final localDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'Jane',
+              timestamp: DateTime(2024, 1, 15, 10, 0),
+            ),
+          ],
+          timestamp: DateTime(2024, 1, 15, 10, 0),
+        );
+
+        final remoteDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'RemoteJane',
+              timestamp: DateTime(2024, 1, 15, 12, 0), // Remote is newer
+            ),
+          ],
+          timestamp: DateTime(2024, 1, 15, 12, 0),
+        );
+
+        final result = await mergerWithConfig.mergeDeltas(
+          base: {'name': 'John'},
+          local: localDelta,
+          remote: remoteDelta,
+        );
+
+        // Remote should win because it's newer
+        expect(result.merged['name'], equals('RemoteJane'));
+      });
+
+      test('uses localValue when local is newer in fieldLevel strategy (line 196)',
+          () async {
+        final config = DeltaSyncConfig(
+          mergeStrategy: DeltaMergeStrategy.fieldLevel,
+        );
+        final mergerWithConfig = DeltaMerger(config: config);
+
+        final localDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'LocalJane',
+              timestamp: DateTime(2024, 1, 15, 12, 0), // Local is newer
+            ),
+          ],
+          timestamp: DateTime(2024, 1, 15, 12, 0),
+        );
+
+        final remoteDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'RemoteJane',
+              timestamp: DateTime(2024, 1, 15, 10, 0), // Remote is older
+            ),
+          ],
+          timestamp: DateTime(2024, 1, 15, 10, 0),
+        );
+
+        final result = await mergerWithConfig.mergeDeltas(
+          base: {'name': 'John'},
+          local: localDelta,
+          remote: remoteDelta,
+        );
+
+        // Local should win because it's newer (line 196: conflict.localValue)
+        expect(result.merged['name'], equals('LocalJane'));
+      });
+    });
+
+    group('custom strategy fallback with local newer (line 210)', () {
+      test('uses localValue when local is newer and callback is null',
+          () async {
+        final config = DeltaSyncConfig(
+          mergeStrategy: DeltaMergeStrategy.custom,
+          // onMergeConflict is null - will fall back to lastWriteWins
+        );
+        final mergerWithConfig = DeltaMerger(config: config);
+
+        final localDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'LocalJane',
+              timestamp: DateTime(2024, 1, 15, 12, 0), // Local is newer
+            ),
+          ],
+          timestamp: DateTime(2024, 1, 15, 12, 0),
+        );
+
+        final remoteDelta = DeltaChange<String>(
+          entityId: 'user-1',
+          changes: [
+            FieldChange(
+              fieldName: 'name',
+              oldValue: 'John',
+              newValue: 'RemoteJane',
+              timestamp: DateTime(2024, 1, 15, 10, 0), // Remote is older
+            ),
+          ],
+          timestamp: DateTime(2024, 1, 15, 10, 0),
+        );
+
+        final result = await mergerWithConfig.mergeDeltas(
+          base: {'name': 'John'},
+          local: localDelta,
+          remote: remoteDelta,
+        );
+
+        // Local should win because it's newer (line 210: localValue)
+        expect(result.merged['name'], equals('LocalJane'));
+      });
+    });
+
     group('edge cases', () {
       test('should handle empty deltas', () async {
         final result = await merger.mergeDeltas(

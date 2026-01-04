@@ -686,4 +686,35 @@ void main() {
       });
     });
   });
+
+  group('InMemoryBreachStorage', () {
+    test('clear should remove all stored reports', () async {
+      final storage = InMemoryBreachStorage();
+      final report1 = BreachReport(
+        id: 'breach-1',
+        detectedAt: DateTime.now(),
+        description: 'First breach',
+        affectedUsers: [],
+        affectedDataCategories: <String>{},
+      );
+      final report2 = BreachReport(
+        id: 'breach-2',
+        detectedAt: DateTime.now(),
+        description: 'Second breach',
+        affectedUsers: [],
+        affectedDataCategories: <String>{},
+      );
+
+      await storage.save(report1);
+      await storage.save(report2);
+
+      final beforeClear = await storage.getAll();
+      expect(beforeClear, hasLength(2));
+
+      storage.clear();
+
+      final afterClear = await storage.getAll();
+      expect(afterClear, isEmpty);
+    });
+  });
 }

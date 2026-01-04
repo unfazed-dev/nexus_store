@@ -296,6 +296,47 @@ void main() {
 
         expect(nestedStep.timeout, equals(const Duration(seconds: 30)));
       });
+
+      test('nested step throws when sub-step fails with partial failure (line 116)',
+          () async {
+        // This test covers line 116: partialFailure: (error, _, __) => throw error
+        // A partialFailure occurs when a sub-step fails AND its compensation also fails
+
+        final subSteps = <SagaStep<dynamic>>[
+          SagaStep<int>(
+            name: 'sub-step-1',
+            action: () async => 1,
+            compensation: (r) async {
+              // Compensation also fails
+              throw Exception('Compensation failed');
+            },
+          ),
+          SagaStep<int>(
+            name: 'sub-step-2',
+            action: () async => throw Exception('Sub-step action failed'),
+            compensation: (r) async {},
+          ),
+        ];
+
+        final nestedStep = SagaStep<int>.nested(
+          name: 'nested-saga',
+          subSteps: subSteps,
+          onNestedSuccess: (results) => results.length,
+          compensation: (result) async {},
+        );
+
+        // When sub-step-2 fails, compensation of sub-step-1 runs and also fails
+        // This causes a partialFailure result from the nested coordinator
+        // Line 116 throws the error from the partialFailure
+        expect(
+          () => nestedStep.action(),
+          throwsA(isA<Exception>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Sub-step action failed'),
+          )),
+        );
+      });
     });
   });
 }
