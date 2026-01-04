@@ -458,6 +458,7 @@ try {
 
 - [Installation Guide](references/installation.md) - Complete installation patterns
 - [Storage Adapters](references/adapters.md) - All 5 adapter details
+- [Authentication](references/authentication.md) - Auth integration patterns
 - [State Management](references/state-management.md) - Riverpod/Bloc/Signals
 - [Code Generators](references/generators.md) - Entity/Lazy/Riverpod generators
 - [Encryption & Compliance](references/encryption-compliance.md) - Security features
