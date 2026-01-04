@@ -5,6 +5,8 @@ build/
 pubspec.lock
 *.g.dart
 *.freezed.dart
+.flutter-plugins
+.flutter-plugins-dependencies
 
 # Melos
 pubspec_overrides.yaml
