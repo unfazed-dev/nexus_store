@@ -20,7 +20,7 @@ jobs:
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
-          sdk: "3.5.0"
+          sdk: "3.6.0"
 
       - name: Install Melos
         run: dart pub global activate melos
@@ -54,7 +54,7 @@ jobs:
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
-          sdk: "3.5.0"
+          sdk: "3.6.0"
 
       - name: Install Melos
         run: dart pub global activate melos
@@ -198,7 +198,7 @@ jobs:
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
-          sdk: "3.5.0"
+          sdk: "3.6.0"
 
       - name: Install Melos
         run: dart pub global activate melos
@@ -250,7 +250,7 @@ jobs:
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
-          sdk: "3.5.0"
+          sdk: "3.6.0"
 
       - name: Install Melos
         run: dart pub global activate melos
