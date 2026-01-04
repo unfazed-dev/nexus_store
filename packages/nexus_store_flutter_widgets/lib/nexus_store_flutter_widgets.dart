@@ -40,6 +40,7 @@ export 'src/lazy/lazy_list_view.dart';
 export 'src/lazy/visibility_loader.dart';
 export 'src/providers/multi_nexus_store_provider.dart';
 export 'src/providers/nexus_store_provider.dart';
+export 'src/security/secure_salt_storage.dart';
 export 'src/types/store_result.dart';
 export 'src/utils/store_lifecycle_observer.dart';
 export 'src/widgets/nexus_store_builder.dart';

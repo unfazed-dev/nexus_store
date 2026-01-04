@@ -1,0 +1,266 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.5.0"
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap packages
+        run: melos bootstrap
+
+      - name: Check formatting
+        run: melos run format:check
+
+      - name: Analyze code
+        run: melos run analyze
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: analyze
+    strategy:
+      matrix:
+        package:
+          - nexus_store
+          - nexus_store_bloc_binding
+          - nexus_store_riverpod_binding
+          - nexus_store_signals_binding
+          - nexus_store_generator
+          - nexus_store_entity_generator
+          - nexus_store_riverpod_generator
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.5.0"
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap packages
+        run: melos bootstrap
+
+      - name: Run build_runner (if needed)
+        run: |
+          cd packages/${{ matrix.package }}
+          if grep -q "build_runner" pubspec.yaml; then
+            dart run build_runner build --delete-conflicting-outputs
+          fi
+
+      - name: Run tests with coverage
+        run: |
+          cd packages/${{ matrix.package }}
+          dart test --coverage=coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: packages/${{ matrix.package }}/coverage/lcov.info
+          flags: ${{ matrix.package }}
+          fail_ci_if_error: false
+
+  test-flutter:
+    name: Test Flutter Packages
+    runs-on: ubuntu-latest
+    needs: analyze
+    strategy:
+      matrix:
+        package:
+          - nexus_store_flutter_widgets
+          - nexus_store_drift_adapter
+          - nexus_store_brick_adapter
+          - nexus_store_crdt_adapter
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.0"
+          channel: stable
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap packages
+        run: melos bootstrap
+
+      - name: Run build_runner (if needed)
+        run: |
+          cd packages/${{ matrix.package }}
+          if grep -q "build_runner" pubspec.yaml; then
+            dart run build_runner build --delete-conflicting-outputs
+          fi
+
+      - name: Run tests
+        run: |
+          cd packages/${{ matrix.package }}
+          flutter test --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: packages/${{ matrix.package }}/coverage/lcov.info
+          flags: ${{ matrix.package }}
+          fail_ci_if_error: false
+
+  test-powersync:
+    name: Test PowerSync Adapter
+    runs-on: macos-latest
+    needs: analyze
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.0"
+          channel: stable
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap packages
+        run: melos bootstrap
+
+      - name: Run tests
+        run: |
+          cd packages/nexus_store_powersync_adapter
+          flutter test --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: packages/nexus_store_powersync_adapter/coverage/lcov.info
+          flags: nexus_store_powersync_adapter
+          fail_ci_if_error: false
+
+  test-supabase:
+    name: Test Supabase Adapter
+    runs-on: ubuntu-latest
+    needs: analyze
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.0"
+          channel: stable
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap packages
+        run: melos bootstrap
+
+      - name: Run tests
+        run: |
+          cd packages/nexus_store_supabase_adapter
+          flutter test --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: packages/nexus_store_supabase_adapter/coverage/lcov.info
+          flags: nexus_store_supabase_adapter
+          fail_ci_if_error: false
+
+  coverage-check:
+    name: Coverage Threshold
+    runs-on: ubuntu-latest
+    needs: [test, test-flutter, test-powersync, test-supabase]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.5.0"
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap packages
+        run: melos bootstrap
+
+      - name: Run core package tests with coverage
+        run: |
+          cd packages/nexus_store
+          dart test --coverage=coverage
+
+      - name: Check coverage threshold (95%)
+        run: |
+          cd packages/nexus_store
+          # Install coverage tools
+          dart pub global activate coverage
+
+          # Generate lcov report
+          dart pub global run coverage:format_coverage \
+            --lcov \
+            --in=coverage \
+            --out=coverage/lcov.info \
+            --report-on=lib
+
+          # Calculate coverage percentage
+          TOTAL=$(grep -c "^DA:" coverage/lcov.info || echo 0)
+          COVERED=$(grep "^DA:" coverage/lcov.info | grep -v ",0$" | wc -l || echo 0)
+
+          if [ "$TOTAL" -gt 0 ]; then
+            PERCENT=$((COVERED * 100 / TOTAL))
+            echo "Coverage: $PERCENT% ($COVERED/$TOTAL lines)"
+
+            if [ "$PERCENT" -lt 95 ]; then
+              echo "::error::Coverage $PERCENT% is below 95% threshold"
+              exit 1
+            fi
+          else
+            echo "No coverage data found"
+          fi
+
+  build-check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: analyze
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.5.0"
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap packages
+        run: melos bootstrap
+
+      - name: Run build_runner for all packages
+        run: melos run build:runner
+
+      - name: Verify no uncommitted generated files
+        run: |
+          git diff --exit-code || (echo "::error::Generated files are out of sync. Run 'melos run build:runner' and commit the changes." && exit 1)
