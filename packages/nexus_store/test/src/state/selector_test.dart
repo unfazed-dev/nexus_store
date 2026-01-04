@@ -315,6 +315,35 @@ void main() {
 
         await queue.cancel();
       });
+
+      test('should emit when list elements differ at same index', () async {
+        // Start with two active users
+        await store.save(
+            TestFixtures.createUser(id: 'u1', name: 'Alice', isActive: true));
+        await store.save(
+            TestFixtures.createUser(id: 'u2', name: 'Bob', isActive: true));
+
+        final stream = store.selectWhere((user) => user.isActive);
+        final queue = StreamQueue(stream);
+
+        // Initial: 2 active users
+        final first = await queue.next;
+        expect(first.length, equals(2));
+
+        // Update Alice's name while keeping her active
+        // The list still has 2 elements, but Alice is replaced with a new object
+        // This exercises _listEquals comparing [oldAlice, Bob] vs [newAlice, Bob]
+        // Same length, but different element at index - covers lines 180-181
+        await store.save(
+            TestFixtures.createUser(id: 'u1', name: 'Alicia', isActive: true));
+
+        // Should emit because content changed (different user object at index)
+        final second = await queue.next;
+        expect(second.length, equals(2));
+        expect(second.any((u) => u.name == 'Alicia'), isTrue);
+
+        await queue.cancel();
+      });
     });
 
     group('selectCount', () {

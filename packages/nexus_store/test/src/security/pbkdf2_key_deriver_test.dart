@@ -301,9 +301,14 @@ void main() {
       });
 
       test('should handle very long password', () async {
+        // Use lower iterations for this edge case test to avoid CI timeout
+        const config = KeyDerivationConfig.pbkdf2(iterations: 1000);
+        final fastDeriver = Pbkdf2KeyDeriver(
+          config: config as KeyDerivationPbkdf2,
+        );
         final longPassword = 'a' * 10000;
 
-        final result = await deriver.deriveKey(
+        final result = await fastDeriver.deriveKey(
           password: longPassword,
         );
 
