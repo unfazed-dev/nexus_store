@@ -60,11 +60,10 @@ This section will be updated as new versions are released.
 
 ### Planned for Future Releases
 
-- Cursor-based pagination (in progress)
-- Custom conflict resolution callbacks
-- Tag-based cache invalidation
-- Enhanced key rotation workflows
-- Advanced GDPR consent management
+- Type-safe query builder with code generation (`$ModelFields` pattern)
+- Background sync for iOS (BGTaskScheduler) and Android (WorkManager)
+- Sync priority queues for offline-first optimization
+- Runtime schema validation
 - GraphQL backend adapter
 
 ## Upgrade Checklist

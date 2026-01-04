@@ -323,4 +323,4 @@ blocTest<UsersCubit, NexusStoreState<User>>(
 
 ## License
 
-MIT License
+BSD 3-Clause License - see [LICENSE](../../LICENSE) for details.

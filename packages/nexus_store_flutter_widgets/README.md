@@ -323,4 +323,4 @@ class User {
 
 ## License
 
-MIT License - see [LICENSE](../../LICENSE) for details.
+BSD 3-Clause License - see [LICENSE](../../LICENSE) for details.

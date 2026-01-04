@@ -231,4 +231,4 @@ See the [migration guide](../../docs/migration/from-supabase.md) for detailed st
 
 ## License
 
-MIT License - see [LICENSE](../../LICENSE) for details.
+BSD 3-Clause License - see [LICENSE](../../LICENSE) for details.

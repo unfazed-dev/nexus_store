@@ -376,4 +376,4 @@ See the [Backend Interface documentation](../../docs/architecture/backend-interf
 
 ## License
 
-MIT License - see [LICENSE](../../LICENSE) for details.
+BSD 3-Clause License - see [LICENSE](../../LICENSE) for details.

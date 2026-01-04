@@ -280,4 +280,4 @@ See the [migration guide](../../docs/migration/from-raw-powersync.md) for detail
 
 ## License
 
-MIT License - see [LICENSE](../../LICENSE) for details.
+BSD 3-Clause License - see [LICENSE](../../LICENSE) for details.

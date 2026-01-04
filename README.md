@@ -280,6 +280,7 @@ See the [example](example/) directory for complete working examples:
 
 - [Basic Usage](example/basic_usage/) - Console app with CRUD and queries
 - [Flutter Widgets](example/flutter_widgets/) - Flutter app with reactive widgets
+- [Complete Integration](example/complete_integration/) - Full Flutter app with Riverpod state management
 
 ## License
 

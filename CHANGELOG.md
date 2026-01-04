@@ -10,15 +10,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Integration tests for Supabase backend functionality
 - Dart analyzer fixer skill with auto-fix scripts and TDD integration
+- CI/CD pipeline with GitHub Actions
+- Security policy (SECURITY.md)
+- Production-ready salt storage implementation
+- Coverage annotations and tests for 100% coverage target
+- TDD coverage tests for 77 previously uncovered lines
 
 ### Fixed
 - Resolved 49 dart analyzer issues in PowerSync integration tests
 - Resolved all 173 dart analyzer issues across monorepo
+- Downgraded sqlite_crdt to ^3.0.2 for Dart 3.6.0 compatibility
+- Relaxed fake_async constraint to ^1.3.1 for Flutter 3.27.0 compatibility
+- Relaxed meta constraint to ^1.12.0 for Flutter 3.27.0 compatibility
+- Improved async testing patterns with stream-based approach
+- Fixed redundant argument values lint issues
 
 ### Changed
 - Prepared packages for pub.dev publishing
 - Removed generated files from version control
 - Added gitignore and updated documentation
+- Improved CI workflow and melos configuration
+- Updated Flutter to 3.27.0 and Dart to 3.6.0 compatibility
+- Reduced PBKDF2 iterations in tests for faster execution
+- Applied dart format to all test files
 
 ---
 
@@ -124,19 +138,16 @@ This is the first public release of nexus_store, a unified reactive data store a
 - Migration guides from raw backends
 - Example applications
 
-## Future Releases
+## Roadmap
 
 ### Planned Features
 
-- Transaction support for batch operations
-- Cursor-based pagination
-- Type-safe query builder with code generation
-- Custom conflict resolution callbacks
-- Tag-based cache invalidation
-- Telemetry and metrics
-- Key derivation (PBKDF2/Argon2)
-- Batch streaming for large datasets
-- Enhanced GDPR consent management
+The following features are planned for future releases:
+
+- Type-safe query builder with code generation (`$ModelFields` pattern)
+- Background sync for iOS (BGTaskScheduler) and Android (WorkManager)
+- Sync priority queues for offline-first optimization
+- Runtime schema validation
 
 ---
 
