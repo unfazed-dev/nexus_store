@@ -13,7 +13,7 @@ We take security vulnerabilities seriously. If you discover a security issue in 
 ### How to Report
 
 1. **Do NOT** open a public GitHub issue for security vulnerabilities
-2. Email security concerns to: **security@unfazed.dev** (or create a private security advisory on GitHub)
+2. Email security concerns to: **nexus_store_security.muster871@passmail.net** (or create a private security advisory on GitHub)
 3. Include the following information:
    - Description of the vulnerability
    - Steps to reproduce
