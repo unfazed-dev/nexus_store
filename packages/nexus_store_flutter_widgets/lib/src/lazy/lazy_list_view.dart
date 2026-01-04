@@ -260,7 +260,7 @@ class LazyListView<T, L extends Object?> extends StatelessWidget {
         return _indexItemBuilder!(context, index);
       },
     );
-  // coverage:ignore-end
+    // coverage:ignore-end
   }
 
   Widget _buildItem(BuildContext context, int index) {

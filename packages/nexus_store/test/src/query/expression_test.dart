@@ -435,7 +435,9 @@ void main() {
     });
 
     group('Expression toString', () {
-      test('ComparisonExpression toString includes type, field, operator and value', () {
+      test(
+          'ComparisonExpression toString includes type, field, operator and value',
+          () {
         final expr = ComparisonExpression<String>(
           fieldName: 'age',
           operator: FilterOperator.greaterThan,
@@ -642,7 +644,8 @@ void main() {
         );
       });
 
-      test('toFilters throws UnsupportedError for arrayContainsAny operator', () {
+      test('toFilters throws UnsupportedError for arrayContainsAny operator',
+          () {
         final inner = ComparisonExpression<String>(
           fieldName: 'tags',
           operator: FilterOperator.arrayContainsAny,

@@ -156,9 +156,8 @@ void main() {
         final outOfBoundsCursor = nexus.Cursor.fromValues(
           const {'_index': 100},
         );
-        final query = const nexus.Query<TestModel>()
-            .first(3)
-            .after(outOfBoundsCursor);
+        final query =
+            const nexus.Query<TestModel>().first(3).after(outOfBoundsCursor);
         final result = await backend.getAllPaged(query: query);
 
         // Cursor is clamped to 5, so startIndex=5, endIndex=5, empty result
@@ -175,9 +174,8 @@ void main() {
 
         // Create cursor with null _index
         final nullIndexCursor = nexus.Cursor.fromValues(const {'_index': null});
-        final query = const nexus.Query<TestModel>()
-            .first(3)
-            .after(nullIndexCursor);
+        final query =
+            const nexus.Query<TestModel>().first(3).after(nullIndexCursor);
         final result = await backend.getAllPaged(query: query);
 
         // Should start from index 0 since null is treated as 0
@@ -311,9 +309,8 @@ void main() {
 
         // Cursor beyond data - should be clamped to items.length
         final largeCursor = nexus.Cursor.fromValues(const {'_index': 1000});
-        final query = const nexus.Query<TestModel>()
-            .first(3)
-            .after(largeCursor);
+        final query =
+            const nexus.Query<TestModel>().first(3).after(largeCursor);
         final result = await backend.watchAllPaged(query: query).first;
 
         // Clamped to items.length (5), so empty result

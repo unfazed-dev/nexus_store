@@ -448,7 +448,7 @@ class PowerSyncBackend<T, ID>
       _syncStatusSubject
         ..add(nexus.SyncStatus.syncing)
         ..add(nexus.SyncStatus.synced);
-    // coverage:ignore-start
+      // coverage:ignore-start
     } catch (e, stackTrace) {
       _syncStatusSubject.add(nexus.SyncStatus.error);
       throw _mapException(e, stackTrace);

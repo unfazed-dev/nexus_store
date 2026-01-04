@@ -102,7 +102,8 @@ void main() {
     group('readStore', () {
       testWidgets('returns store for direct operations', (tester) async {
         final store = MockNexusStore<TestUser, String>();
-        when(() => store.save(any())).thenAnswer((_) async => TestFixtures.sampleUser);
+        when(() => store.save(any()))
+            .thenAnswer((_) async => TestFixtures.sampleUser);
 
         final storeProvider = Provider<NexusStore<TestUser, String>>(
           (ref) => store,
@@ -181,7 +182,8 @@ void main() {
   group('useStoreCallback', () {
     testWidgets('memoizes callback based on store', (tester) async {
       final store = MockNexusStore<TestUser, String>();
-      when(() => store.save(any())).thenAnswer((_) async => TestFixtures.sampleUser);
+      when(() => store.save(any()))
+          .thenAnswer((_) async => TestFixtures.sampleUser);
 
       final storeProvider = Provider<NexusStore<TestUser, String>>(
         (ref) => store,
@@ -294,7 +296,8 @@ void main() {
       );
 
       // Initially loading with no previous data
-      expect(find.text('data: null, loading: true, error: null'), findsOneWidget);
+      expect(
+          find.text('data: null, loading: true, error: null'), findsOneWidget);
 
       controller.add(TestFixtures.sampleUsers);
       await tester.pumpAndSettle();
@@ -469,7 +472,8 @@ class _UseStoreCallbackWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final store = ref.watch(storeProvider);
-    final saveUser = useStoreCallback<TestUser, String, TestUser, Future<TestUser>>(
+    final saveUser =
+        useStoreCallback<TestUser, String, TestUser, Future<TestUser>>(
       store,
       (store, user) => store.save(user),
     );

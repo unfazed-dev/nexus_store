@@ -330,23 +330,26 @@ Future<void> main() async {
   // Add more users for querying
   await userStore.saveAll([
     User(
-        id: '4',
-        name: 'Diana',
-        email: 'diana@example.com',
-        status: 'active',
-        age: 25,),
+      id: '4',
+      name: 'Diana',
+      email: 'diana@example.com',
+      status: 'active',
+      age: 25,
+    ),
     User(
-        id: '5',
-        name: 'Eve',
-        email: 'eve@example.com',
-        status: 'active',
-        age: 31,),
+      id: '5',
+      name: 'Eve',
+      email: 'eve@example.com',
+      status: 'active',
+      age: 31,
+    ),
     User(
-        id: '6',
-        name: 'Frank',
-        email: 'frank@example.com',
-        status: 'inactive',
-        age: 45,),
+      id: '6',
+      name: 'Frank',
+      email: 'frank@example.com',
+      status: 'inactive',
+      age: 45,
+    ),
   ]);
 
   // Filter by status

@@ -376,7 +376,8 @@ void main() {
         final controller2 = StreamController<List<TestUser>>.broadcast();
         var callCount = 0;
 
-        when(() => mockStore.watchAll(query: any(named: 'query'))).thenAnswer((_) {
+        when(() => mockStore.watchAll(query: any(named: 'query')))
+            .thenAnswer((_) {
           callCount++;
           return callCount == 1 ? controller1.stream : controller2.stream;
         });
@@ -515,7 +516,8 @@ void main() {
         },
         verify: (_) {
           // watchAll should be called twice (LoadAll + Refresh)
-          verify(() => mockStore.watchAll(query: any(named: 'query'))).called(2);
+          verify(() => mockStore.watchAll(query: any(named: 'query')))
+              .called(2);
         },
       );
     });

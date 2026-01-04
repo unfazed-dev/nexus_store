@@ -22,7 +22,8 @@ void main() {
       final storeProvider = Provider<NexusStore<TestUser, String>>(
         (ref) => store,
       );
-      final watchAllProvider = createAutoDisposeWatchAllProvider<TestUser, String>(
+      final watchAllProvider =
+          createAutoDisposeWatchAllProvider<TestUser, String>(
         storeProvider,
       );
 
@@ -45,7 +46,8 @@ void main() {
       final storeProvider = Provider<NexusStore<TestUser, String>>(
         (ref) => store,
       );
-      final watchAllProvider = createAutoDisposeWatchAllProvider<TestUser, String>(
+      final watchAllProvider =
+          createAutoDisposeWatchAllProvider<TestUser, String>(
         storeProvider,
         query: query,
       );

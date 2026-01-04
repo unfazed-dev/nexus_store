@@ -174,8 +174,7 @@ void main() {
 
         expect(changeset['test_models']!.length, equals(3));
 
-        final names =
-            changeset['test_models']!.map((r) => r['name']).toList();
+        final names = changeset['test_models']!.map((r) => r['name']).toList();
         expect(names, containsAll(['Alice', 'Bob', 'Charlie']));
       });
 
@@ -224,10 +223,8 @@ void main() {
         await backendA.save(TestModel(id: '2', name: 'Second', age: 25));
 
         final changeset = await backendA.getChangeset();
-        final nodeId1 =
-            changeset['test_models']!.first['node_id']! as String;
-        final nodeId2 =
-            changeset['test_models']!.last['node_id']! as String;
+        final nodeId1 = changeset['test_models']!.first['node_id']! as String;
+        final nodeId2 = changeset['test_models']!.last['node_id']! as String;
 
         expect(nodeId1, equals(nodeId2));
         expect(nodeId1, equals(backendA.nodeId));
@@ -240,10 +237,8 @@ void main() {
         final changesetA = await backendA.getChangeset();
         final changesetB = await backendB.getChangeset();
 
-        final nodeIdA =
-            changesetA['test_models']!.first['node_id']! as String;
-        final nodeIdB =
-            changesetB['test_models']!.first['node_id']! as String;
+        final nodeIdA = changesetA['test_models']!.first['node_id']! as String;
+        final nodeIdB = changesetB['test_models']!.first['node_id']! as String;
 
         expect(nodeIdA, isNot(equals(nodeIdB)));
       });

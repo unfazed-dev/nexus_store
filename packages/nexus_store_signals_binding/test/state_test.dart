@@ -459,8 +459,10 @@ void main() {
       });
 
       test('equality works correctly', () {
-        const state1 = NexusItemSignalLoading<TestUser>(previousData: testUser1);
-        const state2 = NexusItemSignalLoading<TestUser>(previousData: testUser1);
+        const state1 =
+            NexusItemSignalLoading<TestUser>(previousData: testUser1);
+        const state2 =
+            NexusItemSignalLoading<TestUser>(previousData: testUser1);
         const state3 = NexusItemSignalLoading<TestUser>();
 
         expect(state1, equals(state2));

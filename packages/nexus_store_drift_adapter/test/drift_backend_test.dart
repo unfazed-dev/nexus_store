@@ -323,163 +323,199 @@ void main() {
         stackTrace: StackTrace.current,
       );
 
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get()).thenThrow(originalError);
 
       expect(
         () => backend.get('1'),
-        throwsA(isA<nexus.ValidationError>().having(
-          (e) => e.message,
-          'message',
-          'Original error',
-        ),),
+        throwsA(
+          isA<nexus.ValidationError>().having(
+            (e) => e.message,
+            'message',
+            'Original error',
+          ),
+        ),
       );
     });
 
     test('maps unique constraint violation to ValidationError', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('UNIQUE CONSTRAINT failed: test_models.id'));
 
       expect(
         () => backend.get('1'),
-        throwsA(isA<nexus.ValidationError>().having(
-          (e) => e.message,
-          'message',
-          'Unique constraint violation',
-        ),),
+        throwsA(
+          isA<nexus.ValidationError>().having(
+            (e) => e.message,
+            'message',
+            'Unique constraint violation',
+          ),
+        ),
       );
     });
 
     test('maps uniqueviolation to ValidationError', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('UniqueViolation: duplicate key'));
 
       expect(
         () => backend.get('1'),
-        throwsA(isA<nexus.ValidationError>().having(
-          (e) => e.message,
-          'message',
-          'Unique constraint violation',
-        ),),
+        throwsA(
+          isA<nexus.ValidationError>().having(
+            (e) => e.message,
+            'message',
+            'Unique constraint violation',
+          ),
+        ),
       );
     });
 
     test('maps foreign key constraint to ValidationError', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('FOREIGN KEY constraint failed'));
 
       expect(
         () => backend.get('1'),
-        throwsA(isA<nexus.ValidationError>().having(
-          (e) => e.message,
-          'message',
-          'Foreign key constraint violation',
-        ),),
+        throwsA(
+          isA<nexus.ValidationError>().having(
+            (e) => e.message,
+            'message',
+            'Foreign key constraint violation',
+          ),
+        ),
       );
     });
 
     test('maps foreignkeyviolation to ValidationError', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('ForeignKeyViolation: reference missing'));
 
       expect(
         () => backend.get('1'),
-        throwsA(isA<nexus.ValidationError>().having(
-          (e) => e.message,
-          'message',
-          'Foreign key constraint violation',
-        ),),
+        throwsA(
+          isA<nexus.ValidationError>().having(
+            (e) => e.message,
+            'message',
+            'Foreign key constraint violation',
+          ),
+        ),
       );
     });
 
     test('maps database is locked to TransactionError', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('database is locked'));
 
       expect(
         () => backend.get('1'),
-        throwsA(isA<nexus.TransactionError>().having(
-          (e) => e.message,
-          'message',
-          'Database is locked',
-        ),),
+        throwsA(
+          isA<nexus.TransactionError>().having(
+            (e) => e.message,
+            'message',
+            'Database is locked',
+          ),
+        ),
       );
     });
 
     test('maps busy error to TransactionError', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('SQLITE_BUSY: database is busy'));
 
       expect(
         () => backend.get('1'),
-        throwsA(isA<nexus.TransactionError>().having(
-          (e) => e.message,
-          'message',
-          'Database is locked',
-        ),),
+        throwsA(
+          isA<nexus.TransactionError>().having(
+            (e) => e.message,
+            'message',
+            'Database is locked',
+          ),
+        ),
       );
     });
 
     test('maps no such table to StateError', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('no such table: test_models'));
 
       expect(
         () => backend.get('1'),
-        throwsA(isA<nexus.StateError>().having(
-          (e) => e.message,
-          'message',
-          'Table does not exist',
-        ),),
+        throwsA(
+          isA<nexus.StateError>().having(
+            (e) => e.message,
+            'message',
+            'Table does not exist',
+          ),
+        ),
       );
     });
 
     test('maps unknown error to SyncError', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('Some unknown database error'));
 
       expect(
         () => backend.get('1'),
-        throwsA(isA<nexus.SyncError>().having(
-          (e) => e.message,
-          'message',
-          contains('Drift operation failed'),
-        ),),
+        throwsA(
+          isA<nexus.SyncError>().having(
+            (e) => e.message,
+            'message',
+            contains('Drift operation failed'),
+          ),
+        ),
       );
     });
 
@@ -496,11 +532,13 @@ void main() {
     });
 
     test('exception mapping in delete operation', () async {
-      when(() => mockExecutor.customUpdate(
-            any(),
-            variables: any(named: 'variables'),
-            updates: any(named: 'updates'),
-          ),).thenThrow(Exception('FOREIGN KEY constraint failed'));
+      when(
+        () => mockExecutor.customUpdate(
+          any(),
+          variables: any(named: 'variables'),
+          updates: any(named: 'updates'),
+        ),
+      ).thenThrow(Exception('FOREIGN KEY constraint failed'));
 
       expect(
         () => backend.delete('1'),
@@ -509,10 +547,12 @@ void main() {
     });
 
     test('exception mapping in getAll operation', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('no such table: test_models'));
 
@@ -528,30 +568,36 @@ void main() {
     // Integration tests in drift_integration_test.dart cover real DB errors.
 
     test('exception mapping in deleteWhere operation', () async {
-      when(() => mockExecutor.customUpdate(
-            any(),
-            variables: any(named: 'variables'),
-            updates: any(named: 'updates'),
-          ),).thenThrow(Exception('database is locked'));
+      when(
+        () => mockExecutor.customUpdate(
+          any(),
+          variables: any(named: 'variables'),
+          updates: any(named: 'updates'),
+        ),
+      ).thenThrow(Exception('database is locked'));
 
       final query =
           const nexus.Query<TestModel>().where('name', isEqualTo: 'Test');
 
       expect(
         () => backend.deleteWhere(query),
-        throwsA(isA<nexus.TransactionError>().having(
-          (e) => e.message,
-          'message',
-          'Database is locked',
-        ),),
+        throwsA(
+          isA<nexus.TransactionError>().having(
+            (e) => e.message,
+            'message',
+            'Database is locked',
+          ),
+        ),
       );
     });
 
     test('exception mapping in getAllPaged operation', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('database is locked'));
 
@@ -587,10 +633,12 @@ void main() {
     });
 
     test('watch() stream emits error when get() fails', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('database connection failed'));
 
@@ -603,10 +651,12 @@ void main() {
     });
 
     test('watchAll() stream emits error when getAll() fails', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get())
           .thenThrow(Exception('no such table: test_models'));
 
@@ -619,10 +669,12 @@ void main() {
     });
 
     test('watch() uses cached subject for same ID', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get()).thenAnswer((_) async => []);
 
       // First call creates the subject, second reuses existing subject
@@ -631,17 +683,21 @@ void main() {
         ..watch('1');
 
       // Verify customSelect was only called once (for initial load)
-      verify(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).called(1);
+      verify(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).called(1);
     });
 
     test('watchAll() uses cached subject for same query', () async {
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get()).thenAnswer((_) async => []);
 
       // First call creates the subject, second reuses existing subject
@@ -650,20 +706,24 @@ void main() {
         ..watchAll();
 
       // Verify customSelect was only called once (for initial load)
-      verify(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).called(1);
+      verify(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).called(1);
     });
 
     test('_refreshAllWatchers silently ignores error when subject is closed',
         () async {
       // Set up initial watchAll - first call succeeds
       var callCount = 0;
-      when(() => mockExecutor.customSelect(
-            any(),
-            variables: any(named: 'variables'),
-          ),).thenReturn(mockSelectable);
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
       when(() => mockSelectable.get()).thenAnswer((_) async {
         callCount++;
         if (callCount == 1) {
@@ -759,11 +819,13 @@ void main() {
       );
 
       // Mock the delete operation
-      when(() => mockExecutor.customUpdate(
-            any(),
-            variables: any(named: 'variables'),
-            updates: any(named: 'updates'),
-          ),).thenAnswer((_) async => 1);
+      when(
+        () => mockExecutor.customUpdate(
+          any(),
+          variables: any(named: 'variables'),
+          updates: any(named: 'updates'),
+        ),
+      ).thenAnswer((_) async => 1);
 
       // Cancel the change - should delete the created item
       final result = await backend.cancelChange(change.id);
@@ -772,11 +834,13 @@ void main() {
       expect(result!.operation, equals(nexus.PendingChangeOperation.create));
 
       // Verify delete was called
-      verify(() => mockExecutor.customUpdate(
-            any(),
-            variables: any(named: 'variables'),
-            updates: any(named: 'updates'),
-          ),).called(1);
+      verify(
+        () => mockExecutor.customUpdate(
+          any(),
+          variables: any(named: 'variables'),
+          updates: any(named: 'updates'),
+        ),
+      ).called(1);
     });
 
     test('cancelChange with DELETE operation restores original value',

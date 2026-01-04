@@ -447,8 +447,7 @@ void main() {
       });
 
       test('translate with orderBy and offset', () {
-        final query =
-            const Query<TestModel>().orderByField('name').offsetBy(5);
+        final query = const Query<TestModel>().orderByField('name').offsetBy(5);
 
         final result = translator.translate(query);
 

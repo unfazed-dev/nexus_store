@@ -672,7 +672,8 @@ void main() {
         expect(pool.currentMetrics.idleConnections, equals(1));
       });
 
-      test('should destroy invalid connection on return when testOnReturn is true',
+      test(
+          'should destroy invalid connection on return when testOnReturn is true',
           () async {
         pool = ConnectionPool<FakeConnection>(
           factory: factory,
@@ -743,7 +744,8 @@ void main() {
         expect(healthCheck.isHealthyCallCount, greaterThan(0));
       });
 
-      test('should destroy unhealthy connection that cannot be reset', () async {
+      test('should destroy unhealthy connection that cannot be reset',
+          () async {
         pool = ConnectionPool<FakeConnection>(
           factory: factory,
           healthCheck: healthCheck,
@@ -845,7 +847,8 @@ void main() {
     });
 
     group('returnToPool edge cases', () {
-      test('should fulfill waiting request instead of returning to idle', () async {
+      test('should fulfill waiting request instead of returning to idle',
+          () async {
         pool = ConnectionPool<FakeConnection>(
           factory: factory,
           config: const ConnectionPoolConfig(
@@ -886,7 +889,8 @@ void main() {
         );
       });
 
-      test('should handle pre-warm failure gracefully during initialize', () async {
+      test('should handle pre-warm failure gracefully during initialize',
+          () async {
         factory.shouldFailOnCreate = true;
 
         pool = ConnectionPool<FakeConnection>(

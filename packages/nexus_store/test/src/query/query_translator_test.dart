@@ -124,7 +124,8 @@ void main() {
       });
 
       test('returns string unchanged when no quotes', () {
-        expect(translator.escapeSqlString('Hello World'), equals('Hello World'));
+        expect(
+            translator.escapeSqlString('Hello World'), equals('Hello World'));
       });
 
       test('handles empty string', () {

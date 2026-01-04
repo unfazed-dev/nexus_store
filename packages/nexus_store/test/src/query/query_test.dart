@@ -525,10 +525,12 @@ void main() {
       expect(order.toString(), contains('DESC'));
     });
 
-    test('should have consistent hashCode for equal orders (lines 653-654)', () {
+    test('should have consistent hashCode for equal orders (lines 653-654)',
+        () {
       const order1 = QueryOrderBy(field: 'createdAt', descending: true);
       const order2 = QueryOrderBy(field: 'createdAt', descending: true);
-      const orderDifferent = QueryOrderBy(field: 'createdAt', descending: false);
+      const orderDifferent =
+          QueryOrderBy(field: 'createdAt', descending: false);
 
       // Same properties should have same hashCode
       expect(order1.hashCode, equals(order2.hashCode));

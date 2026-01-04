@@ -399,7 +399,8 @@ void main() {
 
     group('toString', () {
       test('contains name', () {
-        const state = SagaStepState(name: 'my-step', status: StepStatus.pending);
+        const state =
+            SagaStepState(name: 'my-step', status: StepStatus.pending);
         expect(state.toString(), contains('my-step'));
       });
 

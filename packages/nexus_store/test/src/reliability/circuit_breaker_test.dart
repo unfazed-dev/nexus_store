@@ -221,7 +221,8 @@ void main() {
     group('metricsStream (line 83)', () {
       test('emits metrics updates on state changes', () async {
         final metricsList = <CircuitBreakerMetrics>[];
-        final subscription = circuitBreaker.metricsStream.listen(metricsList.add);
+        final subscription =
+            circuitBreaker.metricsStream.listen(metricsList.add);
 
         // Record some operations to trigger metrics updates
         circuitBreaker.recordSuccess();

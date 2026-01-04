@@ -897,8 +897,7 @@ void main() {
           expect(stats.operationCounts, isNotEmpty);
         });
 
-        test(
-            'should record failure without stack trace when disabled',
+        test('should record failure without stack trace when disabled',
             () async {
           backend.shouldFailOnGet = true;
 
@@ -1030,7 +1029,8 @@ void main() {
         // Note: FakeStoreBackend doesn't truly support rollback
       });
 
-      test('should apply operations optimistically when backend does not support transactions (lines 780-781)',
+      test(
+          'should apply operations optimistically when backend does not support transactions (lines 780-781)',
           () async {
         // Create a backend that doesn't support transactions
         final noTxBackend = FakeStoreBackend<TestUser, String>(
@@ -1129,7 +1129,8 @@ void main() {
         final cancelledCount = await store.cancelAllPending();
 
         expect(cancelledCount, equals(2));
-        expect(backend.cancelledChangeIds, containsAll(['change-1', 'change-2']));
+        expect(
+            backend.cancelledChangeIds, containsAll(['change-1', 'change-2']));
       });
 
       test('should handle mixed cancel results (line 972 branch)', () async {

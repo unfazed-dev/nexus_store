@@ -3,8 +3,7 @@ import 'package:nexus_store_supabase_adapter/src/supabase_client_wrapper.dart';
 import 'package:test/test.dart';
 
 /// Mock implementation of SupabaseClientWrapper for testing.
-class MockSupabaseClientWrapper extends Mock
-    implements SupabaseClientWrapper {}
+class MockSupabaseClientWrapper extends Mock implements SupabaseClientWrapper {}
 
 void main() {
   group('SupabaseClientWrapper', () {

@@ -95,7 +95,6 @@ void main() {
 
         expect(results, hasLength(2));
       });
-
     });
 
     group('networkFirst policy', () {
@@ -606,7 +605,8 @@ void main() {
     });
 
     group('background revalidation', () {
-      test('get with staleWhileRevalidate silently ignores sync errors', () async {
+      test('get with staleWhileRevalidate silently ignores sync errors',
+          () async {
         handler = FetchPolicyHandler(
           backend: backend,
           defaultPolicy: FetchPolicy.staleWhileRevalidate,
@@ -627,7 +627,8 @@ void main() {
         expect(true, isTrue);
       });
 
-      test('getAll with staleWhileRevalidate silently ignores sync errors', () async {
+      test('getAll with staleWhileRevalidate silently ignores sync errors',
+          () async {
         handler = FetchPolicyHandler(
           backend: backend,
           defaultPolicy: FetchPolicy.staleWhileRevalidate,
@@ -648,7 +649,8 @@ void main() {
         expect(true, isTrue);
       });
 
-      test('background revalidation updates lastFetchTime on success', () async {
+      test('background revalidation updates lastFetchTime on success',
+          () async {
         handler = FetchPolicyHandler(
           backend: backend,
           defaultPolicy: FetchPolicy.staleWhileRevalidate,
@@ -682,7 +684,8 @@ void main() {
         when(() => mockBackend.syncStatus).thenReturn(SyncStatus.synced);
       });
 
-      test('getAllCacheFirst with empty cache triggers sync then returns data', () async {
+      test('getAllCacheFirst with empty cache triggers sync then returns data',
+          () async {
         // First getAll returns empty, then after sync returns data
         var callCount = 0;
         when(() => mockBackend.getAll(query: any(named: 'query')))
@@ -720,7 +723,8 @@ void main() {
         verify(() => mockBackend.sync()).called(1);
       });
 
-      test('getAllCacheAndNetwork returns data after successful sync', () async {
+      test('getAllCacheAndNetwork returns data after successful sync',
+          () async {
         when(() => mockBackend.sync()).thenAnswer((_) async {});
         when(() => mockBackend.getAll(query: any(named: 'query')))
             .thenAnswer((_) async => [TestFixtures.createUser()]);
@@ -736,7 +740,8 @@ void main() {
         verify(() => mockBackend.sync()).called(1);
       });
 
-      test('getAllCacheAndNetwork returns cached data on network failure', () async {
+      test('getAllCacheAndNetwork returns cached data on network failure',
+          () async {
         when(() => mockBackend.sync()).thenThrow(Exception('Network error'));
         when(() => mockBackend.getAll(query: any(named: 'query')))
             .thenAnswer((_) async => [TestFixtures.createUser()]);
@@ -755,9 +760,9 @@ void main() {
         when(() => mockBackend.sync()).thenAnswer((_) async {});
         when(() => mockBackend.getAll(query: any(named: 'query')))
             .thenAnswer((_) async => [
-              TestFixtures.createUser(),
-              TestFixtures.createUser(id: 'user-2'),
-            ]);
+                  TestFixtures.createUser(),
+                  TestFixtures.createUser(id: 'user-2'),
+                ]);
 
         handler = FetchPolicyHandler(
           backend: mockBackend,
@@ -792,7 +797,8 @@ void main() {
         verify(() => mockBackend.sync()).called(1);
       });
 
-      test('getAllStaleWhileRevalidate with empty cache waits for network', () async {
+      test('getAllStaleWhileRevalidate with empty cache waits for network',
+          () async {
         // First getAll returns empty, then after sync returns data
         var callCount = 0;
         when(() => mockBackend.getAll(query: any(named: 'query')))
@@ -829,7 +835,8 @@ void main() {
         expect(handler.isStale('user-1'), isFalse);
       });
 
-      test('invalidateWhere with no matching items does not invalidate', () async {
+      test('invalidateWhere with no matching items does not invalidate',
+          () async {
         when(() => mockBackend.get('user-1')).thenAnswer(
           (_) async => TestFixtures.createUser(id: 'user-1', isActive: true),
         );

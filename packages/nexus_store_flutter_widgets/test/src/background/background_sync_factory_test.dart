@@ -155,9 +155,7 @@ void main() {
 
       test('create with both null uses platform detection for both', () {
         // Both are null, so both fall back to their respective getters
-        final service = BackgroundSyncServiceFactory.create(
-          
-        );
+        final service = BackgroundSyncServiceFactory.create();
 
         // On desktop test runner, both Platform checks return false
         expect(service, isA<NoOpSyncService>());

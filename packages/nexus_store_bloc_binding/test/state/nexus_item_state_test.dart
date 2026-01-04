@@ -542,8 +542,7 @@ void main() {
           'NexusItemError with same error and null vs value previousData should not be equal',
           () {
         final error = Exception('test');
-        final state1 =
-            NexusItemError<String>(error: error, previousData: null);
+        final state1 = NexusItemError<String>(error: error, previousData: null);
         final state2 = NexusItemError<String>(error: error, previousData: 'a');
         expect(state1, isNot(equals(state2)));
       });
@@ -583,8 +582,7 @@ void main() {
         expect(state1.hashCode, equals(state2.hashCode));
       });
 
-      test(
-          'NexusItemLoading with null vs value should have different hashCode',
+      test('NexusItemLoading with null vs value should have different hashCode',
           () {
         const state1 = NexusItemLoading<String>(previousData: null);
         const state2 = NexusItemLoading<String>(previousData: 'a');
@@ -604,8 +602,7 @@ void main() {
         expect(state1.hashCode, equals(state2.hashCode));
       });
 
-      test('NexusItemError with same parameters should have same hashCode',
-          () {
+      test('NexusItemError with same parameters should have same hashCode', () {
         final error = Exception('test');
         final stackTrace = StackTrace.current;
         final state1 = NexusItemError<String>(

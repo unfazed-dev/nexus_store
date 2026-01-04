@@ -157,7 +157,8 @@ class WorkManagerSyncService extends BackgroundSyncService {
         if (!success) {
           allSucceeded = false;
         }
-      } on Exception { // coverage:ignore-line
+      } on Exception {
+        // coverage:ignore-line
         allSucceeded = false;
       }
     }

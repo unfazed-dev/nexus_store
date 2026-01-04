@@ -111,7 +111,8 @@ void main() {
     });
 
     group('failure without executed steps (lines 122, 125)', () {
-      test('returns failure with empty compensatedSteps when error before any steps',
+      test(
+          'returns failure with empty compensatedSteps when error before any steps',
           () async {
         // Lines 122, 125: When exception thrown BEFORE any steps are executed,
         // context._executedSteps is empty, so we get failure with empty compensatedSteps

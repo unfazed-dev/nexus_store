@@ -50,15 +50,16 @@ void main() {
 
       // Setup default mock behavior
       when(() => mockClient.channel(any())).thenReturn(mockChannel);
-      when(() => mockChannel.onPostgresChanges(
-            event: any(named: 'event'),
-            schema: any(named: 'schema'),
-            table: any(named: 'table'),
-            callback: any(named: 'callback'),
-          ),).thenReturn(mockChannel);
+      when(
+        () => mockChannel.onPostgresChanges(
+          event: any(named: 'event'),
+          schema: any(named: 'schema'),
+          table: any(named: 'table'),
+          callback: any(named: 'callback'),
+        ),
+      ).thenReturn(mockChannel);
       when(() => mockChannel.subscribe()).thenReturn(mockChannel);
-      when(() => mockClient.removeChannel(any()))
-          .thenAnswer((_) async => 'ok');
+      when(() => mockClient.removeChannel(any())).thenAnswer((_) async => 'ok');
 
       manager = SupabaseRealtimeManager<TestUser, String>(
         client: mockClient,
@@ -116,12 +117,14 @@ void main() {
       test('sets up postgres changes listener', () async {
         await manager.initialize();
 
-        verify(() => mockChannel.onPostgresChanges(
-              event: PostgresChangeEvent.all,
-              schema: 'public',
-              table: 'users',
-              callback: any(named: 'callback'),
-            ),).called(1);
+        verify(
+          () => mockChannel.onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'users',
+            callback: any(named: 'callback'),
+          ),
+        ).called(1);
         verify(() => mockChannel.subscribe()).called(1);
       });
 
@@ -316,9 +319,11 @@ void main() {
 
         await expectLater(
           stream,
-          emits(predicate<List<TestUser>>(
-            (users) => users.length == 2,
-          ),),
+          emits(
+            predicate<List<TestUser>>(
+              (users) => users.length == 2,
+            ),
+          ),
         );
       });
 
@@ -353,9 +358,11 @@ void main() {
 
         await expectLater(
           stream,
-          emitsThrough(predicate<List<TestUser>>(
-            (users) => users.length == 1 && users.first.id == '1',
-          ),),
+          emitsThrough(
+            predicate<List<TestUser>>(
+              (users) => users.length == 1 && users.first.id == '1',
+            ),
+          ),
         );
       });
 
@@ -370,9 +377,11 @@ void main() {
 
         await expectLater(
           stream,
-          emitsThrough(predicate<List<TestUser>>(
-            (users) => users.length == 1 && users.first.name == 'Updated',
-          ),),
+          emitsThrough(
+            predicate<List<TestUser>>(
+              (users) => users.length == 1 && users.first.name == 'Updated',
+            ),
+          ),
         );
       });
 
@@ -387,9 +396,11 @@ void main() {
         final stream = manager.watchAll();
         await expectLater(
           stream,
-          emitsThrough(predicate<List<TestUser>>(
-            (users) => users.length == 1,
-          ),),
+          emitsThrough(
+            predicate<List<TestUser>>(
+              (users) => users.length == 1,
+            ),
+          ),
         );
       });
     });
@@ -419,9 +430,11 @@ void main() {
 
         await expectLater(
           stream,
-          emitsThrough(predicate<List<TestUser>>(
-            (users) => users.length == 1 && users.first.id == '2',
-          ),),
+          emitsThrough(
+            predicate<List<TestUser>>(
+              (users) => users.length == 1 && users.first.id == '2',
+            ),
+          ),
         );
       });
 
@@ -437,14 +450,16 @@ void main() {
       late void Function(PostgresChangePayload) capturedCallback;
 
       setUp(() {
-        when(() => mockChannel.onPostgresChanges(
-              event: any(named: 'event'),
-              schema: any(named: 'schema'),
-              table: any(named: 'table'),
-              callback: any(named: 'callback'),
-            ),).thenAnswer((invocation) {
-          capturedCallback = invocation.namedArguments[#callback]
-              as void Function(PostgresChangePayload);
+        when(
+          () => mockChannel.onPostgresChanges(
+            event: any(named: 'event'),
+            schema: any(named: 'schema'),
+            table: any(named: 'table'),
+            callback: any(named: 'callback'),
+          ),
+        ).thenAnswer((invocation) {
+          capturedCallback = invocation.namedArguments[#callback] as void
+              Function(PostgresChangePayload);
           return mockChannel;
         });
       });
@@ -455,16 +470,20 @@ void main() {
         final stream = manager.watchAll();
 
         // Simulate INSERT event
-        capturedCallback(_createPayload(
-          eventType: PostgresChangeEvent.insert,
-          newRecord: {'id': '1', 'name': 'New User'},
-        ),);
+        capturedCallback(
+          _createPayload(
+            eventType: PostgresChangeEvent.insert,
+            newRecord: {'id': '1', 'name': 'New User'},
+          ),
+        );
 
         await expectLater(
           stream,
-          emitsThrough(predicate<List<TestUser>>(
-            (users) => users.any((u) => u.id == '1' && u.name == 'New User'),
-          ),),
+          emitsThrough(
+            predicate<List<TestUser>>(
+              (users) => users.any((u) => u.id == '1' && u.name == 'New User'),
+            ),
+          ),
         );
       });
 
@@ -475,16 +494,20 @@ void main() {
         final stream = manager.watchAll(initialValue: initialUsers);
 
         // Simulate UPDATE event
-        capturedCallback(_createPayload(
-          eventType: PostgresChangeEvent.update,
-          newRecord: {'id': '1', 'name': 'Updated'},
-        ),);
+        capturedCallback(
+          _createPayload(
+            eventType: PostgresChangeEvent.update,
+            newRecord: {'id': '1', 'name': 'Updated'},
+          ),
+        );
 
         await expectLater(
           stream,
-          emitsThrough(predicate<List<TestUser>>(
-            (users) => users.first.name == 'Updated',
-          ),),
+          emitsThrough(
+            predicate<List<TestUser>>(
+              (users) => users.first.name == 'Updated',
+            ),
+          ),
         );
       });
 
@@ -495,10 +518,12 @@ void main() {
         final stream = manager.watchAll(initialValue: initialUsers);
 
         // Simulate DELETE event
-        capturedCallback(_createPayload(
-          eventType: PostgresChangeEvent.delete,
-          oldRecord: {'id': '1', 'name': 'To Delete'},
-        ),);
+        capturedCallback(
+          _createPayload(
+            eventType: PostgresChangeEvent.delete,
+            oldRecord: {'id': '1', 'name': 'To Delete'},
+          ),
+        );
 
         await expectLater(
           stream,
@@ -512,10 +537,12 @@ void main() {
         final stream = manager.watchAll();
 
         // Simulate INSERT with empty record
-        capturedCallback(_createPayload(
-          eventType: PostgresChangeEvent.insert,
-          newRecord: {},
-        ),);
+        capturedCallback(
+          _createPayload(
+            eventType: PostgresChangeEvent.insert,
+            newRecord: {},
+          ),
+        );
 
         // Should still emit empty list
         await expectLater(stream, emits(isEmpty));
@@ -528,17 +555,21 @@ void main() {
         final stream = manager.watchAll(initialValue: initialUsers);
 
         // Simulate UPDATE with empty record
-        capturedCallback(_createPayload(
-          eventType: PostgresChangeEvent.update,
-          newRecord: {},
-        ),);
+        capturedCallback(
+          _createPayload(
+            eventType: PostgresChangeEvent.update,
+            newRecord: {},
+          ),
+        );
 
         // Should keep original value
         await expectLater(
           stream,
-          emits(predicate<List<TestUser>>(
-            (users) => users.first.name == 'Original',
-          ),),
+          emits(
+            predicate<List<TestUser>>(
+              (users) => users.first.name == 'Original',
+            ),
+          ),
         );
       });
 
@@ -549,17 +580,21 @@ void main() {
         final stream = manager.watchAll(initialValue: initialUsers);
 
         // Simulate DELETE with empty record
-        capturedCallback(_createPayload(
-          eventType: PostgresChangeEvent.delete,
-          oldRecord: {},
-        ),);
+        capturedCallback(
+          _createPayload(
+            eventType: PostgresChangeEvent.delete,
+            oldRecord: {},
+          ),
+        );
 
         // Should keep the item
         await expectLater(
           stream,
-          emits(predicate<List<TestUser>>(
-            (users) => users.length == 1,
-          ),),
+          emits(
+            predicate<List<TestUser>>(
+              (users) => users.length == 1,
+            ),
+          ),
         );
       });
 
@@ -570,17 +605,21 @@ void main() {
         final stream = manager.watchAll(initialValue: initialUsers);
 
         // Simulate DELETE with null id
-        capturedCallback(_createPayload(
-          eventType: PostgresChangeEvent.delete,
-          oldRecord: {'id': null, 'name': 'Keep Me'},
-        ),);
+        capturedCallback(
+          _createPayload(
+            eventType: PostgresChangeEvent.delete,
+            oldRecord: {'id': null, 'name': 'Keep Me'},
+          ),
+        );
 
         // Should keep the item
         await expectLater(
           stream,
-          emits(predicate<List<TestUser>>(
-            (users) => users.length == 1,
-          ),),
+          emits(
+            predicate<List<TestUser>>(
+              (users) => users.length == 1,
+            ),
+          ),
         );
       });
 
@@ -591,10 +630,12 @@ void main() {
 
         // Simulate 'all' event type
         // (shouldn't happen in callback, but handle it)
-        capturedCallback(_createPayload(
-          eventType: PostgresChangeEvent.all,
-          newRecord: {'id': '1', 'name': 'Test'},
-        ),);
+        capturedCallback(
+          _createPayload(
+            eventType: PostgresChangeEvent.all,
+            newRecord: {'id': '1', 'name': 'Test'},
+          ),
+        );
 
         // Should not crash, just emit empty list
         await expectLater(stream, emits(isEmpty));
@@ -614,10 +655,12 @@ void main() {
         final stream = errorManager.watchAll();
 
         // Simulate INSERT that will fail to parse
-        capturedCallback(_createPayload(
-          eventType: PostgresChangeEvent.insert,
-          newRecord: {'id': '1', 'name': 'Test'},
-        ),);
+        capturedCallback(
+          _createPayload(
+            eventType: PostgresChangeEvent.insert,
+            newRecord: {'id': '1', 'name': 'Test'},
+          ),
+        );
 
         // Should not crash the stream
         await expectLater(stream, emits(isEmpty));
@@ -663,12 +706,13 @@ PostgresChangePayload _createPayload({
   required PostgresChangeEvent eventType,
   Map<String, dynamic>? newRecord,
   Map<String, dynamic>? oldRecord,
-}) => PostgresChangePayload(
-    schema: 'public',
-    table: 'users',
-    commitTimestamp: DateTime.now(),
-    eventType: eventType,
-    newRecord: newRecord ?? {},
-    oldRecord: oldRecord ?? {},
-    errors: null,
-  );
+}) =>
+    PostgresChangePayload(
+      schema: 'public',
+      table: 'users',
+      commitTimestamp: DateTime.now(),
+      eventType: eventType,
+      newRecord: newRecord ?? {},
+      oldRecord: oldRecord ?? {},
+      errors: null,
+    );

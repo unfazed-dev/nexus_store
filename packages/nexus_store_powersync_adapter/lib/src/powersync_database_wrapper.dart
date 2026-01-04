@@ -77,18 +77,19 @@ class DefaultPowerSyncDatabaseWrapper implements PowerSyncDatabaseWrapper {
   Stream<List<Map<String, dynamic>>> watch(
     String sql, {
     List<Object?> parameters = const [],
-  }) => _db.watch(sql, parameters: parameters).map(
-          (results) =>
-              results.map(Map<String, dynamic>.from).toList(),
-        );
+  }) =>
+      _db.watch(sql, parameters: parameters).map(
+            (results) => results.map(Map<String, dynamic>.from).toList(),
+          );
 
   @override
   Future<T> writeTransaction<T>(
     Future<T> Function(PowerSyncTransactionContext tx) callback,
-  ) async => _db.writeTransaction((tx) async {
-      final wrappedTx = _DefaultTransactionContext(tx);
-      return callback(wrappedTx);
-    });
+  ) async =>
+      _db.writeTransaction((tx) async {
+        final wrappedTx = _DefaultTransactionContext(tx);
+        return callback(wrappedTx);
+      });
 
   @override
   Stream<ps.SyncStatus> get statusStream => _db.statusStream;

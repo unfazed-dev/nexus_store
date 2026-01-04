@@ -281,8 +281,7 @@ void main() {
         await backend.save(originalModel);
 
         // Add a pending UPDATE change with original value
-        final change =
-            await backend.pendingChangesManagerForTesting.addChange(
+        final change = await backend.pendingChangesManagerForTesting.addChange(
           item: updatedModel,
           operation: nexus.PendingChangeOperation.update,
           originalValue: originalModel,
@@ -309,8 +308,7 @@ void main() {
         await backend.save(createdModel);
 
         // Add a pending CREATE change
-        final change =
-            await backend.pendingChangesManagerForTesting.addChange(
+        final change = await backend.pendingChangesManagerForTesting.addChange(
           item: createdModel,
           operation: nexus.PendingChangeOperation.create,
         );
@@ -331,8 +329,7 @@ void main() {
         final deletedModel = TestModel(id: '3', name: 'Deleted', age: 35);
 
         // Item was deleted - add pending DELETE change
-        final change =
-            await backend.pendingChangesManagerForTesting.addChange(
+        final change = await backend.pendingChangesManagerForTesting.addChange(
           item: deletedModel,
           operation: nexus.PendingChangeOperation.delete,
           originalValue: deletedModel,
@@ -357,8 +354,7 @@ void main() {
         final model = TestModel(id: '1', name: 'Test', age: 25);
 
         // Add a pending change
-        final change =
-            await backend.pendingChangesManagerForTesting.addChange(
+        final change = await backend.pendingChangesManagerForTesting.addChange(
           item: model,
           operation: nexus.PendingChangeOperation.update,
         );
@@ -381,8 +377,7 @@ void main() {
         final model = TestModel(id: '2', name: 'Test2', age: 30);
 
         // Add a pending change
-        final change =
-            await backend.pendingChangesManagerForTesting.addChange(
+        final change = await backend.pendingChangesManagerForTesting.addChange(
           item: model,
           operation: nexus.PendingChangeOperation.create,
         );

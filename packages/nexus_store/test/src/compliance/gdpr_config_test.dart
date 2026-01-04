@@ -214,8 +214,7 @@ void main() {
 
       final config = GdprConfig.fromJson(json);
 
-      expect(config.retentionCheckInterval,
-          equals(const Duration(hours: 24)));
+      expect(config.retentionCheckInterval, equals(const Duration(hours: 24)));
       expect(config.notificationWebhooks?.length, equals(2));
       expect(config.notificationWebhooks,
           contains('https://example.com/webhook1'));
@@ -246,9 +245,8 @@ void main() {
 
       final json = original.toJson();
       // Manually convert nested RetentionPolicy for round-trip
-      json['retentionPolicies'] = original.retentionPolicies
-          .map((p) => p.toJson())
-          .toList();
+      json['retentionPolicies'] =
+          original.retentionPolicies.map((p) => p.toJson()).toList();
       final restored = GdprConfig.fromJson(json);
 
       expect(restored.enabled, equals(original.enabled));
@@ -256,15 +254,15 @@ void main() {
       expect(restored.retainedFields, equals(original.retainedFields));
       expect(restored.retentionPolicies.length,
           equals(original.retentionPolicies.length));
-      expect(restored.autoProcessRetention,
-          equals(original.autoProcessRetention));
+      expect(
+          restored.autoProcessRetention, equals(original.autoProcessRetention));
       expect(restored.retentionCheckInterval,
           equals(original.retentionCheckInterval));
       expect(restored.consentTracking, equals(original.consentTracking));
       expect(restored.requiredPurposes, equals(original.requiredPurposes));
       expect(restored.breachSupport, equals(original.breachSupport));
-      expect(restored.notificationWebhooks,
-          equals(original.notificationWebhooks));
+      expect(
+          restored.notificationWebhooks, equals(original.notificationWebhooks));
     });
 
     group('disabled mode', () {

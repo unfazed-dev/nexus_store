@@ -107,7 +107,8 @@ void main() {
           final user = TestFixtures.createUser();
           backend.addToStorage('user-1', user);
           backend.shouldFailOnSync = true;
-          backend.errorToThrow = const NetworkError(message: 'Delete sync failed');
+          backend.errorToThrow =
+              const NetworkError(message: 'Delete sync failed');
 
           expect(
             () => handler.delete('user-1'),

@@ -508,7 +508,8 @@ void main() {
       );
     });
 
-    test('logs audit event during erasure with entity type and metadata (lines 107, 109)',
+    test(
+        'logs audit event during erasure with entity type and metadata (lines 107, 109)',
         () async {
       when(() => mockAuditService.log(
             action: any(named: 'action'),
@@ -516,13 +517,13 @@ void main() {
             entityId: any(named: 'entityId'),
             metadata: any(named: 'metadata'),
           )).thenAnswer((_) async => AuditLogEntry(
-                id: 'log-1',
-                timestamp: DateTime.now(),
-                action: AuditAction.delete,
-                entityType: 'Test',
-                entityId: 'test-id',
-                actorId: 'system',
-              ));
+            id: 'log-1',
+            timestamp: DateTime.now(),
+            action: AuditAction.delete,
+            entityType: 'Test',
+            entityId: 'test-id',
+            actorId: 'system',
+          ));
 
       backend.addEntity({
         'id': 'record-1',
@@ -544,7 +545,8 @@ void main() {
           )).called(1);
     });
 
-    test('logs audit event during access with entity type and metadata (lines 130, 132)',
+    test(
+        'logs audit event during access with entity type and metadata (lines 130, 132)',
         () async {
       when(() => mockAuditService.log(
             action: any(named: 'action'),
@@ -552,13 +554,13 @@ void main() {
             entityId: any(named: 'entityId'),
             metadata: any(named: 'metadata'),
           )).thenAnswer((_) async => AuditLogEntry(
-                id: 'log-2',
-                timestamp: DateTime.now(),
-                action: AuditAction.read,
-                entityType: 'Test',
-                entityId: 'test-id',
-                actorId: 'system',
-              ));
+            id: 'log-2',
+            timestamp: DateTime.now(),
+            action: AuditAction.read,
+            entityType: 'Test',
+            entityId: 'test-id',
+            actorId: 'system',
+          ));
 
       backend.addEntity({
         'id': 'record-1',

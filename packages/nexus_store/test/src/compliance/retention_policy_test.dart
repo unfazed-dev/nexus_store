@@ -304,8 +304,7 @@ void main() {
       final json = original.toJson();
       // Note: toJson doesn't recursively convert nested objects
       // So we manually convert errors for round-trip test
-      json['errors'] =
-          original.errors.map((e) => e.toJson()).toList();
+      json['errors'] = original.errors.map((e) => e.toJson()).toList();
       final restored = RetentionResult.fromJson(json);
 
       expect(restored.processedAt, equals(original.processedAt));

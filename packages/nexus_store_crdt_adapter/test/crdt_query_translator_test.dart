@@ -544,8 +544,8 @@ void main() {
       });
 
       test('toCrdtSql can disable tombstone filter', () {
-        final query = const Query<Map<String, dynamic>>()
-            .where('age', isGreaterThan: 18);
+        final query =
+            const Query<Map<String, dynamic>>().where('age', isGreaterThan: 18);
 
         final (sql, args) = query.toCrdtSql(
           'users',

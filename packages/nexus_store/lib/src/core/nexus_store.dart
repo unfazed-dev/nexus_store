@@ -720,8 +720,8 @@ class NexusStore<T, ID> {
       await _commitTransaction(context, backendTxId);
 
       return result;
-    // coverage:ignore-start
-    // Error handling: Transaction rollback paths are complex to test comprehensively
+      // coverage:ignore-start
+      // Error handling: Transaction rollback paths are complex to test comprehensively
     } catch (e, stack) {
       // Rollback on any error
       if (isNested && parentContext != null && savepointIndex != null) {

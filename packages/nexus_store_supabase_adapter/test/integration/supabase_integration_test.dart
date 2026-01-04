@@ -611,9 +611,12 @@ void main() {
       });
 
       test('getAll with query filters results', () async {
-        await backend.save(const TestModel(id: 'filter-1', name: 'Alice', value: 25));
-        await backend.save(const TestModel(id: 'filter-2', name: 'Bob', value: 35));
-        await backend.save(const TestModel(id: 'filter-3', name: 'Charlie', value: 45));
+        await backend
+            .save(const TestModel(id: 'filter-1', name: 'Alice', value: 25));
+        await backend
+            .save(const TestModel(id: 'filter-2', name: 'Bob', value: 35));
+        await backend
+            .save(const TestModel(id: 'filter-3', name: 'Charlie', value: 45));
 
         final query = const nexus.Query<TestModel>().where(
           'value',
@@ -658,11 +661,15 @@ void main() {
       });
 
       test('deleteWhere removes records matching query', () async {
-        await backend.save(const TestModel(id: 'delwhere-1', name: 'Young', value: 20));
-        await backend.save(const TestModel(id: 'delwhere-2', name: 'Old', value: 50));
-        await backend.save(const TestModel(id: 'delwhere-3', name: 'Middle', value: 35));
+        await backend
+            .save(const TestModel(id: 'delwhere-1', name: 'Young', value: 20));
+        await backend
+            .save(const TestModel(id: 'delwhere-2', name: 'Old', value: 50));
+        await backend
+            .save(const TestModel(id: 'delwhere-3', name: 'Middle', value: 35));
 
-        final query = const nexus.Query<TestModel>().where('value', isLessThan: 30);
+        final query =
+            const nexus.Query<TestModel>().where('value', isLessThan: 30);
 
         await backend.deleteWhere(query);
 

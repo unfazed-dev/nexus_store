@@ -572,10 +572,10 @@ void main() {
             .thenAnswer((_) async => items);
 
         // Create two different queries
-        final query1 = const nexus.Query<TestModel>()
-            .where('name', isEqualTo: 'Alice');
-        final query2 = const nexus.Query<TestModel>()
-            .where('name', isEqualTo: 'Bob');
+        final query1 =
+            const nexus.Query<TestModel>().where('name', isEqualTo: 'Alice');
+        final query2 =
+            const nexus.Query<TestModel>().where('name', isEqualTo: 'Bob');
 
         // Watch with different queries
         backend
@@ -611,8 +611,8 @@ void main() {
             .thenAnswer((_) async => updatedModel);
 
         // Start watching with a query (filtered)
-        final filteredQuery = const nexus.Query<TestModel>()
-            .where('name', isEqualTo: 'Test');
+        final filteredQuery =
+            const nexus.Query<TestModel>().where('name', isEqualTo: 'Test');
 
         // Start watching all (no query) and with filtered query
         backend

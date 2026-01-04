@@ -398,9 +398,10 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                        Icons.check_circle_outline,
-                        size: 64,
-                        color: Colors.grey,),
+                      Icons.check_circle_outline,
+                      size: 64,
+                      color: Colors.grey,
+                    ),
                     SizedBox(height: 16),
                     Text('No tasks', style: TextStyle(color: Colors.grey)),
                   ],

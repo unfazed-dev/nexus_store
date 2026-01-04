@@ -8,7 +8,6 @@ import 'package:test/test.dart';
 /// PostgrestBuilder types.
 class SpyPostgrestFilterBuilder
     implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {
-
   SpyPostgrestFilterBuilder() {
     transformBuilder = SpyPostgrestTransformBuilder(this);
   }
@@ -145,7 +144,6 @@ class SpyPostgrestFilterBuilder
 /// Tracks method calls on PostgrestTransformBuilder.
 class SpyPostgrestTransformBuilder
     implements PostgrestTransformBuilder<List<Map<String, dynamic>>> {
-
   SpyPostgrestTransformBuilder(this.parent);
   final SpyPostgrestFilterBuilder parent;
 

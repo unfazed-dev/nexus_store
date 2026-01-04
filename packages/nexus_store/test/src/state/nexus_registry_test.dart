@@ -429,7 +429,8 @@ void main() {
         expect(NexusRegistry.isRegistered<TestProduct>(), isTrue);
       });
 
-      test('error message includes scope when duplicate in scoped registration (line 81)',
+      test(
+          'error message includes scope when duplicate in scoped registration (line 81)',
           () async {
         // First register with scope
         NexusRegistry.register<TestUser>(userStore, scope: 'my-tenant');
@@ -446,7 +447,8 @@ void main() {
 
         // Try to register same type in same scope without replace
         expect(
-          () => NexusRegistry.register<TestUser>(anotherStore, scope: 'my-tenant'),
+          () => NexusRegistry.register<TestUser>(anotherStore,
+              scope: 'my-tenant'),
           throwsA(
             isStateError.having(
               (e) => e.message,
@@ -462,7 +464,8 @@ void main() {
         await anotherStore.dispose();
       });
 
-      test('error message includes scope when getting non-existent scoped store',
+      test(
+          'error message includes scope when getting non-existent scoped store',
           () {
         // Try to get store in a scope that doesn't exist
         expect(

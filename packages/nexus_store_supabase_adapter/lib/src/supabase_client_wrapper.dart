@@ -91,11 +91,8 @@ class DefaultSupabaseClientWrapper implements SupabaseClientWrapper {
     String table,
     String primaryKeyColumn,
     Object id,
-  ) async => _client
-        .from(table)
-        .select()
-        .eq(primaryKeyColumn, id)
-        .maybeSingle();
+  ) async =>
+      _client.from(table).select().eq(primaryKeyColumn, id).maybeSingle();
 
   @override
   Future<List<Map<String, dynamic>>> getAll(
@@ -115,13 +112,15 @@ class DefaultSupabaseClientWrapper implements SupabaseClientWrapper {
   Future<Map<String, dynamic>> upsert(
     String table,
     Map<String, dynamic> data,
-  ) async => _client.from(table).upsert(data).select().single();
+  ) async =>
+      _client.from(table).upsert(data).select().single();
 
   @override
   Future<List<Map<String, dynamic>>> upsertAll(
     String table,
     List<Map<String, dynamic>> data,
-  ) async => _client.from(table).upsert(data).select();
+  ) async =>
+      _client.from(table).upsert(data).select();
 
   @override
   Future<void> delete(

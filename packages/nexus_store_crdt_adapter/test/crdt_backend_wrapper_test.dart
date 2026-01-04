@@ -131,9 +131,11 @@ void main() {
       });
 
       test('get returns item when found', () async {
-        when(() => mockDb.query(any(), any())).thenAnswer((_) async => [
-              {'id': '1', 'name': 'John', 'age': 25},
-            ],);
+        when(() => mockDb.query(any(), any())).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'John', 'age': 25},
+          ],
+        );
 
         final result = await backend.get('1');
 
@@ -152,17 +154,19 @@ void main() {
       });
 
       test('get strips CRDT metadata', () async {
-        when(() => mockDb.query(any(), any())).thenAnswer((_) async => [
-              {
-                'id': '1',
-                'name': 'John',
-                'age': 25,
-                'hlc': 'timestamp',
-                'modified': 'timestamp',
-                'is_deleted': 0,
-                'node_id': 'node123',
-              },
-            ],);
+        when(() => mockDb.query(any(), any())).thenAnswer(
+          (_) async => [
+            {
+              'id': '1',
+              'name': 'John',
+              'age': 25,
+              'hlc': 'timestamp',
+              'modified': 'timestamp',
+              'is_deleted': 0,
+              'node_id': 'node123',
+            },
+          ],
+        );
 
         final result = await backend.get('1');
 
@@ -172,10 +176,12 @@ void main() {
       });
 
       test('getAll returns list of items', () async {
-        when(() => mockDb.query(any(), any())).thenAnswer((_) async => [
-              {'id': '1', 'name': 'John'},
-              {'id': '2', 'name': 'Jane'},
-            ],);
+        when(() => mockDb.query(any(), any())).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'John'},
+            {'id': '2', 'name': 'Jane'},
+          ],
+        );
 
         final result = await backend.getAll();
 
@@ -191,10 +197,12 @@ void main() {
           query: const nexus.Query<TestUser>().where('name', isEqualTo: 'John'),
         );
 
-        verify(() => mockDb.query(
-              any(that: contains('name')),
-              any(),
-            ),).called(1);
+        verify(
+          () => mockDb.query(
+            any(that: contains('name')),
+            any(),
+          ),
+        ).called(1);
       });
     });
 

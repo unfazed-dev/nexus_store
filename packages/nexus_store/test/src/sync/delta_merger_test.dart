@@ -534,7 +534,8 @@ void main() {
 
         // Each resolved by lastWriteWins based on individual timestamps
         expect(result.merged['name'], equals('RemoteName')); // Remote later
-        expect(result.merged['email'], equals('local@example.com')); // Local later
+        expect(
+            result.merged['email'], equals('local@example.com')); // Local later
         expect(result.merged['age'], equals(35)); // Remote later
 
         // Verify resolved conflicts map
@@ -689,7 +690,8 @@ void main() {
         expect(result.merged['name'], equals('RemoteJane'));
       });
 
-      test('uses localValue when local is newer in fieldLevel strategy (line 196)',
+      test(
+          'uses localValue when local is newer in fieldLevel strategy (line 196)',
           () async {
         final config = DeltaSyncConfig(
           mergeStrategy: DeltaMergeStrategy.fieldLevel,

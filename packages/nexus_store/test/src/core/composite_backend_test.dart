@@ -575,7 +575,8 @@ void main() {
         primary.addFieldToStorage('user-1', 'name', 'John');
         primary.addFieldToStorage('user-2', 'name', 'Jane');
 
-        final result = await backend.getFieldBatch(['user-1', 'user-2'], 'name');
+        final result =
+            await backend.getFieldBatch(['user-1', 'user-2'], 'name');
 
         expect(result, hasLength(2));
         expect(result['user-1'], equals('John'));

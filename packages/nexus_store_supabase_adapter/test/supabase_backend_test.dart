@@ -342,8 +342,7 @@ void main() {
       ).thenReturn(mockChannel);
       when(() => mockChannel.subscribe()).thenReturn(mockChannel);
       when(() => mockChannel.unsubscribe()).thenAnswer((_) async => 'ok');
-      when(() => mockClient.removeChannel(any()))
-          .thenAnswer((_) async => 'ok');
+      when(() => mockClient.removeChannel(any())).thenAnswer((_) async => 'ok');
     }
 
     setUp(() {
@@ -1021,7 +1020,9 @@ void main() {
           ),
         ).thenAnswer((_) async {
           getAllCallCount++;
-          return [{'id': '1', 'name': 'Alice', 'age': 25}];
+          return [
+            {'id': '1', 'name': 'Alice', 'age': 25}
+          ];
         });
         when(() => mockWrapper.upsert('test_models', any())).thenAnswer(
           (_) async => {'id': '2', 'name': 'Bob', 'age': 30},
@@ -1051,7 +1052,9 @@ void main() {
           ),
         ).thenAnswer((_) async {
           getAllCallCount++;
-          return [{'id': '1', 'name': 'Alice', 'age': 25}];
+          return [
+            {'id': '1', 'name': 'Alice', 'age': 25}
+          ];
         });
         when(() => mockWrapper.get('test_models', 'id', '1')).thenAnswer(
           (_) async => {'id': '1', 'name': 'Alice', 'age': 25},
@@ -1306,9 +1309,9 @@ void main() {
 
       final emissions = <dynamic>[];
       backend.watch('1').listen(
-        emissions.add,
-        onError: emissions.add,
-      );
+            emissions.add,
+            onError: emissions.add,
+          );
 
       // Wait for initial load
       await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -1327,8 +1330,9 @@ void main() {
 
     test('watchAll() error from realtime stream propagates to subject',
         () async {
-      when(() => mockClientWrapper.getAll(any()))
-          .thenAnswer((_) async => [{'id': '1', 'name': 'Test'}]);
+      when(() => mockClientWrapper.getAll(any())).thenAnswer((_) async => [
+            {'id': '1', 'name': 'Test'}
+          ]);
 
       final controller = StreamController<List<TestModel>>();
       when(() => mockRealtimeWrapper.watchAll())
@@ -1347,9 +1351,9 @@ void main() {
 
       final emissions = <dynamic>[];
       backend.watchAll().listen(
-        emissions.add,
-        onError: emissions.add,
-      );
+            emissions.add,
+            onError: emissions.add,
+          );
 
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
@@ -1392,9 +1396,11 @@ void main() {
           any(),
           queryBuilder: any(named: 'queryBuilder'),
         ),
-      ).thenAnswer((_) async => [
-            {'id': '1', 'name': 'Filtered'},
-          ],);
+      ).thenAnswer(
+        (_) async => [
+          {'id': '1', 'name': 'Filtered'},
+        ],
+      );
 
       backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
         wrapper: mockClientWrapper,
@@ -1504,9 +1510,11 @@ void main() {
           any(),
           queryBuilder: any(named: 'queryBuilder'),
         ),
-      ).thenAnswer((_) async => [
-            {'id': '1', 'name': 'Test'},
-          ],);
+      ).thenAnswer(
+        (_) async => [
+          {'id': '1', 'name': 'Test'},
+        ],
+      );
       when(() => mockClientWrapper.deleteByIds(any(), any(), any()))
           .thenThrow(const PostgrestException(message: 'Delete failed'));
 
@@ -1584,9 +1592,9 @@ void main() {
       // Subscribe to watchAll
       final emissions = <dynamic>[];
       backend.watchAll().listen(
-        emissions.add,
-        onError: emissions.add,
-      );
+            emissions.add,
+            onError: emissions.add,
+          );
 
       // Wait for initial load
       await Future<void>.delayed(const Duration(milliseconds: 20));
@@ -1652,8 +1660,9 @@ void main() {
 
       when(() => mockRealtimeWrapper.watchAll())
           .thenAnswer((_) => controller.stream);
-      when(() => mockClientWrapper.getAll(any()))
-          .thenAnswer((_) async => [{'id': '1', 'name': 'Test'}]);
+      when(() => mockClientWrapper.getAll(any())).thenAnswer((_) async => [
+            {'id': '1', 'name': 'Test'}
+          ]);
 
       backend = SupabaseBackend<TestModel, String>.withRealtimeWrapper(
         wrapper: mockClientWrapper,

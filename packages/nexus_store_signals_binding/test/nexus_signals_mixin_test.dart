@@ -281,7 +281,8 @@ void main() {
     });
 
     group('mixed usage', () {
-      test('handles combination of signals, computeds, and store signals', () async {
+      test('handles combination of signals, computeds, and store signals',
+          () async {
         final mockStore = MockNexusStore<TestUser, String>();
         final controller = StreamController<List<TestUser>>.broadcast();
         when(() => mockStore.watchAll(query: any(named: 'query')))

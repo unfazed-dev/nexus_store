@@ -156,8 +156,7 @@ void main() {
     });
 
     group('error state', () {
-      testWidgets('shows error when stream emits error result',
-          (tester) async {
+      testWidgets('shows error when stream emits error result', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: StoreResultStreamBuilder<TestModel>(
@@ -383,8 +382,7 @@ void main() {
             home: DataStreamBuilder<TestModel>(
               stream: streamController.stream,
               builder: (context, data) => Text(data.name),
-              error: (context, error, previous) =>
-                  Text('Custom: $error'),
+              error: (context, error, previous) => Text('Custom: $error'),
             ),
           ),
         );
@@ -422,11 +420,11 @@ void main() {
           MaterialApp(
             home: StatefulBuilder(
               builder: (context, setState) => DataStreamBuilder<TestModel>(
-                  stream: streamController.stream,
-                  builder: (context, data) => Text(data.name),
-                  pending: (context, previous) =>
-                      Text('Pending: ${previous?.name ?? "none"}'),
-                ),
+                stream: streamController.stream,
+                builder: (context, data) => Text(data.name),
+                pending: (context, previous) =>
+                    Text('Pending: ${previous?.name ?? "none"}'),
+              ),
             ),
           ),
         );

@@ -266,9 +266,7 @@ class CrdtBackend<T, ID>
 
       final results = await _db!.query(sql, args);
 
-      return results
-          .map((row) => _fromJson(_stripCrdtMetadata(row)))
-          .toList();
+      return results.map((row) => _fromJson(_stripCrdtMetadata(row))).toList();
     } catch (e, stackTrace) {
       throw _mapException(e, stackTrace); // coverage:ignore-line
     }
@@ -340,9 +338,8 @@ class CrdtBackend<T, ID>
     final subscription = _db!.watch(sql, () => args).listen(
       (results) {
         if (!subject.isClosed) {
-          final items = results
-              .map((row) => _fromJson(_stripCrdtMetadata(row)))
-              .toList();
+          final items =
+              results.map((row) => _fromJson(_stripCrdtMetadata(row))).toList();
           subject.add(items);
         }
       },

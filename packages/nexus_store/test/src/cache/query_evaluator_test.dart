@@ -298,7 +298,8 @@ void main() {
         // This will fall through to toString comparison (line 106)
         // Comparing: _NonComparableObject.toString() > filterValue.toString()
         final filterValue = _NonComparableObject('B');
-        final query = Query<TestUser>().where('custom', isGreaterThan: filterValue);
+        final query =
+            Query<TestUser>().where('custom', isGreaterThan: filterValue);
         final matches = evaluatorWithObjects.evaluate(users, query);
 
         // String comparison: 'Bob' > 'B' is true, 'Zoe' > 'B' is true, 'Alice' > 'B' is false

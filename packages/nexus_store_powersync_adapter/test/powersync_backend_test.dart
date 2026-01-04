@@ -247,9 +247,11 @@ void main() {
       });
 
       test('get returns item when found', () async {
-        when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
-              {'id': '1', 'name': 'John', 'age': 25},
-            ],);
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'John', 'age': 25},
+          ],
+        );
 
         final result = await backend.get('1');
 
@@ -268,10 +270,12 @@ void main() {
       });
 
       test('getAll returns list of items', () async {
-        when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
-              {'id': '1', 'name': 'John'},
-              {'id': '2', 'name': 'Jane'},
-            ],);
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'John'},
+            {'id': '2', 'name': 'Jane'},
+          ],
+        );
 
         final result = await backend.getAll();
 
@@ -281,9 +285,11 @@ void main() {
       });
 
       test('getAll with query applies filters', () async {
-        when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
-              {'id': '1', 'name': 'John'},
-            ],);
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'John'},
+          ],
+        );
 
         final query =
             const nexus.Query<TestUser>().where('name', isEqualTo: 'John');
@@ -299,9 +305,11 @@ void main() {
       });
 
       test('save inserts or replaces item', () async {
-        when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
-              {'id': '1', 'name': 'John'},
-            ],);
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'John'},
+          ],
+        );
 
         final user = TestUser(id: '1', name: 'John');
         final result = await backend.save(user);
@@ -313,9 +321,11 @@ void main() {
       });
 
       test('save updates sync status to pending then synced', () async {
-        when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
-              {'id': '1', 'name': 'John'},
-            ],);
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'John'},
+          ],
+        );
 
         final statuses = <nexus.SyncStatus>[];
         backend.syncStatusStream.listen(statuses.add);
@@ -529,11 +539,13 @@ void main() {
       });
 
       test('getAllPaged returns paged result', () async {
-        when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
-              {'id': '1', 'name': 'John'},
-              {'id': '2', 'name': 'Jane'},
-              {'id': '3', 'name': 'Bob'},
-            ],);
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'John'},
+            {'id': '2', 'name': 'Jane'},
+            {'id': '3', 'name': 'Bob'},
+          ],
+        );
 
         final result = await backend.getAllPaged();
 
@@ -544,11 +556,13 @@ void main() {
       });
 
       test('getAllPaged with firstCount limits results', () async {
-        when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
-              {'id': '1', 'name': 'John'},
-              {'id': '2', 'name': 'Jane'},
-              {'id': '3', 'name': 'Bob'},
-            ],);
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'John'},
+            {'id': '2', 'name': 'Jane'},
+            {'id': '3', 'name': 'Bob'},
+          ],
+        );
 
         final query = const nexus.Query<TestUser>().first(2);
         final result = await backend.getAllPaged(query: query);
@@ -560,11 +574,13 @@ void main() {
       });
 
       test('getAllPaged with afterCursor skips items', () async {
-        when(() => mockDb.execute(any(), any())).thenAnswer((_) async => [
-              {'id': '1', 'name': 'John'},
-              {'id': '2', 'name': 'Jane'},
-              {'id': '3', 'name': 'Bob'},
-            ],);
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'id': '1', 'name': 'John'},
+            {'id': '2', 'name': 'Jane'},
+            {'id': '3', 'name': 'Bob'},
+          ],
+        );
 
         final cursor = nexus.Cursor.fromValues(const {'_index': 1});
         final query = const nexus.Query<TestUser>().after(cursor).first(2);

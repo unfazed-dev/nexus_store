@@ -556,7 +556,8 @@ void main() {
       });
 
       test('NexusStoreLoading toString includes previousData value', () {
-        const state = NexusStoreLoading<String>(previousData: ['item1', 'item2']);
+        const state =
+            NexusStoreLoading<String>(previousData: ['item1', 'item2']);
         final str = state.toString();
         expect(str, contains('previousData'));
         expect(str, contains('item1'));

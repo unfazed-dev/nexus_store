@@ -168,8 +168,8 @@ void main() {
 
       group('whereNotIn filter', () {
         test('handles empty list', () {
-          final query = const Query<TestModel>()
-              .where('role', whereNotIn: <String>[]);
+          final query =
+              const Query<TestModel>().where('role', whereNotIn: <String>[]);
           final result = translator.translate(query);
 
           expect(result.where, isNotNull);

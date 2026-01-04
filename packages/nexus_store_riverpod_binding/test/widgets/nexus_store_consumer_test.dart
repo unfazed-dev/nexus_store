@@ -99,8 +99,7 @@ void main() {
             home: NexusStoreListConsumer<TestUser>(
               provider: provider,
               builder: (context, data) => Text('Count: ${data.length}'),
-              error: (context, error, stackTrace) =>
-                  const Text('Custom error'),
+              error: (context, error, stackTrace) => const Text('Custom error'),
             ),
           ),
         ),
@@ -273,8 +272,7 @@ void main() {
               provider: provider,
               id: 'user-1',
               builder: (context, item) => Text(item?.name ?? 'null'),
-              error: (context, error, stackTrace) =>
-                  const Text('Item error'),
+              error: (context, error, stackTrace) => const Text('Item error'),
             ),
           ),
         ),
@@ -396,7 +394,8 @@ void main() {
                 },
                 builder: (context, data) => ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  children: data.map((u) => ListTile(title: Text(u.name))).toList(),
+                  children:
+                      data.map((u) => ListTile(title: Text(u.name))).toList(),
                 ),
               ),
             ),

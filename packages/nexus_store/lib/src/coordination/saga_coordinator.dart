@@ -115,7 +115,7 @@ class SagaCoordinator {
         results,
         completedSteps,
       );
-    // coverage:ignore-start
+      // coverage:ignore-start
     } catch (e) {
       // Unexpected error - compensate what we have
       // (defensive: _executeWithTimeout and _executeSteps handle errors internally)

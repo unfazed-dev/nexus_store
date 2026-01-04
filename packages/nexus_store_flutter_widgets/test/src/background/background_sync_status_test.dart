@@ -19,7 +19,9 @@ void main() {
         contains(BackgroundSyncStatus.completed),
       );
       expect(
-          BackgroundSyncStatus.values, contains(BackgroundSyncStatus.failed),);
+        BackgroundSyncStatus.values,
+        contains(BackgroundSyncStatus.failed),
+      );
     });
 
     group('state transitions', () {

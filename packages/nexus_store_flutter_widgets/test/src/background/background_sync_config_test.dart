@@ -73,8 +73,8 @@ void main() {
         expect(copy.requiresNetwork, equals(original.requiresNetwork));
         expect(copy.requiresCharging, equals(original.requiresCharging));
         expect(
-            copy.requiresBatteryNotLow,
-            equals(original.requiresBatteryNotLow),
+          copy.requiresBatteryNotLow,
+          equals(original.requiresBatteryNotLow),
         );
       });
 

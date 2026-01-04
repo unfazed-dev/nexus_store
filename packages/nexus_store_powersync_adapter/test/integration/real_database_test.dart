@@ -295,9 +295,8 @@ void main() {
         expect(result, isNull);
       });
 
-      testWithNativeLib(
-        'delete returns false for non-existent record',
-        () async {
+      testWithNativeLib('delete returns false for non-existent record',
+          () async {
         final deleted = await backend.delete('non-existent');
 
         expect(deleted, isFalse);
@@ -334,9 +333,8 @@ void main() {
         expect(remaining.map((u) => u.name), isNot(contains('Bob')));
       });
 
-      testWithNativeLib(
-        'saveAll inserts multiple records in transaction',
-        () async {
+      testWithNativeLib('saveAll inserts multiple records in transaction',
+          () async {
         final users = [
           TestUser(id: '1', name: 'Alice', age: 30),
           TestUser(id: '2', name: 'Bob', age: 25),
@@ -436,8 +434,7 @@ void main() {
 
     group('DefaultPowerSyncDatabaseWrapper transactions', () {
       testWithNativeLib(
-        'writeTransaction commits multiple operations atomically',
-        () async {
+          'writeTransaction commits multiple operations atomically', () async {
         final users = [
           TestUser(id: '1', name: 'Alice', age: 30),
           TestUser(id: '2', name: 'Bob', age: 25),
@@ -474,11 +471,13 @@ void main() {
 
         // Add test data for pagination
         for (var i = 1; i <= 10; i++) {
-          await backend.save(TestUser(
-            id: '$i',
-            name: 'User $i',
-            age: 20 + i,
-          ),);
+          await backend.save(
+            TestUser(
+              id: '$i',
+              name: 'User $i',
+              age: 20 + i,
+            ),
+          );
         }
       });
 
@@ -558,9 +557,8 @@ void main() {
         expect(results, hasLength(2));
       });
 
-      testWithNativeLib(
-        'query with whereIn filters to specific values',
-        () async {
+      testWithNativeLib('query with whereIn filters to specific values',
+          () async {
         final query = const nexus.Query<TestUser>().where(
           'id',
           whereIn: ['1', '3'],

@@ -297,7 +297,8 @@ void main() {
         expect(nestedStep.timeout, equals(const Duration(seconds: 30)));
       });
 
-      test('nested step throws when sub-step fails with partial failure (line 116)',
+      test(
+          'nested step throws when sub-step fails with partial failure (line 116)',
           () async {
         // This test covers line 116: partialFailure: (error, _, __) => throw error
         // A partialFailure occurs when a sub-step fails AND its compensation also fails

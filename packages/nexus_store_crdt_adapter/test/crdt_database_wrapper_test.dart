@@ -112,9 +112,11 @@ void main() {
 
           await expectLater(
             stream,
-            emits(isA<List<Map<String, Object?>>>()
-                .having((l) => l.length, 'length', 1)
-                .having((l) => l.first['name'], 'name', 'Initial'),),
+            emits(
+              isA<List<Map<String, Object?>>>()
+                  .having((l) => l.length, 'length', 1)
+                  .having((l) => l.first['name'], 'name', 'Initial'),
+            ),
           );
         });
 

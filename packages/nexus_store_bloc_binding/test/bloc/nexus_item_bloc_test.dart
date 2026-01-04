@@ -523,7 +523,8 @@ void main() {
         controller2.add(updatedUser);
         await Future<void>.delayed(Duration.zero);
         expect(bloc.state, isA<NexusItemLoaded<TestUser>>());
-        expect((bloc.state as NexusItemLoaded<TestUser>).data.name, 'Updated User');
+        expect((bloc.state as NexusItemLoaded<TestUser>).data.name,
+            'Updated User');
 
         // Verify watch was called twice
         verify(() => mockStore.watch('user-1')).called(2);

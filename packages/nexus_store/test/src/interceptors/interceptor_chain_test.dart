@@ -394,7 +394,8 @@ void main() {
         final log = <String>[];
         final chain = InterceptorChain([
           TrackingInterceptor('A', log),
-          ErrorWithNullStackTraceInterceptor(Exception('Error with null stack')),
+          ErrorWithNullStackTraceInterceptor(
+              Exception('Error with null stack')),
         ]);
 
         try {

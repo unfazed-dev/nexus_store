@@ -63,8 +63,11 @@ void main() {
           () => backend.get('1'),
           throwsA(
             isA<nexus.StateError>()
-                .having((e) => e.message, 'message',
-                    contains('Backend not initialized'),)
+                .having(
+                  (e) => e.message,
+                  'message',
+                  contains('Backend not initialized'),
+                )
                 .having((e) => e.currentState, 'currentState', 'uninitialized')
                 .having((e) => e.expectedState, 'expectedState', 'initialized'),
           ),

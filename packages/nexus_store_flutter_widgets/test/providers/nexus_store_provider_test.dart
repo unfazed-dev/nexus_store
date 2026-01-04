@@ -297,8 +297,7 @@ void main() {
       verify(() => mockStore.watchAll(query: null)).called(1);
     });
 
-    testWidgets('watchNexusStore() passes query parameter',
-        (tester) async {
+    testWidgets('watchNexusStore() passes query parameter', (tester) async {
       final testUsers = [const User(id: '1', name: 'Alice')];
       when(() => mockStore.watchAll(query: any(named: 'query')))
           .thenAnswer((_) => Stream.value(testUsers));
