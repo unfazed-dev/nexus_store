@@ -40,12 +40,12 @@ void main() {
         final values = <int>[];
 
         state.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         state.value = 1;
         state.value = 2;
 
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
         expect(values, equals([0, 1, 2]));
 
         await state.dispose();
@@ -74,10 +74,10 @@ void main() {
 
         state.stream.listen(values1.add);
         state.stream.listen(values2.add);
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         state.value = 1;
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         expect(values1, contains(0));
         expect(values1, contains(1));
@@ -100,10 +100,10 @@ void main() {
         final values = <int>[];
 
         state.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         state.update((current) => current + 1);
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         expect(values, equals([5, 6]));
 
@@ -161,11 +161,11 @@ void main() {
         final values = <List<String>>[];
 
         list.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         list.add('first');
         list.add('second');
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         expect(values, hasLength(3));
         expect(values[0], isEmpty);
@@ -210,10 +210,10 @@ void main() {
         final values = <List<String>>[];
 
         list.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         list.clear();
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         expect(values.last, isEmpty);
 
@@ -283,11 +283,11 @@ void main() {
         final values = <Map<String, int>>[];
 
         map.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         map.set('a', 1);
         map.set('b', 2);
-        await Future<void>.delayed(Duration.zero);
+        await _pumpEventQueue();
 
         expect(values, hasLength(3));
         expect(values[0], isEmpty);
@@ -387,4 +387,10 @@ void main() {
       });
     });
   });
+}
+
+/// Pumps the event queue to allow async operations to complete.
+/// More reliable than Duration.zero on slower CI runners.
+Future<void> _pumpEventQueue() async {
+  await Future<void>.delayed(const Duration(milliseconds: 10));
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:async/async.dart';
 import 'package:nexus_store/src/state/nexus_state.dart';
 import 'package:nexus_store/src/state/persisted_state.dart';
 import 'package:test/test.dart';
@@ -115,7 +116,7 @@ void main() {
 
         state.value = 10;
 
-        // Give time for async save
+        // Give time for async save (microtask)
         await Future<void>.delayed(Duration.zero);
 
         expect(storage.data['counter'], equals('10'));
@@ -254,14 +255,11 @@ void main() {
           deserialize: (s) => int.parse(s),
         );
 
-        final values = <int>[];
-        final subscription = state.stream.listen(values.add);
+        await expectLater(
+          state.stream.first,
+          completion(equals(7)),
+        );
 
-        await Future<void>.delayed(Duration.zero);
-
-        expect(values, contains(7));
-
-        await subscription.cancel();
         await state.dispose();
       });
 
@@ -274,20 +272,17 @@ void main() {
           deserialize: (s) => int.parse(s),
         );
 
-        final values = <int>[];
-        final subscription = state.stream.listen(values.add);
+        final queue = StreamQueue(state.stream);
 
-        await Future<void>.delayed(Duration.zero);
-
+        expect(await queue.next, equals(0)); // Initial
         state.value = 1;
+        expect(await queue.next, equals(1));
         state.value = 2;
+        expect(await queue.next, equals(2));
         state.value = 3;
+        expect(await queue.next, equals(3));
 
-        await Future<void>.delayed(Duration.zero);
-
-        expect(values, equals([0, 1, 2, 3]));
-
-        await subscription.cancel();
+        await queue.cancel();
         await state.dispose();
       });
 
@@ -300,23 +295,21 @@ void main() {
           deserialize: (s) => int.parse(s),
         );
 
-        final values1 = <int>[];
-        final values2 = <int>[];
+        final queue1 = StreamQueue(state.stream);
+        final queue2 = StreamQueue(state.stream);
 
-        final sub1 = state.stream.listen(values1.add);
-        final sub2 = state.stream.listen(values2.add);
-
-        await Future<void>.delayed(Duration.zero);
+        // Both get initial
+        expect(await queue1.next, equals(0));
+        expect(await queue2.next, equals(0));
 
         state.value = 10;
 
-        await Future<void>.delayed(Duration.zero);
+        // Both get updated value
+        expect(await queue1.next, equals(10));
+        expect(await queue2.next, equals(10));
 
-        expect(values1, contains(10));
-        expect(values2, contains(10));
-
-        await sub1.cancel();
-        await sub2.cancel();
+        await queue1.cancel();
+        await queue2.cancel();
         await state.dispose();
       });
     });

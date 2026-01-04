@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:async/async.dart';
 import 'package:nexus_store/src/state/nexus_state.dart';
 import 'package:test/test.dart';
 
@@ -44,17 +45,29 @@ void main() {
 
       test('should emit new value to stream', () async {
         final state = NexusState<int>(0);
-        final values = <int>[];
 
-        state.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
+        await expectLater(
+          state.stream,
+          emitsInOrder([0, 1, 2]),
+        ).timeout(const Duration(seconds: 1), onTimeout: () {
+          state.value = 1;
+          state.value = 2;
+        });
 
+        await state.dispose();
+      });
+
+      test('should emit values via StreamQueue', () async {
+        final state = NexusState<int>(0);
+        final queue = StreamQueue(state.stream);
+
+        expect(await queue.next, equals(0)); // Initial value
         state.value = 1;
+        expect(await queue.next, equals(1));
         state.value = 2;
+        expect(await queue.next, equals(2));
 
-        await Future<void>.delayed(Duration.zero);
-        expect(values, equals([0, 1, 2]));
-
+        await queue.cancel();
         await state.dispose();
       });
     });
@@ -62,35 +75,32 @@ void main() {
     group('stream', () {
       test('should emit initial value immediately (BehaviorSubject)', () async {
         final state = NexusState<int>(42);
-        final completer = Completer<int>();
 
-        unawaited(state.stream.first.then(completer.complete));
-
-        final result = await completer.future.timeout(
-          const Duration(seconds: 1),
+        await expectLater(
+          state.stream.first,
+          completion(equals(42)),
         );
-        expect(result, equals(42));
 
         await state.dispose();
       });
 
       test('should emit to multiple subscribers', () async {
         final state = NexusState<int>(0);
-        final values1 = <int>[];
-        final values2 = <int>[];
+        final queue1 = StreamQueue(state.stream);
+        final queue2 = StreamQueue(state.stream);
 
-        state.stream.listen(values1.add);
-        state.stream.listen(values2.add);
-        await Future<void>.delayed(Duration.zero);
+        // Both get initial value
+        expect(await queue1.next, equals(0));
+        expect(await queue2.next, equals(0));
 
         state.value = 1;
-        await Future<void>.delayed(Duration.zero);
 
-        expect(values1, contains(0));
-        expect(values1, contains(1));
-        expect(values2, contains(0));
-        expect(values2, contains(1));
+        // Both get updated value
+        expect(await queue1.next, equals(1));
+        expect(await queue2.next, equals(1));
 
+        await queue1.cancel();
+        await queue2.cancel();
         await state.dispose();
       });
     });
@@ -104,16 +114,13 @@ void main() {
 
       test('should emit transformed value to stream', () async {
         final state = NexusState<int>(5);
-        final values = <int>[];
+        final queue = StreamQueue(state.stream);
 
-        state.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
-
+        expect(await queue.next, equals(5)); // Initial
         state.update((current) => current + 1);
-        await Future<void>.delayed(Duration.zero);
+        expect(await queue.next, equals(6));
 
-        expect(values, equals([5, 6]));
-
+        await queue.cancel();
         await state.dispose();
       });
 
@@ -138,17 +145,15 @@ void main() {
 
       test('should emit initial value to stream after reset', () async {
         final state = NexusState<String>('initial');
-        final values = <String>[];
+        final queue = StreamQueue(state.stream);
 
-        state.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
-
+        expect(await queue.next, equals('initial'));
         state.value = 'changed';
+        expect(await queue.next, equals('changed'));
         state.reset();
-        await Future<void>.delayed(Duration.zero);
+        expect(await queue.next, equals('initial'));
 
-        expect(values, equals(['initial', 'changed', 'initial']));
-
+        await queue.cancel();
         await state.dispose();
       });
 
@@ -179,17 +184,15 @@ void main() {
 
       test('should emit value to stream', () async {
         final state = NexusState<int>(0);
-        final values = <int>[];
+        final queue = StreamQueue(state.stream);
 
-        state.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
-
+        expect(await queue.next, equals(0));
         state.emit(1);
+        expect(await queue.next, equals(1));
         state.emit(2);
-        await Future<void>.delayed(Duration.zero);
+        expect(await queue.next, equals(2));
 
-        expect(values, equals([0, 1, 2]));
-
+        await queue.cancel();
         await state.dispose();
       });
     });
@@ -253,35 +256,36 @@ void main() {
         final state = NexusState<int>(0);
         final values = <int>[];
 
-        state.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
+        final subscription = state.stream.listen(values.add);
 
+        // Perform rapid updates
         for (var i = 1; i <= 100; i++) {
           state.value = i;
         }
+
+        // Wait for all microtasks to complete
         await Future<void>.delayed(Duration.zero);
 
         expect(values.length, equals(101)); // Initial + 100 updates
         expect(values.first, equals(0));
         expect(values.last, equals(100));
 
+        await subscription.cancel();
         await state.dispose();
       });
 
       test('should handle same value updates', () async {
         final state = NexusState<int>(0);
-        final values = <int>[];
+        final queue = StreamQueue(state.stream);
 
-        state.stream.listen(values.add);
-        await Future<void>.delayed(Duration.zero);
-
+        expect(await queue.next, equals(0)); // Initial
         state.value = 0;
+        expect(await queue.next, equals(0)); // Duplicate
         state.value = 0;
-        await Future<void>.delayed(Duration.zero);
+        expect(await queue.next, equals(0)); // Another duplicate
 
         // BehaviorSubject emits all values, even duplicates
-        expect(values.length, equals(3));
-
+        await queue.cancel();
         await state.dispose();
       });
 

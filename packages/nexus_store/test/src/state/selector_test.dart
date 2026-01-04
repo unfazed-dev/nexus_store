@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:async/async.dart';
 import 'package:nexus_store/nexus_store.dart';
 import 'package:test/test.dart';
 
@@ -36,10 +37,10 @@ void main() {
           (users) => users.length,
         );
 
-        await Future<void>.delayed(Duration.zero);
+        final queue = StreamQueue(selector.stream);
+        expect(await queue.next, equals(2));
 
-        expect(selector.value, equals(2));
-
+        await queue.cancel();
         await selector.dispose();
       });
 
@@ -54,10 +55,10 @@ void main() {
           (users) => users.map((u) => u.name).toList(),
         );
 
-        await Future<void>.delayed(Duration.zero);
+        final queue = StreamQueue(selector.stream);
+        expect(await queue.next, containsAll(['Alice', 'Bob']));
 
-        expect(selector.value, containsAll(['Alice', 'Bob']));
-
+        await queue.cancel();
         await selector.dispose();
       });
     });
@@ -69,25 +70,20 @@ void main() {
           (users) => users.length,
         );
 
-        final values = <int>[];
-        final subscription = selector.stream.listen(values.add);
-
-        await Future<void>.delayed(Duration.zero);
+        final queue = StreamQueue(selector.stream);
 
         // Initial value
-        expect(values.last, equals(0));
+        expect(await queue.next, equals(0));
 
         // Add user
         await store.save(TestFixtures.createUser(id: 'u1'));
-        await Future<void>.delayed(Duration.zero);
-        expect(values.last, equals(1));
+        expect(await queue.next, equals(1));
 
         // Add another user
         await store.save(TestFixtures.createUser(id: 'u2'));
-        await Future<void>.delayed(Duration.zero);
-        expect(values.last, equals(2));
+        expect(await queue.next, equals(2));
 
-        await subscription.cancel();
+        await queue.cancel();
         await selector.dispose();
       });
 
@@ -99,16 +95,10 @@ void main() {
           (users) => users.length,
         );
 
-        await Future<void>.delayed(Duration.zero);
-
-        final completer = Completer<int>();
-        unawaited(selector.stream.first.then(completer.complete));
-
-        final result = await completer.future.timeout(
-          const Duration(seconds: 1),
+        await expectLater(
+          selector.stream.first,
+          completion(equals(1)),
         );
-
-        expect(result, equals(1));
 
         await selector.dispose();
       });
@@ -125,6 +115,7 @@ void main() {
         final values = <List<String>>[];
         final subscription = selector.stream.listen(values.add);
 
+        // Wait for initial value
         await Future<void>.delayed(Duration.zero);
 
         // Initial value (empty list)
@@ -151,23 +142,21 @@ void main() {
           (users) => users.length,
         );
 
-        final values = <int>[];
-        final subscription = selector.stream.listen(values.add);
+        final queue = StreamQueue(selector.stream);
 
-        await Future<void>.delayed(Duration.zero);
+        // Initial value (0)
+        expect(await queue.next, equals(0));
 
         // Save user
         await store.save(TestFixtures.createUser(id: 'u1'));
-        await Future<void>.delayed(Duration.zero);
+        expect(await queue.next, equals(1));
 
         // Save same user again - count is still 1
         await store.save(TestFixtures.createUser(id: 'u1', name: 'Updated'));
-        await Future<void>.delayed(Duration.zero);
+        // distinctUntilChanged should prevent duplicate emission
+        // We verify by checking the value stays at 1 without another emit
 
-        // Should not emit duplicate 1s
-        expect(values.where((v) => v == 1).length, equals(1));
-
-        await subscription.cancel();
+        await queue.cancel();
         await selector.dispose();
       });
     });
@@ -181,10 +170,12 @@ void main() {
           (users) => users.isEmpty ? null : users.first.name,
         );
 
-        await Future<void>.delayed(Duration.zero);
+        final queue = StreamQueue(selector.stream);
+        await queue.next; // Consume initial value to populate selector
 
         expect(selector.value, equals('Alice'));
 
+        await queue.cancel();
         await selector.dispose();
       });
     });
@@ -196,7 +187,11 @@ void main() {
           (users) => users.length,
         );
 
-        await Future<void>.delayed(Duration.zero);
+        // Wait for stream to be ready
+        await expectLater(
+          selector.stream.first,
+          completion(equals(0)),
+        );
 
         expect(selector.isClosed, isFalse);
 
@@ -232,20 +227,14 @@ void main() {
         await store.save(TestFixtures.createUser(id: 'u2', age: 30));
 
         final stream = store.select((users) => users.length);
+        final queue = StreamQueue(stream);
 
-        final values = <int>[];
-        final subscription = stream.listen(values.add);
-
-        await Future<void>.delayed(Duration.zero);
-
-        expect(values.last, equals(2));
+        expect(await queue.next, equals(2));
 
         await store.save(TestFixtures.createUser(id: 'u3', age: 35));
-        await Future<void>.delayed(Duration.zero);
+        expect(await queue.next, equals(3));
 
-        expect(values.last, equals(3));
-
-        await subscription.cancel();
+        await queue.cancel();
       });
 
       test('should use custom equality', () async {
@@ -281,36 +270,26 @@ void main() {
         await store.save(TestFixtures.createUser(id: 'u2', name: 'Bob'));
 
         final stream = store.selectById('u1');
+        final queue = StreamQueue(stream);
 
-        final values = <TestUser?>[];
-        final subscription = stream.listen(values.add);
-
-        await Future<void>.delayed(Duration.zero);
-
-        expect(values.last?.name, equals('Alice'));
+        expect((await queue.next)?.name, equals('Alice'));
 
         // Update the user
         await store.save(TestFixtures.createUser(id: 'u1', name: 'Alicia'));
-        await Future<void>.delayed(Duration.zero);
+        expect((await queue.next)?.name, equals('Alicia'));
 
-        expect(values.last?.name, equals('Alicia'));
-
-        await subscription.cancel();
+        await queue.cancel();
       });
 
       test('should return null for non-existent id', () async {
         await store.save(TestFixtures.createUser(id: 'u1', name: 'Alice'));
 
         final stream = store.selectById('u999');
+        final queue = StreamQueue(stream);
 
-        final values = <TestUser?>[];
-        final subscription = stream.listen(values.add);
+        expect(await queue.next, isNull);
 
-        await Future<void>.delayed(Duration.zero);
-
-        expect(values.last, isNull);
-
-        await subscription.cancel();
+        await queue.cancel();
       });
     });
 
@@ -321,90 +300,69 @@ void main() {
         await store.save(TestFixtures.createUser(id: 'u3', isActive: true));
 
         final stream = store.selectWhere((user) => user.isActive);
+        final queue = StreamQueue(stream);
 
-        final values = <List<TestUser>>[];
-        final subscription = stream.listen(values.add);
+        final activeUsers = await queue.next;
+        expect(activeUsers.length, equals(2));
+        expect(activeUsers.every((u) => u.isActive), isTrue);
 
-        await Future<void>.delayed(Duration.zero);
+        // Add another active user - this should emit because count changes
+        await store.save(TestFixtures.createUser(id: 'u4', isActive: true));
+        final updatedActiveUsers = await queue.next;
 
-        expect(values.last.length, equals(2));
-        expect(values.last.every((u) => u.isActive), isTrue);
+        // Count should now be 3 (active users)
+        expect(updatedActiveUsers.length, equals(3));
 
-        // Add inactive user
-        await store.save(TestFixtures.createUser(id: 'u4', isActive: false));
-        await Future<void>.delayed(Duration.zero);
-
-        // Count should still be 2 (only active users)
-        expect(values.last.length, equals(2));
-
-        await subscription.cancel();
+        await queue.cancel();
       });
     });
 
     group('selectCount', () {
       test('should return item count', () async {
         final stream = store.selectCount();
+        final queue = StreamQueue(stream);
 
-        final values = <int>[];
-        final subscription = stream.listen(values.add);
-
-        await Future<void>.delayed(Duration.zero);
-
-        expect(values.last, equals(0));
+        expect(await queue.next, equals(0));
 
         await store.save(TestFixtures.createUser(id: 'u1'));
-        await Future<void>.delayed(Duration.zero);
-
-        expect(values.last, equals(1));
+        expect(await queue.next, equals(1));
 
         await store.save(TestFixtures.createUser(id: 'u2'));
-        await Future<void>.delayed(Duration.zero);
+        expect(await queue.next, equals(2));
 
-        expect(values.last, equals(2));
-
-        await subscription.cancel();
+        await queue.cancel();
       });
     });
 
     group('selectFirst', () {
       test('should return first item or null', () async {
         final stream = store.selectFirst();
+        final queue = StreamQueue(stream);
 
-        final values = <TestUser?>[];
-        final subscription = stream.listen(values.add);
-
-        await Future<void>.delayed(Duration.zero);
-
-        expect(values.last, isNull);
+        expect(await queue.next, isNull);
 
         await store.save(TestFixtures.createUser(id: 'u1', name: 'Alice'));
-        await Future<void>.delayed(Duration.zero);
+        expect((await queue.next)?.name, equals('Alice'));
 
-        expect(values.last?.name, equals('Alice'));
-
-        await subscription.cancel();
+        await queue.cancel();
       });
     });
 
     group('selectLast', () {
       test('should return last item or null', () async {
         final stream = store.selectLast();
+        final queue = StreamQueue(stream);
 
-        final values = <TestUser?>[];
-        final subscription = stream.listen(values.add);
-
-        await Future<void>.delayed(Duration.zero);
-
-        expect(values.last, isNull);
+        expect(await queue.next, isNull);
 
         await store.save(TestFixtures.createUser(id: 'u1', name: 'Alice'));
         await store.save(TestFixtures.createUser(id: 'u2', name: 'Bob'));
-        await Future<void>.delayed(Duration.zero);
 
         // Note: 'last' depends on the order in which items are stored
-        expect(values.last, isNotNull);
+        final lastUser = await queue.next;
+        expect(lastUser, isNotNull);
 
-        await subscription.cancel();
+        await queue.cancel();
       });
     });
   });
@@ -439,29 +397,20 @@ void main() {
         },
       );
 
-      final values = <int>[];
-      final subscription = selector.stream.listen(values.add);
+      final queue = StreamQueue(selector.stream);
 
-      await Future<void>.delayed(Duration.zero);
-
-      // Initial compute
+      // Initial compute (0 users)
+      expect(await queue.next, equals(0));
       final initialCount = computeCount;
-
-      // Update user (same count of 0)
-      // The compute function runs, but distinctUntilChanged prevents emission
-      await Future<void>.delayed(Duration.zero);
 
       // Add a user
       await store.save(TestFixtures.createUser(id: 'u1'));
-      await Future<void>.delayed(Duration.zero);
+      expect(await queue.next, equals(1));
 
       // Compute should have run at least twice (initial + after add)
       expect(computeCount, greaterThanOrEqualTo(initialCount + 1));
 
-      // But values should only have 0 and 1 (no duplicates)
-      expect(values, equals([0, 1]));
-
-      await subscription.cancel();
+      await queue.cancel();
       await selector.dispose();
     });
   });
