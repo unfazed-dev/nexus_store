@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   nexus_store: ^0.1.0
-  sqlite_crdt: ^3.0.4
+  sqlite_crdt: ^3.0.2
   crdt: ^5.1.3
   meta: ^1.12.0
   rxdart: ^0.28.0
