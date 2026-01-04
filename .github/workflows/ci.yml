@@ -17,10 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@v1
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          sdk: "3.6.0"
+          flutter-version: "3.22.0"
+          channel: stable
 
       - name: Install Melos
         run: dart pub global activate melos
@@ -51,10 +52,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@v1
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          sdk: "3.6.0"
+          flutter-version: "3.22.0"
+          channel: stable
 
       - name: Install Melos
         run: dart pub global activate melos
@@ -195,10 +197,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@v1
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          sdk: "3.6.0"
+          flutter-version: "3.22.0"
+          channel: stable
 
       - name: Install Melos
         run: dart pub global activate melos
@@ -209,21 +212,11 @@ jobs:
       - name: Run core package tests with coverage
         run: |
           cd packages/nexus_store
-          dart test --coverage=coverage
+          flutter test --coverage
 
       - name: Check coverage threshold (95%)
         run: |
           cd packages/nexus_store
-          # Install coverage tools
-          dart pub global activate coverage
-
-          # Generate lcov report
-          dart pub global run coverage:format_coverage \
-            --lcov \
-            --in=coverage \
-            --out=coverage/lcov.info \
-            --report-on=lib
-
           # Calculate coverage percentage
           TOTAL=$(grep -c "^DA:" coverage/lcov.info || echo 0)
           COVERED=$(grep "^DA:" coverage/lcov.info | grep -v ",0$" | wc -l || echo 0)
@@ -247,10 +240,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@v1
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          sdk: "3.6.0"
+          flutter-version: "3.22.0"
+          channel: stable
 
       - name: Install Melos
         run: dart pub global activate melos
