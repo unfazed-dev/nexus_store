@@ -30,6 +30,10 @@ coverage/
 doc/api/
 tests_reports/
 
+# Project-specific local folders
+.claude/
+docs/
+
 # Native binaries (downloaded for testing)
 libpowersync.dylib
 libpowersync.so
