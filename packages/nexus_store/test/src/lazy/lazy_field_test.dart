@@ -62,6 +62,23 @@ void main() {
         expect(result, equals('loaded value'));
         expect(field.state, equals(LazyFieldState.loaded));
       });
+
+      test('loaded constructor loader executes after reset (covers line 48)',
+          () async {
+        // Line 48: _loader = (() async => value)
+        // To actually execute the loader, we need to reset first, then load
+        final field = LazyField<String>.loaded('loaded value');
+
+        // Reset to clear the loaded state
+        field.reset();
+        expect(field.state, equals(LazyFieldState.notLoaded));
+
+        // Now load() will call the loader created by .loaded() constructor
+        final result = await field.load();
+
+        expect(result, equals('loaded value'));
+        expect(field.state, equals(LazyFieldState.loaded));
+      });
     });
 
     group('requireValue', () {

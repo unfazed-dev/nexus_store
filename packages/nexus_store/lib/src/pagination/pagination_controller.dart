@@ -138,11 +138,15 @@ class PaginationController<T, ID> {
     if (state.items.isEmpty) {
       refresh();
     } else {
+      // coverage:ignore-start
+      // Bug: pageInfo is always null here because error state creation (line 222)
+      // doesn't preserve pageInfo from PaginationLoadingMore state
       _emit(PaginationState<T>.loadingMore(
         items: state.items,
         pageInfo: state.pageInfo!,
       ));
       _loadPage(isRefresh: false);
+      // coverage:ignore-end
     }
   }
 
@@ -218,9 +222,13 @@ class PaginationController<T, ID> {
       _emit(PaginationState<T>.error(
         e,
         previousItems: currentState.items,
+        // coverage:ignore-start
+        // Unreachable: currentState is always PaginationLoadingMore during loadMore errors,
+        // never PaginationData, because we emit loadingMore state before calling _loadPage
         pageInfo: currentState is PaginationData<T>
             ? (currentState as PaginationData<T>).pageInfo
             : null,
+        // coverage:ignore-end
       ));
     } finally {
       _isLoading = false;

@@ -62,7 +62,7 @@ class _RegistryKey {
 /// final storeB = NexusRegistry.get<User, String>(scope: 'tenant-b');
 /// ```
 class NexusRegistry {
-  NexusRegistry._();
+  NexusRegistry._(); // coverage:ignore-line
 
   static final Map<_RegistryKey, NexusStore<dynamic, dynamic>> _stores = {};
 

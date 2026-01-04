@@ -157,10 +157,12 @@ abstract class FieldSchema with _$FieldSchema {
       return "Field '$name' is required";
     }
 
-    // Check nullability
+    // Check nullability (unreachable: if isRequired && value == null, line 156 returns first)
+    // coverage:ignore-start
     if (!isNullable && value == null && isRequired) {
       return "Field '$name' cannot be null";
     }
+    // coverage:ignore-end
 
     // Skip type check for null values
     if (value == null) return null;

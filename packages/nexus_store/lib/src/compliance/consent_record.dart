@@ -16,7 +16,7 @@ enum ConsentAction {
 ///
 /// These are common GDPR-compliant purposes. Custom purposes can also be used.
 class ConsentPurpose {
-  ConsentPurpose._();
+  ConsentPurpose._(); // coverage:ignore-line
 
   /// Marketing communications.
   static const String marketing = 'marketing';

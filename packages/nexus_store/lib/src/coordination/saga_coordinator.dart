@@ -115,8 +115,10 @@ class SagaCoordinator {
         results,
         completedSteps,
       );
+    // coverage:ignore-start
     } catch (e) {
       // Unexpected error - compensate what we have
+      // (defensive: _executeWithTimeout and _executeSteps handle errors internally)
       return await _handleFailure(
         e,
         'unknown',
@@ -124,6 +126,7 @@ class SagaCoordinator {
         completedSteps,
       );
     }
+    // coverage:ignore-end
   }
 
   Future<SagaResult<T>> _executeWithTimeout<T>(
