@@ -448,9 +448,9 @@ void main() {
       test('get retrieves a record by id', () async {
         final model = TestModel(id: 'get-1', name: 'Get Test');
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => [model]);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => [model]);
 
         final result = await initBackend.get('get-1');
 
@@ -459,9 +459,9 @@ void main() {
       });
 
       test('get returns null for non-existent id', () async {
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => <TestModel>[]);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => <TestModel>[]);
 
         final result = await initBackend.get('non-existent');
 
@@ -474,9 +474,9 @@ void main() {
           TestModel(id: '2', name: 'Item 2'),
         ];
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => models);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => models);
 
         final results = await initBackend.getAll();
 
@@ -486,9 +486,9 @@ void main() {
       test('getAll with query filters results', () async {
         final filtered = [TestModel(id: '1', name: 'Filtered')];
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => filtered);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => filtered);
 
         final query = const nexus.Query<TestModel>().where(
           'name',
@@ -504,9 +504,9 @@ void main() {
       test('delete removes a record', () async {
         final model = TestModel(id: 'del-1', name: 'To Delete');
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => [model]);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => [model]);
         when(() => initMockRepository.delete<TestModel>(model))
             .thenAnswer((_) async => true);
 
@@ -516,9 +516,9 @@ void main() {
       });
 
       test('delete returns false for non-existent record', () async {
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => <TestModel>[]);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => <TestModel>[]);
 
         final deleted = await initBackend.delete('non-existent');
 
@@ -531,9 +531,9 @@ void main() {
           TestModel(id: 'del-2', name: 'Item 2'),
         ];
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => models);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => models);
         when(() => initMockRepository.delete<TestModel>(any()))
             .thenAnswer((_) async => true);
 
@@ -545,9 +545,9 @@ void main() {
       test('deleteWhere removes records matching query', () async {
         final models = [TestModel(id: 'delw-1', name: 'Match')];
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => models);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => models);
         when(() => initMockRepository.delete<TestModel>(any()))
             .thenAnswer((_) async => true);
 
@@ -587,9 +587,9 @@ void main() {
       test('watch emits initial value', () async {
         final model = TestModel(id: 'watch-1', name: 'Watch Test');
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => [model]);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => [model]);
         when(
           () => initMockRepository.subscribe<TestModel>(
             query: any(named: 'query'),
@@ -607,17 +607,19 @@ void main() {
         final original = TestModel(id: 'watch-2', name: 'Original');
         final updated = TestModel(id: 'watch-2', name: 'Updated');
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => [original]);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => [original]);
         when(
           () => initMockRepository.subscribe<TestModel>(
             query: any(named: 'query'),
           ),
-        ).thenAnswer((_) => Stream.fromIterable([
-              [original],
-              [updated],
-            ]),);
+        ).thenAnswer(
+          (_) => Stream.fromIterable([
+            [original],
+            [updated],
+          ]),
+        );
 
         final stream = initBackend.watch('watch-2');
         // Use timeout to prevent test hanging if stream doesn't emit expected values
@@ -635,9 +637,9 @@ void main() {
           TestModel(id: 'wall-2', name: 'Item 2'),
         ];
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => models);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => models);
         when(
           () => initMockRepository.subscribe<TestModel>(
             query: any(named: 'query'),
@@ -657,9 +659,9 @@ void main() {
           TestModel(id: 'wall-4', name: 'New'),
         ];
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => initial);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => initial);
         when(
           () => initMockRepository.subscribe<TestModel>(
             query: any(named: 'query'),
@@ -679,9 +681,9 @@ void main() {
       test('watchAll with query filters results', () async {
         final filtered = [TestModel(id: 'wquery-1', name: 'Filtered')];
 
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => filtered);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => filtered);
         when(
           () => initMockRepository.subscribe<TestModel>(
             query: any(named: 'query'),
@@ -724,9 +726,9 @@ void main() {
       });
 
       test('sync triggers repository refresh', () async {
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => <TestModel>[]);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => <TestModel>[]);
 
         await initBackend.sync();
 
@@ -735,9 +737,9 @@ void main() {
       });
 
       test('sync updates status during operation', () async {
-        when(() =>
-                initMockRepository.get<TestModel>(query: any(named: 'query')),)
-            .thenAnswer((_) async => <TestModel>[]);
+        when(
+          () => initMockRepository.get<TestModel>(query: any(named: 'query')),
+        ).thenAnswer((_) async => <TestModel>[]);
 
         final statuses = <nexus.SyncStatus>[];
         final subscription = initBackend.syncStatusStream.listen(statuses.add);

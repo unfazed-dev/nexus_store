@@ -74,10 +74,12 @@ void main() {
         final salt = Uint8List.fromList([1, 2, 3, 4, 255]);
         await saltStorage.storeSalt('user-123', salt);
 
-        verify(() => mockStorage.write(
-              key: 'test_salt_user-123',
-              value: '01020304ff',
-            ),).called(1);
+        verify(
+          () => mockStorage.write(
+            key: 'test_salt_user-123',
+            value: '01020304ff',
+          ),
+        ).called(1);
       });
     });
 
@@ -123,11 +125,13 @@ void main() {
 
     group('deleteAllSalts', () {
       test('deletes only prefixed keys', () async {
-        when(() => mockStorage.readAll()).thenAnswer((_) async => {
-              'test_salt_user-123': 'abc123',
-              'test_salt_user-456': 'def456',
-              'other_key': 'value',
-            },);
+        when(() => mockStorage.readAll()).thenAnswer(
+          (_) async => {
+            'test_salt_user-123': 'abc123',
+            'test_salt_user-456': 'def456',
+            'other_key': 'value',
+          },
+        );
         when(() => mockStorage.delete(key: any(named: 'key')))
             .thenAnswer((_) async {});
 
@@ -141,11 +145,13 @@ void main() {
 
     group('listSaltKeyIds', () {
       test('returns key IDs without prefix', () async {
-        when(() => mockStorage.readAll()).thenAnswer((_) async => {
-              'test_salt_user-123': 'abc123',
-              'test_salt_user-456': 'def456',
-              'other_key': 'value',
-            },);
+        when(() => mockStorage.readAll()).thenAnswer(
+          (_) async => {
+            'test_salt_user-123': 'abc123',
+            'test_salt_user-456': 'def456',
+            'other_key': 'value',
+          },
+        );
 
         final result = await saltStorage.listSaltKeyIds();
 
@@ -157,20 +163,24 @@ void main() {
 
     group('hex conversion', () {
       test('round-trips bytes correctly', () async {
-        when(() => mockStorage.write(
-              key: any(named: 'key'),
-              value: any(named: 'value'),
-            ),).thenAnswer((_) async {});
+        when(
+          () => mockStorage.write(
+            key: any(named: 'key'),
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async {});
 
         final originalSalt = Uint8List.fromList(
           List.generate(16, (i) => i * 16 + i),
         );
         await saltStorage.storeSalt('test', originalSalt);
 
-        final captured = verify(() => mockStorage.write(
-              key: 'test_salt_test',
-              value: captureAny(named: 'value'),
-            ),).captured.single as String;
+        final captured = verify(
+          () => mockStorage.write(
+            key: 'test_salt_test',
+            value: captureAny(named: 'value'),
+          ),
+        ).captured.single as String;
 
         when(() => mockStorage.read(key: 'test_salt_test'))
             .thenAnswer((_) async => captured);
