@@ -284,8 +284,24 @@ See the [example](example/) directory for complete working examples:
 
 ## License
 
-BSD 3 License - see [LICENSE](LICENSE) for details.
+BSD 3 License - see [LICENSE](LICENSE) file for details.
 
-## Contributing
+## Links
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+- **Repository**: https://github.com/unfazed-dev/nexus_store
+- **Issues**: https://github.com/unfazed-dev/nexus_store/issues
+- **Pub.dev**: https://pub.dev/packages/nexus_store
+
+## Support
+
+For bugs, feature requests, or questions:
+1. Check existing [issues](https://github.com/unfazed-dev/nexus_store/issues)
+2. Create a new issue with detailed information
+
+---
+
+Made with ❤️ for the Flutter/Dart community
+
+---
+
+Authored and orchestrated by **Evan Pierre Louis - (unfazed-dev)**, with pair programming powered by [Claude Code](https://claude.com/claude-code) from Anthropic.
