@@ -14,8 +14,8 @@ void main() {
         tableName: 'users',
         columns: columns,
         fromJson: TestUser.fromJson,
-        toJson: (TestUser u) => u.toJson(),
-        getId: (TestUser u) => u.id,
+        toJson: (u) => u.toJson(),
+        getId: (u) => u.id,
         powerSyncUrl: 'https://test.powersync.co',
       );
 
@@ -32,8 +32,8 @@ void main() {
           PSColumn.integer('age'),
         ],
         fromJson: TestUser.fromJson,
-        toJson: (TestUser u) => u.toJson(),
-        getId: (TestUser u) => u.id,
+        toJson: (u) => u.toJson(),
+        getId: (u) => u.id,
         powerSyncUrl: 'https://test.powersync.co',
       );
 
@@ -48,8 +48,8 @@ void main() {
         tableName: 'users',
         columns: [PSColumn.text('name')],
         fromJson: TestUser.fromJson,
-        toJson: (TestUser u) => u.toJson(),
-        getId: (TestUser u) => u.id,
+        toJson: (u) => u.toJson(),
+        getId: (u) => u.id,
         powerSyncUrl: 'https://test.powersync.co',
         dbPath: '/custom/path/db.sqlite',
       );
@@ -62,8 +62,8 @@ void main() {
         tableName: 'users',
         columns: [PSColumn.text('name')],
         fromJson: TestUser.fromJson,
-        toJson: (TestUser u) => u.toJson(),
-        getId: (TestUser u) => u.id,
+        toJson: (u) => u.toJson(),
+        getId: (u) => u.id,
         powerSyncUrl: 'https://test.powersync.co',
       );
 
@@ -80,8 +80,8 @@ void main() {
           PSColumn.integer('quantity'),
         ],
         fromJson: TestUser.fromJson,
-        toJson: (TestUser u) => u.toJson(),
-        getId: (TestUser u) => u.id,
+        toJson: (u) => u.toJson(),
+        getId: (u) => u.id,
         powerSyncUrl: 'https://test.powersync.co',
       );
 
@@ -102,13 +102,11 @@ void main() {
 class TestUser {
   TestUser({required this.id, required this.name, this.age});
 
-  factory TestUser.fromJson(Map<String, dynamic> json) {
-    return TestUser(
+  factory TestUser.fromJson(Map<String, dynamic> json) => TestUser(
       id: json['id'] as String,
       name: json['name'] as String,
       age: json['age'] as int?,
     );
-  }
 
   final String id;
   final String name;

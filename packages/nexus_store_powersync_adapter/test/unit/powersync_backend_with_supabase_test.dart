@@ -8,30 +8,41 @@ class MockSupabaseClient extends Mock implements SupabaseClient {}
 
 class MockGoTrueClient extends Mock implements GoTrueClient {}
 
-class MockSession extends Mock implements Session {}
+// Using Fake instead of Mock because Session/User override ==
+// ignore: avoid_implementing_value_types
+class FakeSession extends Fake implements Session {
+  @override
+  String get accessToken => 'test-token';
 
-class MockUser extends Mock implements User {}
+  @override
+  int? get expiresIn =>
+      DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch ~/
+      1000;
+
+  @override
+  User get user => FakeUser();
+}
+
+// ignore: avoid_implementing_value_types
+class FakeUser extends Fake implements User {
+  @override
+  String get id => 'user-123';
+}
 
 void main() {
   group('PowerSyncBackend.withSupabase', () {
     late MockSupabaseClient mockSupabase;
     late MockGoTrueClient mockAuth;
-    late MockSession mockSession;
-    late MockUser mockUser;
+    late FakeSession fakeSession;
 
     setUp(() {
       mockSupabase = MockSupabaseClient();
       mockAuth = MockGoTrueClient();
-      mockSession = MockSession();
-      mockUser = MockUser();
+      fakeSession = FakeSession();
 
       // Setup auth chain
       when(() => mockSupabase.auth).thenReturn(mockAuth);
-      when(() => mockAuth.currentSession).thenReturn(mockSession);
-      when(() => mockSession.accessToken).thenReturn('test-token');
-      when(() => mockSession.user).thenReturn(mockUser);
-      when(() => mockUser.id).thenReturn('user-123');
-      when(() => mockSession.expiresIn).thenReturn(3600);
+      when(() => mockAuth.currentSession).thenReturn(fakeSession);
     });
 
     group('factory construction', () {
@@ -45,8 +56,8 @@ void main() {
             PSColumn.text('email'),
           ],
           fromJson: TestUser.fromJson,
-          toJson: (TestUser u) => u.toJson(),
-          getId: (TestUser u) => u.id,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
         );
 
         expect(backend, isA<PowerSyncBackend<TestUser, String>>());
@@ -60,8 +71,8 @@ void main() {
           tableName: 'users',
           columns: [PSColumn.text('name')],
           fromJson: TestUser.fromJson,
-          toJson: (TestUser u) => u.toJson(),
-          getId: (TestUser u) => u.id,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
           dbPath: '/custom/path/db.sqlite',
         );
 
@@ -75,8 +86,8 @@ void main() {
           tableName: 'users',
           columns: [PSColumn.text('name')],
           fromJson: TestUser.fromJson,
-          toJson: (TestUser u) => u.toJson(),
-          getId: (TestUser u) => u.id,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
         );
 
         expect(backend, isNotNull);
@@ -89,8 +100,8 @@ void main() {
           tableName: 'users',
           columns: [PSColumn.text('name')],
           fromJson: TestUser.fromJson,
-          toJson: (TestUser u) => u.toJson(),
-          getId: (TestUser u) => u.id,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
           primaryKeyColumn: 'user_id',
         );
 
@@ -104,8 +115,8 @@ void main() {
           tableName: 'users',
           columns: [PSColumn.text('name')],
           fromJson: TestUser.fromJson,
-          toJson: (TestUser u) => u.toJson(),
-          getId: (TestUser u) => u.id,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
           fieldMapping: {'userName': 'name'},
         );
 
@@ -121,8 +132,8 @@ void main() {
           tableName: 'users',
           columns: [PSColumn.text('name')],
           fromJson: TestUser.fromJson,
-          toJson: (TestUser u) => u.toJson(),
-          getId: (TestUser u) => u.id,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
         );
 
         // dispose should not throw when called on uninitialized backend
@@ -136,8 +147,8 @@ void main() {
           tableName: 'users',
           columns: [PSColumn.text('name')],
           fromJson: TestUser.fromJson,
-          toJson: (TestUser u) => u.toJson(),
-          getId: (TestUser u) => u.id,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
         );
 
         // Calling dispose multiple times should not throw
@@ -154,8 +165,8 @@ void main() {
           tableName: 'custom_users',
           columns: [PSColumn.text('name')],
           fromJson: TestUser.fromJson,
-          toJson: (TestUser u) => u.toJson(),
-          getId: (TestUser u) => u.id,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
         );
 
         expect(backend, isNotNull);
@@ -175,8 +186,8 @@ void main() {
           tableName: 'users',
           columns: columns,
           fromJson: TestUser.fromJson,
-          toJson: (TestUser u) => u.toJson(),
-          getId: (TestUser u) => u.id,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
         );
 
         expect(backend, isNotNull);

@@ -185,7 +185,8 @@ class PowerSyncBackend<T, ID>
   final PowerSyncBackendConfig<T, ID>? _config;
   ps.PowerSyncDatabase? _ownedDatabase;
   SupabasePowerSyncConnector? _connector;
-  // ignore: unused_field - reserved for future cleanup functionality
+  // Reserved for future cleanup functionality.
+  // ignore: unused_field, use_late_for_private_fields_and_variables
   String? _generatedDbPath;
   final String _primaryKeyColumn;
   final PowerSyncQueryTranslator<T> _queryTranslator;

@@ -3,21 +3,23 @@
 [![Pub Version](https://img.shields.io/pub/v/nexus_store_powersync_adapter)](https://pub.dev/packages/nexus_store_powersync_adapter)
 [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-PowerSync adapter for nexus_store with offline-first sync and SQLCipher support.
+PowerSync adapter for nexus_store with offline-first sync and SQLCipher support. Batteries included.
 
 ## Features
 
+- **Batteries Included** - Single factory handles schema, database, and connector setup
 - **Offline-First** - Full offline support with automatic sync when online
 - **Real-Time Sync** - Live updates from PostgreSQL via PowerSync service
+- **Multi-Table Support** - Share a single database across multiple backends
+- **Sync Rules Generation** - Generate PowerSync sync rules YAML from Dart code
 - **SQLCipher Encryption** - Optional database-level encryption
-- **Conflict Resolution** - Built-in conflict handling with server-wins default
 - **Query Translation** - Automatic translation of nexus_store queries to SQL
 
 ## Prerequisites
 
 1. A [PowerSync](https://www.powersync.com/) account
-2. A PostgreSQL database connected to PowerSync
-3. PowerSync sync rules configured for your tables
+2. A [Supabase](https://supabase.com/) project (or other PostgreSQL database)
+3. PowerSync connected to your database
 
 ## Installation
 
@@ -25,36 +27,34 @@ PowerSync adapter for nexus_store with offline-first sync and SQLCipher support.
 dependencies:
   nexus_store: ^0.1.0
   nexus_store_powersync_adapter: ^0.1.0
-  powersync: ^1.17.0
-
-  # Optional: for SQLCipher encryption
-  # powersync_sqlcipher: ^1.0.0
+  supabase: ^2.8.0
 ```
 
-## Basic Usage
+## Quick Start
+
+The simplest way to get started - everything is handled for you:
 
 ```dart
 import 'package:nexus_store/nexus_store.dart';
 import 'package:nexus_store_powersync_adapter/nexus_store_powersync_adapter.dart';
-import 'package:powersync/powersync.dart';
+import 'package:supabase/supabase.dart';
 
-// Initialize PowerSync database
-final powerSyncDb = PowerSyncDatabase(
-  schema: schema,
-  path: 'app.db',
-);
-await powerSyncDb.initialize();
-
-// Create the backend
-final backend = PowerSyncBackend<User, String>(
-  db: powerSyncDb,
+// Create the backend with Supabase integration
+final backend = PowerSyncBackend<User, String>.withSupabase(
+  supabase: Supabase.instance.client,
+  powerSyncUrl: 'https://your-instance.powersync.co',
   tableName: 'users',
-  getId: (user) => user.id,
+  columns: [
+    PSColumn.text('name'),
+    PSColumn.text('email'),
+    PSColumn.integer('age', nullable: true),
+  ],
   fromJson: User.fromJson,
-  toJson: (user) => user.toJson(),
-  primaryKeyColumn: 'id',
+  toJson: (u) => u.toJson(),
+  getId: (u) => u.id,
 );
 
+// Initialize - handles database creation and connection
 await backend.initialize();
 
 // Create the store
@@ -64,74 +64,218 @@ final userStore = NexusStore<User, String>(
 );
 
 await userStore.initialize();
+
+// Use the store
+final users = await userStore.getAll();
+await userStore.save(User(id: '1', name: 'Alice', email: 'alice@example.com'));
+
+// Clean up
+await backend.dispose();
+```
+
+## Column Definitions
+
+Define your table schema using type-safe column definitions:
+
+```dart
+final columns = [
+  PSColumn.text('name'),                    // TEXT NOT NULL
+  PSColumn.text('email'),                   // TEXT NOT NULL
+  PSColumn.integer('age', nullable: true),  // INTEGER (nullable)
+  PSColumn.real('rating'),                  // REAL NOT NULL
+];
+```
+
+### Column Types
+
+| Factory | SQL Type | Description |
+|---------|----------|-------------|
+| `PSColumn.text(name)` | TEXT | String values |
+| `PSColumn.integer(name)` | INTEGER | Whole numbers |
+| `PSColumn.real(name)` | REAL | Floating-point numbers |
+
+All columns default to `NOT NULL`. Use `nullable: true` for optional fields.
+
+## Multi-Table Apps
+
+For apps with multiple tables, use `PowerSyncManager` to share a single database:
+
+```dart
+final manager = PowerSyncManager.withSupabase(
+  supabase: Supabase.instance.client,
+  powerSyncUrl: 'https://your-instance.powersync.co',
+  tables: [
+    PSTableConfig<User, String>(
+      tableName: 'users',
+      columns: [
+        PSColumn.text('name'),
+        PSColumn.text('email'),
+      ],
+      fromJson: User.fromJson,
+      toJson: (u) => u.toJson(),
+      getId: (u) => u.id,
+    ),
+    PSTableConfig<Post, String>(
+      tableName: 'posts',
+      columns: [
+        PSColumn.text('title'),
+        PSColumn.text('content'),
+        PSColumn.text('author_id'),
+      ],
+      fromJson: Post.fromJson,
+      toJson: (p) => p.toJson(),
+      getId: (p) => p.id,
+    ),
+  ],
+);
+
+await manager.initialize();
+
+// Get individual backends
+final userBackend = manager.getBackend<User, String>('users');
+final postBackend = manager.getBackend<Post, String>('posts');
+
+// Create stores
+final userStore = NexusStore<User, String>(backend: userBackend);
+final postStore = NexusStore<Post, String>(backend: postBackend);
+
+// Clean up
+await manager.dispose();
+```
+
+## Sync Rules Generation
+
+Generate PowerSync sync rules YAML programmatically:
+
+```dart
+final syncRules = PSSyncRules([
+  // Public data - synced to all users
+  PSBucket.global(
+    name: 'public_data',
+    queries: [
+      PSQuery.select(table: 'settings'),
+    ],
+  ),
+
+  // User-specific data - filtered by user_id
+  PSBucket.userScoped(
+    name: 'user_data',
+    queries: [
+      PSQuery.select(
+        table: 'users',
+        columns: ['id', 'name', 'email'],
+        filter: 'id = bucket.user_id',
+      ),
+      PSQuery.select(
+        table: 'posts',
+        filter: 'author_id = bucket.user_id',
+      ),
+    ],
+  ),
+
+  // Parameterized - custom bucket parameters
+  PSBucket.parameterized(
+    name: 'team_data',
+    parameters: 'SELECT team_id FROM team_members WHERE user_id = token_parameters.user_id',
+    queries: [
+      PSQuery.select(table: 'teams', filter: 'id = bucket.team_id'),
+    ],
+  ),
+]);
+
+// Generate YAML
+print(syncRules.toYaml());
+
+// Or save to file
+await syncRules.saveToFile('sync-rules.yaml');
+```
+
+### Generated Output
+
+```yaml
+bucket_definitions:
+  - name: public_data
+    data:
+      - SELECT * FROM settings
+  - name: user_data
+    parameters: SELECT request.user_id() as user_id
+    data:
+      - SELECT id, name, email FROM users WHERE id = bucket.user_id
+      - SELECT * FROM posts WHERE author_id = bucket.user_id
+  - name: team_data
+    parameters: SELECT team_id FROM team_members WHERE user_id = token_parameters.user_id
+    data:
+      - SELECT * FROM teams WHERE id = bucket.team_id
 ```
 
 ## Configuration Options
 
 ```dart
-final backend = PowerSyncBackend<User, String>(
-  db: powerSyncDb,
+final backend = PowerSyncBackend<User, String>.withSupabase(
+  supabase: supabaseClient,
+  powerSyncUrl: 'https://...',
   tableName: 'users',
-  getId: (user) => user.id,
+  columns: [...],
   fromJson: User.fromJson,
-  toJson: (user) => user.toJson(),
-  primaryKeyColumn: 'id',          // Primary key column name
-  fieldMapping: {                   // Optional: map model fields to DB columns
+  toJson: (u) => u.toJson(),
+  getId: (u) => u.id,
+
+  // Optional configuration
+  dbPath: '/custom/path/app.db',  // Custom database path
+  primaryKeyColumn: 'user_id',     // Custom primary key (default: 'id')
+  fieldMapping: {                  // Map model fields to DB columns
     'firstName': 'first_name',
     'lastName': 'last_name',
   },
-  queryTranslator: customTranslator, // Optional: custom query translator
 );
 ```
 
 ## SQLCipher Encryption
 
-For encrypted databases, use the encrypted variant:
+For encrypted databases:
 
 ```dart
-import 'package:nexus_store_powersync_adapter/nexus_store_powersync_adapter.dart';
-
-// Create encrypted backend
 final backend = PowerSyncEncryptedBackend<User, String>(
   db: encryptedPowerSyncDb,
   tableName: 'users',
   getId: (user) => user.id,
   fromJson: User.fromJson,
   toJson: (user) => user.toJson(),
-  primaryKeyColumn: 'id',
   keyProvider: InMemoryKeyProvider(encryptionKey),
 );
 ```
 
-### Key Provider
-
-Implement `EncryptionKeyProvider` for secure key management:
+### Custom Key Provider
 
 ```dart
 class SecureKeyProvider implements EncryptionKeyProvider {
   @override
   Future<String> getKey() async {
-    // Retrieve key from secure storage
     return await secureStorage.read(key: 'db_encryption_key');
   }
-}
 
-final backend = PowerSyncEncryptedBackend<User, String>(
-  // ...
-  keyProvider: SecureKeyProvider(),
-);
+  @override
+  Future<String> rotateKey(String newKey) async {
+    await secureStorage.write(key: 'db_encryption_key', value: newKey);
+    return newKey;
+  }
+
+  @override
+  Future<void> dispose() async {
+    // Clean up resources
+  }
+}
 ```
 
-## Sync Status Handling
+## Sync Status
 
 Monitor synchronization status:
 
 ```dart
-// Get current status
-final status = backend.syncStatus;
-print('Status: $status'); // synced, pending, syncing, error
+// Current status
+final status = backend.syncStatus; // synced, pending, syncing, error
 
-// Watch status changes
+// Watch changes
 backend.syncStatusStream.listen((status) {
   switch (status) {
     case SyncStatus.synced:
@@ -139,17 +283,16 @@ backend.syncStatusStream.listen((status) {
     case SyncStatus.pending:
       print('Changes waiting to sync');
     case SyncStatus.syncing:
-      print('Syncing in progress...');
+      print('Syncing...');
     case SyncStatus.error:
-      print('Sync error occurred');
+      print('Sync error');
   }
 });
 
-// Get pending changes count
+// Pending changes count
 final pending = await backend.pendingChangesCount;
-print('$pending changes pending');
 
-// Manually trigger sync
+// Manual sync trigger
 await backend.sync();
 ```
 
@@ -158,14 +301,13 @@ await backend.sync();
 Queries are automatically translated to SQL:
 
 ```dart
-// nexus_store query
 final query = Query<User>()
   .where('status', isEqualTo: 'active')
   .where('age', isGreaterThan: 18)
   .orderBy('createdAt', descending: true)
   .limit(10);
 
-// Automatically translated to SQL:
+// Translates to:
 // SELECT * FROM users
 // WHERE status = 'active' AND age > 18
 // ORDER BY createdAt DESC
@@ -174,109 +316,78 @@ final query = Query<User>()
 final users = await userStore.getAll(query: query);
 ```
 
-## Backend Capabilities
+## Advanced: Manual Setup
+
+For advanced use cases, you can configure PowerSync manually:
 
 ```dart
-backend.supportsOffline      // true - full offline support
-backend.supportsRealtime     // true - real-time sync
-backend.supportsTransactions // true - atomic operations
+import 'package:powersync/powersync.dart';
+
+// Manual PowerSync database setup
+final powerSyncDb = PowerSyncDatabase(
+  schema: schema,
+  path: 'app.db',
+);
+await powerSyncDb.initialize();
+
+// Manual backend creation
+final backend = PowerSyncBackend<User, String>(
+  db: powerSyncDb,
+  tableName: 'users',
+  getId: (user) => user.id,
+  fromJson: User.fromJson,
+  toJson: (user) => user.toJson(),
+);
+
+await backend.initialize();
 ```
 
 ## Testing
 
-### Running Unit Tests
-
 ```bash
-dart test test/powersync_query_translator_test.dart
-dart test test/powersync_backend_test.dart
-```
+# Unit tests
+dart test test/unit/
 
-### Running Integration Tests
-
-Integration tests require the PowerSync native library and SQLite with extension loading support.
-
-#### Prerequisites (macOS)
-
-1. **Install Homebrew SQLite** (required because system SQLite doesn't support extension loading):
-   ```bash
-   brew install sqlite
-   ```
-
-2. **Download PowerSync native binary**:
-   ```bash
-   ./scripts/download_powersync_binary.sh
-   ```
-   Or manually download from [PowerSync releases](https://github.com/powersync-ja/powersync-sqlite-core/releases).
-
-#### Running Tests
-
-```bash
-# Run integration tests
-dart test test/integration/
-
-# Run all tests
+# All tests
 dart test
 ```
 
-Tests are automatically skipped if prerequisites are not met, so running without setup will not cause failures.
+### Integration Tests
 
-### Test Utilities
+Integration tests require PowerSync native library. See test utilities in `test/test_utils/powersync_test_utils.dart`.
 
-For writing integration tests with real PowerSync databases, see the test utilities in [`test/test_utils/powersync_test_utils.dart`](test/test_utils/powersync_test_utils.dart). Key utilities include:
+## API Reference
 
-| Utility | Description |
-|---------|-------------|
-| `TestPowerSyncOpenFactory` | Custom factory that configures SQLite for extension loading |
-| `createTestPowerSyncDatabase()` | Creates a properly configured test database |
-| `checkPowerSyncLibraryAvailable()` | Checks if PowerSync native binary is available |
-| `isHomebrewSqliteAvailable()` | Checks if Homebrew SQLite is installed (macOS) |
+### Core Classes
 
-Example usage pattern from [`test/integration/real_database_test.dart`](test/integration/real_database_test.dart):
+| Class | Description |
+|-------|-------------|
+| `PowerSyncBackend<T, ID>` | Backend for single-table apps |
+| `PowerSyncManager` | Manager for multi-table apps |
+| `PSTableConfig<T, ID>` | Table configuration for manager |
+| `PSColumn` | Column definition with type-safe factories |
 
-```dart
-import 'test_utils/powersync_test_utils.dart';
+### Sync Rules Classes
 
-void main() {
-  late PowerSyncDatabase db;
+| Class | Description |
+|-------|-------------|
+| `PSSyncRules` | Container for sync rules |
+| `PSBucket` | Bucket definition (global, userScoped, parameterized) |
+| `PSQuery` | SELECT query for bucket data |
 
-  setUpAll(() async {
-    // Check prerequisites - tests are skipped if not met
-    if (!isHomebrewSqliteAvailable()) return;
-    final (available, _) = checkPowerSyncLibraryAvailable();
-    if (!available) return;
+### Encryption Classes
 
-    // Create test database with proper SQLite configuration
-    db = createTestPowerSyncDatabase(
-      schema: yourSchema,
-      path: '/tmp/test.db',
-    );
-    await db.initialize();
-  });
-}
-```
-
-## Migration from Raw PowerSync
-
-If you're migrating from direct PowerSync usage:
-
-```dart
-// Before: Direct PowerSync usage
-final results = await db.getAll('SELECT * FROM users WHERE status = ?', ['active']);
-final users = results.map((row) => User.fromJson(row)).toList();
-
-// After: nexus_store with PowerSync adapter
-final users = await userStore.getAll(
-  query: Query<User>().where('status', isEqualTo: 'active'),
-);
-```
-
-See the [migration guide](../../docs/migration/from-raw-powersync.md) for detailed steps.
+| Class | Description |
+|-------|-------------|
+| `PowerSyncEncryptedBackend<T, ID>` | Encrypted database backend |
+| `EncryptionKeyProvider` | Abstract key provider interface |
+| `InMemoryKeyProvider` | Simple in-memory key storage |
 
 ## Additional Resources
 
 - [PowerSync Documentation](https://docs.powersync.com/)
+- [Supabase Documentation](https://supabase.com/docs)
 - [Core Package](../nexus_store/)
-- [Migration Guide](../../docs/migration/from-raw-powersync.md)
 
 ## License
 

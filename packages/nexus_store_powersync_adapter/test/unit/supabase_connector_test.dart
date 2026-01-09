@@ -85,15 +85,14 @@ void main() {
         completeCalled = false;
       });
 
-      CrudTransaction createTransaction(List<CrudEntry> entries) {
-        return CrudTransaction(
+      CrudTransaction createTransaction(List<CrudEntry> entries) =>
+          CrudTransaction(
           crud: entries,
           transactionId: 1,
-          complete: ({String? writeCheckpoint}) async {
+          complete: ({writeCheckpoint}) async {
             completeCalled = true;
           },
         );
-      }
 
       test('returns early when no pending transactions', () async {
         when(() => mockDatabase.getNextCrudTransaction())
@@ -230,8 +229,7 @@ CrudEntry _createCrudEntry({
   required String table,
   required String id,
   Map<String, dynamic>? opData,
-}) {
-  return CrudEntry(
+}) => CrudEntry(
     1, // clientId
     op,
     table,
@@ -239,4 +237,3 @@ CrudEntry _createCrudEntry({
     null, // transactionId
     opData,
   );
-}

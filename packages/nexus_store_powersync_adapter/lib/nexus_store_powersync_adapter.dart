@@ -17,7 +17,9 @@ export 'src/powersync_encrypted_backend.dart'
         EncryptionKeyProvider,
         InMemoryKeyProvider,
         PowerSyncEncryptedBackend;
+export 'src/powersync_manager.dart' show PowerSyncManager;
 export 'src/powersync_query_translator.dart' show PowerSyncQueryTranslator;
+export 'src/ps_table_config.dart' show PSTableConfig;
 export 'src/supabase_connector.dart'
     show
         DefaultSupabaseAuthProvider,
@@ -25,3 +27,5 @@ export 'src/supabase_connector.dart'
         SupabaseAuthProvider,
         SupabaseDataProvider,
         SupabasePowerSyncConnector;
+export 'src/sync_rules/sync_rules.dart'
+    show PSBucket, PSBucketType, PSQuery, PSSyncRules;

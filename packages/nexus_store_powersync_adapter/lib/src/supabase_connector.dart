@@ -37,14 +37,11 @@ class DefaultSupabaseAuthProvider implements SupabaseAuthProvider {
   final SupabaseClient _client;
 
   @override
-  Future<String?> getAccessToken() async {
-    return _client.auth.currentSession?.accessToken;
-  }
+  Future<String?> getAccessToken() async =>
+      _client.auth.currentSession?.accessToken;
 
   @override
-  Future<String?> getUserId() async {
-    return _client.auth.currentSession?.user.id;
-  }
+  Future<String?> getUserId() async => _client.auth.currentSession?.user.id;
 
   @override
   Future<DateTime?> getTokenExpiresAt() async {
@@ -67,7 +64,11 @@ class DefaultSupabaseDataProvider implements SupabaseDataProvider {
   }
 
   @override
-  Future<void> update(String table, String id, Map<String, dynamic> data) async {
+  Future<void> update(
+    String table,
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     await _client.rest.from(table).update(data).eq('id', id);
   }
 
@@ -105,13 +106,11 @@ class SupabasePowerSyncConnector extends PowerSyncBackendConnector {
   factory SupabasePowerSyncConnector.withClient({
     required SupabaseClient supabase,
     required String powerSyncUrl,
-  }) {
-    return SupabasePowerSyncConnector(
+  }) => SupabasePowerSyncConnector(
       authProvider: DefaultSupabaseAuthProvider(supabase),
       dataProvider: DefaultSupabaseDataProvider(supabase),
       powerSyncUrl: powerSyncUrl,
     );
-  }
 
   final SupabaseAuthProvider _authProvider;
   final SupabaseDataProvider _dataProvider;
