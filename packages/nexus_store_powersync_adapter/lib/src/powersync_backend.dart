@@ -1,10 +1,16 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:nexus_store/nexus_store.dart' as nexus;
+import 'package:nexus_store_powersync_adapter/src/column_definition.dart';
+import 'package:nexus_store_powersync_adapter/src/powersync_backend_factory.dart';
 import 'package:nexus_store_powersync_adapter/src/powersync_database_wrapper.dart';
 import 'package:nexus_store_powersync_adapter/src/powersync_query_translator.dart';
+import 'package:nexus_store_powersync_adapter/src/supabase_connector.dart';
 import 'package:powersync/powersync.dart' as ps;
 import 'package:rxdart/rxdart.dart';
+import 'package:supabase/supabase.dart';
+import 'package:uuid/uuid.dart';
 
 /// PowerSync backend adapter for nexus_store.
 ///
@@ -77,17 +83,110 @@ class PowerSyncBackend<T, ID>
         _toJson = toJson,
         _primaryKeyColumn = primaryKeyColumn,
         _queryTranslator = queryTranslator ??
+            PowerSyncQueryTranslator<T>(fieldMapping: fieldMapping),
+        _ownsDatabase = false,
+        _supabaseClient = null,
+        _config = null {
+    _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
+      idExtractor: getId,
+    );
+  }
+
+  /// Creates a PowerSync backend with Supabase integration.
+  ///
+  /// This factory creates and manages the PowerSyncDatabase internally,
+  /// providing a "batteries included" experience.
+  ///
+  /// Example:
+  /// ```dart
+  /// final backend = PowerSyncBackend<User, String>.withSupabase(
+  ///   supabase: Supabase.instance.client,
+  ///   powerSyncUrl: 'https://xxx.powersync.co',
+  ///   tableName: 'users',
+  ///   columns: [
+  ///     PSColumn.text('name'),
+  ///     PSColumn.text('email'),
+  ///     PSColumn.integer('age'),
+  ///   ],
+  ///   fromJson: User.fromJson,
+  ///   toJson: (u) => u.toJson(),
+  ///   getId: (u) => u.id,
+  /// );
+  ///
+  /// await backend.initialize();
+  /// // ... use backend ...
+  /// await backend.dispose();
+  /// ```
+  factory PowerSyncBackend.withSupabase({
+    required SupabaseClient supabase,
+    required String powerSyncUrl,
+    required String tableName,
+    required List<PSColumn> columns,
+    required T Function(Map<String, dynamic> json) fromJson,
+    required Map<String, dynamic> Function(T item) toJson,
+    required ID Function(T item) getId,
+    String? dbPath,
+    String primaryKeyColumn = 'id',
+    Map<String, String>? fieldMapping,
+  }) =>
+      PowerSyncBackend._withSupabaseInternal(
+        supabase: supabase,
+        config: PowerSyncBackendConfig<T, ID>(
+          tableName: tableName,
+          columns: columns,
+          fromJson: fromJson,
+          toJson: toJson,
+          getId: getId,
+          powerSyncUrl: powerSyncUrl,
+          dbPath: dbPath,
+          primaryKeyColumn: primaryKeyColumn,
+        ),
+        fromJson: fromJson,
+        toJson: toJson,
+        getId: getId,
+        primaryKeyColumn: primaryKeyColumn,
+        fieldMapping: fieldMapping,
+      );
+
+  /// Internal constructor for withSupabase factory.
+  PowerSyncBackend._withSupabaseInternal({
+    required SupabaseClient supabase,
+    required PowerSyncBackendConfig<T, ID> config,
+    required T Function(Map<String, dynamic> json) fromJson,
+    required Map<String, dynamic> Function(T item) toJson,
+    required ID Function(T item) getId,
+    String primaryKeyColumn = 'id',
+    Map<String, String>? fieldMapping,
+  })  : _supabaseClient = supabase,
+        _config = config,
+        _ownsDatabase = true,
+        _tableName = config.tableName,
+        _getId = getId,
+        _fromJson = fromJson,
+        _toJson = toJson,
+        _primaryKeyColumn = primaryKeyColumn,
+        _queryTranslator =
             PowerSyncQueryTranslator<T>(fieldMapping: fieldMapping) {
     _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
       idExtractor: getId,
     );
   }
 
-  final PowerSyncDatabaseWrapper _db;
+  // Database wrapper - set via constructor or during initialize
+  late final PowerSyncDatabaseWrapper _db;
   final String _tableName;
   final ID Function(T item) _getId;
   final T Function(Map<String, dynamic> json) _fromJson;
   final Map<String, dynamic> Function(T item) _toJson;
+
+  // Fields for withSupabase factory lifecycle management
+  final bool _ownsDatabase;
+  final SupabaseClient? _supabaseClient;
+  final PowerSyncBackendConfig<T, ID>? _config;
+  ps.PowerSyncDatabase? _ownedDatabase;
+  SupabasePowerSyncConnector? _connector;
+  // ignore: unused_field - reserved for future cleanup functionality
+  String? _generatedDbPath;
   final String _primaryKeyColumn;
   final PowerSyncQueryTranslator<T> _queryTranslator;
 
@@ -129,8 +228,54 @@ class PowerSyncBackend<T, ID>
   Future<void> initialize() async {
     if (_initialized) return;
 
+    // If this backend owns the database (withSupabase), create it now
+    if (_ownsDatabase && _ownedDatabase == null) {
+      await _createAndConnectDatabase();
+    }
+
     _setupSyncStatusListener();
     _initialized = true;
+  }
+
+  /// Creates the PowerSync database and connects it to Supabase.
+  ///
+  /// This is called internally during initialize() for withSupabase backends.
+  Future<void> _createAndConnectDatabase() async {
+    final config = _config!;
+
+    // Generate database path if not provided
+    final dbPath = config.dbPath ?? _generateDbPath(config.tableName);
+    _generatedDbPath = dbPath;
+
+    // Create schema from column definitions
+    final schema = config.toSchema();
+
+    // Create the database
+    _ownedDatabase = ps.PowerSyncDatabase(
+      schema: schema,
+      path: dbPath,
+    );
+
+    await _ownedDatabase!.initialize();
+
+    // Update the wrapper to use the real database
+    // ignore: invalid_use_of_visible_for_testing_member
+    _db = DefaultPowerSyncDatabaseWrapper(_ownedDatabase!);
+
+    // Create and connect the connector
+    _connector = SupabasePowerSyncConnector.withClient(
+      supabase: _supabaseClient!,
+      powerSyncUrl: config.powerSyncUrl,
+    );
+
+    await _ownedDatabase!.connect(connector: _connector!);
+  }
+
+  /// Generates a unique database path for auto-created databases.
+  String _generateDbPath(String tableName) {
+    final uuid = const Uuid().v4();
+    final tempDir = Directory.systemTemp;
+    return '${tempDir.path}/powersync_${tableName}_$uuid.db';
   }
 
   void _setupSyncStatusListener() {
@@ -170,6 +315,24 @@ class PowerSyncBackend<T, ID>
     await _conflictsSubject.close();
     await _pendingChangesManager.dispose();
     _initialized = false;
+  }
+
+  /// Disposes resources including the database if owned by this backend.
+  ///
+  /// This method should be called when the backend is no longer needed.
+  /// For backends created with [withSupabase], this will disconnect and
+  /// close the PowerSync database.
+  ///
+  /// After dispose, the backend can be re-initialized if needed.
+  Future<void> dispose() async {
+    await close();
+
+    if (_ownsDatabase && _ownedDatabase != null) {
+      await _ownedDatabase!.disconnect();
+      await _ownedDatabase!.close();
+      _ownedDatabase = null;
+      _connector = null;
+    }
   }
 
   // ===================== READ OPERATIONS =====================
