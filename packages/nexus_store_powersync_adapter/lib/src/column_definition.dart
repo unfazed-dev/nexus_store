@@ -75,12 +75,22 @@ class PSColumn {
 ///     PSColumn.integer('age'),
 ///   ],
 /// );
+///
+/// // Local-only table (not synced to backend)
+/// final localTableDef = PSTableDefinition(
+///   tableName: 'local_settings',
+///   columns: [PSColumn.text('value')],
+///   localOnly: true,
+/// );
 /// ```
 class PSTableDefinition {
   /// Creates a table definition with the given name and columns.
+  ///
+  /// Set [localOnly] to true for tables that should not sync to the backend.
   const PSTableDefinition({
     required this.tableName,
     required this.columns,
+    this.localOnly = false,
   });
 
   /// The table name.
@@ -89,11 +99,20 @@ class PSTableDefinition {
   /// The column definitions.
   final List<PSColumn> columns;
 
+  /// Whether this table is local-only (not synced to the backend).
+  final bool localOnly;
+
   /// Generates a PowerSync Table from this definition.
-  ps.Table toTable() => ps.Table(
-        tableName,
-        columns.map((c) => c.toPowerSyncColumn()).toList(),
-      );
+  ///
+  /// If [localOnly] is true, creates a local-only table that won't sync
+  /// to the PowerSync backend.
+  ps.Table toTable() {
+    final psColumns = columns.map((c) => c.toPowerSyncColumn()).toList();
+    if (localOnly) {
+      return ps.Table.localOnly(tableName, psColumns);
+    }
+    return ps.Table(tableName, psColumns);
+  }
 
   /// Generates a PowerSync Schema containing this table.
   ps.Schema toSchema() => ps.Schema([toTable()]);
