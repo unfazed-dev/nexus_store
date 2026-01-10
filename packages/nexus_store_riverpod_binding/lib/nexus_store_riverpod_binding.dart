@@ -49,9 +49,13 @@ export 'src/annotations/riverpod_nexus_store.dart';
 export 'src/extensions/ref_extensions.dart';
 export 'src/extensions/store_extensions.dart';
 
+// Manager
+export 'src/manager/riverpod_store_manager.dart';
+
 // Providers
 export 'src/providers/family_providers.dart';
 export 'src/providers/nexus_store_provider.dart';
+export 'src/providers/store_provider_bundle.dart';
 export 'src/providers/stream_providers.dart';
 
 // Utils
