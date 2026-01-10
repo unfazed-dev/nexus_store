@@ -8,6 +8,7 @@ library;
 import 'dart:ffi';
 import 'dart:io';
 
+import 'package:nexus_store_powersync_adapter/src/powersync_database_adapter.dart';
 import 'package:powersync/powersync.dart';
 import 'package:powersync/sqlite3.dart' as ps_sqlite;
 import 'package:powersync/sqlite3_common.dart';
@@ -154,3 +155,75 @@ bool isHomebrewSqliteAvailable() {
 
   return File(homebrewArm).existsSync() || File(homebrewIntel).existsSync();
 }
+
+/// Applies global SQLite overrides to use Homebrew SQLite on macOS.
+///
+/// This must be called before creating any PowerSyncDatabase without
+/// an openFactory. Once applied, the override affects all subsequent
+/// SQLite operations in the process.
+///
+/// This is useful for testing the production code path that creates
+/// PowerSyncDatabase without a factory.
+void applyGlobalSqliteOverride() {
+  if (Platform.isMacOS) {
+    sqlite_open.open.overrideFor(sqlite_open.OperatingSystem.macOS, () {
+      const homebrewArm = '/opt/homebrew/opt/sqlite/lib/libsqlite3.dylib';
+      const homebrewIntel = '/usr/local/opt/sqlite/lib/libsqlite3.dylib';
+
+      if (File(homebrewArm).existsSync()) {
+        return DynamicLibrary.open(homebrewArm);
+      }
+      if (File(homebrewIntel).existsSync()) {
+        return DynamicLibrary.open(homebrewIntel);
+      }
+      return DynamicLibrary.open('libsqlite3.dylib');
+    });
+  } else if (Platform.isLinux) {
+    sqlite_open.open.overrideFor(
+      sqlite_open.OperatingSystem.linux,
+      () => DynamicLibrary.open('libsqlite3.so.0'),
+    );
+  }
+}
+
+/// Loads the PowerSync extension globally.
+///
+/// This must be called after [applyGlobalSqliteOverride] and before
+/// creating any PowerSyncDatabase without an openFactory.
+void loadPowerSyncExtensionGlobally() {
+  final packageRoot = Directory.current.path;
+
+  final libPath = switch (Abi.current()) {
+    Abi.macosArm64 || Abi.macosX64 => '$packageRoot/libpowersync.dylib',
+    Abi.linuxX64 || Abi.linuxArm64 => '$packageRoot/libpowersync.so',
+    Abi.windowsX64 => '$packageRoot/powersync.dll',
+    _ => throw UnsupportedError('Unsupported platform: ${Abi.current()}'),
+  };
+
+  final lib = DynamicLibrary.open(libPath);
+  ps_sqlite.sqlite3.ensureExtensionLoaded(
+    ps_sqlite.SqliteExtension.inLibrary(lib, 'sqlite3_powersync_init'),
+  );
+}
+
+/// Creates a [PowerSyncDatabaseAdapterFactory] for integration tests.
+///
+/// This factory creates [DefaultPowerSyncDatabaseAdapter] instances configured
+/// with [TestPowerSyncOpenFactory], which handles SQLite overrides and
+/// PowerSync extension loading required for desktop platforms.
+///
+/// Example:
+/// ```dart
+/// final manager = PowerSyncManager.withSupabase(
+///   supabase: supabase,
+///   powerSyncUrl: url,
+///   tables: tables,
+///   databaseAdapterFactory: createTestDatabaseAdapterFactory(),
+/// );
+/// ```
+PowerSyncDatabaseAdapterFactory createTestDatabaseAdapterFactory() =>
+    (schema, path) => DefaultPowerSyncDatabaseAdapter(
+          schema: schema,
+          path: path,
+          openFactory: TestPowerSyncOpenFactory(path: path),
+        );

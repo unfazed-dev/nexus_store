@@ -6,6 +6,12 @@ export 'src/column_definition.dart'
     show PSColumn, PSColumnType, PSTableDefinition;
 export 'src/powersync_backend.dart' show PowerSyncBackend;
 export 'src/powersync_backend_factory.dart' show PowerSyncBackendConfig;
+export 'src/powersync_database_adapter.dart'
+    show
+        DefaultPowerSyncDatabaseAdapter,
+        PowerSyncDatabaseAdapter,
+        PowerSyncDatabaseAdapterFactory,
+        defaultPowerSyncDatabaseAdapterFactory;
 export 'src/powersync_database_wrapper.dart'
     show
         DefaultPowerSyncDatabaseWrapper,
@@ -17,7 +23,8 @@ export 'src/powersync_encrypted_backend.dart'
         EncryptionKeyProvider,
         InMemoryKeyProvider,
         PowerSyncEncryptedBackend;
-export 'src/powersync_manager.dart' show PowerSyncManager;
+export 'src/powersync_manager.dart'
+    show BackendFactory, ConnectorFactory, PowerSyncManager;
 export 'src/powersync_query_translator.dart' show PowerSyncQueryTranslator;
 export 'src/ps_table_config.dart' show PSTableConfig;
 export 'src/supabase_connector.dart'

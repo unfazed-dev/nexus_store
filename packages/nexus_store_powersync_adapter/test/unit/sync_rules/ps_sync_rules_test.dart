@@ -240,5 +240,28 @@ void main() {
         expect(rules1, isNot(equals(rules2)));
       });
     });
+
+    group('toString', () {
+      test('returns readable string with bucket count', () {
+        const syncRules = PSSyncRules([
+          PSBucket.global(
+            name: 'public',
+            queries: [PSQuery.select(table: 'settings')],
+          ),
+          PSBucket.userScoped(
+            name: 'user_data',
+            queries: [PSQuery.select(table: 'users')],
+          ),
+        ]);
+
+        expect(syncRules.toString(), equals('PSSyncRules(buckets: 2)'));
+      });
+
+      test('returns readable string for empty buckets', () {
+        const syncRules = PSSyncRules([]);
+
+        expect(syncRules.toString(), equals('PSSyncRules(buckets: 0)'));
+      });
+    });
   });
 }

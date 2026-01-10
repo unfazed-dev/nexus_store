@@ -52,6 +52,11 @@ class DefaultSupabaseAuthProvider implements SupabaseAuthProvider {
 }
 
 /// Default implementation of [SupabaseDataProvider] using SupabaseClient.
+///
+/// This class provides direct REST API calls to Supabase. It is a thin
+/// wrapper that delegates to SupabaseClient's REST methods.
+///
+/// Note: Methods are tested via integration tests with real Supabase.
 class DefaultSupabaseDataProvider implements SupabaseDataProvider {
   /// Creates a provider with the given Supabase client.
   DefaultSupabaseDataProvider(this._client);

@@ -52,12 +52,9 @@ abstract class PowerSyncTransactionContext {
   Future<void> execute(String sql, [List<Object?> parameters = const []]);
 }
 
-// coverage:ignore-start
 /// Default implementation that wraps a real PowerSyncDatabase.
 ///
-/// Coverage excluded: Requires native FFI SQLite bindings which cannot
-/// be unit tested without native libraries. Logic is tested via
-/// PowerSyncDatabaseWrapper abstraction with mock implementations.
+/// This class is tested via integration tests with native libraries.
 class DefaultPowerSyncDatabaseWrapper implements PowerSyncDatabaseWrapper {
   /// Creates a wrapper around a PowerSyncDatabase.
   DefaultPowerSyncDatabaseWrapper(this._db);
@@ -112,4 +109,3 @@ class _DefaultTransactionContext implements PowerSyncTransactionContext {
     await _tx.execute(sql, parameters);
   }
 }
-// coverage:ignore-end

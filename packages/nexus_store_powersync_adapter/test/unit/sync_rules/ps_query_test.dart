@@ -106,6 +106,83 @@ void main() {
 
         expect(query1, isNot(equals(query2)));
       });
+
+      test('queries with different columns are not equal', () {
+        const query1 = PSQuery.select(
+          table: 'users',
+          columns: ['id', 'name'],
+        );
+        const query2 = PSQuery.select(
+          table: 'users',
+          columns: ['id', 'email'],
+        );
+
+        expect(query1, isNot(equals(query2)));
+      });
+
+      test('queries with different filters are not equal', () {
+        const query1 = PSQuery.select(
+          table: 'users',
+          filter: 'id = 1',
+        );
+        const query2 = PSQuery.select(
+          table: 'users',
+          filter: 'id = 2',
+        );
+
+        expect(query1, isNot(equals(query2)));
+      });
+
+      test('queries with different column lengths are not equal', () {
+        const query1 = PSQuery.select(
+          table: 'users',
+          columns: ['id'],
+        );
+        const query2 = PSQuery.select(
+          table: 'users',
+          columns: ['id', 'name'],
+        );
+
+        expect(query1, isNot(equals(query2)));
+      });
+
+      test('identical query is equal to itself', () {
+        const query = PSQuery.select(table: 'users');
+
+        expect(query == query, isTrue);
+      });
+
+      test('query is not equal to non-PSQuery object', () {
+        const query = PSQuery.select(table: 'users');
+
+        expect(query == 'not a query', isFalse);
+      });
+    });
+
+    group('toString', () {
+      test('returns readable string representation', () {
+        const query = PSQuery.select(
+          table: 'users',
+          columns: ['id', 'name'],
+          filter: 'id = 1',
+        );
+
+        expect(
+          query.toString(),
+          equals(
+            'PSQuery.select(table: users, columns: [id, name], filter: id = 1)',
+          ),
+        );
+      });
+
+      test('returns string with null filter', () {
+        const query = PSQuery.select(table: 'users');
+
+        expect(
+          query.toString(),
+          equals('PSQuery.select(table: users, columns: [*], filter: null)'),
+        );
+      });
     });
   });
 }

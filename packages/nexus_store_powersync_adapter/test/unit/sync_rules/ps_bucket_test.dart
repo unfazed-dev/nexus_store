@@ -221,6 +221,111 @@ void main() {
 
         expect(bucket1, isNot(equals(bucket2)));
       });
+
+      test('buckets with different parameters are not equal', () {
+        const bucket1 = PSBucket.parameterized(
+          name: 'test',
+          parameters: 'SELECT team_id FROM team_members',
+          queries: [PSQuery.select(table: 'teams')],
+        );
+        const bucket2 = PSBucket.parameterized(
+          name: 'test',
+          parameters: 'SELECT org_id FROM org_members',
+          queries: [PSQuery.select(table: 'teams')],
+        );
+
+        expect(bucket1, isNot(equals(bucket2)));
+      });
+
+      test('buckets with different queries are not equal', () {
+        const bucket1 = PSBucket.global(
+          name: 'test',
+          queries: [PSQuery.select(table: 'users')],
+        );
+        const bucket2 = PSBucket.global(
+          name: 'test',
+          queries: [PSQuery.select(table: 'posts')],
+        );
+
+        expect(bucket1, isNot(equals(bucket2)));
+      });
+
+      test('buckets with different query counts are not equal', () {
+        const bucket1 = PSBucket.global(
+          name: 'test',
+          queries: [PSQuery.select(table: 'users')],
+        );
+        const bucket2 = PSBucket.global(
+          name: 'test',
+          queries: [
+            PSQuery.select(table: 'users'),
+            PSQuery.select(table: 'posts'),
+          ],
+        );
+
+        expect(bucket1, isNot(equals(bucket2)));
+      });
+
+      test('identical bucket is equal to itself', () {
+        const bucket = PSBucket.global(
+          name: 'test',
+          queries: [PSQuery.select(table: 'users')],
+        );
+
+        expect(bucket == bucket, isTrue);
+      });
+
+      test('bucket is not equal to non-PSBucket object', () {
+        const bucket = PSBucket.global(
+          name: 'test',
+          queries: [PSQuery.select(table: 'users')],
+        );
+
+        // ignore: unrelated_type_equality_checks
+        expect(bucket == 'not a bucket', isFalse);
+      });
+    });
+
+    group('toString', () {
+      test('returns readable string for global bucket', () {
+        const bucket = PSBucket.global(
+          name: 'public_data',
+          queries: [
+            PSQuery.select(table: 'settings'),
+            PSQuery.select(table: 'config'),
+          ],
+        );
+
+        expect(
+          bucket.toString(),
+          equals('PSBucket.global(name: public_data, queries: 2)'),
+        );
+      });
+
+      test('returns readable string for userScoped bucket', () {
+        const bucket = PSBucket.userScoped(
+          name: 'user_data',
+          queries: [PSQuery.select(table: 'users')],
+        );
+
+        expect(
+          bucket.toString(),
+          equals('PSBucket.userScoped(name: user_data, queries: 1)'),
+        );
+      });
+
+      test('returns readable string for parameterized bucket', () {
+        const bucket = PSBucket.parameterized(
+          name: 'team_data',
+          parameters: 'SELECT team_id FROM team_members',
+          queries: [PSQuery.select(table: 'teams')],
+        );
+
+        expect(
+          bucket.toString(),
+          equals('PSBucket.parameterized(name: team_data, queries: 1)'),
+        );
+      });
     });
   });
 }

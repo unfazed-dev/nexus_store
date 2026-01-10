@@ -38,3 +38,7 @@ docs/
 libpowersync.dylib
 libpowersync.so
 powersync.dll
+*.db
+*.sqlite3
+*.db-shm
+*.db-wal

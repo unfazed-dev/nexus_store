@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
 import 'package:nexus_store_powersync_adapter/src/column_definition.dart';
 import 'package:nexus_store_powersync_adapter/src/powersync_backend_factory.dart';
@@ -86,7 +87,8 @@ class PowerSyncBackend<T, ID>
             PowerSyncQueryTranslator<T>(fieldMapping: fieldMapping),
         _ownsDatabase = false,
         _supabaseClient = null,
-        _config = null {
+        _config = null,
+        _openFactory = null {
     _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
       idExtractor: getId,
     );
@@ -128,6 +130,7 @@ class PowerSyncBackend<T, ID>
     String? dbPath,
     String primaryKeyColumn = 'id',
     Map<String, String>? fieldMapping,
+    @visibleForTesting ps.PowerSyncOpenFactory? openFactory,
   }) =>
       PowerSyncBackend._withSupabaseInternal(
         supabase: supabase,
@@ -146,6 +149,7 @@ class PowerSyncBackend<T, ID>
         getId: getId,
         primaryKeyColumn: primaryKeyColumn,
         fieldMapping: fieldMapping,
+        openFactory: openFactory,
       );
 
   /// Internal constructor for withSupabase factory.
@@ -157,6 +161,7 @@ class PowerSyncBackend<T, ID>
     required ID Function(T item) getId,
     String primaryKeyColumn = 'id',
     Map<String, String>? fieldMapping,
+    ps.PowerSyncOpenFactory? openFactory,
   })  : _supabaseClient = supabase,
         _config = config,
         _ownsDatabase = true,
@@ -165,6 +170,7 @@ class PowerSyncBackend<T, ID>
         _fromJson = fromJson,
         _toJson = toJson,
         _primaryKeyColumn = primaryKeyColumn,
+        _openFactory = openFactory,
         _queryTranslator =
             PowerSyncQueryTranslator<T>(fieldMapping: fieldMapping) {
     _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
@@ -183,6 +189,7 @@ class PowerSyncBackend<T, ID>
   final bool _ownsDatabase;
   final SupabaseClient? _supabaseClient;
   final PowerSyncBackendConfig<T, ID>? _config;
+  final ps.PowerSyncOpenFactory? _openFactory;
   ps.PowerSyncDatabase? _ownedDatabase;
   SupabasePowerSyncConnector? _connector;
   // Reserved for future cleanup functionality.
@@ -208,6 +215,11 @@ class PowerSyncBackend<T, ID>
   // Pending changes and conflicts
   late final nexus.PendingChangesManager<T, ID> _pendingChangesManager;
   final _conflictsSubject = BehaviorSubject<nexus.ConflictDetails<T>>();
+
+  /// Exposes the pending changes manager for testing.
+  @visibleForTesting
+  nexus.PendingChangesManager<T, ID> get testPendingChangesManager =>
+      _pendingChangesManager;
 
   // ===================== BACKEND INFO =====================
 
@@ -251,11 +263,18 @@ class PowerSyncBackend<T, ID>
     // Create schema from column definitions
     final schema = config.toSchema();
 
-    // Create the database
-    _ownedDatabase = ps.PowerSyncDatabase(
-      schema: schema,
-      path: dbPath,
-    );
+    // Create the database (use custom factory if provided for testing)
+    if (_openFactory != null) {
+      _ownedDatabase = ps.PowerSyncDatabase.withFactory(
+        _openFactory,
+        schema: schema,
+      );
+    } else {
+      _ownedDatabase = ps.PowerSyncDatabase(
+        schema: schema,
+        path: dbPath,
+      );
+    }
 
     await _ownedDatabase!.initialize();
 
@@ -606,18 +625,11 @@ class PowerSyncBackend<T, ID>
   Future<void> sync() async {
     _ensureInitialized();
 
-    try {
-      // PowerSync handles sync automatically, but we can trigger it
-      // via database operations if needed
-      _syncStatusSubject
-        ..add(nexus.SyncStatus.syncing)
-        ..add(nexus.SyncStatus.synced);
-      // coverage:ignore-start
-    } catch (e, stackTrace) {
-      _syncStatusSubject.add(nexus.SyncStatus.error);
-      throw _mapException(e, stackTrace);
-    }
-    // coverage:ignore-end
+    // PowerSync handles sync automatically, but we can trigger status updates
+    // manually if needed for UI feedback
+    _syncStatusSubject
+      ..add(nexus.SyncStatus.syncing)
+      ..add(nexus.SyncStatus.synced);
   }
 
   @override
@@ -646,8 +658,6 @@ class PowerSyncBackend<T, ID>
     final change = _pendingChangesManager.getChange(changeId);
     if (change == null) return;
 
-    // coverage:ignore-start
-    // Edge case: requires pending changes to exist
     // Update retry count
     _pendingChangesManager.updateChange(
       changeId,
@@ -657,7 +667,6 @@ class PowerSyncBackend<T, ID>
 
     // Trigger sync
     await sync();
-    // coverage:ignore-end
   }
 
   @override
@@ -667,8 +676,6 @@ class PowerSyncBackend<T, ID>
     final change = _pendingChangesManager.getChange(changeId);
     if (change == null) return null;
 
-    // coverage:ignore-start
-    // Edge case: requires specific pending change states to test
     // If we have an original value and this was an update, restore it
     if (change.originalValue != null &&
         change.operation == nexus.PendingChangeOperation.update) {
@@ -688,7 +695,6 @@ class PowerSyncBackend<T, ID>
 
     // Remove from pending changes
     return _pendingChangesManager.removeChange(changeId);
-    // coverage:ignore-end
   }
 
   // ===================== PAGINATION =====================

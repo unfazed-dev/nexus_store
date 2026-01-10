@@ -735,6 +735,124 @@ void main() {
       });
     });
 
+    group('pending changes with PendingChangesManager', () {
+      setUp(() async {
+        await backend.initialize();
+      });
+
+      test('retryChange updates retry count and triggers sync', () async {
+        final user = TestUser(id: '1', name: 'John');
+
+        // Add a pending change using the test getter
+        final change = await backend.testPendingChangesManager.addChange(
+          item: user,
+          operation: nexus.PendingChangeOperation.update,
+        );
+
+        // Retry the change
+        await backend.retryChange(change.id);
+
+        // Verify retry count was updated
+        final updated =
+            backend.testPendingChangesManager.getChange(change.id);
+        expect(updated, isNotNull);
+        expect(updated!.retryCount, equals(1));
+        expect(updated.lastAttempt, isNotNull);
+      });
+
+      test('cancelChange with update operation restores original value',
+          () async {
+        when(() => mockDb.execute(any(), any())).thenAnswer((_) async => []);
+
+        final original = TestUser(id: '1', name: 'Original');
+        final updated = TestUser(id: '1', name: 'Updated');
+
+        // Add a pending update change with original value
+        final change = await backend.testPendingChangesManager.addChange(
+          item: updated,
+          operation: nexus.PendingChangeOperation.update,
+          originalValue: original,
+        );
+
+        // Cancel the change
+        final result = await backend.cancelChange(change.id);
+
+        expect(result, isNotNull);
+        expect(result!.operation, equals(nexus.PendingChangeOperation.update));
+
+        // Verify save was called with original value
+        verify(
+          () => mockDb.execute(
+            any(that: contains('INSERT OR REPLACE')),
+            any(that: contains('Original')),
+          ),
+        ).called(greaterThan(0));
+      });
+
+      test('cancelChange with create operation deletes the item', () async {
+        // Mock SELECT (for delete's existence check) and DELETE
+        when(() => mockDb.execute(any(), any())).thenAnswer((invocation) async {
+          final sql = invocation.positionalArguments[0] as String;
+          if (sql.contains('SELECT')) {
+            return [
+              {'id': '2', 'name': 'Created'},
+            ];
+          }
+          return [];
+        });
+
+        final created = TestUser(id: '2', name: 'Created');
+
+        // Add a pending create change
+        final change = await backend.testPendingChangesManager.addChange(
+          item: created,
+          operation: nexus.PendingChangeOperation.create,
+        );
+
+        // Cancel the change
+        final result = await backend.cancelChange(change.id);
+
+        expect(result, isNotNull);
+        expect(result!.operation, equals(nexus.PendingChangeOperation.create));
+
+        // Verify delete was called
+        verify(
+          () => mockDb.execute(
+            any(that: contains('DELETE')),
+            ['2'],
+          ),
+        ).called(1);
+      });
+
+      test('cancelChange with delete operation restores original value',
+          () async {
+        when(() => mockDb.execute(any(), any())).thenAnswer((_) async => []);
+
+        final deleted = TestUser(id: '3', name: 'Deleted');
+
+        // Add a pending delete change with original value
+        final change = await backend.testPendingChangesManager.addChange(
+          item: deleted,
+          operation: nexus.PendingChangeOperation.delete,
+          originalValue: deleted,
+        );
+
+        // Cancel the change
+        final result = await backend.cancelChange(change.id);
+
+        expect(result, isNotNull);
+        expect(result!.operation, equals(nexus.PendingChangeOperation.delete));
+
+        // Verify save was called to restore the item
+        verify(
+          () => mockDb.execute(
+            any(that: contains('INSERT OR REPLACE')),
+            any(that: contains('Deleted')),
+          ),
+        ).called(greaterThan(0));
+      });
+    });
+
     group('conflicts', () {
       setUp(() async {
         await backend.initialize();
