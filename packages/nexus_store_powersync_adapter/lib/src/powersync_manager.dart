@@ -189,6 +189,22 @@ class PowerSyncManager {
   /// Whether the manager has been initialized.
   bool get isInitialized => _initialized;
 
+  /// The database wrapper for creating custom backends.
+  ///
+  /// Use this when you need to create backends with different model types
+  /// than those configured in the table configs. For example, querying
+  /// the same table with different domain models.
+  ///
+  /// Throws [StateError] if the manager is not initialized.
+  PowerSyncDatabaseWrapper get databaseWrapper {
+    if (!_initialized) {
+      throw StateError(
+        'PowerSyncManager not initialized. Call initialize() first.',
+      );
+    }
+    return _adapter!.wrapper;
+  }
+
   /// List of all registered table names.
   List<String> get tableNames => _tableConfigs.keys.toList();
 
