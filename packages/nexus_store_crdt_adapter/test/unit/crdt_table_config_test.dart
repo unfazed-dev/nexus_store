@@ -186,7 +186,7 @@ void main() {
       test('includes indexes in definition', () {
         final configWithIndexes = config.copyWith(
           indexes: [
-            const CrdtIndex(name: 'idx_name', columns: ['name'])
+            const CrdtIndex(name: 'idx_name', columns: ['name']),
           ],
         );
         final definition = configWithIndexes.toTableDefinition();
