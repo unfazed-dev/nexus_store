@@ -264,6 +264,93 @@ sealed class NexusItemSignalState<T> {
 | `isEmpty` | Whether list is empty |
 | `[index]` | Access item by index |
 
+## Batteries-Included Usage
+
+For reduced boilerplate, use signal bundles and the manager.
+
+### Store Bundle
+
+Create bundled signals with computed signals support:
+
+```dart
+final userBundle = SignalsStoreBundle.create(
+  config: SignalsStoreConfig<User, String>(
+    name: 'users',
+    store: userStore,
+    computedSignals: {
+      'activeCount': (s) => computed(() =>
+        s.value.where((u) => u.isActive).length
+      ),
+      'sortedByName': (s) => computed(() =>
+        [...s.value]..sort((a, b) => a.name.compareTo(b.name))
+      ),
+    },
+  ),
+);
+
+// Access signals
+final users = userBundle.listSignal;
+final state = userBundle.stateSignal;
+
+// Access named computed signals
+final activeCount = userBundle.computed('activeCount');
+final sortedUsers = userBundle.computed('sortedByName');
+
+// Use in widget
+Watch((context) {
+  return Column(
+    children: [
+      Text('Active: ${activeCount.value}'),
+      ...users.value.map((u) => UserTile(u)),
+    ],
+  );
+});
+
+// Clean up
+userBundle.dispose();
+```
+
+### Multi-Store Manager
+
+Coordinate multiple stores:
+
+```dart
+final manager = SignalsManager([
+  SignalsStoreConfig<User, String>(name: 'users', store: userStore),
+  SignalsStoreConfig<Post, String>(name: 'posts', store: postStore),
+]);
+
+// Access bundles
+final userBundle = manager.getBundle('users');
+final postBundle = manager.getBundle('posts');
+
+// Direct signal access
+final usersSignal = manager.getListSignal('users');
+final usersState = manager.getStateSignal('users');
+```
+
+### Cross-Store Computed Signals
+
+Create derived state across multiple stores:
+
+```dart
+final totalCount = manager.createCrossStoreComputed<int>(
+  'totalCount',
+  (bundles) {
+    final userCount = bundles['users']!.listSignal.value.length;
+    final postCount = bundles['posts']!.listSignal.value.length;
+    return userCount + postCount;
+  },
+);
+
+Watch((context) {
+  return Text('Total items: ${totalCount.value}');
+});
+
+// Clean up all signals
+manager.dispose();
+```
+
 ## Dependencies
 
 - `signals` ^6.3.0

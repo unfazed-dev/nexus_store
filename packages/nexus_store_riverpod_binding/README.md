@@ -208,6 +208,99 @@ extension NexusStoreWidgetRefHooksX on WidgetRef {
 | `useStoreDebouncedSearch()` | Debounced search term state |
 | `useStoreDataWithPrevious<T>()` | Retains previous data while loading |
 
+## Batteries-Included Usage
+
+For reduced boilerplate, use provider bundles and the store manager.
+
+### Provider Bundle
+
+Create all providers for a store with a single call:
+
+```dart
+final userBundle = StoreProviderBundle.forStore<User, String>(
+  create: (ref) => NexusStore<User, String>(backend: createBackend()),
+  name: 'user',
+  keepAlive: true,
+);
+
+// Use in widgets
+class UserListScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Access the store
+    final store = ref.watch(userBundle.storeProvider);
+
+    // Watch all items
+    final users = ref.watch(userBundle.allProvider);
+
+    // Watch single item by ID
+    final user = ref.watch(userBundle.byIdProvider('user-123'));
+
+    // Watch with status (loading/error)
+    final usersWithStatus = ref.watch(userBundle.statusProvider);
+
+    return users.when(
+      data: (data) => UserList(users: data),
+      loading: () => const CircularProgressIndicator(),
+      error: (e, st) => ErrorWidget(e),
+    );
+  }
+}
+```
+
+Generated providers:
+- `storeProvider` - Provider<NexusStore<T, ID>>
+- `allProvider` - StreamProvider<List<T>>
+- `byIdProvider` - StreamProvider.family<T?, ID>
+- `statusProvider` - StreamProvider<StoreResult<List<T>>>
+- `byIdStatusProvider` - StreamProvider.family<StoreResult<T?>, ID>
+
+### Multi-Store Manager
+
+Coordinate multiple stores with the manager:
+
+```dart
+final storeManager = RiverpodStoreManager([
+  RiverpodStoreConfig<User, String>(
+    name: 'users',
+    create: (ref) => NexusStore(backend: userBackend),
+  ),
+  RiverpodStoreConfig<Post, String>(
+    name: 'posts',
+    create: (ref) => NexusStore(backend: postBackend),
+    dependencies: ['users'], // Declare dependencies
+  ),
+]);
+
+// Access bundles
+final userBundle = storeManager.getBundle('users');
+final postBundle = storeManager.getBundle('posts');
+
+// Access all store providers
+final allProviders = storeManager.allStoreProviders;
+```
+
+### Test Override Utilities
+
+Create mock overrides for testing:
+
+```dart
+testWidgets('my test', (tester) async {
+  final mockUserStore = MockNexusStore<User, String>();
+  final mockPostStore = MockNexusStore<Post, String>();
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: storeManager.createOverrides({
+        'users': mockUserStore,
+        'posts': mockPostStore,
+      }),
+      child: MyApp(),
+    ),
+  );
+});
+```
+
 ## Code Generation (Optional)
 
 For the cleanest syntax, use the `@riverpodNexusStore` annotation:

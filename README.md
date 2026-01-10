@@ -147,19 +147,19 @@ Choose the right backend for your use case:
 |---------|-------------|-----|
 | [nexus_store](packages/nexus_store/) | Core store abstraction | [![pub](https://img.shields.io/pub/v/nexus_store)](https://pub.dev/packages/nexus_store) |
 | [nexus_store_flutter_widgets](packages/nexus_store_flutter_widgets/) | Flutter widgets and providers | [![pub](https://img.shields.io/pub/v/nexus_store_flutter_widgets)](https://pub.dev/packages/nexus_store_flutter_widgets) |
-| [nexus_store_powersync_adapter](packages/nexus_store_powersync_adapter/) | PowerSync offline-first backend | [![pub](https://img.shields.io/pub/v/nexus_store_powersync_adapter)](https://pub.dev/packages/nexus_store_powersync_adapter) |
-| [nexus_store_supabase_adapter](packages/nexus_store_supabase_adapter/) | Supabase realtime backend | [![pub](https://img.shields.io/pub/v/nexus_store_supabase_adapter)](https://pub.dev/packages/nexus_store_supabase_adapter) |
-| [nexus_store_drift_adapter](packages/nexus_store_drift_adapter/) | Drift local SQLite backend | [![pub](https://img.shields.io/pub/v/nexus_store_drift_adapter)](https://pub.dev/packages/nexus_store_drift_adapter) |
-| [nexus_store_brick_adapter](packages/nexus_store_brick_adapter/) | Brick offline-first backend | [![pub](https://img.shields.io/pub/v/nexus_store_brick_adapter)](https://pub.dev/packages/nexus_store_brick_adapter) |
-| [nexus_store_crdt_adapter](packages/nexus_store_crdt_adapter/) | CRDT conflict-free backend | [![pub](https://img.shields.io/pub/v/nexus_store_crdt_adapter)](https://pub.dev/packages/nexus_store_crdt_adapter) |
+| [nexus_store_powersync_adapter](packages/nexus_store_powersync_adapter/) | PowerSync offline-first backend with local-only tables | [![pub](https://img.shields.io/pub/v/nexus_store_powersync_adapter)](https://pub.dev/packages/nexus_store_powersync_adapter) |
+| [nexus_store_supabase_adapter](packages/nexus_store_supabase_adapter/) | Supabase realtime backend with RLS DSL and auth providers | [![pub](https://img.shields.io/pub/v/nexus_store_supabase_adapter)](https://pub.dev/packages/nexus_store_supabase_adapter) |
+| [nexus_store_drift_adapter](packages/nexus_store_drift_adapter/) | Drift SQLite backend with column DSL and manager | [![pub](https://img.shields.io/pub/v/nexus_store_drift_adapter)](https://pub.dev/packages/nexus_store_drift_adapter) |
+| [nexus_store_brick_adapter](packages/nexus_store_brick_adapter/) | Brick offline-first backend with sync policies | [![pub](https://img.shields.io/pub/v/nexus_store_brick_adapter)](https://pub.dev/packages/nexus_store_brick_adapter) |
+| [nexus_store_crdt_adapter](packages/nexus_store_crdt_adapter/) | CRDT backend with merge strategies and sync rules | [![pub](https://img.shields.io/pub/v/nexus_store_crdt_adapter)](https://pub.dev/packages/nexus_store_crdt_adapter) |
 
 ### State Management Bindings
 
 | Package | Description |
 |---------|-------------|
-| [nexus_store_riverpod_binding](packages/nexus_store_riverpod_binding/) | Riverpod providers and hooks |
-| [nexus_store_bloc_binding](packages/nexus_store_bloc_binding/) | Bloc/Cubit integration |
-| [nexus_store_signals_binding](packages/nexus_store_signals_binding/) | Signals fine-grained reactivity |
+| [nexus_store_riverpod_binding](packages/nexus_store_riverpod_binding/) | Riverpod provider bundles, store manager, and hooks |
+| [nexus_store_bloc_binding](packages/nexus_store_bloc_binding/) | Bloc/Cubit bundles with state helpers and event sequences |
+| [nexus_store_signals_binding](packages/nexus_store_signals_binding/) | Signal bundles with cross-store computed signals |
 
 ### Code Generation
 

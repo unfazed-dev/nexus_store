@@ -76,6 +76,119 @@ final backend = DriftBackend<User, String>(
 );
 ```
 
+## Batteries-Included Usage
+
+For reduced boilerplate, use the type-safe configuration classes and factory methods.
+
+### Column Definitions
+
+Define table schemas using type-safe factory methods:
+
+```dart
+final columns = [
+  DriftColumn.text('id', nullable: false),
+  DriftColumn.text('name'),
+  DriftColumn.text('email'),
+  DriftColumn.integer('age', nullable: true),
+  DriftColumn.boolean('isActive', defaultValue: true),
+  DriftColumn.dateTime('createdAt'),
+];
+```
+
+Available column types:
+- `DriftColumn.text()` - TEXT column
+- `DriftColumn.integer()` - INTEGER column
+- `DriftColumn.real()` - REAL (double) column
+- `DriftColumn.boolean()` - INTEGER (0/1) column
+- `DriftColumn.dateTime()` - INTEGER (Unix timestamp) column
+- `DriftColumn.blob()` - BLOB column
+
+### Table Configuration
+
+Bundle table metadata with serialization functions:
+
+```dart
+final userConfig = DriftTableConfig<User, String>(
+  tableName: 'users',
+  columns: columns,
+  fromJson: User.fromJson,
+  toJson: (u) => u.toJson(),
+  getId: (u) => u.id,
+  primaryKeyField: 'id',
+  fieldMapping: {
+    'firstName': 'first_name',
+    'lastName': 'last_name',
+  },
+);
+```
+
+### Factory Method
+
+Create a fully configured backend with a single call:
+
+```dart
+final backend = DriftBackend<User, String>.withDatabase(
+  tableName: 'users',
+  columns: columns,
+  getId: (u) => u.id,
+  fromJson: User.fromJson,
+  toJson: (u) => u.toJson(),
+);
+await backend.initialize();
+```
+
+### Multi-Table Manager
+
+Coordinate multiple backends with a shared database connection:
+
+```dart
+final manager = DriftManager.withDatabase(
+  tables: [
+    DriftTableConfig<User, String>(
+      tableName: 'users',
+      columns: userColumns,
+      fromJson: User.fromJson,
+      toJson: (u) => u.toJson(),
+      getId: (u) => u.id,
+    ),
+    DriftTableConfig<Post, String>(
+      tableName: 'posts',
+      columns: postColumns,
+      fromJson: Post.fromJson,
+      toJson: (p) => p.toJson(),
+      getId: (p) => p.id,
+    ),
+  ],
+);
+
+await manager.initialize();
+
+// Get typed backends
+final userBackend = manager.getBackend('users');
+final postBackend = manager.getBackend('posts');
+
+// Cleanup
+await manager.dispose();
+```
+
+### Index Definitions
+
+Define indexes for performance:
+
+```dart
+final userConfig = DriftTableConfig<User, String>(
+  tableName: 'users',
+  columns: columns,
+  fromJson: User.fromJson,
+  toJson: (u) => u.toJson(),
+  getId: (u) => u.id,
+  indexes: [
+    DriftIndex(name: 'idx_users_email', columns: ['email'], unique: true),
+    DriftIndex(name: 'idx_users_active', columns: ['isActive']),
+  ],
+);
+```
+
 ## Table Mapping Patterns
 
 ### Simple Table

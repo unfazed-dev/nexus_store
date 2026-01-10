@@ -75,6 +75,149 @@ final backend = CrdtBackend<User, String>(
 );
 ```
 
+## Batteries-Included Usage
+
+For reduced boilerplate, use the type-safe configuration classes and factory methods.
+
+### Column Definitions
+
+Define table schemas using type-safe factory methods:
+
+```dart
+final columns = [
+  CrdtColumn.text('id', nullable: false),
+  CrdtColumn.text('name', nullable: false),
+  CrdtColumn.text('email'),
+  CrdtColumn.integer('age', nullable: true),
+];
+```
+
+Available column types:
+- `CrdtColumn.text()` - TEXT column
+- `CrdtColumn.integer()` - INTEGER column
+- `CrdtColumn.real()` - REAL (double) column
+- `CrdtColumn.blob()` - BLOB column
+
+### Merge Strategy Configuration
+
+Configure per-field conflict resolution:
+
+```dart
+final mergeConfig = CrdtMergeConfig<User>(
+  defaultStrategy: CrdtMergeStrategy.lww, // Last Writer Wins (default)
+  fieldStrategies: {
+    'name': CrdtMergeStrategy.fww, // First Writer Wins for name
+  },
+);
+```
+
+Available strategies:
+- `CrdtMergeStrategy.lww` - Last Writer Wins (default)
+- `CrdtMergeStrategy.fww` - First Writer Wins
+- `CrdtMergeStrategy.custom` - Custom merge function
+
+### Factory Method
+
+Create a fully configured backend with a single call:
+
+```dart
+final backend = CrdtBackend<User, String>.withDatabase(
+  tableName: 'users',
+  columns: columns,
+  getId: (u) => u.id,
+  fromJson: User.fromJson,
+  toJson: (u) => u.toJson(),
+);
+await backend.initialize();
+```
+
+### Multi-Table Manager
+
+Coordinate multiple backends with a shared CRDT database:
+
+```dart
+final manager = CrdtManager.withDatabase(
+  tables: [
+    CrdtTableConfig<User, String>(
+      tableName: 'users',
+      columns: userColumns,
+      fromJson: User.fromJson,
+      toJson: (u) => u.toJson(),
+      getId: (u) => u.id,
+      mergeConfig: mergeConfig,
+    ),
+    CrdtTableConfig<Post, String>(
+      tableName: 'posts',
+      columns: postColumns,
+      fromJson: Post.fromJson,
+      toJson: (p) => p.toJson(),
+      getId: (p) => p.id,
+    ),
+  ],
+  nodeId: 'device-123', // Optional, auto-generated if null
+);
+
+await manager.initialize();
+
+// Get typed backends
+final userBackend = manager.getBackend('users');
+final postBackend = manager.getBackend('posts');
+
+// Get changesets for sync
+final changeset = await manager.getChangesetForAll(since: lastSyncHlc);
+await manager.sendChangeset(since: lastSyncHlc);
+
+// Cleanup
+await manager.dispose();
+```
+
+### Peer Connector Pattern
+
+Use the peer connector abstraction for sync transport:
+
+```dart
+// Attach peer connector
+final connector = CrdtMemoryConnector(peerId: 'peer-1');
+manager.attachConnector(connector);
+await connector.connect();
+
+// Send changes through connector
+await manager.sendChangeset(since: lastSyncHlc);
+
+// Detach when done
+manager.detachConnector();
+```
+
+### Sync Rules DSL
+
+Configure sync filtering per table:
+
+```dart
+final syncRules = CrdtSyncRules(
+  defaultDirection: CrdtSyncDirection.bidirectional,
+  tableRules: [
+    CrdtSyncTableRule(
+      tableName: 'logs',
+      direction: CrdtSyncDirection.pushOnly, // Only push logs, never pull
+    ),
+    CrdtSyncTableRule(
+      tableName: 'posts',
+      filter: (r) => r['is_public'] == true, // Only sync public posts
+      priority: 10, // Higher priority syncs first
+    ),
+  ],
+);
+
+// Filter changeset based on rules
+final filtered = syncRules.filterChangeset(changeset, isOutgoing: true);
+```
+
+Available sync directions:
+- `CrdtSyncDirection.bidirectional` - Push and pull (default)
+- `CrdtSyncDirection.pushOnly` - Only push changes
+- `CrdtSyncDirection.pullOnly` - Only pull changes
+- `CrdtSyncDirection.none` - Don't sync this table
+
 ## Conflict Resolution (LWW)
 
 The adapter uses Last-Writer-Wins (LWW) conflict resolution:

@@ -81,6 +81,155 @@ final backend = SupabaseBackend<User, String>(
 );
 ```
 
+## Batteries-Included Usage
+
+For reduced boilerplate, use the type-safe configuration classes and factory methods.
+
+### Column Definitions
+
+Define table schemas using type-safe factory methods:
+
+```dart
+final columns = [
+  SupabaseColumn.uuid('id'),
+  SupabaseColumn.text('name'),
+  SupabaseColumn.text('email'),
+  SupabaseColumn.integer('age', nullable: true),
+  SupabaseColumn.boolean('is_active', defaultValue: true),
+  SupabaseColumn.timestamptz('created_at'),
+  SupabaseColumn.jsonb('metadata', nullable: true),
+];
+```
+
+Available column types:
+- `SupabaseColumn.text()` - TEXT column
+- `SupabaseColumn.integer()` - INTEGER column
+- `SupabaseColumn.float8()` - DOUBLE PRECISION column
+- `SupabaseColumn.boolean()` - BOOLEAN column
+- `SupabaseColumn.timestamptz()` - TIMESTAMP WITH TIME ZONE column
+- `SupabaseColumn.uuid()` - UUID column
+- `SupabaseColumn.jsonb()` - JSONB column
+
+### Factory Method
+
+Create a fully configured backend with a single call:
+
+```dart
+final backend = SupabaseBackend<User, String>.withClient(
+  client: Supabase.instance.client,
+  tableName: 'users',
+  columns: columns,
+  getId: (u) => u.id,
+  fromJson: User.fromJson,
+  toJson: (u) => u.toJson(),
+  enableRealtime: true,
+);
+await backend.initialize();
+```
+
+### Multi-Table Manager
+
+Coordinate multiple backends with a shared client:
+
+```dart
+final manager = SupabaseManager.withClient(
+  client: Supabase.instance.client,
+  tables: [
+    SupabaseTableConfig<User, String>(
+      tableName: 'users',
+      columns: userColumns,
+      fromJson: User.fromJson,
+      toJson: (u) => u.toJson(),
+      getId: (u) => u.id,
+      enableRealtime: true,
+    ),
+    SupabaseTableConfig<Post, String>(
+      tableName: 'posts',
+      columns: postColumns,
+      fromJson: Post.fromJson,
+      toJson: (p) => p.toJson(),
+      getId: (p) => p.id,
+    ),
+  ],
+);
+
+await manager.initialize();
+
+// Get typed backends
+final userBackend = manager.getBackend('users');
+final postBackend = manager.getBackend('posts');
+
+// Subscribe/unsubscribe realtime for all tables
+await manager.subscribeAll();
+await manager.unsubscribeAll();
+
+// Cleanup
+await manager.dispose();
+```
+
+### Auth Provider Abstraction
+
+Use custom auth implementations:
+
+```dart
+// Default: Uses Supabase Auth
+final backend = SupabaseBackend<User, String>.withClient(
+  client: supabase,
+  // ...
+);
+
+// Custom: Implement your own auth provider
+class CustomAuthProvider implements SupabaseAuthProvider {
+  @override
+  SupabaseAuthState get state => _state;
+
+  @override
+  Stream<SupabaseAuthState> get stateStream => _stateController.stream;
+
+  @override
+  String? get currentUserId => _userId;
+}
+
+final backend = SupabaseBackend<User, String>.withClient(
+  client: supabase,
+  authProvider: CustomAuthProvider(),
+  // ...
+);
+```
+
+### RLS Policy DSL
+
+Generate PostgreSQL RLS policies from Dart:
+
+```dart
+final rlsRules = SupabaseRLSRules([
+  SupabaseRLSPolicy.select(
+    name: 'users_select_own',
+    using: 'auth.uid() = id',
+  ),
+  SupabaseRLSPolicy.insert(
+    name: 'users_insert_own',
+    withCheck: 'auth.uid() = id',
+  ),
+  SupabaseRLSPolicy.update(
+    name: 'users_update_own',
+    using: 'auth.uid() = id',
+    withCheck: 'auth.uid() = id',
+  ),
+  SupabaseRLSPolicy.delete(
+    name: 'users_delete_own',
+    using: 'auth.uid() = id',
+  ),
+]);
+
+// Generate SQL
+print(rlsRules.toSql('users'));
+// Output:
+// CREATE POLICY "users_select_own" ON "users" FOR SELECT USING (auth.uid() = id);
+// CREATE POLICY "users_insert_own" ON "users" FOR INSERT WITH CHECK (auth.uid() = id);
+// ...
+```
+
 ## Real-Time Setup
 
 ### Enable Realtime on Table

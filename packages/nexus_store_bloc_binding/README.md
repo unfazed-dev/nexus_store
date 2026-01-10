@@ -295,6 +295,116 @@ BlocListener<UsersCubit, NexusStoreState<User>>(
 |-------|-------------|
 | `NexusStoreBlocObserver` | Configurable BlocObserver for debugging |
 
+## Batteries-Included Usage
+
+For reduced boilerplate, use bloc bundles, the manager, and enhanced state helpers.
+
+### Store Bundle
+
+Create bundled bloc/cubit with configuration:
+
+```dart
+final userConfig = BlocStoreConfig<User, String>(
+  name: 'users',
+  store: userStore,
+  useBloc: true, // Use Bloc instead of Cubit
+  loadingStateConfig: LoadingStateConfig(
+    showPreviousDataWhileLoading: true,
+    debounceMs: 300,
+    retryCount: 3,
+  ),
+);
+
+final userBlocs = BlocStoreBundle.create(config: userConfig);
+
+// Access the list bloc/cubit
+final usersBloc = userBlocs.listBloc;
+
+// Create item cubit for specific ID
+final userCubit = userBlocs.itemCubit('user-123');
+
+// Clean up
+userBlocs.close();
+```
+
+### Multi-Store Manager
+
+Coordinate multiple stores:
+
+```dart
+final manager = BlocManager([
+  BlocStoreConfig<User, String>(name: 'users', store: userStore),
+  BlocStoreConfig<Post, String>(name: 'posts', store: postStore),
+]);
+
+// Access bundles
+final userBundle = manager.getBundle('users');
+final postBundle = manager.getBundle('posts');
+
+// Coordinated operations
+await manager.refreshAll();
+
+// Aggregate state
+final anyLoading = manager.isAnyLoading;
+manager.isAnyLoadingStream.listen((loading) => print('Loading: $loading'));
+
+// Error aggregation
+final error = manager.firstError;
+manager.errorStream.listen((e) => print('Error: $e'));
+
+// Clean up
+manager.dispose();
+```
+
+### Enhanced State Helpers
+
+Extensions for cleaner state handling:
+
+```dart
+final state = NexusStoreLoaded([user1, user2]);
+
+// Filter items
+final activeState = state.where((u) => u.isActive);
+
+// Transform data
+final mapped = state.mapData((users) =>
+  users.map((u) => u.name).toList()
+);
+
+// Access helpers
+final first = state.firstOrNull;
+final user = state.findById('user-123', (u) => u.id);
+
+// Combine states
+final combined = usersState.combineWith(postsState);
+combined.when(
+  data: (users, posts) => print('Users: ${users.length}, Posts: ${posts.length}'),
+  loading: () => print('Loading...'),
+  error: (e) => print('Error: $e'),
+);
+```
+
+### Event Helpers
+
+Extensions for common patterns:
+
+```dart
+// Debounced loading
+cubit.loadDebounced(delay: Duration(milliseconds: 500));
+
+// Retry on failure
+await cubit.loadWithRetry(maxRetries: 3);
+
+// Debounced event for Bloc
+bloc.addDebounced(LoadAll(), delay: Duration(milliseconds: 300));
+
+// Event sequences
+final sequences = EventSequences<User, String>();
+for (final event in sequences.saveAndRefresh(user)) {
+  bloc.add(event);
+}
+```
+
 ## Testing
 
 The package includes comprehensive tests. Run them with:
