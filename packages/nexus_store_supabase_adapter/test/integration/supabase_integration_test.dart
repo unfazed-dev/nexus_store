@@ -71,6 +71,8 @@ class TestModel {
 void main() {
   group('Supabase Integration Tests', () {
     late MockSupabaseClient mockClient;
+    // Unique prefix for this test file to avoid conflicts with other test files
+    const testPrefix = 'int-';
 
     setUp(() {
       mockClient = MockSupabaseClient();
@@ -540,18 +542,18 @@ void main() {
         );
         await backend.initialize();
 
-        // Clean up any existing test data
+        // Clean up any existing test data for this test file only
         try {
-          await realClient.from(tableName).delete().neq('id', '');
+          await realClient.from(tableName).delete().like('id', '$testPrefix%');
         } on Object {
           // Ignore cleanup errors
         }
       });
 
       tearDown(() async {
-        // Clean up test data
+        // Clean up test data - only records from this test file
         try {
-          await realClient.from(tableName).delete().neq('id', '');
+          await realClient.from(tableName).delete().like('id', '$testPrefix%');
         } on Object {
           // Ignore cleanup errors
         }
@@ -559,64 +561,83 @@ void main() {
       });
 
       test('save creates a new record', () async {
-        const model = TestModel(id: 'crud-1', name: 'Test Item', value: 25);
+        const model =
+            TestModel(id: '${testPrefix}crud-1', name: 'Test Item', value: 25);
 
         final result = await backend.save(model);
 
-        expect(result.id, equals('crud-1'));
+        expect(result.id, equals('${testPrefix}crud-1'));
         expect(result.name, equals('Test Item'));
         expect(result.value, equals(25));
       });
 
       test('save updates an existing record', () async {
-        const model = TestModel(id: 'crud-2', name: 'Original', value: 20);
+        const model =
+            TestModel(id: '${testPrefix}crud-2', name: 'Original', value: 20);
         await backend.save(model);
 
-        const updated = TestModel(id: 'crud-2', name: 'Updated', value: 30);
+        const updated =
+            TestModel(id: '${testPrefix}crud-2', name: 'Updated', value: 30);
         final result = await backend.save(updated);
 
-        expect(result.id, equals('crud-2'));
+        expect(result.id, equals('${testPrefix}crud-2'));
         expect(result.name, equals('Updated'));
         expect(result.value, equals(30));
       });
 
       test('get retrieves a record by id', () async {
-        const model = TestModel(id: 'crud-3', name: 'Get Test', value: 35);
+        const model =
+            TestModel(id: '${testPrefix}crud-3', name: 'Get Test', value: 35);
         await backend.save(model);
 
-        final result = await backend.get('crud-3');
+        final result = await backend.get('${testPrefix}crud-3');
 
         expect(result, isNotNull);
-        expect(result!.id, equals('crud-3'));
+        expect(result!.id, equals('${testPrefix}crud-3'));
         expect(result.name, equals('Get Test'));
       });
 
       test('get returns null for non-existent id', () async {
-        final result = await backend.get('non-existent-id');
+        final result = await backend.get('${testPrefix}non-existent-id');
 
         expect(result, isNull);
       });
 
       test('getAll retrieves all records', () async {
-        await backend.save(const TestModel(id: 'all-1', name: 'Item 1'));
-        await backend.save(const TestModel(id: 'all-2', name: 'Item 2'));
-        await backend.save(const TestModel(id: 'all-3', name: 'Item 3'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}all-1', name: 'Item 1'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}all-2', name: 'Item 2'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}all-3', name: 'Item 3'));
 
-        final results = await backend.getAll();
+        // Query only records for this test file
+        final query = const nexus.Query<TestModel>().where(
+          'id',
+          isGreaterThanOrEqualTo: testPrefix,
+        );
+        final results = await backend.getAll(query: query);
 
         expect(results.length, greaterThanOrEqualTo(3));
-        expect(results.any((m) => m.id == 'all-1'), isTrue);
-        expect(results.any((m) => m.id == 'all-2'), isTrue);
-        expect(results.any((m) => m.id == 'all-3'), isTrue);
+        expect(results.any((m) => m.id == '${testPrefix}all-1'), isTrue);
+        expect(results.any((m) => m.id == '${testPrefix}all-2'), isTrue);
+        expect(results.any((m) => m.id == '${testPrefix}all-3'), isTrue);
       });
 
       test('getAll with query filters results', () async {
-        await backend
-            .save(const TestModel(id: 'filter-1', name: 'Alice', value: 25));
-        await backend
-            .save(const TestModel(id: 'filter-2', name: 'Bob', value: 35));
-        await backend
-            .save(const TestModel(id: 'filter-3', name: 'Charlie', value: 45));
+        await backend.save(
+          const TestModel(id: '${testPrefix}filter-1', name: 'Alice', value: 25),
+        );
+        await backend.save(
+          const TestModel(id: '${testPrefix}filter-2', name: 'Bob', value: 35),
+        );
+        await backend.save(
+          const TestModel(
+            id: '${testPrefix}filter-3',
+            name: 'Charlie',
+            value: 45,
+          ),
+        );
 
         final query = const nexus.Query<TestModel>().where(
           'value',
@@ -631,52 +652,73 @@ void main() {
       });
 
       test('delete removes a record', () async {
-        await backend.save(const TestModel(id: 'del-1', name: 'To Delete'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}del-1', name: 'To Delete'));
 
-        final deleted = await backend.delete('del-1');
+        final deleted = await backend.delete('${testPrefix}del-1');
 
         expect(deleted, isTrue);
 
-        final result = await backend.get('del-1');
+        final result = await backend.get('${testPrefix}del-1');
         expect(result, isNull);
       });
 
       test('delete returns false for non-existent record', () async {
-        final deleted = await backend.delete('non-existent');
+        final deleted = await backend.delete('${testPrefix}non-existent');
 
         expect(deleted, isFalse);
       });
 
       test('deleteAll removes multiple records', () async {
-        await backend.save(const TestModel(id: 'delall-1', name: 'Item 1'));
-        await backend.save(const TestModel(id: 'delall-2', name: 'Item 2'));
-        await backend.save(const TestModel(id: 'delall-3', name: 'Keep'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}delall-1', name: 'Item 1'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}delall-2', name: 'Item 2'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}delall-3', name: 'Keep'));
 
-        final count = await backend.deleteAll(['delall-1', 'delall-2']);
+        final count = await backend
+            .deleteAll(['${testPrefix}delall-1', '${testPrefix}delall-2']);
 
         expect(count, equals(2));
 
-        final remaining = await backend.get('delall-3');
+        final remaining = await backend.get('${testPrefix}delall-3');
         expect(remaining, isNotNull);
       });
 
       test('deleteWhere removes records matching query', () async {
-        await backend
-            .save(const TestModel(id: 'delwhere-1', name: 'Young', value: 20));
-        await backend
-            .save(const TestModel(id: 'delwhere-2', name: 'Old', value: 50));
-        await backend
-            .save(const TestModel(id: 'delwhere-3', name: 'Middle', value: 35));
+        await backend.save(
+          const TestModel(
+            id: '${testPrefix}delwhere-1',
+            name: 'Young',
+            value: 20,
+          ),
+        );
+        await backend.save(
+          const TestModel(id: '${testPrefix}delwhere-2', name: 'Old', value: 50),
+        );
+        await backend.save(
+          const TestModel(
+            id: '${testPrefix}delwhere-3',
+            name: 'Middle',
+            value: 35,
+          ),
+        );
 
         final query =
             const nexus.Query<TestModel>().where('value', isLessThan: 30);
 
         await backend.deleteWhere(query);
 
-        final results = await backend.getAll();
-        expect(results.any((m) => m.id == 'delwhere-1'), isFalse);
-        expect(results.any((m) => m.id == 'delwhere-2'), isTrue);
-        expect(results.any((m) => m.id == 'delwhere-3'), isTrue);
+        // Query only records for this test file
+        final filterQuery = const nexus.Query<TestModel>().where(
+          'id',
+          isGreaterThanOrEqualTo: testPrefix,
+        );
+        final results = await backend.getAll(query: filterQuery);
+        expect(results.any((m) => m.id == '${testPrefix}delwhere-1'), isFalse);
+        expect(results.any((m) => m.id == '${testPrefix}delwhere-2'), isTrue);
+        expect(results.any((m) => m.id == '${testPrefix}delwhere-3'), isTrue);
       });
     });
 
@@ -699,18 +741,18 @@ void main() {
         );
         await backend.initialize();
 
-        // Clean up any existing test data
+        // Clean up any existing test data for this test file only
         try {
-          await realClient.from(tableName).delete().neq('id', '');
+          await realClient.from(tableName).delete().like('id', '$testPrefix%');
         } on Object {
           // Ignore cleanup errors
         }
       });
 
       tearDown(() async {
-        // Clean up test data
+        // Clean up test data - only records from this test file
         try {
-          await realClient.from(tableName).delete().neq('id', '');
+          await realClient.from(tableName).delete().like('id', '$testPrefix%');
         } on Object {
           // Ignore cleanup errors
         }
@@ -719,17 +761,17 @@ void main() {
 
       test('watch emits initial value', () async {
         await backend.save(
-          const TestModel(id: 'watch-1', name: 'Watch Test', value: 30),
+          const TestModel(id: '${testPrefix}watch-1', name: 'Watch Test', value: 30),
         );
 
         // Small delay to ensure record is available in database
         await Future<void>.delayed(const Duration(milliseconds: 100));
 
         // Verify the record exists before watching
-        final saved = await backend.get('watch-1');
+        final saved = await backend.get('${testPrefix}watch-1');
         expect(saved, isNotNull, reason: 'Record should exist after save');
 
-        final stream = backend.watch('watch-1');
+        final stream = backend.watch('${testPrefix}watch-1');
         // BehaviorSubject loads initial value asynchronously via get(),
         // so we use firstWhere to skip any initial null emissions
         final firstValue = await stream
@@ -737,16 +779,16 @@ void main() {
             .timeout(const Duration(seconds: 5));
 
         expect(firstValue, isNotNull);
-        expect(firstValue!.id, equals('watch-1'));
+        expect(firstValue!.id, equals('${testPrefix}watch-1'));
         expect(firstValue.name, equals('Watch Test'));
       });
 
       test('watch emits updates on changes', () async {
         await backend.save(
-          const TestModel(id: 'watch-2', name: 'Original', value: 25),
+          const TestModel(id: '${testPrefix}watch-2', name: 'Original', value: 25),
         );
 
-        final stream = backend.watch('watch-2');
+        final stream = backend.watch('${testPrefix}watch-2');
         final values = <TestModel?>[];
         final subscription = stream.listen(values.add);
 
@@ -755,7 +797,7 @@ void main() {
 
         // Update the record
         await backend.save(
-          const TestModel(id: 'watch-2', name: 'Updated', value: 26),
+          const TestModel(id: '${testPrefix}watch-2', name: 'Updated', value: 26),
         );
 
         // Wait for update notification
@@ -768,23 +810,36 @@ void main() {
       });
 
       test('watchAll emits initial list', () async {
-        await backend.save(const TestModel(id: 'wall-1', name: 'Item 1'));
-        await backend.save(const TestModel(id: 'wall-2', name: 'Item 2'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}wall-1', name: 'Item 1'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}wall-2', name: 'Item 2'));
 
-        final stream = backend.watchAll();
+        // Query only records for this test file
+        final query = const nexus.Query<TestModel>().where(
+          'id',
+          isGreaterThanOrEqualTo: testPrefix,
+        );
+        final stream = backend.watchAll(query: query);
         final firstValue = await stream.first.timeout(
           const Duration(seconds: 5),
         );
 
         expect(firstValue.length, greaterThanOrEqualTo(2));
-        expect(firstValue.any((m) => m.id == 'wall-1'), isTrue);
-        expect(firstValue.any((m) => m.id == 'wall-2'), isTrue);
+        expect(firstValue.any((m) => m.id == '${testPrefix}wall-1'), isTrue);
+        expect(firstValue.any((m) => m.id == '${testPrefix}wall-2'), isTrue);
       });
 
       test('watchAll emits updates on changes', () async {
-        await backend.save(const TestModel(id: 'wall-3', name: 'Initial'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}wall-3', name: 'Initial'));
 
-        final stream = backend.watchAll();
+        // Query only records for this test file
+        final query = const nexus.Query<TestModel>().where(
+          'id',
+          isGreaterThanOrEqualTo: testPrefix,
+        );
+        final stream = backend.watchAll(query: query);
         final values = <List<TestModel>>[];
         final subscription = stream.listen(values.add);
 
@@ -792,7 +847,8 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 500));
 
         // Add a new record
-        await backend.save(const TestModel(id: 'wall-4', name: 'New Item'));
+        await backend
+            .save(const TestModel(id: '${testPrefix}wall-4', name: 'New Item'));
 
         // Wait for update notification
         await Future<void>.delayed(const Duration(milliseconds: 500));
@@ -804,10 +860,10 @@ void main() {
 
       test('watchAll with query filters results', () async {
         await backend.save(
-          const TestModel(id: 'wquery-1', name: 'Young', value: 20),
+          const TestModel(id: '${testPrefix}wquery-1', name: 'Young', value: 20),
         );
         await backend.save(
-          const TestModel(id: 'wquery-2', name: 'Old', value: 50),
+          const TestModel(id: '${testPrefix}wquery-2', name: 'Old', value: 50),
         );
 
         final query = const nexus.Query<TestModel>().where(

@@ -5,6 +5,7 @@ import 'package:nexus_store_supabase_adapter/src/realtime_manager_wrapper.dart';
 import 'package:nexus_store_supabase_adapter/src/supabase_client_wrapper.dart';
 import 'package:nexus_store_supabase_adapter/src/supabase_query_translator.dart';
 import 'package:nexus_store_supabase_adapter/src/supabase_realtime_manager.dart';
+import 'package:nexus_store_supabase_adapter/src/supabase_table_config.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase/supabase.dart';
 
@@ -145,6 +146,46 @@ class SupabaseBackend<T, ID>
         _queryTranslator = queryTranslator ??
             SupabaseQueryTranslator<T>(fieldMapping: fieldMapping),
         _schema = schema;
+
+  /// Creates a [SupabaseBackend] from a [SupabaseTableConfig].
+  ///
+  /// This is the batteries-included factory method that simplifies backend
+  /// creation by bundling all configuration in a single object.
+  ///
+  /// Example:
+  /// ```dart
+  /// final config = SupabaseTableConfig<User, String>(
+  ///   tableName: 'users',
+  ///   columns: [
+  ///     SupabaseColumn.uuid('id', nullable: false),
+  ///     SupabaseColumn.text('name', nullable: false),
+  ///     SupabaseColumn.text('email'),
+  ///   ],
+  ///   fromJson: User.fromJson,
+  ///   toJson: (u) => u.toJson(),
+  ///   getId: (u) => u.id,
+  ///   enableRealtime: true,
+  /// );
+  ///
+  /// final backend = SupabaseBackend.withConfig(
+  ///   client: supabaseClient,
+  ///   config: config,
+  /// );
+  /// ```
+  factory SupabaseBackend.withConfig({
+    required SupabaseClient client,
+    required SupabaseTableConfig<T, ID> config,
+  }) =>
+      SupabaseBackend<T, ID>(
+        client: client,
+        tableName: config.tableName,
+        getId: config.getId,
+        fromJson: config.fromJson,
+        toJson: config.toJson,
+        primaryKeyColumn: config.primaryKeyColumn,
+        fieldMapping: config.fieldMapping,
+        schema: config.schema,
+      );
 
   final SupabaseClientWrapper _wrapper;
   final String _tableName;

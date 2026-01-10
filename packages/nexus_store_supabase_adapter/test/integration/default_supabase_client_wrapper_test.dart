@@ -23,6 +23,8 @@ void main() {
     late DefaultSupabaseClientWrapper wrapper;
     const tableName = 'test_items';
     const primaryKey = 'id';
+    // Unique prefix for this test file to avoid conflicts with other test files
+    const testPrefix = 'dcw-';
 
     setUpAll(() async {
       // Initialize Supabase client
@@ -32,27 +34,27 @@ void main() {
       );
       wrapper = DefaultSupabaseClientWrapper(client);
 
-      // Clean up any existing test data
+      // Clean up any existing test data for this test file only
       try {
-        await client.from(tableName).delete().neq(primaryKey, '');
+        await client.from(tableName).delete().like(primaryKey, '$testPrefix%');
       } on Object {
         // Table might not exist or be empty - that's fine
       }
     });
 
     tearDownAll(() async {
-      // Clean up test data
+      // Clean up test data for this test file only
       try {
-        await client.from(tableName).delete().neq(primaryKey, '');
+        await client.from(tableName).delete().like(primaryKey, '$testPrefix%');
       } on Object {
         // Ignore cleanup errors
       }
     });
 
     tearDown(() async {
-      // Clean up after each test
+      // Clean up after each test - only records from this test file
       try {
-        await client.from(tableName).delete().neq(primaryKey, '');
+        await client.from(tableName).delete().like(primaryKey, '$testPrefix%');
       } on Object {
         // Ignore cleanup errors
       }
@@ -66,25 +68,37 @@ void main() {
 
     group('upsert', () {
       test('creates a new record', () async {
-        final data = {'id': 'test-1', 'name': 'Test Item', 'value': 100};
+        final data = {
+          'id': '${testPrefix}test-1',
+          'name': 'Test Item',
+          'value': 100,
+        };
 
         final result = await wrapper.upsert(tableName, data);
 
-        expect(result['id'], equals('test-1'));
+        expect(result['id'], equals('${testPrefix}test-1'));
         expect(result['name'], equals('Test Item'));
         expect(result['value'], equals(100));
       });
 
       test('updates an existing record', () async {
         // First create
-        final data = {'id': 'test-2', 'name': 'Original', 'value': 50};
+        final data = {
+          'id': '${testPrefix}test-2',
+          'name': 'Original',
+          'value': 50,
+        };
         await wrapper.upsert(tableName, data);
 
         // Then update
-        final updated = {'id': 'test-2', 'name': 'Updated', 'value': 100};
+        final updated = {
+          'id': '${testPrefix}test-2',
+          'name': 'Updated',
+          'value': 100,
+        };
         final result = await wrapper.upsert(tableName, updated);
 
-        expect(result['id'], equals('test-2'));
+        expect(result['id'], equals('${testPrefix}test-2'));
         expect(result['name'], equals('Updated'));
         expect(result['value'], equals(100));
       });
@@ -93,30 +107,35 @@ void main() {
     group('upsertAll', () {
       test('creates multiple records', () async {
         final data = [
-          {'id': 'batch-1', 'name': 'Item 1', 'value': 10},
-          {'id': 'batch-2', 'name': 'Item 2', 'value': 20},
-          {'id': 'batch-3', 'name': 'Item 3', 'value': 30},
+          {'id': '${testPrefix}batch-1', 'name': 'Item 1', 'value': 10},
+          {'id': '${testPrefix}batch-2', 'name': 'Item 2', 'value': 20},
+          {'id': '${testPrefix}batch-3', 'name': 'Item 3', 'value': 30},
         ];
 
         final results = await wrapper.upsertAll(tableName, data);
 
         expect(results.length, equals(3));
-        expect(results[0]['id'], equals('batch-1'));
-        expect(results[1]['id'], equals('batch-2'));
-        expect(results[2]['id'], equals('batch-3'));
+        expect(results[0]['id'], equals('${testPrefix}batch-1'));
+        expect(results[1]['id'], equals('${testPrefix}batch-2'));
+        expect(results[2]['id'], equals('${testPrefix}batch-3'));
       });
     });
 
     group('get', () {
       test('retrieves a record by ID', () async {
         // Create a record first
-        final data = {'id': 'get-test-1', 'name': 'Get Test', 'value': 42};
+        final data = {
+          'id': '${testPrefix}get-test-1',
+          'name': 'Get Test',
+          'value': 42,
+        };
         await wrapper.upsert(tableName, data);
 
-        final result = await wrapper.get(tableName, primaryKey, 'get-test-1');
+        final result =
+            await wrapper.get(tableName, primaryKey, '${testPrefix}get-test-1');
 
         expect(result, isNotNull);
-        expect(result!['id'], equals('get-test-1'));
+        expect(result!['id'], equals('${testPrefix}get-test-1'));
         expect(result['name'], equals('Get Test'));
         expect(result['value'], equals(42));
       });
@@ -125,7 +144,7 @@ void main() {
         final result = await wrapper.get(
           tableName,
           primaryKey,
-          'non-existent-id',
+          '${testPrefix}non-existent-id',
         );
 
         expect(result, isNull);
@@ -136,34 +155,41 @@ void main() {
       test('retrieves all records without query builder', () async {
         // Create some records
         await wrapper.upsertAll(tableName, [
-          {'id': 'all-1', 'name': 'All Item 1', 'value': 1},
-          {'id': 'all-2', 'name': 'All Item 2', 'value': 2},
+          {'id': '${testPrefix}all-1', 'name': 'All Item 1', 'value': 1},
+          {'id': '${testPrefix}all-2', 'name': 'All Item 2', 'value': 2},
         ]);
 
-        final results = await wrapper.getAll(tableName);
+        // Query only records for this test file
+        final results = await wrapper.getAll(
+          tableName,
+          queryBuilder: (builder) async =>
+              builder.like(primaryKey, '$testPrefix%'),
+        );
 
         expect(results.length, greaterThanOrEqualTo(2));
-        expect(results.any((r) => r['id'] == 'all-1'), isTrue);
-        expect(results.any((r) => r['id'] == 'all-2'), isTrue);
+        expect(results.any((r) => r['id'] == '${testPrefix}all-1'), isTrue);
+        expect(results.any((r) => r['id'] == '${testPrefix}all-2'), isTrue);
       });
 
       test('retrieves records with query builder', () async {
         // Create some records with different values
         await wrapper.upsertAll(tableName, [
-          {'id': 'query-1', 'name': 'Query Item', 'value': 100},
-          {'id': 'query-2', 'name': 'Query Item', 'value': 200},
-          {'id': 'query-3', 'name': 'Other Item', 'value': 300},
+          {'id': '${testPrefix}query-1', 'name': 'Query Item', 'value': 100},
+          {'id': '${testPrefix}query-2', 'name': 'Query Item', 'value': 200},
+          {'id': '${testPrefix}query-3', 'name': 'Other Item', 'value': 300},
         ]);
 
         final results = await wrapper.getAll(
           tableName,
-          queryBuilder: (builder) async =>
-              builder.eq('name', 'Query Item').order('value', ascending: true),
+          queryBuilder: (builder) async => builder
+              .like(primaryKey, '$testPrefix%')
+              .eq('name', 'Query Item')
+              .order('value', ascending: true),
         );
 
         expect(results.length, equals(2));
-        expect(results[0]['id'], equals('query-1'));
-        expect(results[1]['id'], equals('query-2'));
+        expect(results[0]['id'], equals('${testPrefix}query-1'));
+        expect(results[1]['id'], equals('${testPrefix}query-2'));
       });
     });
 
@@ -172,25 +198,27 @@ void main() {
         // Create a record
         await wrapper.upsert(
           tableName,
-          {'id': 'delete-1', 'name': 'To Delete', 'value': 0},
+          {'id': '${testPrefix}delete-1', 'name': 'To Delete', 'value': 0},
         );
 
         // Verify it exists
-        var result = await wrapper.get(tableName, primaryKey, 'delete-1');
+        var result =
+            await wrapper.get(tableName, primaryKey, '${testPrefix}delete-1');
         expect(result, isNotNull);
 
         // Delete it
-        await wrapper.delete(tableName, primaryKey, 'delete-1');
+        await wrapper.delete(tableName, primaryKey, '${testPrefix}delete-1');
 
         // Verify it's gone
-        result = await wrapper.get(tableName, primaryKey, 'delete-1');
+        result =
+            await wrapper.get(tableName, primaryKey, '${testPrefix}delete-1');
         expect(result, isNull);
       });
 
       test('does not throw for non-existent ID', () async {
         // Should not throw
         await expectLater(
-          wrapper.delete(tableName, primaryKey, 'non-existent'),
+          wrapper.delete(tableName, primaryKey, '${testPrefix}non-existent'),
           completes,
         );
       });
@@ -200,22 +228,25 @@ void main() {
       test('deletes multiple records by IDs', () async {
         // Create records
         await wrapper.upsertAll(tableName, [
-          {'id': 'multi-del-1', 'name': 'Delete 1', 'value': 1},
-          {'id': 'multi-del-2', 'name': 'Delete 2', 'value': 2},
-          {'id': 'multi-del-3', 'name': 'Keep', 'value': 3},
+          {'id': '${testPrefix}multi-del-1', 'name': 'Delete 1', 'value': 1},
+          {'id': '${testPrefix}multi-del-2', 'name': 'Delete 2', 'value': 2},
+          {'id': '${testPrefix}multi-del-3', 'name': 'Keep', 'value': 3},
         ]);
 
         // Delete two of them
         await wrapper.deleteByIds(
           tableName,
           primaryKey,
-          ['multi-del-1', 'multi-del-2'],
+          ['${testPrefix}multi-del-1', '${testPrefix}multi-del-2'],
         );
 
         // Verify deleted
-        final result1 = await wrapper.get(tableName, primaryKey, 'multi-del-1');
-        final result2 = await wrapper.get(tableName, primaryKey, 'multi-del-2');
-        final result3 = await wrapper.get(tableName, primaryKey, 'multi-del-3');
+        final result1 =
+            await wrapper.get(tableName, primaryKey, '${testPrefix}multi-del-1');
+        final result2 =
+            await wrapper.get(tableName, primaryKey, '${testPrefix}multi-del-2');
+        final result3 =
+            await wrapper.get(tableName, primaryKey, '${testPrefix}multi-del-3');
 
         expect(result1, isNull);
         expect(result2, isNull);
