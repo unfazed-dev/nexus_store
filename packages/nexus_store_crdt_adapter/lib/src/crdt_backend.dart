@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
+import 'package:nexus_store_crdt_adapter/src/crdt_column.dart';
 import 'package:nexus_store_crdt_adapter/src/crdt_database_wrapper.dart';
 import 'package:nexus_store_crdt_adapter/src/crdt_query_translator.dart';
 import 'package:rxdart/rxdart.dart';
@@ -66,7 +67,9 @@ class CrdtBackend<T, ID>
         _queryTranslator = queryTranslator ??
             CrdtQueryTranslator<T>(fieldMapping: fieldMapping),
         _db = null,
-        _createDbOnInit = true {
+        _createDbOnInit = true,
+        _columns = null,
+        _databasePath = null {
     _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
       idExtractor: getId,
     );
@@ -106,7 +109,57 @@ class CrdtBackend<T, ID>
         _primaryKeyField = primaryKeyField,
         _queryTranslator = queryTranslator ??
             CrdtQueryTranslator<T>(fieldMapping: fieldMapping),
-        _createDbOnInit = false {
+        _createDbOnInit = false,
+        _columns = null,
+        _databasePath = null {
+    _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
+      idExtractor: getId,
+    );
+  }
+
+  /// Creates a [CrdtBackend] with automatic database and schema setup.
+  ///
+  /// This factory method provides a batteries-included experience by:
+  /// - Creating the database automatically (in-memory or file-based)
+  /// - Generating the table schema from column definitions
+  /// - Setting up the backend ready for use
+  ///
+  /// Example:
+  /// ```dart
+  /// final backend = CrdtBackend<User, String>.withDatabase(
+  ///   tableName: 'users',
+  ///   columns: [
+  ///     CrdtColumn.text('id', nullable: false),
+  ///     CrdtColumn.text('name', nullable: false),
+  ///     CrdtColumn.text('email'),
+  ///     CrdtColumn.integer('age'),
+  ///   ],
+  ///   getId: (user) => user.id,
+  ///   fromJson: User.fromJson,
+  ///   toJson: (user) => user.toJson(),
+  /// );
+  ///
+  /// await backend.initialize();
+  /// ```
+  CrdtBackend.withDatabase({
+    required String tableName,
+    required List<CrdtColumn> columns,
+    required ID Function(T item) getId,
+    required T Function(Map<String, dynamic> json) fromJson,
+    required Map<String, dynamic> Function(T item) toJson,
+    String primaryKeyColumn = 'id',
+    String? databasePath,
+    Map<String, String>? fieldMapping,
+  })  : _tableName = tableName,
+        _getId = getId,
+        _fromJson = fromJson,
+        _toJson = toJson,
+        _primaryKeyField = primaryKeyColumn,
+        _queryTranslator = CrdtQueryTranslator<T>(fieldMapping: fieldMapping),
+        _db = null,
+        _createDbOnInit = true,
+        _columns = columns,
+        _databasePath = databasePath {
     _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
       idExtractor: getId,
     );
@@ -117,6 +170,8 @@ class CrdtBackend<T, ID>
   final T Function(Map<String, dynamic> json) _fromJson;
   final Map<String, dynamic> Function(T item) _toJson;
   final String _primaryKeyField;
+  final List<CrdtColumn>? _columns;
+  final String? _databasePath;
   final CrdtQueryTranslator<T> _queryTranslator;
   final bool _createDbOnInit;
 
@@ -179,26 +234,58 @@ class CrdtBackend<T, ID>
     if (_initialized) return;
 
     if (_createDbOnInit) {
-      final crdt = await SqliteCrdt.openInMemory(
-        version: 1,
-        onCreate: _createTable,
-      );
+      final SqliteCrdt crdt;
+      if (_databasePath != null) {
+        crdt = await SqliteCrdt.open(
+          _databasePath,
+          version: 1,
+          onCreate: _createTable,
+        );
+      } else {
+        crdt = await SqliteCrdt.openInMemory(
+          version: 1,
+          onCreate: _createTable,
+        );
+      }
       _db = DefaultCrdtDatabaseWrapper(crdt);
     }
 
     _initialized = true;
   }
 
+  /// Initializes the backend with an existing database wrapper.
+  ///
+  /// This is used by [CrdtManager] to share a single database connection
+  /// across multiple backends.
+  Future<void> initializeWithWrapper(CrdtDatabaseWrapper db) async {
+    if (_initialized) return;
+
+    _db = db;
+    _initialized = true;
+  }
+
   Future<void> _createTable(CrdtTableExecutor crdt, int version) async {
     // Create the main table with primary key
     // sqlite_crdt automatically adds: hlc, modified, is_deleted, node_id
-    await crdt.execute('''
-      CREATE TABLE IF NOT EXISTS $_tableName (
-        $_primaryKeyField TEXT PRIMARY KEY NOT NULL,
-        name TEXT,
-        age INTEGER
-      )
-    ''');
+
+    if (_columns != null && _columns.isNotEmpty) {
+      // Use provided column definitions
+      final definition = CrdtTableDefinition(
+        tableName: _tableName,
+        columns: _columns,
+        primaryKeyColumn: _primaryKeyField,
+      );
+      await crdt.execute(definition.toCreateTableSql());
+    } else {
+      // Fallback to hardcoded schema for backwards compatibility
+      await crdt.execute('''
+        CREATE TABLE IF NOT EXISTS $_tableName (
+          $_primaryKeyField TEXT PRIMARY KEY NOT NULL,
+          name TEXT,
+          age INTEGER
+        )
+      ''');
+    }
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:io' as io;
+
 import 'package:nexus_store/nexus_store.dart' as nexus;
 import 'package:nexus_store_crdt_adapter/nexus_store_crdt_adapter.dart';
 import 'package:test/test.dart';
@@ -390,6 +392,111 @@ void main() {
         final result = await backend.get('1');
         expect(result, equals(revived));
       });
+    });
+  });
+
+  group('CrdtBackend.withDatabase', () {
+    late CrdtBackend<TestModel, String> backend;
+
+    tearDown(() async {
+      if (backend.isInitialized) {
+        await backend.close();
+      }
+    });
+
+    test('creates backend with explicit columns', () async {
+      backend = CrdtBackend<TestModel, String>.withDatabase(
+        tableName: 'test_models',
+        columns: [
+          CrdtColumn.text('id', nullable: false),
+          CrdtColumn.text('name', nullable: false),
+          CrdtColumn.integer('age'),
+        ],
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+        primaryKeyColumn: 'id',
+      );
+
+      await backend.initialize();
+
+      expect(backend.isInitialized, true);
+
+      // Test CRUD operations
+      final model = TestModel(id: '1', name: 'Test', age: 25);
+      await backend.save(model);
+
+      final result = await backend.get('1');
+      expect(result, equals(model));
+    });
+
+    test('creates backend with file-based database', () async {
+      final tempPath =
+          '/tmp/crdt_backend_test_${DateTime.now().millisecondsSinceEpoch}.db';
+
+      try {
+        backend = CrdtBackend<TestModel, String>.withDatabase(
+          tableName: 'test_models',
+          columns: [
+            CrdtColumn.text('id', nullable: false),
+            CrdtColumn.text('name', nullable: false),
+            CrdtColumn.integer('age'),
+          ],
+          getId: (m) => m.id,
+          fromJson: TestModel.fromJson,
+          toJson: (m) => m.toJson(),
+          primaryKeyColumn: 'id',
+          databasePath: tempPath,
+        );
+
+        await backend.initialize();
+
+        expect(backend.isInitialized, true);
+        expect(backend.nodeId, isNotNull);
+
+        // Save and verify persistence
+        final model = TestModel(id: 'f1', name: 'File Test', age: 42);
+        await backend.save(model);
+
+        final result = await backend.get('f1');
+        expect(result, equals(model));
+      } finally {
+        // Clean up
+        try {
+          final file = io.File(tempPath);
+          if (file.existsSync()) {
+            file.deleteSync();
+          }
+          // ignore: avoid_catches_without_on_clauses
+        } catch (_) {}
+      }
+    });
+
+    test('creates backend with field mapping', () async {
+      backend = CrdtBackend<TestModel, String>.withDatabase(
+        tableName: 'test_models',
+        columns: [
+          CrdtColumn.text('id', nullable: false),
+          CrdtColumn.text('name', nullable: false),
+          CrdtColumn.integer('age'),
+        ],
+        getId: (m) => m.id,
+        fromJson: TestModel.fromJson,
+        toJson: (m) => m.toJson(),
+        primaryKeyColumn: 'id',
+        fieldMapping: {'name': 'display_name'},
+      );
+
+      await backend.initialize();
+
+      expect(backend.isInitialized, true);
+
+      // Verify operations work
+      await backend.save(TestModel(id: '1', name: 'Alice', age: 30));
+      await backend.save(TestModel(id: '2', name: 'Bob', age: 25));
+
+      final results = await backend.getAll();
+      expect(results.length, 2);
     });
   });
 }
