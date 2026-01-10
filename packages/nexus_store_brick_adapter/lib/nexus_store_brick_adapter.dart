@@ -23,5 +23,13 @@
 library;
 
 export 'src/brick_backend.dart' show BrickBackend;
+export 'src/brick_manager.dart' show BrickManager;
 export 'src/brick_query_translator.dart'
     show BrickQueryExtension, BrickQueryTranslator;
+export 'src/brick_sync_config.dart'
+    show
+        BrickConflictResolution,
+        BrickRetryPolicy,
+        BrickSyncConfig,
+        BrickSyncPolicy;
+export 'src/brick_table_config.dart' show BrickTableConfig;

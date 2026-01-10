@@ -4,6 +4,8 @@ import 'package:brick_core/query.dart' as brick;
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
 import 'package:nexus_store_brick_adapter/src/brick_query_translator.dart';
+import 'package:nexus_store_brick_adapter/src/brick_sync_config.dart';
+import 'package:nexus_store_brick_adapter/src/brick_table_config.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// A [nexus.StoreBackend] implementation using Brick's offline-first
@@ -42,15 +44,49 @@ class BrickBackend<T extends OfflineFirstModel, ID>
     required String primaryKeyField,
     BrickQueryTranslator<T>? queryTranslator,
     Map<String, String>? fieldMapping,
+    BrickSyncConfig? syncConfig,
   })  : _repository = repository,
         _getId = getId,
         _primaryKeyField = primaryKeyField,
+        _syncConfig = syncConfig ?? const BrickSyncConfig(),
         _queryTranslator = queryTranslator ??
             BrickQueryTranslator<T>(fieldMapping: fieldMapping);
+
+  /// Creates a [BrickBackend] from a [BrickTableConfig].
+  ///
+  /// This factory method simplifies backend creation by bundling all
+  /// configuration into a single object.
+  ///
+  /// Example:
+  /// ```dart
+  /// final config = BrickTableConfig<User, String>(
+  ///   tableName: 'users',
+  ///   getId: (u) => u.id,
+  ///   fromJson: User.fromJson,
+  ///   toJson: (u) => u.toJson(),
+  ///   syncConfig: BrickSyncConfig.immediate(),
+  /// );
+  ///
+  /// final backend = BrickBackend.withConfig(
+  ///   repository: myRepository,
+  ///   config: config,
+  /// );
+  /// ```
+  factory BrickBackend.withConfig({
+    required OfflineFirstRepository<T> repository,
+    required BrickTableConfig<T, ID> config,
+  }) => BrickBackend<T, ID>(
+        repository: repository,
+        getId: config.getId,
+        primaryKeyField: config.primaryKeyField,
+        fieldMapping: config.fieldMapping,
+        syncConfig: config.syncConfig,
+      );
 
   final OfflineFirstRepository<T> _repository;
   final ID Function(T item) _getId;
   final String _primaryKeyField;
+  final BrickSyncConfig _syncConfig;
   final BrickQueryTranslator<T> _queryTranslator;
 
   final _syncStatusSubject =
@@ -74,6 +110,9 @@ class BrickBackend<T extends OfflineFirstModel, ID>
 
   @override
   bool get supportsTransactions => true;
+
+  /// The sync configuration for this backend.
+  BrickSyncConfig get syncConfig => _syncConfig;
 
   // ---------------------------------------------------------------------------
   // Lifecycle

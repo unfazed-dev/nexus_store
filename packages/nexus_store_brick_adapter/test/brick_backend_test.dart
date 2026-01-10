@@ -747,5 +747,54 @@ void main() {
         expect(statuses.last, nexus.SyncStatus.error);
       });
     });
+
+    group('factory methods', () {
+      test('withConfig creates backend from table config', () async {
+        final config = BrickTableConfig<TestModel, String>(
+          tableName: 'test_models',
+          getId: (m) => m.id,
+          fromJson: (json) => TestModel(
+            id: json['id'] as String,
+            name: json['name'] as String,
+          ),
+          toJson: (m) => {'id': m.id, 'name': m.name},
+          syncConfig: const BrickSyncConfig(
+            syncPolicy: BrickSyncPolicy.batch,
+            batchSize: 100,
+          ),
+        );
+
+        final backend = BrickBackend<TestModel, String>.withConfig(
+          repository: mockRepository,
+          config: config,
+        );
+
+        expect(backend.syncConfig.syncPolicy, BrickSyncPolicy.batch);
+        expect(backend.syncConfig.batchSize, 100);
+
+        await backend.close();
+      });
+
+      test('withConfig uses default sync config when not provided', () async {
+        final config = BrickTableConfig<TestModel, String>(
+          tableName: 'test_models',
+          getId: (m) => m.id,
+          fromJson: (json) => TestModel(
+            id: json['id'] as String,
+            name: json['name'] as String,
+          ),
+          toJson: (m) => {'id': m.id, 'name': m.name},
+        );
+
+        final backend = BrickBackend<TestModel, String>.withConfig(
+          repository: mockRepository,
+          config: config,
+        );
+
+        expect(backend.syncConfig.syncPolicy, BrickSyncPolicy.immediate);
+
+        await backend.close();
+      });
+    });
   });
 }

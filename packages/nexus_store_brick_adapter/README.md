@@ -58,6 +58,103 @@ final userStore = NexusStore<User, String>(
 await userStore.initialize();
 ```
 
+## Batteries-Included Usage
+
+For reduced boilerplate, use table configuration and the manager class:
+
+### Table Configuration
+
+```dart
+// Define table configuration once
+final userConfig = BrickTableConfig<User, String>(
+  tableName: 'users',
+  getId: (u) => u.id,
+  fromJson: User.fromJson,
+  toJson: (u) => u.toJson(),
+  syncConfig: BrickSyncConfig.immediate(),
+);
+
+// Create backend from config
+final backend = BrickBackend.withConfig(
+  repository: myBrickRepository,
+  config: userConfig,
+);
+```
+
+### Sync Configuration
+
+Configure sync behavior per table:
+
+```dart
+// Immediate sync (default)
+const immediateConfig = BrickSyncConfig.immediate();
+
+// Batch sync with custom size
+const batchConfig = BrickSyncConfig.batch(
+  batchSize: 100,
+  syncIntervalMs: 5000,
+);
+
+// Manual sync only
+const manualConfig = BrickSyncConfig.manual();
+
+// Full custom config
+const customConfig = BrickSyncConfig(
+  syncPolicy: BrickSyncPolicy.batch,
+  conflictResolution: BrickConflictResolution.lastWriteWins,
+  retryPolicy: BrickRetryPolicy(
+    maxAttempts: 5,
+    backoffMs: 1000,
+    exponentialBackoff: true,
+  ),
+  batchSize: 50,
+);
+```
+
+### Multi-Table Manager
+
+Coordinate multiple backends with `BrickManager`:
+
+```dart
+final manager = BrickManager.withRepository(
+  repository: myBrickRepository,
+  tables: [
+    BrickTableConfig<User, String>(
+      tableName: 'users',
+      getId: (u) => u.id,
+      fromJson: User.fromJson,
+      toJson: (u) => u.toJson(),
+    ),
+    BrickTableConfig<Post, String>(
+      tableName: 'posts',
+      getId: (p) => p.id,
+      fromJson: Post.fromJson,
+      toJson: (p) => p.toJson(),
+    ),
+  ],
+);
+
+await manager.initialize();
+
+// Get typed backends
+final userBackend = manager.getBackend('users');
+final postBackend = manager.getBackend('posts');
+
+// Sync all tables at once
+await manager.syncAll();
+
+// Get total pending changes across all tables
+final pending = await manager.totalPendingChanges;
+
+// Monitor combined sync status
+manager.syncStatusStream.listen((status) {
+  print('Sync status: $status');
+});
+
+// Cleanup
+await manager.dispose();
+```
+
 ## Model Requirements
 
 Your models must extend `OfflineFirstModel` from Brick:
