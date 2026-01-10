@@ -119,10 +119,9 @@ class SupabaseRLSPolicy {
   ///   USING (auth.uid() = id)
   /// ```
   String toSql(String tableName) {
-    final buffer = StringBuffer('CREATE POLICY "$name" ON "$tableName" ');
-
-    // Add operation
-    buffer.write('FOR ');
+    final buffer = StringBuffer('CREATE POLICY "$name" ON "$tableName" ')
+      // Add operation
+      ..write('FOR ');
     switch (operation) {
       case SupabaseRLSOperation.select:
         buffer.write('SELECT');

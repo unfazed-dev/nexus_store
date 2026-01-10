@@ -98,7 +98,12 @@ void main() {
       await backend.initialize();
 
       // Should be able to save and retrieve items
-      const item = TestItem(id: '1', name: 'Test', description: 'Desc', count: 5);
+      const item = TestItem(
+        id: '1',
+        name: 'Test',
+        description: 'Desc',
+        count: 5,
+      );
       await backend.save(item);
 
       final retrieved = await backend.get('1');
@@ -236,7 +241,11 @@ void main() {
       await backend.initialize();
 
       // Backend should still work with field mapping configured
-      const item = TestItem(id: '1', name: 'Test', description: 'A description');
+      const item = TestItem(
+        id: '1',
+        name: 'Test',
+        description: 'A description',
+      );
       await backend.save(item);
 
       final retrieved = await backend.get('1');

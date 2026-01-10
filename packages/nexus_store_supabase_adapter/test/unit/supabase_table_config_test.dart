@@ -230,9 +230,17 @@ void main() {
           getId: (u) => u.id,
         );
 
-        final user = User(id: 'user-789', name: 'Third User', email: 'a@b.com');
+        final user = User(
+          id: 'user-789',
+          name: 'Third User',
+          email: 'a@b.com',
+        );
         final json = config.dynamicToJson(user);
-        expect(json, {'id': 'user-789', 'name': 'Third User', 'email': 'a@b.com'});
+        expect(json, {
+          'id': 'user-789',
+          'name': 'Third User',
+          'email': 'a@b.com',
+        });
       });
     });
   });

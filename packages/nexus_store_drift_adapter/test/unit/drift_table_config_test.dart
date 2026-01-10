@@ -278,7 +278,12 @@ void main() {
 
       final sql = index.toSql('users');
 
-      expect(sql, equals('CREATE INDEX IF NOT EXISTS "idx_users_email" ON "users" ("email")'));
+      expect(
+        sql,
+        equals(
+          'CREATE INDEX IF NOT EXISTS "idx_users_email" ON "users" ("email")',
+        ),
+      );
     });
 
     test('generates CREATE INDEX SQL with multiple columns', () {
@@ -289,7 +294,13 @@ void main() {
 
       final sql = index.toSql('users');
 
-      expect(sql, equals('CREATE INDEX IF NOT EXISTS "idx_users_name_email" ON "users" ("name", "email")'));
+      expect(
+        sql,
+        equals(
+          'CREATE INDEX IF NOT EXISTS '
+          '"idx_users_name_email" ON "users" ("name", "email")',
+        ),
+      );
     });
 
     test('generates CREATE UNIQUE INDEX SQL', () {
@@ -301,7 +312,13 @@ void main() {
 
       final sql = index.toSql('users');
 
-      expect(sql, equals('CREATE UNIQUE INDEX IF NOT EXISTS "idx_users_email_unique" ON "users" ("email")'));
+      expect(
+        sql,
+        equals(
+          'CREATE UNIQUE INDEX IF NOT EXISTS '
+          '"idx_users_email_unique" ON "users" ("email")',
+        ),
+      );
     });
 
     group('equality', () {

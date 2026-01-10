@@ -95,7 +95,8 @@ class DriftBackend<T, ID>
   /// - [fromJson]: Function to create entity from JSON map.
   /// - [toJson]: Function to convert entity to JSON map.
   /// - [executor]: Optional query executor (defaults to in-memory database).
-  /// - [primaryKeyColumn]: The name of the primary key column (defaults to 'id').
+  /// - [primaryKeyColumn]: The name of the primary key column
+  ///   (defaults to 'id').
   /// - [fieldMapping]: Optional field name mapping for queries.
   /// - [indexes]: Optional index definitions for the table.
   DriftBackend.withDatabase({

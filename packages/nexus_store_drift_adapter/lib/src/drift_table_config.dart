@@ -123,7 +123,8 @@ class DriftTableDefinition {
   }
 
   /// Generates all CREATE INDEX SQL statements.
-  List<String> toCreateIndexSql() => indexes?.map((i) => i.toSql(tableName)).toList() ?? [];
+  List<String> toCreateIndexSql() =>
+      indexes?.map((i) => i.toSql(tableName)).toList() ?? [];
 }
 
 /// A type-safe table configuration that bundles table metadata with

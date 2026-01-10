@@ -10,8 +10,10 @@ class MockSupabaseClient extends Mock implements SupabaseClient {}
 
 class MockGoTrueClient extends Mock implements GoTrueClient {}
 
+// ignore: avoid_implementing_value_types
 class MockSession extends Mock implements Session {}
 
+// ignore: avoid_implementing_value_types
 class MockUser extends Mock implements User {}
 
 class MockAuthResponse extends Mock implements AuthResponse {}
@@ -119,9 +121,10 @@ void main() {
       final states = <SupabaseAuthState>[];
       final subscription = provider.authStateChanges.listen(states.add);
 
-      provider.simulateSignIn();
-      provider.simulateSignOut();
-      provider.simulateSignIn();
+      provider
+        ..simulateSignIn()
+        ..simulateSignOut()
+        ..simulateSignIn();
 
       // Wait for events to process
       await Future<void>.delayed(Duration.zero);

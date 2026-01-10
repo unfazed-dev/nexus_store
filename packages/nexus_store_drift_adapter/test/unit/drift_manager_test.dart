@@ -384,8 +384,8 @@ void main() {
     });
 
     test('throws UnsupportedError when no executor provided', () {
-      // DriftManager.withDatabase without executor calls _createInMemoryExecutor
-      // which throws UnsupportedError
+      // DriftManager.withDatabase without executor calls
+      // _createInMemoryExecutor which throws UnsupportedError
       expect(
         () => DriftManager.withDatabase(
           tables: [
