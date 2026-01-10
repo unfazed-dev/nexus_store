@@ -9,9 +9,16 @@ export 'src/bloc/nexus_item_event.dart';
 export 'src/bloc/nexus_store_bloc.dart';
 // Blocs
 export 'src/bloc/nexus_store_event.dart';
+// Bundle
+export 'src/bundle/bloc_store_bundle.dart';
 export 'src/cubit/nexus_item_cubit.dart';
 // Cubits
 export 'src/cubit/nexus_store_cubit.dart';
+// Extensions
+export 'src/extensions/enhanced_state.dart';
+export 'src/extensions/event_builders.dart';
+// Manager
+export 'src/manager/bloc_manager.dart';
 export 'src/state/nexus_item_state.dart';
 // State models
 export 'src/state/nexus_store_state.dart';
