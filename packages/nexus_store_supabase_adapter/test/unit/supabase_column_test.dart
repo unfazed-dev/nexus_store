@@ -4,16 +4,19 @@ import 'package:test/test.dart';
 void main() {
   group('SupabaseColumnType', () {
     test('has all PostgreSQL column types', () {
-      expect(SupabaseColumnType.values, containsAll([
-        SupabaseColumnType.text,
-        SupabaseColumnType.integer,
-        SupabaseColumnType.bigint,
-        SupabaseColumnType.float8,
-        SupabaseColumnType.boolean,
-        SupabaseColumnType.timestamptz,
-        SupabaseColumnType.uuid,
-        SupabaseColumnType.jsonb,
-      ]),);
+      expect(
+        SupabaseColumnType.values,
+        containsAll([
+          SupabaseColumnType.text,
+          SupabaseColumnType.integer,
+          SupabaseColumnType.bigint,
+          SupabaseColumnType.float8,
+          SupabaseColumnType.boolean,
+          SupabaseColumnType.timestamptz,
+          SupabaseColumnType.uuid,
+          SupabaseColumnType.jsonb,
+        ]),
+      );
     });
   });
 
@@ -351,7 +354,7 @@ void main() {
       expect(
         index.toSql('users'),
         'CREATE UNIQUE INDEX IF NOT EXISTS "idx_users_email" '
-            'ON "users" ("email")',
+        'ON "users" ("email")',
       );
     });
 
@@ -364,7 +367,7 @@ void main() {
       expect(
         index.toSql('posts'),
         'CREATE INDEX IF NOT EXISTS "idx_posts_user_created" '
-            'ON "posts" ("user_id", "created_at")',
+        'ON "posts" ("user_id", "created_at")',
       );
     });
 

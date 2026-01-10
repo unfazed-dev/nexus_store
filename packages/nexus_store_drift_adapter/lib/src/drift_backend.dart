@@ -117,8 +117,7 @@ class DriftBackend<T, ID>
         _columns = columns,
         _indexes = indexes,
         _lazyExecutor = executor,
-        _queryTranslator =
-            DriftQueryTranslator<T>(fieldMapping: fieldMapping) {
+        _queryTranslator = DriftQueryTranslator<T>(fieldMapping: fieldMapping) {
     _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
       idExtractor: getId,
     );

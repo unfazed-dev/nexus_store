@@ -75,7 +75,8 @@ class BrickBackend<T extends OfflineFirstModel, ID>
   factory BrickBackend.withConfig({
     required OfflineFirstRepository<T> repository,
     required BrickTableConfig<T, ID> config,
-  }) => BrickBackend<T, ID>(
+  }) =>
+      BrickBackend<T, ID>(
         repository: repository,
         getId: config.getId,
         primaryKeyField: config.primaryKeyField,

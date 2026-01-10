@@ -192,7 +192,6 @@ void main() {
           '"status" TEXT NOT NULL DEFAULT \'pending\'',
         );
       });
-
     });
   });
 

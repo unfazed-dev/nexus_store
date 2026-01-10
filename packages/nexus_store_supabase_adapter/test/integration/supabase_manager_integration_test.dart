@@ -271,8 +271,7 @@ void main() {
         await manager.initialize();
 
         // Call getTypedBackend with dynamic types to cover the method
-        final backend =
-            manager.getTypedBackend<dynamic, dynamic>('test_items');
+        final backend = manager.getTypedBackend<dynamic, dynamic>('test_items');
 
         expect(backend, isNotNull);
         expect(backend, isA<SupabaseBackend<dynamic, dynamic>>());

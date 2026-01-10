@@ -30,8 +30,7 @@ class MockSupabaseAuthProvider implements SupabaseAuthProvider {
   final String? mockUserId;
   final String? mockAccessToken;
 
-  final _authStateController =
-      StreamController<SupabaseAuthState>.broadcast();
+  final _authStateController = StreamController<SupabaseAuthState>.broadcast();
 
   @override
   SupabaseAuthState get currentState => _currentState;
@@ -66,12 +65,15 @@ class MockSupabaseAuthProvider implements SupabaseAuthProvider {
 void main() {
   group('SupabaseAuthState', () {
     test('has expected values', () {
-      expect(SupabaseAuthState.values, containsAll([
-        SupabaseAuthState.signedIn,
-        SupabaseAuthState.signedOut,
-        SupabaseAuthState.loading,
-        SupabaseAuthState.error,
-      ]),);
+      expect(
+        SupabaseAuthState.values,
+        containsAll([
+          SupabaseAuthState.signedIn,
+          SupabaseAuthState.signedOut,
+          SupabaseAuthState.loading,
+          SupabaseAuthState.error,
+        ]),
+      );
     });
   });
 

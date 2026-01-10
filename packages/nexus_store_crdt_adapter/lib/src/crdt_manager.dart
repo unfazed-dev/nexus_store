@@ -65,7 +65,8 @@ class CrdtManager {
   factory CrdtManager.withDatabase({
     required List<CrdtTableConfig<dynamic, dynamic>> tables,
     String? databasePath,
-  }) => CrdtManager._(
+  }) =>
+      CrdtManager._(
         tables: tables,
         databasePath: databasePath,
       );
@@ -255,9 +256,7 @@ class CrdtManager {
     // The keys are table names, values are lists of records
     final payload = <String, dynamic>{};
     for (final entry in changeset.entries) {
-      payload[entry.key] = entry.value
-          .map(Map<String, dynamic>.from)
-          .toList();
+      payload[entry.key] = entry.value.map(Map<String, dynamic>.from).toList();
     }
     return payload;
   }

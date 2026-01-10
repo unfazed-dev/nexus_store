@@ -60,7 +60,8 @@ void main() {
           data: TestFixtures.sampleUsers,
         );
 
-        final filtered = state.where((user) => user.age != null && user.age! > 20);
+        final filtered =
+            state.where((user) => user.age != null && user.age! > 20);
 
         expect(filtered.length, equals(2));
       });
@@ -78,7 +79,8 @@ void main() {
           previousData: TestFixtures.sampleUsers,
         );
 
-        final filtered = state.where((user) => user.age != null && user.age! > 20);
+        final filtered =
+            state.where((user) => user.age != null && user.age! > 20);
 
         expect(filtered.length, equals(2));
       });

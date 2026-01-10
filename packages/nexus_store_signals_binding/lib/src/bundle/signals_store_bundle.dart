@@ -7,7 +7,8 @@ import '../signals/nexus_list_signal.dart';
 import '../state/nexus_signal_state.dart';
 
 /// Type alias for computed signal factory function.
-typedef ComputedFactory<T, R> = Computed<R> Function(Signal<List<T>> listSignal);
+typedef ComputedFactory<T, R> = Computed<R> Function(
+    Signal<List<T>> listSignal);
 
 /// Configuration for a store managed by [SignalsStoreBundle].
 ///

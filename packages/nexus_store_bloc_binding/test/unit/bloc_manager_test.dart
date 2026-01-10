@@ -277,7 +277,8 @@ void main() {
       manager.dispose();
 
       // After dispose, getting bundles should throw
-      expect(() => manager.getBundle('users'), throwsA(isA<UnsupportedError>()));
+      expect(
+          () => manager.getBundle('users'), throwsA(isA<UnsupportedError>()));
     });
 
     test('should cache bundles', () {

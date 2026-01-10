@@ -626,7 +626,8 @@ void main() {
 
       test('getAll with query filters results', () async {
         await backend.save(
-          const TestModel(id: '${testPrefix}filter-1', name: 'Alice', value: 25),
+          const TestModel(
+              id: '${testPrefix}filter-1', name: 'Alice', value: 25),
         );
         await backend.save(
           const TestModel(id: '${testPrefix}filter-2', name: 'Bob', value: 35),
@@ -695,7 +696,8 @@ void main() {
           ),
         );
         await backend.save(
-          const TestModel(id: '${testPrefix}delwhere-2', name: 'Old', value: 50),
+          const TestModel(
+              id: '${testPrefix}delwhere-2', name: 'Old', value: 50),
         );
         await backend.save(
           const TestModel(
@@ -761,7 +763,8 @@ void main() {
 
       test('watch emits initial value', () async {
         await backend.save(
-          const TestModel(id: '${testPrefix}watch-1', name: 'Watch Test', value: 30),
+          const TestModel(
+              id: '${testPrefix}watch-1', name: 'Watch Test', value: 30),
         );
 
         // Small delay to ensure record is available in database
@@ -785,7 +788,8 @@ void main() {
 
       test('watch emits updates on changes', () async {
         await backend.save(
-          const TestModel(id: '${testPrefix}watch-2', name: 'Original', value: 25),
+          const TestModel(
+              id: '${testPrefix}watch-2', name: 'Original', value: 25),
         );
 
         final stream = backend.watch('${testPrefix}watch-2');
@@ -797,7 +801,8 @@ void main() {
 
         // Update the record
         await backend.save(
-          const TestModel(id: '${testPrefix}watch-2', name: 'Updated', value: 26),
+          const TestModel(
+              id: '${testPrefix}watch-2', name: 'Updated', value: 26),
         );
 
         // Wait for update notification
@@ -860,7 +865,8 @@ void main() {
 
       test('watchAll with query filters results', () async {
         await backend.save(
-          const TestModel(id: '${testPrefix}wquery-1', name: 'Young', value: 20),
+          const TestModel(
+              id: '${testPrefix}wquery-1', name: 'Young', value: 20),
         );
         await backend.save(
           const TestModel(id: '${testPrefix}wquery-2', name: 'Old', value: 50),

@@ -54,10 +54,11 @@ class DriftManager {
   factory DriftManager.withDatabase({
     required List<DriftTableConfig<dynamic, dynamic>> tables,
     QueryExecutor? executor,
-  }) => DriftManager._(
-      tables: tables,
-      executor: executor ?? _createInMemoryExecutor(),
-    );
+  }) =>
+      DriftManager._(
+        tables: tables,
+        executor: executor ?? _createInMemoryExecutor(),
+      );
 
   final List<DriftTableConfig<dynamic, dynamic>> _tables;
   final QueryExecutor _executor;

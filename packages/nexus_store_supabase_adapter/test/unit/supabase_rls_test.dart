@@ -4,13 +4,16 @@ import 'package:test/test.dart';
 void main() {
   group('SupabaseRLSOperation', () {
     test('has all expected operations', () {
-      expect(SupabaseRLSOperation.values, containsAll([
-        SupabaseRLSOperation.select,
-        SupabaseRLSOperation.insert,
-        SupabaseRLSOperation.update,
-        SupabaseRLSOperation.delete,
-        SupabaseRLSOperation.all,
-      ]),);
+      expect(
+        SupabaseRLSOperation.values,
+        containsAll([
+          SupabaseRLSOperation.select,
+          SupabaseRLSOperation.insert,
+          SupabaseRLSOperation.update,
+          SupabaseRLSOperation.delete,
+          SupabaseRLSOperation.all,
+        ]),
+      );
     });
   });
 

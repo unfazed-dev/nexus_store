@@ -328,7 +328,8 @@ void main() {
       bundle.close();
     });
 
-    test('should throw UnsupportedError when accessing listCubit on bloc bundle',
+    test(
+        'should throw UnsupportedError when accessing listCubit on bloc bundle',
         () {
       final config = BlocStoreConfig<TestUser, String>(
         name: 'users',
@@ -351,7 +352,8 @@ void main() {
       bundle.close();
     });
 
-    test('should throw UnsupportedError when accessing listBloc on cubit bundle',
+    test(
+        'should throw UnsupportedError when accessing listBloc on cubit bundle',
         () {
       final config = BlocStoreConfig<TestUser, String>(
         name: 'users',

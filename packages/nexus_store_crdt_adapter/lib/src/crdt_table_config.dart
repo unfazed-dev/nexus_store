@@ -120,7 +120,8 @@ class CrdtTableConfig<T, ID> {
     Map<String, String>? fieldMapping,
     List<CrdtIndex>? indexes,
     CrdtMergeConfig<T>? mergeConfig,
-  }) => CrdtTableConfig<T, ID>(
+  }) =>
+      CrdtTableConfig<T, ID>(
         tableName: tableName ?? this.tableName,
         columns: columns ?? this.columns,
         fromJson: fromJson ?? this.fromJson,

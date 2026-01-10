@@ -66,7 +66,8 @@ class CrdtSyncTableRule {
     CrdtSyncDirection? direction,
     bool Function(Map<String, dynamic> record)? filter,
     int? priority,
-  }) => CrdtSyncTableRule(
+  }) =>
+      CrdtSyncTableRule(
         tableName: tableName ?? this.tableName,
         direction: direction ?? this.direction,
         filter: filter ?? this.filter,
@@ -188,8 +189,7 @@ class CrdtSyncRules {
           result[tableName] = filteredRecords;
         }
       } else {
-        final allRecords =
-            records.map(Map<String, dynamic>.from).toList();
+        final allRecords = records.map(Map<String, dynamic>.from).toList();
         if (allRecords.isNotEmpty) {
           result[tableName] = allRecords;
         }

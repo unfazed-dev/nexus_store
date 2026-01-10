@@ -241,12 +241,12 @@ void main() {
         );
 
         // Verify deleted
-        final result1 =
-            await wrapper.get(tableName, primaryKey, '${testPrefix}multi-del-1');
-        final result2 =
-            await wrapper.get(tableName, primaryKey, '${testPrefix}multi-del-2');
-        final result3 =
-            await wrapper.get(tableName, primaryKey, '${testPrefix}multi-del-3');
+        final result1 = await wrapper.get(
+            tableName, primaryKey, '${testPrefix}multi-del-1');
+        final result2 = await wrapper.get(
+            tableName, primaryKey, '${testPrefix}multi-del-2');
+        final result3 = await wrapper.get(
+            tableName, primaryKey, '${testPrefix}multi-del-3');
 
         expect(result1, isNull);
         expect(result2, isNull);

@@ -232,10 +232,11 @@ class CrdtPeerConnectorPair {
   factory CrdtPeerConnectorPair.create({
     String? nodeAId,
     String? nodeBId,
-  }) => CrdtPeerConnectorPair._(
-      nodeA: CrdtMemoryConnector(peerId: nodeAId ?? 'nodeA'),
-      nodeB: CrdtMemoryConnector(peerId: nodeBId ?? 'nodeB'),
-    );
+  }) =>
+      CrdtPeerConnectorPair._(
+        nodeA: CrdtMemoryConnector(peerId: nodeAId ?? 'nodeA'),
+        nodeB: CrdtMemoryConnector(peerId: nodeBId ?? 'nodeB'),
+      );
 
   /// The first connector in the pair.
   final CrdtMemoryConnector nodeA;

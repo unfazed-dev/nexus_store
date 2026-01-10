@@ -89,7 +89,8 @@ class BrickTableConfig<T, ID> {
     String? primaryKeyField,
     BrickSyncConfig? syncConfig,
     Map<String, String>? fieldMapping,
-  }) => BrickTableConfig<T, ID>(
+  }) =>
+      BrickTableConfig<T, ID>(
         tableName: tableName ?? this.tableName,
         getId: getId ?? this.getId,
         fromJson: fromJson ?? this.fromJson,

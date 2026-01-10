@@ -63,7 +63,8 @@ class BrickManager {
     required OfflineFirstRepository<dynamic> repository,
     required List<BrickTableConfig<dynamic, dynamic>> tables,
     BrickSyncConfig? syncConfig,
-  }) => BrickManager._(
+  }) =>
+      BrickManager._(
         repository: repository,
         tables: tables,
         syncConfig: syncConfig,

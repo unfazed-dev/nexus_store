@@ -64,7 +64,8 @@ class BrickRetryPolicy {
     int? backoffMs,
     bool? exponentialBackoff,
     int? maxBackoffMs,
-  }) => BrickRetryPolicy(
+  }) =>
+      BrickRetryPolicy(
         maxAttempts: maxAttempts ?? this.maxAttempts,
         backoffMs: backoffMs ?? this.backoffMs,
         exponentialBackoff: exponentialBackoff ?? this.exponentialBackoff,
@@ -142,7 +143,8 @@ class BrickSyncConfig {
     BrickRetryPolicy? retryPolicy,
     int? batchSize,
     int? syncIntervalMs,
-  }) => BrickSyncConfig(
+  }) =>
+      BrickSyncConfig(
         syncPolicy: syncPolicy ?? this.syncPolicy,
         conflictResolution: conflictResolution ?? this.conflictResolution,
         retryPolicy: retryPolicy ?? this.retryPolicy,

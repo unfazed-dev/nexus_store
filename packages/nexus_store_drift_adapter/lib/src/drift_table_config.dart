@@ -190,11 +190,11 @@ class DriftTableConfig<T, ID> {
 
   /// Converts this configuration to a table definition.
   DriftTableDefinition toTableDefinition() => DriftTableDefinition(
-      tableName: tableName,
-      columns: columns,
-      primaryKeyColumn: primaryKeyColumn,
-      indexes: indexes,
-    );
+        tableName: tableName,
+        columns: columns,
+        primaryKeyColumn: primaryKeyColumn,
+        indexes: indexes,
+      );
 
   /// Returns a dynamically-typed wrapper for [getId].
   ///
