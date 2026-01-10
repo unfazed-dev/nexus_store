@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:meta/meta.dart';
+
 import '../bloc/nexus_store_bloc.dart';
 import '../bloc/nexus_store_event.dart';
 import '../bundle/bloc_store_bundle.dart';
@@ -251,6 +253,18 @@ class BlocManager {
 
   void _onError(Object error) {
     _errorController.add(error);
+  }
+
+  /// Handles stream errors directly.
+  ///
+  /// This is exposed for testing purposes only. In normal operation,
+  /// stream errors are handled via the [_onError] callback attached
+  /// to bloc/cubit stream listeners. Since bloc streams don't emit
+  /// errors through the error channel (they convert them to states),
+  /// this method is defensive code that handles unexpected stream errors.
+  @visibleForTesting
+  void handleStreamError(Object error) {
+    _onError(error);
   }
 
   void _updateLoadingState() {

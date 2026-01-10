@@ -250,5 +250,109 @@ void main() {
       expect(combined.firstData, isNull);
       expect(combined.secondData, isNull);
     });
+
+    group('hasBothData', () {
+      test('should return true when both states have data', () {
+        final usersState = NexusStoreLoaded<TestUser>(
+          data: TestFixtures.sampleUsers,
+        );
+        const postsState = NexusStoreLoaded<String>(
+          data: ['post1', 'post2'],
+        );
+
+        final combined = usersState.combineWith(postsState);
+
+        expect(combined.hasBothData, isTrue);
+      });
+
+      test('should return false when first state has no data', () {
+        const usersState = NexusStoreInitial<TestUser>();
+        const postsState = NexusStoreLoaded<String>(
+          data: ['post1', 'post2'],
+        );
+
+        final combined = usersState.combineWith(postsState);
+
+        expect(combined.hasBothData, isFalse);
+      });
+
+      test('should return false when second state has no data', () {
+        final usersState = NexusStoreLoaded<TestUser>(
+          data: TestFixtures.sampleUsers,
+        );
+        const postsState = NexusStoreInitial<String>();
+
+        final combined = usersState.combineWith(postsState);
+
+        expect(combined.hasBothData, isFalse);
+      });
+
+      test('should return false when neither state has data', () {
+        const usersState = NexusStoreInitial<TestUser>();
+        const postsState = NexusStoreInitial<String>();
+
+        final combined = usersState.combineWith(postsState);
+
+        expect(combined.hasBothData, isFalse);
+      });
+    });
+
+    group('mapBoth', () {
+      test('should transform both data sources when available', () {
+        final usersState = NexusStoreLoaded<TestUser>(
+          data: TestFixtures.sampleUsers,
+        );
+        const postsState = NexusStoreLoaded<String>(
+          data: ['post1', 'post2'],
+        );
+
+        final combined = usersState.combineWith(postsState);
+        final result = combined.mapBoth(
+          (users, posts) => '${users.length} users, ${posts.length} posts',
+        );
+
+        expect(result, equals('3 users, 2 posts'));
+      });
+
+      test('should return null when first data is missing', () {
+        const usersState = NexusStoreInitial<TestUser>();
+        const postsState = NexusStoreLoaded<String>(
+          data: ['post1', 'post2'],
+        );
+
+        final combined = usersState.combineWith(postsState);
+        final result = combined.mapBoth(
+          (users, posts) => '${users.length} users, ${posts.length} posts',
+        );
+
+        expect(result, isNull);
+      });
+
+      test('should return null when second data is missing', () {
+        final usersState = NexusStoreLoaded<TestUser>(
+          data: TestFixtures.sampleUsers,
+        );
+        const postsState = NexusStoreInitial<String>();
+
+        final combined = usersState.combineWith(postsState);
+        final result = combined.mapBoth(
+          (users, posts) => '${users.length} users, ${posts.length} posts',
+        );
+
+        expect(result, isNull);
+      });
+
+      test('should return null when both data sources are missing', () {
+        const usersState = NexusStoreInitial<TestUser>();
+        const postsState = NexusStoreInitial<String>();
+
+        final combined = usersState.combineWith(postsState);
+        final result = combined.mapBoth(
+          (users, posts) => '${users.length} users, ${posts.length} posts',
+        );
+
+        expect(result, isNull);
+      });
+    });
   });
 }

@@ -182,5 +182,17 @@ void main() {
       expect(events[0], isA<SaveAll<TestUser, String>>());
       expect(events[1], isA<Refresh<TestUser, String>>());
     });
+
+    test('should create batch delete sequence', () {
+      const sequences = EventSequences<TestUser, String>();
+      final events = sequences.batchDelete(['user-1', 'user-2', 'user-3']);
+
+      expect(events.length, equals(2));
+      expect(events[0], isA<DeleteAll<TestUser, String>>());
+      expect(events[1], isA<Refresh<TestUser, String>>());
+
+      final deleteEvent = events[0] as DeleteAll<TestUser, String>;
+      expect(deleteEvent.ids, equals(['user-1', 'user-2', 'user-3']));
+    });
   });
 }

@@ -111,6 +111,44 @@ void main() {
       expect(config1.hashCode, equals(config2.hashCode));
       expect(config1, isNot(equals(config3)));
     });
+
+    test('should compare debounceMs in equality', () {
+      const config1 = LoadingStateConfig(debounceMs: 300);
+      const config2 = LoadingStateConfig(debounceMs: 500);
+
+      expect(config1, isNot(equals(config2)));
+    });
+
+    test('should compare retryCount in equality', () {
+      const config1 = LoadingStateConfig(retryCount: 3);
+      const config2 = LoadingStateConfig(retryCount: 5);
+
+      expect(config1, isNot(equals(config2)));
+    });
+
+    test('should compare retryDelayMs in equality', () {
+      const config1 = LoadingStateConfig(retryDelayMs: 1000);
+      const config2 = LoadingStateConfig(retryDelayMs: 2000);
+
+      expect(config1, isNot(equals(config2)));
+    });
+
+    test('should implement toString', () {
+      const config = LoadingStateConfig(
+        showPreviousDataWhileLoading: true,
+        debounceMs: 300,
+        retryCount: 3,
+        retryDelayMs: 2000,
+      );
+
+      final result = config.toString();
+
+      expect(result, contains('LoadingStateConfig'));
+      expect(result, contains('showPreviousDataWhileLoading: true'));
+      expect(result, contains('debounceMs: 300'));
+      expect(result, contains('retryCount: 3'));
+      expect(result, contains('retryDelayMs: 2000'));
+    });
   });
 
   group('BlocStoreBundle', () {
@@ -286,6 +324,52 @@ void main() {
       final bundle = BlocStoreBundle.create(config: config);
 
       expect(bundle.store, equals(mockStore));
+
+      bundle.close();
+    });
+
+    test('should throw UnsupportedError when accessing listCubit on bloc bundle',
+        () {
+      final config = BlocStoreConfig<TestUser, String>(
+        name: 'users',
+        store: mockStore,
+        useBloc: true,
+        autoLoad: false,
+      );
+
+      final bundle = BlocStoreBundle.create(config: config);
+
+      expect(
+        () => bundle.listCubit,
+        throwsA(isA<UnsupportedError>().having(
+          (e) => e.message,
+          'message',
+          contains('listCubit is not available'),
+        )),
+      );
+
+      bundle.close();
+    });
+
+    test('should throw UnsupportedError when accessing listBloc on cubit bundle',
+        () {
+      final config = BlocStoreConfig<TestUser, String>(
+        name: 'users',
+        store: mockStore,
+        useBloc: false,
+        autoLoad: false,
+      );
+
+      final bundle = BlocStoreBundle.create(config: config);
+
+      expect(
+        () => bundle.listBloc,
+        throwsA(isA<UnsupportedError>().having(
+          (e) => e.message,
+          'message',
+          contains('listBloc is not available'),
+        )),
+      );
 
       bundle.close();
     });
