@@ -415,7 +415,6 @@ void main() {
         getId: (m) => m.id,
         fromJson: TestModel.fromJson,
         toJson: (m) => m.toJson(),
-        primaryKeyColumn: 'id',
       );
 
       await backend.initialize();
@@ -445,7 +444,6 @@ void main() {
           getId: (m) => m.id,
           fromJson: TestModel.fromJson,
           toJson: (m) => m.toJson(),
-          primaryKeyColumn: 'id',
           databasePath: tempPath,
         );
 
@@ -483,7 +481,6 @@ void main() {
         getId: (m) => m.id,
         fromJson: TestModel.fromJson,
         toJson: (m) => m.toJson(),
-        primaryKeyColumn: 'id',
         fieldMapping: {'name': 'display_name'},
       );
 

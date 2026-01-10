@@ -310,7 +310,7 @@ void main() {
     });
 
     test('equality returns false for different unique flag', () {
-      const index1 = CrdtIndex(name: 'idx1', columns: ['a'], unique: false);
+      const index1 = CrdtIndex(name: 'idx1', columns: ['a']);
       const index2 = CrdtIndex(name: 'idx1', columns: ['a'], unique: true);
 
       expect(index1, isNot(equals(index2)));
