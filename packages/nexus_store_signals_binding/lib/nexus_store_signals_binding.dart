@@ -59,3 +59,9 @@ export 'src/computed/computed_utils.dart';
 
 // Lifecycle management
 export 'src/lifecycle/signal_scope.dart';
+
+// Bundle (batteries-included)
+export 'src/bundle/signals_store_bundle.dart';
+
+// Manager (batteries-included)
+export 'src/manager/signals_manager.dart';
