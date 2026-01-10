@@ -175,7 +175,7 @@ void main() {
       // Verify watchAll was called due to autoLoad
       verify(() => mockStore.watchAll(query: any(named: 'query'))).called(1);
 
-      bundle.close();
+      await bundle.close();
     });
 
     test('should not auto-load when autoLoad is false', () async {
@@ -193,7 +193,7 @@ void main() {
       // Verify watchAll was NOT called
       verifyNever(() => mockStore.watchAll(query: any(named: 'query')));
 
-      bundle.close();
+      await bundle.close();
     });
 
     test('should create item cubit for specific ID', () {
@@ -324,7 +324,7 @@ void main() {
       // Verify watchAll was called due to autoLoad via LoadAll event
       verify(() => mockStore.watchAll(query: any(named: 'query'))).called(1);
 
-      bundle.close();
+      await bundle.close();
     });
 
     test('should close bloc on bundle close', () async {
