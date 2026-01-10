@@ -1,5 +1,6 @@
 import 'package:nexus_store_powersync_adapter/src/powersync_backend.dart';
 import 'package:nexus_store_powersync_adapter/src/powersync_database_adapter.dart';
+import 'package:nexus_store_powersync_adapter/src/powersync_database_wrapper.dart';
 import 'package:nexus_store_powersync_adapter/src/ps_table_config.dart';
 import 'package:nexus_store_powersync_adapter/src/supabase_connector.dart';
 import 'package:powersync/powersync.dart' as ps;
