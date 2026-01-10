@@ -419,7 +419,9 @@ void main() {
 
       // Verify by using the backend
       final backend = manager.getBackend('users');
-      await backend.save(_TestUser(id: '1', name: 'Alice', email: 'a@test.com'));
+      await backend.save(
+        _TestUser(id: '1', name: 'Alice', email: 'a@test.com'),
+      );
       final result = await backend.get('1');
       expect(result, isNotNull);
     });
