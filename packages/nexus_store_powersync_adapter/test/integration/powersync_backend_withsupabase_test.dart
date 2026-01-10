@@ -103,6 +103,8 @@ void main() {
     });
 
     tearDown(() async {
+      if (!_nativeLibraryAvailable) return;
+
       // Clean up any test records created during tests
       for (final id in createdIds) {
         try {
@@ -115,7 +117,9 @@ void main() {
     });
 
     tearDownAll(() {
-      supabase.dispose();
+      if (_nativeLibraryAvailable) {
+        supabase.dispose();
+      }
     });
 
     group('Factory Creation', () {

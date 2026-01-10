@@ -136,7 +136,9 @@ void main() {
     });
 
     tearDownAll(() {
-      supabase.dispose();
+      if (_nativeLibraryAvailable) {
+        supabase.dispose();
+      }
     });
 
     group('Factory', () {
