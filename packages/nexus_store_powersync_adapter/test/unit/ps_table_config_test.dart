@@ -137,6 +137,31 @@ void main() {
 
         expect(config.fieldMapping, isNull);
       });
+
+      test('localOnly defaults to false', () {
+        final config = PSTableConfig<TestUser, String>(
+          tableName: 'users',
+          columns: [PSColumn.text('name')],
+          fromJson: TestUser.fromJson,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
+        );
+
+        expect(config.localOnly, isFalse);
+      });
+
+      test('accepts localOnly parameter', () {
+        final config = PSTableConfig<TestUser, String>(
+          tableName: 'local_settings',
+          columns: [PSColumn.text('value')],
+          fromJson: TestUser.fromJson,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
+          localOnly: true,
+        );
+
+        expect(config.localOnly, isTrue);
+      });
     });
 
     group('toTableDefinition', () {
@@ -170,6 +195,64 @@ void main() {
         final tableDef = config.toTableDefinition();
 
         expect(tableDef.columns.length, equals(2));
+      });
+
+      test('passes through localOnly false by default', () {
+        final config = PSTableConfig<TestUser, String>(
+          tableName: 'users',
+          columns: [PSColumn.text('name')],
+          fromJson: TestUser.fromJson,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
+        );
+
+        final tableDef = config.toTableDefinition();
+
+        expect(tableDef.localOnly, isFalse);
+      });
+
+      test('passes through localOnly true when set', () {
+        final config = PSTableConfig<TestUser, String>(
+          tableName: 'local_settings',
+          columns: [PSColumn.text('value')],
+          fromJson: TestUser.fromJson,
+          toJson: (u) => u.toJson(),
+          getId: (u) => u.id,
+          localOnly: true,
+        );
+
+        final tableDef = config.toTableDefinition();
+
+        expect(tableDef.localOnly, isTrue);
+      });
+    });
+  });
+
+  group('PSTableDefinition', () {
+    group('toTable', () {
+      test('creates regular table when localOnly is false', () {
+        final tableDef = PSTableDefinition(
+          tableName: 'users',
+          columns: [PSColumn.text('name')],
+        );
+
+        final table = tableDef.toTable();
+
+        expect(table.name, equals('users'));
+        expect(table.localOnly, isFalse);
+      });
+
+      test('creates local-only table when localOnly is true', () {
+        final tableDef = PSTableDefinition(
+          tableName: 'local_settings',
+          columns: [PSColumn.text('value')],
+          localOnly: true,
+        );
+
+        final table = tableDef.toTable();
+
+        expect(table.name, equals('local_settings'));
+        expect(table.localOnly, isTrue);
       });
     });
   });
