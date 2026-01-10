@@ -81,8 +81,7 @@ void main() {
     setUpAll(() async {
       // Check if PowerSync library and Homebrew SQLite are available
       if (!isHomebrewSqliteAvailable()) {
-        _skipReason =
-            'Homebrew SQLite not installed. Run: brew install sqlite';
+        _skipReason = 'Homebrew SQLite not installed. Run: brew install sqlite';
         _nativeLibraryAvailable = false;
         return;
       }
@@ -189,8 +188,8 @@ void main() {
         _cleanupDbFile(testPath);
       });
 
-      testWithNativeLib(
-          'creates backend without openFactory (production path)', () async {
+      testWithNativeLib('creates backend without openFactory (production path)',
+          () async {
         // This test covers the production code path (line 273) where
         // PowerSyncDatabase is created without a custom factory.
         //
@@ -294,8 +293,8 @@ void main() {
     });
 
     group('Default Constructor', () {
-      testWithNativeLib(
-          'creates backend with PowerSyncDatabase directly', () async {
+      testWithNativeLib('creates backend with PowerSyncDatabase directly',
+          () async {
         // This test covers the default constructor (lines 47, 56-57)
         // that takes a PowerSyncDatabase directly and wraps it.
         final dbPath = _createTestDbPath('default_constructor_test');

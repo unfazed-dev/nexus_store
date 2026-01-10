@@ -7,6 +7,7 @@ environment:
   sdk: ^3.5.0
 
 dependencies:
+  meta: ^1.11.0
   nexus_store: ^0.1.0
   powersync: ^1.17.0
   rxdart: ^0.28.0

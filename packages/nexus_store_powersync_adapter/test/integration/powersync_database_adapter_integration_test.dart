@@ -64,8 +64,7 @@ void main() {
     setUpAll(() async {
       // Check if PowerSync library and Homebrew SQLite are available
       if (!isHomebrewSqliteAvailable()) {
-        _skipReason =
-            'Homebrew SQLite not installed. Run: brew install sqlite';
+        _skipReason = 'Homebrew SQLite not installed. Run: brew install sqlite';
         _nativeLibraryAvailable = false;
         return;
       }
@@ -293,8 +292,8 @@ void main() {
         }
       });
 
-      testWithNativeLib(
-          'initialize without openFactory (production path)', () async {
+      testWithNativeLib('initialize without openFactory (production path)',
+          () async {
         // This test covers line 109: the production code path where
         // PowerSyncDatabase is created without a custom factory.
         //

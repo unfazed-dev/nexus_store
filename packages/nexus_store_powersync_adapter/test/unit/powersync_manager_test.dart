@@ -133,7 +133,7 @@ void main() {
               PSTableConfig<dynamic, dynamic>(
                 tableName: 'users',
                 columns: [PSColumn.text('name')],
-                fromJson: (json) => TestUser.fromJson(json),
+                fromJson: TestUser.fromJson,
                 toJson: (u) => (u as TestUser).toJson(),
                 getId: (u) => (u as TestUser).id,
               ),
@@ -338,14 +338,14 @@ void main() {
             PSTableConfig<dynamic, dynamic>(
               tableName: 'users',
               columns: [PSColumn.text('name')],
-              fromJson: (json) => TestUser.fromJson(json),
+              fromJson: TestUser.fromJson,
               toJson: (u) => (u as TestUser).toJson(),
               getId: (u) => (u as TestUser).id,
             ),
             PSTableConfig<dynamic, dynamic>(
               tableName: 'posts',
               columns: [PSColumn.text('title')],
-              fromJson: (json) => TestPost.fromJson(json),
+              fromJson: TestPost.fromJson,
               toJson: (p) => (p as TestPost).toJson(),
               getId: (p) => (p as TestPost).id,
             ),
@@ -368,7 +368,7 @@ void main() {
             PSTableConfig<dynamic, dynamic>(
               tableName: 'users',
               columns: [PSColumn.text('name')],
-              fromJson: (json) => TestUser.fromJson(json),
+              fromJson: TestUser.fromJson,
               toJson: (u) => (u as TestUser).toJson(),
               getId: (u) => (u as TestUser).id,
             ),
@@ -404,7 +404,7 @@ void main() {
             PSTableConfig<dynamic, dynamic>(
               tableName: 'users',
               columns: [PSColumn.text('name')],
-              fromJson: (json) => TestUser.fromJson(json),
+              fromJson: TestUser.fromJson,
               toJson: (u) => (u as TestUser).toJson(),
               getId: (u) => (u as TestUser).id,
             ),
@@ -473,7 +473,8 @@ void main() {
 
         await manager.initialize();
 
-        // Use dynamic types since the mock returns PowerSyncBackend<dynamic, dynamic>
+        // Use dynamic types since the mock returns
+        // PowerSyncBackend<dynamic, dynamic>
         final backend = manager.getBackend<dynamic, dynamic>('users');
 
         expect(backend, isA<PowerSyncBackend<dynamic, dynamic>>());
@@ -507,14 +508,14 @@ void main() {
             PSTableConfig<dynamic, dynamic>(
               tableName: 'users',
               columns: [PSColumn.text('name')],
-              fromJson: (json) => TestUser.fromJson(json),
+              fromJson: TestUser.fromJson,
               toJson: (u) => (u as TestUser).toJson(),
               getId: (u) => (u as TestUser).id,
             ),
             PSTableConfig<dynamic, dynamic>(
               tableName: 'posts',
               columns: [PSColumn.text('title')],
-              fromJson: (json) => TestPost.fromJson(json),
+              fromJson: TestPost.fromJson,
               toJson: (p) => (p as TestPost).toJson(),
               getId: (p) => (p as TestPost).id,
             ),
@@ -532,8 +533,8 @@ void main() {
           }) {
             backendCount++;
             final backend = MockPowerSyncBackend();
-            when(() => backend.initialize()).thenAnswer((_) async {});
-            when(() => backend.close()).thenAnswer((_) async {});
+            when(backend.initialize).thenAnswer((_) async {});
+            when(backend.close).thenAnswer((_) async {});
             backends[tableName] = backend;
             return backend;
           },
@@ -576,14 +577,14 @@ void main() {
             PSTableConfig<dynamic, dynamic>(
               tableName: 'users',
               columns: [PSColumn.text('name')],
-              fromJson: (json) => TestUser.fromJson(json),
+              fromJson: TestUser.fromJson,
               toJson: (u) => (u as TestUser).toJson(),
               getId: (u) => (u as TestUser).id,
             ),
             PSTableConfig<dynamic, dynamic>(
               tableName: 'posts',
               columns: [PSColumn.text('title')],
-              fromJson: (json) => TestPost.fromJson(json),
+              fromJson: TestPost.fromJson,
               toJson: (p) => (p as TestPost).toJson(),
               getId: (p) => (p as TestPost).id,
             ),
@@ -679,7 +680,7 @@ void main() {
             PSTableConfig<dynamic, dynamic>(
               tableName: 'users',
               columns: [PSColumn.text('name')],
-              fromJson: (json) => TestUser.fromJson(json),
+              fromJson: TestUser.fromJson,
               toJson: (u) => (u as TestUser).toJson(),
               getId: (u) => (u as TestUser).id,
             ),
@@ -703,7 +704,7 @@ void main() {
             PSTableConfig<dynamic, dynamic>(
               tableName: 'users',
               columns: [PSColumn.text('name')],
-              fromJson: (json) => TestUser.fromJson(json),
+              fromJson: TestUser.fromJson,
               toJson: (u) => (u as TestUser).toJson(),
               getId: (u) => (u as TestUser).id,
             ),
@@ -729,7 +730,7 @@ void main() {
             PSTableConfig<dynamic, dynamic>(
               tableName: 'users',
               columns: [PSColumn.text('name')],
-              fromJson: (json) => TestUser.fromJson(json),
+              fromJson: TestUser.fromJson,
               toJson: (u) => (u as TestUser).toJson(),
               getId: (u) => (u as TestUser).id,
             ),
@@ -759,7 +760,7 @@ void main() {
             PSTableConfig<dynamic, dynamic>(
               tableName: 'users',
               columns: [PSColumn.text('name')],
-              fromJson: (json) => TestUser.fromJson(json),
+              fromJson: TestUser.fromJson,
               toJson: (u) => (u as TestUser).toJson(),
               getId: (u) => (u as TestUser).id,
             ),

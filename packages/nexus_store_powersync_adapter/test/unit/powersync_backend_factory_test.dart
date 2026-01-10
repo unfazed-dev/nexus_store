@@ -103,10 +103,10 @@ class TestUser {
   TestUser({required this.id, required this.name, this.age});
 
   factory TestUser.fromJson(Map<String, dynamic> json) => TestUser(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      age: json['age'] as int?,
-    );
+        id: json['id'] as String,
+        name: json['name'] as String,
+        age: json['age'] as int?,
+      );
 
   final String id;
   final String name;

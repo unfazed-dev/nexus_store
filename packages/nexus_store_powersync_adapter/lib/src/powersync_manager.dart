@@ -130,9 +130,13 @@ class PowerSyncManager {
     // This is necessary because PSTableConfig<T, ID> stores typed functions,
     // and when accessed through PSTableConfig<dynamic, dynamic>, the runtime
     // types may not match. Creating new closures ensures proper typing.
+    // ignore: avoid_dynamic_calls
     dynamic wrappedFromJson(Map<String, dynamic> json) => fromJson(json);
+    // ignore: avoid_annotating_with_dynamic, avoid_dynamic_calls
     Map<String, dynamic> wrappedToJson(dynamic item) =>
+        // ignore: avoid_dynamic_calls
         toJson(item) as Map<String, dynamic>;
+    // ignore: avoid_annotating_with_dynamic, avoid_dynamic_calls
     dynamic wrappedGetId(dynamic item) => getId(item);
 
     return PowerSyncBackend<dynamic, dynamic>.withWrapper(
@@ -238,8 +242,11 @@ class PowerSyncManager {
       // (T) => X which are not subtypes due to function contravariance.
       // Using dynamic bypasses these type checks.
       final dynamic configDynamic = config;
+      // ignore: avoid_dynamic_calls
       final fromJson = configDynamic.fromJson as Function;
+      // ignore: avoid_dynamic_calls
       final toJson = configDynamic.toJson as Function;
+      // ignore: avoid_dynamic_calls
       final getId = configDynamic.getId as Function;
 
       final backend = _backendFactory(

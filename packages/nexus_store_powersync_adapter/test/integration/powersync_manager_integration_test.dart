@@ -90,8 +90,7 @@ void main() {
     setUpAll(() async {
       // Check if PowerSync library and Homebrew SQLite are available
       if (!isHomebrewSqliteAvailable()) {
-        _skipReason =
-            'Homebrew SQLite not installed. Run: brew install sqlite';
+        _skipReason = 'Homebrew SQLite not installed. Run: brew install sqlite';
         _nativeLibraryAvailable = false;
         return;
       }
@@ -361,10 +360,8 @@ void main() {
 
         await manager.initialize();
 
-        final itemsBackend =
-            manager.getBackend<TestItem, String>('test_items');
-        final notesBackend =
-            manager.getBackend<TestNote, String>('test_notes');
+        final itemsBackend = manager.getBackend<TestItem, String>('test_items');
+        final notesBackend = manager.getBackend<TestNote, String>('test_notes');
 
         expect(itemsBackend, isNotNull);
         expect(notesBackend, isNotNull);
@@ -466,16 +463,19 @@ void main() {
         // Save
         final item = TestItem(id: id, name: 'Manager Test', value: 123);
         final saved = await backend.save(item);
+        // ignore: avoid_dynamic_calls
         expect(saved.id, equals(id));
 
         // Get
         final retrieved = await backend.get(id);
         expect(retrieved, isNotNull);
+        // ignore: avoid_dynamic_calls
         expect(retrieved!.name, equals('Manager Test'));
 
         // Update
         final updated =
             await backend.save(TestItem(id: id, name: 'Updated', value: 456));
+        // ignore: avoid_dynamic_calls
         expect(updated.name, equals('Updated'));
 
         // Delete

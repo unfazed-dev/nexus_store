@@ -61,7 +61,7 @@ class PSTableConfig<T, ID> {
 
   /// Converts this configuration to a [PSTableDefinition].
   PSTableDefinition toTableDefinition() => PSTableDefinition(
-      tableName: tableName,
-      columns: columns,
-    );
+        tableName: tableName,
+        columns: columns,
+      );
 }

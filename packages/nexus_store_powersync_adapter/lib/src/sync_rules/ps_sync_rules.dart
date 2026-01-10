@@ -43,8 +43,8 @@ class PSSyncRules {
   ///       - SELECT ...
   /// ```
   Map<String, dynamic> toYamlMap() => {
-      'bucket_definitions': buckets.map((b) => b.toYamlMap()).toList(),
-    };
+        'bucket_definitions': buckets.map((b) => b.toYamlMap()).toList(),
+      };
 
   /// Generates a YAML string for these sync rules.
   ///

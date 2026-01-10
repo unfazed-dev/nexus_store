@@ -155,6 +155,7 @@ void main() {
       test('query is not equal to non-PSQuery object', () {
         const query = PSQuery.select(table: 'users');
 
+        // ignore: unrelated_type_equality_checks
         expect(query == 'not a query', isFalse);
       });
     });

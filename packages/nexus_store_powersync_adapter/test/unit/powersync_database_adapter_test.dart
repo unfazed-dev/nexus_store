@@ -23,7 +23,7 @@ void main() {
     late ps.Schema testSchema;
 
     setUp(() {
-      testSchema = ps.Schema([
+      testSchema = const ps.Schema([
         ps.Table('test_table', [ps.Column.text('name')]),
       ]);
     });
@@ -122,7 +122,7 @@ void main() {
 
   group('PowerSyncDatabaseAdapterFactory typedef', () {
     test('defaultPowerSyncDatabaseAdapterFactory creates adapter', () {
-      final schema = ps.Schema([
+      const schema = ps.Schema([
         ps.Table('test', [ps.Column.text('name')]),
       ]);
 

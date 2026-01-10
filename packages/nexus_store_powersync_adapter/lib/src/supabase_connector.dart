@@ -111,11 +111,12 @@ class SupabasePowerSyncConnector extends PowerSyncBackendConnector {
   factory SupabasePowerSyncConnector.withClient({
     required SupabaseClient supabase,
     required String powerSyncUrl,
-  }) => SupabasePowerSyncConnector(
-      authProvider: DefaultSupabaseAuthProvider(supabase),
-      dataProvider: DefaultSupabaseDataProvider(supabase),
-      powerSyncUrl: powerSyncUrl,
-    );
+  }) =>
+      SupabasePowerSyncConnector(
+        authProvider: DefaultSupabaseAuthProvider(supabase),
+        dataProvider: DefaultSupabaseDataProvider(supabase),
+        powerSyncUrl: powerSyncUrl,
+      );
 
   final SupabaseAuthProvider _authProvider;
   final SupabaseDataProvider _dataProvider;

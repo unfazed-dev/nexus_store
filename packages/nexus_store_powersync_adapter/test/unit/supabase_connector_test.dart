@@ -16,7 +16,6 @@ class MockSupabaseClient extends Mock implements SupabaseClient {}
 
 class MockGoTrueClient extends Mock implements GoTrueClient {}
 
-
 // Using Fake instead of Mock because Session/User override ==
 // ignore: avoid_implementing_value_types
 class FakeSession extends Fake implements Session {
@@ -118,12 +117,12 @@ void main() {
 
       CrudTransaction createTransaction(List<CrudEntry> entries) =>
           CrudTransaction(
-          crud: entries,
-          transactionId: 1,
-          complete: ({writeCheckpoint}) async {
-            completeCalled = true;
-          },
-        );
+            crud: entries,
+            transactionId: 1,
+            complete: ({writeCheckpoint}) async {
+              completeCalled = true;
+            },
+          );
 
       test('returns early when no pending transactions', () async {
         when(() => mockDatabase.getNextCrudTransaction())
@@ -291,7 +290,7 @@ void main() {
 
     test('getTokenExpiresAt returns expiration when session has expiresIn',
         () async {
-      final session = FakeSession(expiresInValue: 3600);
+      final session = FakeSession();
       when(() => mockAuth.currentSession).thenReturn(session);
 
       final expiresAt = await provider.getTokenExpiresAt();
@@ -418,7 +417,7 @@ void main() {
       when(() => mockDatabase.getNextCrudTransaction())
           .thenAnswer((_) async => createTransaction([crudEntry]));
       when(() => mockDataProvider.upsert('items', any())).thenThrow(
-        PostgrestException(code: '400', message: 'Bad Request'),
+        const PostgrestException(code: '400', message: 'Bad Request'),
       );
 
       await expectLater(
@@ -441,7 +440,7 @@ void main() {
       when(() => mockDatabase.getNextCrudTransaction())
           .thenAnswer((_) async => createTransaction([crudEntry]));
       when(() => mockDataProvider.upsert('items', any())).thenThrow(
-        PostgrestException(code: '429', message: 'Rate Limited'),
+        const PostgrestException(code: '429', message: 'Rate Limited'),
       );
 
       await expectLater(
@@ -464,7 +463,7 @@ void main() {
       when(() => mockDatabase.getNextCrudTransaction())
           .thenAnswer((_) async => createTransaction([crudEntry]));
       when(() => mockDataProvider.upsert('items', any())).thenThrow(
-        PostgrestException(message: 'Unknown error'),
+        const PostgrestException(message: 'Unknown error'),
       );
 
       await expectLater(
@@ -487,7 +486,7 @@ void main() {
       when(() => mockDatabase.getNextCrudTransaction())
           .thenAnswer((_) async => createTransaction([crudEntry]));
       when(() => mockDataProvider.upsert('items', any())).thenThrow(
-        PostgrestException(code: 'PGRST001', message: 'Postgres error'),
+        const PostgrestException(code: 'PGRST001', message: 'Postgres error'),
       );
 
       await expectLater(
@@ -509,7 +508,7 @@ void main() {
       when(() => mockDatabase.getNextCrudTransaction())
           .thenAnswer((_) async => createTransaction([crudEntry]));
       when(() => mockDataProvider.upsert('items', any())).thenThrow(
-        PostgrestException(code: '500', message: 'Server Error'),
+        const PostgrestException(code: '500', message: 'Server Error'),
       );
 
       await expectLater(
@@ -528,11 +527,12 @@ CrudEntry _createCrudEntry({
   required String table,
   required String id,
   Map<String, dynamic>? opData,
-}) => CrudEntry(
-    1, // clientId
-    op,
-    table,
-    id,
-    null, // transactionId
-    opData,
-  );
+}) =>
+    CrudEntry(
+      1, // clientId
+      op,
+      table,
+      id,
+      null, // transactionId
+      opData,
+    );

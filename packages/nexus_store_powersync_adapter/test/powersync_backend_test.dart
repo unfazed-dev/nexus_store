@@ -753,8 +753,7 @@ void main() {
         await backend.retryChange(change.id);
 
         // Verify retry count was updated
-        final updated =
-            backend.testPendingChangesManager.getChange(change.id);
+        final updated = backend.testPendingChangesManager.getChange(change.id);
         expect(updated, isNotNull);
         expect(updated!.retryCount, equals(1));
         expect(updated.lastAttempt, isNotNull);
