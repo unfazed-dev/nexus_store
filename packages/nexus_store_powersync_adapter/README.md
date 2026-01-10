@@ -296,6 +296,112 @@ final pending = await backend.pendingChangesCount;
 await backend.sync();
 ```
 
+## Supabase Connector
+
+The adapter includes a ready-to-use connector for Supabase integration:
+
+### Default Usage
+
+```dart
+final connector = SupabasePowerSyncConnector.withClient(
+  supabase: Supabase.instance.client,
+  powerSyncUrl: 'https://your-instance.powersync.co',
+);
+```
+
+### Custom Auth Provider
+
+Implement `SupabaseAuthProvider` for custom authentication:
+
+```dart
+class CustomAuthProvider implements SupabaseAuthProvider {
+  @override
+  Future<String?> getAccessToken() async {
+    // Return your custom token
+    return myCustomAuth.token;
+  }
+
+  @override
+  Future<String?> getUserId() async {
+    return myCustomAuth.userId;
+  }
+
+  @override
+  Future<DateTime?> getTokenExpiresAt() async {
+    return myCustomAuth.expiresAt;
+  }
+}
+```
+
+### Custom Data Provider
+
+Implement `SupabaseDataProvider` for custom CRUD operations:
+
+```dart
+class CustomDataProvider implements SupabaseDataProvider {
+  @override
+  Future<void> upsert(String table, Map<String, dynamic> data) async {
+    // Custom upsert logic
+  }
+
+  @override
+  Future<void> update(String table, String id, Map<String, dynamic> data) async {
+    // Custom update logic
+  }
+
+  @override
+  Future<void> delete(String table, String id) async {
+    // Custom delete logic
+  }
+}
+
+// Use with custom providers
+final connector = SupabasePowerSyncConnector(
+  authProvider: CustomAuthProvider(),
+  dataProvider: CustomDataProvider(),
+  powerSyncUrl: 'https://your-instance.powersync.co',
+);
+```
+
+### Error Handling
+
+The connector distinguishes between fatal and transient errors:
+- **Fatal errors** (HTTP 4xx except 429): Marked complete to prevent infinite retries
+- **Transient errors** (network issues, rate limits): Automatically retried by PowerSync
+
+## Lifecycle Management
+
+Proper cleanup prevents resource leaks:
+
+### Single Backend
+
+```dart
+final backend = PowerSyncBackend<User, String>.withSupabase(...);
+await backend.initialize();
+
+// Use the backend...
+
+// Clean up when done
+await backend.dispose();
+```
+
+### Multi-Table Manager
+
+```dart
+final manager = PowerSyncManager.withSupabase(...);
+await manager.initialize();
+
+// Get backends and use them...
+
+// Clean up all resources at once
+await manager.dispose();
+```
+
+The `dispose()` method:
+- Closes all database connections
+- Disconnects from PowerSync service
+- Releases all allocated resources
+
 ## Query Translation
 
 Queries are automatically translated to SQL:
@@ -354,7 +460,68 @@ dart test
 
 ### Integration Tests
 
-Integration tests require PowerSync native library. See test utilities in `test/test_utils/powersync_test_utils.dart`.
+Integration tests require the PowerSync native library.
+
+#### Prerequisites
+
+Check if the library is available:
+
+```dart
+import 'package:nexus_store_powersync_adapter/test_utils.dart';
+
+void main() {
+  if (!checkPowerSyncLibraryAvailable()) {
+    print('PowerSync library not available');
+    return;
+  }
+
+  // Run integration tests...
+}
+```
+
+#### Download Native Binaries
+
+For macOS/Linux, download the PowerSync binary:
+
+```bash
+./scripts/download_powersync_binary.sh
+```
+
+#### Test Database Factory
+
+Use the test utilities for creating test databases:
+
+```dart
+import 'package:nexus_store_powersync_adapter/test_utils.dart';
+
+void main() {
+  late PowerSyncDatabase db;
+
+  setUp(() async {
+    db = await createTestPowerSyncDatabase(schema);
+  });
+
+  tearDown(() async {
+    await db.close();
+  });
+
+  test('my integration test', () async {
+    // Use db for testing...
+  });
+}
+```
+
+#### Test Factory for Desktop
+
+For desktop platforms, use `TestPowerSyncOpenFactory`:
+
+```dart
+final factory = TestPowerSyncOpenFactory(path: ':memory:');
+final db = PowerSyncDatabase.withFactory(factory, schema: schema);
+await db.initialize();
+```
+
+See `test/test_utils/powersync_test_utils.dart` for more utilities.
 
 ## API Reference
 
@@ -363,9 +530,32 @@ Integration tests require PowerSync native library. See test utilities in `test/
 | Class | Description |
 |-------|-------------|
 | `PowerSyncBackend<T, ID>` | Backend for single-table apps |
+| `PowerSyncBackend.withSupabase()` | Factory with batteries-included Supabase setup |
 | `PowerSyncManager` | Manager for multi-table apps |
+| `PowerSyncManager.withSupabase()` | Factory with batteries-included multi-table setup |
 | `PSTableConfig<T, ID>` | Table configuration for manager |
 | `PSColumn` | Column definition with type-safe factories |
+| `PSTableDefinition` | Table schema definition |
+| `PowerSyncBackendConfig<T, ID>` | Backend configuration container |
+
+### Database Adapter Classes
+
+| Class | Description |
+|-------|-------------|
+| `PowerSyncDatabaseAdapter` | Abstract interface for database lifecycle |
+| `DefaultPowerSyncDatabaseAdapter` | Production implementation |
+| `PowerSyncDatabaseWrapper` | Wrapper for testing abstraction |
+| `PowerSyncDatabaseAdapterFactory` | Factory function type for DI |
+
+### Supabase Classes
+
+| Class | Description |
+|-------|-------------|
+| `SupabasePowerSyncConnector` | Connector for auth and data sync |
+| `SupabaseAuthProvider` | Interface for authentication data |
+| `DefaultSupabaseAuthProvider` | Default Supabase auth implementation |
+| `SupabaseDataProvider` | Interface for CRUD operations |
+| `DefaultSupabaseDataProvider` | Default Supabase REST implementation |
 
 ### Sync Rules Classes
 
@@ -373,6 +563,7 @@ Integration tests require PowerSync native library. See test utilities in `test/
 |-------|-------------|
 | `PSSyncRules` | Container for sync rules |
 | `PSBucket` | Bucket definition (global, userScoped, parameterized) |
+| `PSBucketType` | Enum: Global, UserScoped, Parameterized |
 | `PSQuery` | SELECT query for bucket data |
 
 ### Encryption Classes
@@ -382,6 +573,63 @@ Integration tests require PowerSync native library. See test utilities in `test/
 | `PowerSyncEncryptedBackend<T, ID>` | Encrypted database backend |
 | `EncryptionKeyProvider` | Abstract key provider interface |
 | `InMemoryKeyProvider` | Simple in-memory key storage |
+| `EncryptionAlgorithm` | Enum: AES-256-GCM, ChaCha20-Poly1305 |
+
+### Type Definitions
+
+| Type | Description |
+|------|-------------|
+| `ConnectorFactory` | Factory for creating connectors |
+| `BackendFactory` | Factory for creating backends |
+| `PowerSyncDatabaseAdapterFactory` | Factory for creating database adapters |
+
+## Troubleshooting
+
+### OFFSET without LIMIT Error
+
+**Symptom:** SQL error when using `offsetBy()` without `limitTo()`.
+
+**Cause:** SQLite requires LIMIT before OFFSET.
+
+**Solution:** The adapter automatically handles this by generating `LIMIT -1 OFFSET n` when only offset is specified.
+
+### PowerSync Library Not Found
+
+**Symptom:** Tests fail with "PowerSync library not available" or similar errors.
+
+**Solution:**
+1. Run the download script: `./scripts/download_powersync_binary.sh`
+2. Or check if Homebrew SQLite is available: `isHomebrewSqliteAvailable()`
+3. Use `checkPowerSyncLibraryAvailable()` to skip tests when library is missing
+
+### Type Issues with getBackend
+
+**Symptom:** `getBackend<User, String>()` returns `PowerSyncBackend<dynamic, dynamic>`.
+
+**Cause:** Dart's generic invariance prevents casting stored backends to typed versions.
+
+**Solution:** The returned backend works correctly at runtime. Use it directly or create a typed wrapper:
+
+```dart
+final dynamicBackend = manager.getBackend<User, String>('users');
+// Operations work correctly despite dynamic types
+await dynamicBackend.save(User(...));  // Works!
+```
+
+### Authentication Token Expiration
+
+**Symptom:** Sync fails after token expires.
+
+**Solution:** The connector automatically fetches fresh credentials via `fetchCredentials()`. Ensure your `SupabaseAuthProvider` returns current token data:
+
+```dart
+@override
+Future<DateTime?> getTokenExpiresAt() async {
+  final expiresIn = client.auth.currentSession?.expiresIn;
+  if (expiresIn == null) return null;
+  return DateTime.now().add(Duration(seconds: expiresIn));
+}
+```
 
 ## Additional Resources
 
