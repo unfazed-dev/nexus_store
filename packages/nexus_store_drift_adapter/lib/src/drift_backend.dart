@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:meta/meta.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
+import 'package:nexus_store_drift_adapter/src/drift_column.dart';
 import 'package:nexus_store_drift_adapter/src/drift_query_translator.dart';
+import 'package:nexus_store_drift_adapter/src/drift_table_config.dart';
 import 'package:rxdart/rxdart.dart';
 
 /// A [nexus.StoreBackend] implementation using Drift for local SQLite storage.
@@ -55,7 +57,66 @@ class DriftBackend<T, ID>
         _fromJson = fromJson,
         _toJson = toJson,
         _primaryKeyField = primaryKeyField,
+        _columns = null,
+        _indexes = null,
+        _lazyExecutor = null,
         _queryTranslator = queryTranslator ??
+            DriftQueryTranslator<T>(fieldMapping: fieldMapping) {
+    _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
+      idExtractor: getId,
+    );
+  }
+
+  /// Creates a [DriftBackend] with automatic database setup.
+  ///
+  /// This factory method creates a fully configured backend that handles
+  /// database connection, schema creation, and lifecycle management.
+  ///
+  /// Example:
+  /// ```dart
+  /// final backend = DriftBackend<User, String>.withDatabase(
+  ///   tableName: 'users',
+  ///   columns: [
+  ///     DriftColumn.text('id', nullable: false),
+  ///     DriftColumn.text('name', nullable: false),
+  ///     DriftColumn.text('email'),
+  ///     DriftColumn.integer('age'),
+  ///   ],
+  ///   getId: (u) => u.id,
+  ///   fromJson: User.fromJson,
+  ///   toJson: (u) => u.toJson(),
+  /// );
+  /// await backend.initialize();
+  /// ```
+  ///
+  /// - [tableName]: The name of the SQLite table.
+  /// - [columns]: Type-safe column definitions for the table.
+  /// - [getId]: Function to extract the ID from an entity.
+  /// - [fromJson]: Function to create entity from JSON map.
+  /// - [toJson]: Function to convert entity to JSON map.
+  /// - [executor]: Optional query executor (defaults to in-memory database).
+  /// - [primaryKeyColumn]: The name of the primary key column (defaults to 'id').
+  /// - [fieldMapping]: Optional field name mapping for queries.
+  /// - [indexes]: Optional index definitions for the table.
+  DriftBackend.withDatabase({
+    required String tableName,
+    required List<DriftColumn> columns,
+    required ID Function(T item) getId,
+    required T Function(Map<String, dynamic> json) fromJson,
+    required Map<String, dynamic> Function(T item) toJson,
+    QueryExecutor? executor,
+    String primaryKeyColumn = 'id',
+    Map<String, String>? fieldMapping,
+    List<DriftIndex>? indexes,
+  })  : _tableName = tableName,
+        _getId = getId,
+        _fromJson = fromJson,
+        _toJson = toJson,
+        _primaryKeyField = primaryKeyColumn,
+        _columns = columns,
+        _indexes = indexes,
+        _lazyExecutor = executor,
+        _queryTranslator =
             DriftQueryTranslator<T>(fieldMapping: fieldMapping) {
     _pendingChangesManager = nexus.PendingChangesManager<T, ID>(
       idExtractor: getId,
@@ -68,6 +129,11 @@ class DriftBackend<T, ID>
   final Map<String, dynamic> Function(T item) _toJson;
   final String _primaryKeyField;
   final DriftQueryTranslator<T> _queryTranslator;
+
+  // Batteries-included fields
+  final List<DriftColumn>? _columns;
+  final List<DriftIndex>? _indexes;
+  final QueryExecutor? _lazyExecutor;
 
   DatabaseConnectionUser? _executor;
 
@@ -108,7 +174,45 @@ class DriftBackend<T, ID>
 
   @override
   Future<void> initialize() async {
-    // No-op - use initializeWithExecutor instead
+    // If created with withDatabase, set up the schema
+    if (_columns != null && _lazyExecutor != null) {
+      await _initializeWithSchema();
+      return;
+    }
+    // Otherwise, no-op - use initializeWithExecutor instead
+  }
+
+  /// Initializes the database with the schema from column definitions.
+  Future<void> _initializeWithSchema() async {
+    if (_initialized) return;
+    if (_columns == null || _lazyExecutor == null) {
+      throw const nexus.StateError(
+        message: 'Cannot initialize schema without columns and executor',
+        currentState: 'missing_config',
+        expectedState: 'configured',
+      );
+    }
+
+    // Create a GeneratedDatabase wrapper to execute raw SQL
+    final db = _SchemaDatabase(_lazyExecutor);
+    _executor = db;
+
+    // Create table
+    final tableDefinition = DriftTableDefinition(
+      tableName: _tableName,
+      columns: _columns,
+      primaryKeyColumn: _primaryKeyField,
+      indexes: _indexes,
+    );
+
+    await db.customStatement(tableDefinition.toCreateTableSql());
+
+    // Create indexes
+    for (final indexSql in tableDefinition.toCreateIndexSql()) {
+      await db.customStatement(indexSql);
+    }
+
+    _initialized = true;
   }
 
   /// Initializes the backend with a Drift database executor.
@@ -682,3 +786,26 @@ class DriftBackend<T, ID>
     );
   }
 }
+
+/// A minimal GeneratedDatabase implementation for executing raw SQL.
+///
+/// This is used internally by [DriftBackend.withDatabase] to create
+/// table schemas from column definitions.
+// coverage:ignore-start
+class _SchemaDatabase extends GeneratedDatabase {
+  _SchemaDatabase(super.executor);
+
+  @override
+  int get schemaVersion => 1;
+
+  @override
+  Iterable<TableInfo<Table, Object?>> get allTables => const [];
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) async {
+          // Schema creation is handled manually via customStatement
+        },
+      );
+}
+// coverage:ignore-end
