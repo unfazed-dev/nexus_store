@@ -37,8 +37,12 @@ import 'package:nexus_store_drift_adapter/src/drift_table_config.dart';
 ///
 /// await manager.initialize();
 ///
-/// final userBackend = manager.getBackend('users');
-/// final postBackend = manager.getBackend('posts');
+/// // Dynamic backend (original API)
+/// final dynamicBackend = manager.getBackend('users');
+///
+/// // Typed backend for use with NexusStore<T, ID>
+/// final typedBackend = await manager.createTypedBackend<User, String>('users');
+/// final store = NexusStore<User, String>(backend: typedBackend);
 /// ```
 class DriftManager {
   DriftManager._({
@@ -63,6 +67,7 @@ class DriftManager {
   final List<DriftTableConfig<dynamic, dynamic>> _tables;
   final QueryExecutor _executor;
   final Map<String, DriftBackend<dynamic, dynamic>> _backends = {};
+  final Map<String, DriftTableConfig<dynamic, dynamic>> _configsByName = {};
   _ManagerDatabase? _database;
   bool _initialized = false;
 
@@ -81,8 +86,10 @@ class DriftManager {
     // Create database wrapper
     _database = _ManagerDatabase(_executor);
 
-    // Create all table schemas
+    // Create all table schemas and store configs by name
     for (final config in _tables) {
+      _configsByName[config.tableName] = config;
+
       final definition = config.toTableDefinition();
       await _database!.customStatement(definition.toCreateTableSql());
 
@@ -127,6 +134,68 @@ class DriftManager {
 
     return backend;
   }
+
+  /// Creates a typed backend for use with `NexusStore<T, ID>`.
+  ///
+  /// Unlike [getBackend], this method returns a properly typed backend that
+  /// can be used directly with typed NexusStore instances.
+  ///
+  /// The type parameters must match the types used in [DriftTableConfig]:
+  /// - [T] must match the entity type
+  /// - [ID] must match the ID type
+  ///
+  /// Example:
+  /// ```dart
+  /// final backend = await manager.createTypedBackend<User, String>('users');
+  /// final store = NexusStore<User, String>(
+  ///   backend: backend,
+  ///   config: StoreConfig.defaults,
+  /// );
+  /// await store.initialize();
+  /// ```
+  ///
+  /// Throws [StateError] if:
+  /// - The manager has not been initialized
+  /// - The table name is not found
+  Future<DriftBackend<T, ID>> createTypedBackend<T, ID>(
+    String tableName,
+  ) async {
+    if (!_initialized) {
+      throw StateError(
+        'Manager not initialized. Call initialize() first.',
+      );
+    }
+
+    final config = _configsByName[tableName];
+    if (config == null) {
+      throw StateError(
+        'Table "$tableName" not found. '
+        'Available tables: ${tableNames.join(", ")}',
+      );
+    }
+
+    // Create a typed backend using the config's original typed functions
+    final typedConfig = config as DriftTableConfig<T, ID>;
+    final backend = DriftBackend<T, ID>(
+      tableName: typedConfig.tableName,
+      getId: typedConfig.getId,
+      fromJson: typedConfig.fromJson,
+      toJson: typedConfig.toJson,
+      primaryKeyField: typedConfig.primaryKeyColumn,
+      fieldMapping: typedConfig.fieldMapping,
+    );
+
+    await backend.initializeWithExecutor(_database!);
+    return backend;
+  }
+
+  /// Exposes the shared database for advanced use cases.
+  ///
+  /// This allows creating custom backends that share the same database
+  /// connection as the manager.
+  ///
+  /// Returns `null` if the manager has not been initialized.
+  DatabaseConnectionUser? get sharedDatabase => _database;
 
   /// Disposes all resources.
   Future<void> dispose() async {
