@@ -303,5 +303,3 @@ For bugs, feature requests, or questions:
 Made with ❤️ for the Flutter/Dart community
 
 ---
-
-Authored and orchestrated by **Evan Pierre Louis - (unfazed-dev)**, with pair programming powered by [Claude Code](https://claude.com/claude-code) from Anthropic.
