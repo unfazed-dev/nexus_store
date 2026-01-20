@@ -299,7 +299,3 @@ For bugs, feature requests, or questions:
 2. Create a new issue with detailed information
 
 ---
-
-Made with ❤️ for the Flutter/Dart community
-
----
