@@ -27,7 +27,8 @@
         "matcher": "Bash",
         "hooks": [
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/strip-commit-attribution.py"},
-          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/inject-test-reporter.py"}
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/inject-test-reporter.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/ctx-enforcement.py"}
         ]
       },
       {
@@ -40,6 +41,12 @@
         "matcher": "Write",
         "hooks": [
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/pre-edit-guard.py"}
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/ctx-enforcement.py"}
         ]
       }
     ],
@@ -51,7 +58,9 @@
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/organize-imports-post-edit.py"},
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/lint-check-post-edit.py"},
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/invariant-check-post-edit.py"},
-          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/doc-freshness-check.py"}
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/doc-freshness-check.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/tracker-sprint-sync.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/route-hash-auto-update.py"}
         ]
       },
       {
@@ -61,7 +70,10 @@
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/organize-imports-post-edit.py"},
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/lint-check-post-edit.py"},
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/invariant-check-post-edit.py"},
-          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/doc-freshness-check.py"}
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/doc-freshness-check.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/tracker-sprint-sync.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/route-hash-auto-update.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/doc-source-map-suggest.py"}
         ]
       },
       {

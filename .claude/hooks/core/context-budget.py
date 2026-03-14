@@ -235,14 +235,29 @@ def main():
     zone, icon, message = get_zone(remaining_pct)
     update_backup_state(zone, remaining_pct)
 
+    # One-time harness health check (first invocation per session)
+    harness_warning = ""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["python3", str(Path(PROJECT_DIR) / ".claude" / "hooks" / "core" / "harness-health-check.py")],
+            capture_output=True, text=True, timeout=5,
+            cwd=PROJECT_DIR,
+            env={**os.environ, "CLAUDE_PROJECT_DIR": PROJECT_DIR},
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            harness_warning = " | " + result.stdout.strip()
+    except (subprocess.TimeoutExpired, OSError):
+        pass
+
     # Context Mode indicator with savings stats
     cm_tag = get_cm_tag()
 
     # Build StatusLine output (plain text)
     if zone == "green":
-        print(f"ctx: {message}{cm_tag}")
+        print(f"ctx: {message}{cm_tag}{harness_warning}")
     else:
-        print(f"ctx{icon} {message}{cm_tag}")
+        print(f"ctx{icon} {message}{cm_tag}{harness_warning}")
 
 
 if __name__ == "__main__":
