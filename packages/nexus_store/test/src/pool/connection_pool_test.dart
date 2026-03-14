@@ -40,8 +40,13 @@ void main() {
     });
 
     tearDown(() async {
-      if (pool.isInitialized && !pool.isDisposed) {
-        await pool.close();
+      try {
+        if (pool.isInitialized && !pool.isDisposed) {
+          await pool.close();
+        }
+        // ignore: avoid_catches_without_on_clauses
+      } catch (_) {
+        // Some tests use their own local pool variable (late init)
       }
     });
 

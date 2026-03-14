@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart';
 import 'package:test/test.dart';
@@ -1003,9 +1005,8 @@ void main() {
       test('should throw TransactionError on timeout', () async {
         expect(
           () => store.transaction((tx) async {
-            // Delay longer than timeout
-            await Future<void>.delayed(const Duration(milliseconds: 200));
-            tx.save(TestFixtures.createUser());
+            // Delay longer than timeout — never completes
+            await Completer<void>().future;
           }),
           throwsA(isA<TransactionError>()),
         );
