@@ -1,11 +1,12 @@
-# Current Sprint — nexus_store
+# Active: NexusStore API Enhancement
+**Tracker:** `docs/trackers/infrastructure/TRACKER-nexus-store-api-enhancement.md`
+**Progress:** █░░░░░░░░░░░░░░░ 6% complete
+**Tests:** 22 passing | ~246-251 estimated total
 
-## Active Tracker
-- Claude Harness Setup (Phases 0-8)
-- Tracker: `docs/trackers/infrastructure/TRACKER-claude-harness-replication.md`
+## Current State
+- Working on: COMPLETE (Phase 1)
+- Last completed: Phase 1 — count() method
+- Blocked by: Nothing
+- Next up: Phase 2 — deleteWhere() on NexusStore
 
-## Recently Completed
-_None yet — fresh harness setup._
-
-## Blockers
-_None._
+_Auto-synced from tracker by tracker-sprint-sync hook_
