@@ -208,11 +208,11 @@ erDiagram
     organizations ||--o{ projects : owns
 ```
 
-## Firefly Booking Schema
+## Booking Domain Schema
 
 ```mermaid
 ---
-title: Firefly Booking Domain Schema
+title: Booking Domain Schema
 ---
 erDiagram
     profiles {

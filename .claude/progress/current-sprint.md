@@ -1,7 +1,7 @@
 # Current Sprint — nexus_store
 
 ## Active Tracker
-- Claude Harness Replication from Firefly (Phases 0-8)
+- Claude Harness Setup (Phases 0-8)
 - Tracker: `docs/trackers/infrastructure/TRACKER-claude-harness-replication.md`
 
 ## Recently Completed

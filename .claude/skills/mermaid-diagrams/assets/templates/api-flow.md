@@ -278,4 +278,4 @@ sequenceDiagram
 - Use `Note over` for section headers
 - Use `alt/else`, `par/and`, `critical/option` for branching (see cross-portal-flow.md)
 - Group related calls with blank lines
-- Always include the Firefly theme init block
+- Always include the theme init block

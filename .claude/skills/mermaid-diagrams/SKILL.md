@@ -13,7 +13,7 @@ metadata:
 ---
 
 # Mermaid Diagrams
-> Comprehensive Mermaid diagram generation (v11.12.x) with 11 template files, 50+ example diagrams, validation/rendering scripts, and Firefly-specific styling.
+> Comprehensive Mermaid diagram generation (v11.12.x) with 11 template files, 50+ example diagrams, validation/rendering scripts, and project-specific styling.
 
 ## Harness Integration
 - **Extends:** `.claude/rules/diagrams.md` (styling, accessibility, portal colors, ER gotchas)
@@ -68,13 +68,13 @@ metadata:
 `flowchart TD/LR` with 8-class color palette, subgraph styling, cross-portal boundaries.
 
 ### 3. Database Schema (`assets/templates/database-schema.md`)
-`erDiagram` for blog, e-commerce, SaaS multi-tenant, and Firefly booking schemas.
+`erDiagram` for blog, e-commerce, SaaS multi-tenant, and domain booking schemas.
 
 ### 4. Project Timeline (`assets/templates/project-timeline.md`)
 `gantt` for release plans, sprints, roadmaps, and marketing campaigns.
 
 ### 5. Software Architecture (`assets/templates/software-architecture.md`)
-`C4Context`, `C4Container`, `C4Component` with Firefly system context example.
+`C4Context`, `C4Container`, `C4Component` with system context examples.
 
 ### 6. State Lifecycle (`assets/templates/state-lifecycle.md`)
 `stateDiagram-v2` with booking 8-status lifecycle, nested states, choice nodes, fork/join, concurrent regions.

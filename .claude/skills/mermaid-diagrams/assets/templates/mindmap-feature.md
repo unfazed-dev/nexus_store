@@ -6,7 +6,7 @@ Ready-to-use mindmaps for documenting feature coverage, system structure, and co
 
 ```mermaid
 mindmap
-    root((Firefly))
+    root((NexusStore))
         Customer Portal
             Bookings
                 Request Service

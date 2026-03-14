@@ -2,7 +2,7 @@
 
 Ready-to-use block diagrams for grid-based system layouts and infrastructure visualization.
 
-## Firefly System Architecture
+## System Architecture
 
 ```mermaid
 %%{init: {
@@ -282,6 +282,6 @@ block-beta
 - Blocks can span multiple columns with `:N` suffix
 - Use `space` or `space:N` for visual spacing between rows
 - Nest blocks with `block:id["Label"]:span ... end`
-- Style blocks using Firefly portal colors for consistency
+- Style blocks using the project color palette for consistency
 - Block diagrams are ideal for layered architectures and infrastructure overviews
 - For flow/sequence, use flowchart or sequenceDiagram instead

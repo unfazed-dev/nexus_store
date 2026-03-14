@@ -99,7 +99,7 @@ xychart-beta
 
 ```mermaid
 timeline
-    title Firefly Product Milestones
+    title Product Milestones
     section 2025
         Q1 : Project kickoff
            : Core architecture

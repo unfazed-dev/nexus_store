@@ -32,34 +32,32 @@ C4Context
     Rel(system, analytics, "Reports metrics to")
 ```
 
-## Firefly System Context
+## Example System Context
 
 ```mermaid
 C4Context
-    accTitle: Firefly System Context
-    accDescr: Firefly concierge platform showing three user types, the main system, and external service integrations.
-    title Firefly System Context
+    accTitle: Example System Context
+    accDescr: Sample platform showing three user types, the main system, and external service integrations.
+    title Example System Context
 
-    Person(customer, "Customer", "Requests concierge services, pays via Kinly Wallet")
-    Person(contractor, "Contractor", "Delivers services, appears as 'Kinly [Service]'")
-    Person(clm, "Care Liaison", "Assigns staff, manages bookings")
+    Person(enduser, "End User", "Primary consumer of the platform")
+    Person(provider, "Service Provider", "Delivers services on the platform")
+    Person(manager, "Manager", "Assigns staff and manages operations")
 
-    System(firefly, "Firefly Platform", "Flutter app with offline-first sync and AI-generated UI")
+    System(platform, "Platform", "Flutter app with offline-first sync")
 
     System_Ext(supabase, "Supabase", "Auth, Database, Storage, Edge Functions")
     System_Ext(powersync, "PowerSync", "Offline-first data sync")
     System_Ext(firebase, "Firebase", "Push notifications via FCM")
-    System_Ext(shorebird, "Shorebird", "OTA code push updates")
     System_Ext(sentry, "Sentry", "Error tracking and monitoring")
 
-    Rel(customer, firefly, "Uses", "Customer Portal")
-    Rel(contractor, firefly, "Uses", "Services Hub")
-    Rel(clm, firefly, "Uses", "Administration")
-    Rel(firefly, supabase, "Auth, data, files", "HTTPS")
-    Rel(firefly, powersync, "Real-time sync", "WebSocket")
-    Rel(firefly, firebase, "Push notifications", "HTTPS")
-    Rel(firefly, shorebird, "OTA updates", "HTTPS")
-    Rel(firefly, sentry, "Error reports", "HTTPS")
+    Rel(enduser, platform, "Uses", "Consumer Portal")
+    Rel(provider, platform, "Uses", "Provider Portal")
+    Rel(manager, platform, "Uses", "Administration")
+    Rel(platform, supabase, "Auth, data, files", "HTTPS")
+    Rel(platform, powersync, "Real-time sync", "WebSocket")
+    Rel(platform, firebase, "Push notifications", "HTTPS")
+    Rel(platform, sentry, "Error reports", "HTTPS")
 ```
 
 ## Container Diagram

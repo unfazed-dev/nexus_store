@@ -3,7 +3,7 @@
 Claude Code hooks that run before/after tool invocations.
 
 ## core/
-All hooks are generic Flutter/Dart tooling (no Firefly-specific logic).
+All hooks are generic Flutter/Dart tooling.
 Each script contains a `# Hook Contract:` block documenting its Event, Input, Output, Side effects, and Dependencies.
 
 ### PreToolUse (Bash)
