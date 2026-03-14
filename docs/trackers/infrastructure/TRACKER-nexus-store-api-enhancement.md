@@ -8,7 +8,7 @@
 | Phase | Status | Tests | Committed | Last Updated |
 |-------|--------|-------|-----------|--------------|
 | 1. count() Method | ✅ Complete | 22 | `422497f` | 2026-03-14 |
-| 2. deleteWhere() on NexusStore | ⏳ Pending | ~19 | — | — |
+| 2. deleteWhere() on NexusStore | ✅ Complete | 21 | ⏳ | 2026-03-15 |
 | 3. Text Search in Query.where() | ⏳ Pending | ~12 | — | — |
 | 4. Backend Capability Introspection | ⏳ Pending | ~5 | — | — |
 | 5. Firefly Repository Migration | ⏳ Pending | ~15-20 | — | — |
@@ -25,8 +25,8 @@
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — |
 
-**Overall:** █░░░░░░░░░░░░░░░ 6% complete
-**Tests:** 22 passing | ~246-251 estimated total
+**Overall:** ██░░░░░░░░░░░░░░ 12% complete
+**Tests:** 43 passing | ~246-251 estimated total
 
 ### Progress Log
 
@@ -41,11 +41,22 @@
 - Tests: 22 count-related tests added/updated across 4 test files
 - Harness: accepted: true (format, analyze, invariants all pass)
 
-**Current State (2026-03-14):**
-- Working on: COMPLETE (Phase 1)
-- Last completed: Phase 1 — count() method
+**Phase 2 Results (2026-03-15):**
+- Added `StoreOperation.deleteWhere` enum value, updated `isDelete` extension
+- Added `OperationType.deleteWhere` for telemetry tracking
+- Added `deleteWhere(Query, {WritePolicy?})` to `WritePolicyHandler` with all 4 policy strategies
+- Added `Future<int> deleteWhere(Query<T>, {WritePolicy?})` to `NexusStore`
+- Wired through interceptor chain, `_trackOperation`, cache invalidation (`invalidateAll()`)
+- Updated `TimingInterceptor._mapOperation` switch for deleteWhere mapping
+- Updated existing tests: `store_operation_test.dart` (switch + count), `operation_metric_test.dart` (count)
+- Tests: 21 new deleteWhere tests across 5 test files
+- Harness: accepted: true (format, analyze, invariants all pass)
+
+**Current State (2026-03-15):**
+- Working on: COMPLETE (Phase 2)
+- Last completed: Phase 2 — deleteWhere() on NexusStore
 - Blocked by: Nothing
-- Next up: Phase 2 — deleteWhere() on NexusStore
+- Next up: Phase 3 — Text Search in Query.where()
 
 ---
 
@@ -192,44 +203,44 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** None — can start independently.
 
 ### Pre-Implementation Checklist
-- [ ] Read `write_policy_handler.dart` — how `delete()` handles policy strategies
-- [ ] Read `nexus_store.dart` — `_interceptorChain.execute` pattern for write ops
-- [ ] Read `store_operation.dart` — existing delete enum, `isDelete` extension
+- [x] Read `write_policy_handler.dart` — how `delete()` handles policy strategies
+- [x] Read `nexus_store.dart` — `_interceptorChain.execute` pattern for write ops
+- [x] Read `store_operation.dart` — existing delete enum, `isDelete` extension
 
 ### Tasks
 #### RED: Write Failing Tests (~19)
-- [ ] Scaffold test files (`test-scaffold` agent)
-- [ ] Enum properties (isDelete includes deleteWhere, modifiesData true)
-- [ ] Write policy per strategy (cacheAndNetwork, networkFirst, cacheFirst, cacheOnly)
-- [ ] Interceptor chain fires for deleteWhere
-- [ ] Cache invalidation after deleteWhere
-- [ ] Telemetry tracks OperationType.deleteWhere
-- [ ] Verify all tests FAIL
+- [x] Scaffold test files (`test-scaffold` agent)
+- [x] Enum properties (isDelete includes deleteWhere, modifiesData true)
+- [x] Write policy per strategy (cacheAndNetwork, networkFirst, cacheFirst, cacheOnly)
+- [x] Interceptor chain fires for deleteWhere
+- [x] Cache invalidation after deleteWhere
+- [x] Telemetry tracks OperationType.deleteWhere
+- [x] Verify all tests FAIL
 
 #### GREEN: Implement
-1. [ ] Add `StoreOperation.deleteWhere` enum, update `isDelete` extension
-2. [ ] Add `OperationType.deleteWhere` for telemetry
-3. [ ] Add `deleteWhere()` to `WritePolicyHandler` (mirror `delete()` policy strategies)
-4. [ ] Add `Future<int> deleteWhere(Query<T> query, {WritePolicy? policy})` to `NexusStore`
-5. [ ] Wire through interceptor chain, telemetry, cache invalidation (`invalidateAll()`)
-6. [ ] Verify all tests PASS
+1. [x] Add `StoreOperation.deleteWhere` enum, update `isDelete` extension
+2. [x] Add `OperationType.deleteWhere` for telemetry
+3. [x] Add `deleteWhere()` to `WritePolicyHandler` (mirror `delete()` policy strategies)
+4. [x] Add `Future<int> deleteWhere(Query<T> query, {WritePolicy? policy})` to `NexusStore`
+5. [x] Wire through interceptor chain, telemetry, cache invalidation (`invalidateAll()`)
+6. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
-- [ ] `store.deleteWhere(Query<T>().where('status', isEqualTo: 'archived'))` works
-- [ ] Returns count of deleted entities
-- [ ] Write policy respected
-- [ ] Cache invalidated after delete
+- [x] `store.deleteWhere(Query<T>().where('status', isEqualTo: 'archived'))` works
+- [x] Returns count of deleted entities
+- [x] Write policy respected
+- [x] Cache invalidated after delete
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~19)
-- [ ] `dart test` passes in `nexus_store/`
-- [ ] `dart analyze` clean
-- [ ] Tracker progress table updated
-- [ ] Harness verification checkpoint passed
+- [x] All tasks checked
+- [x] Tests passing (expected: ~19, actual: 21)
+- [x] `dart test` passes in `nexus_store/`
+- [x] `dart analyze` clean
+- [x] Tracker progress table updated
+- [x] Harness verification checkpoint passed
 
 ### Harness Verification Checkpoint
 ```bash
@@ -1139,3 +1150,4 @@ bash .claude/orchestrators/pre-commit-check.sh
 | 2026-03-14 | Tracker created — 17 phases, ~246-251 estimated tests |
 | 2026-03-14 | Tracker re-created with harness template format (pre/post checklists, verification checkpoints, completion checklist) |
 | 2026-03-14 | Phase 1 complete — count() method added to StoreBackend, NexusStore, PowerSyncBackend, CompositeBackend |
+| 2026-03-15 | Phase 2 complete — deleteWhere() added to WritePolicyHandler, NexusStore with interceptor chain, telemetry, cache invalidation |

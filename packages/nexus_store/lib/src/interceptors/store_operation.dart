@@ -83,6 +83,11 @@ enum StoreOperation {
   ///
   /// Triggered when calling `store.count()`.
   count,
+
+  /// Deletion of entities matching a query.
+  ///
+  /// Triggered when calling `store.deleteWhere(query)`.
+  deleteWhere,
 }
 
 /// Extension methods for [StoreOperation].
@@ -101,9 +106,11 @@ extension StoreOperationExtension on StoreOperation {
   bool get isWrite =>
       this == StoreOperation.save || this == StoreOperation.saveAll;
 
-  /// Whether this is a delete operation (delete, deleteAll).
+  /// Whether this is a delete operation (delete, deleteAll, deleteWhere).
   bool get isDelete =>
-      this == StoreOperation.delete || this == StoreOperation.deleteAll;
+      this == StoreOperation.delete ||
+      this == StoreOperation.deleteAll ||
+      this == StoreOperation.deleteWhere;
 
   /// Whether this is a sync operation.
   bool get isSync => this == StoreOperation.sync;

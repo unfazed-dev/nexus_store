@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/errors/store_errors.dart';
+import 'package:nexus_store/src/query/query.dart';
 
 /// Handles write operations according to the configured [WritePolicy].
 ///
@@ -61,6 +62,20 @@ class WritePolicyHandler<T, ID> {
     };
   }
 
+  /// Deletes all entities matching the [query] according to the [policy].
+  ///
+  /// Returns the count of deleted entities.
+  Future<int> deleteWhere(Query<T> query, {WritePolicy? policy}) async {
+    final effectivePolicy = policy ?? defaultPolicy;
+
+    return switch (effectivePolicy) {
+      WritePolicy.cacheAndNetwork => _deleteWhereCacheAndNetwork(query),
+      WritePolicy.networkFirst => _deleteWhereNetworkFirst(query),
+      WritePolicy.cacheFirst => _deleteWhereCacheFirst(query),
+      WritePolicy.cacheOnly => backend.deleteWhere(query),
+    };
+  }
+
   // ---------------------------------------------------------------------------
   // Cache-And-Network Strategy (Optimistic)
   // ---------------------------------------------------------------------------
@@ -102,6 +117,17 @@ class WritePolicyHandler<T, ID> {
     }
   }
 
+  Future<int> _deleteWhereCacheAndNetwork(Query<T> query) async {
+    final count = await backend.deleteWhere(query);
+
+    try {
+      await backend.sync();
+      return count;
+    } on StoreError {
+      rethrow;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Network-First Strategy (Consistent)
   // ---------------------------------------------------------------------------
@@ -129,6 +155,12 @@ class WritePolicyHandler<T, ID> {
     return deleted;
   }
 
+  Future<int> _deleteWhereNetworkFirst(Query<T> query) async {
+    final count = await backend.deleteWhere(query);
+    await backend.sync();
+    return count;
+  }
+
   // ---------------------------------------------------------------------------
   // Cache-First Strategy (Offline-First)
   // ---------------------------------------------------------------------------
@@ -153,6 +185,12 @@ class WritePolicyHandler<T, ID> {
     final deleted = await backend.delete(id);
     unawaited(_syncInBackground());
     return deleted;
+  }
+
+  Future<int> _deleteWhereCacheFirst(Query<T> query) async {
+    final count = await backend.deleteWhere(query);
+    unawaited(_syncInBackground());
+    return count;
   }
 
   Future<void> _syncInBackground() async {

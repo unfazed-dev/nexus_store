@@ -36,6 +36,9 @@ enum OperationType {
 
   /// Count operation.
   count,
+
+  /// Delete by query operation.
+  deleteWhere,
 }
 
 /// Metric for tracking store operation performance.

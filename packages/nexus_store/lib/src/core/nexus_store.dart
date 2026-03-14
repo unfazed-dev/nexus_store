@@ -658,6 +658,45 @@ class NexusStore<T, ID> {
     }, itemCount: ids.length);
   }
 
+  /// Deletes all entities matching the [query].
+  ///
+  /// Returns the count of entities deleted.
+  /// Uses the configured [WritePolicy] or the provided [policy] override.
+  Future<int> deleteWhere(Query<T> query, {WritePolicy? policy}) async {
+    _ensureInitialized();
+
+    return _trackOperation(OperationType.deleteWhere, () async {
+      return _interceptorChain.execute<Query<T>, int>(
+        operation: StoreOperation.deleteWhere,
+        request: query,
+        execute: () async {
+          final count = await _writeHandler.deleteWhere(
+            query,
+            policy: policy,
+          );
+
+          // Invalidate all cache entries since we don't know which IDs
+          // were affected by the query
+          invalidateAll();
+
+          // coverage:ignore-start
+          // Audit logging: Optional feature requiring full audit configuration
+          if (_config.enableAuditLogging && count > 0) {
+            await _auditService?.log(
+              action: AuditAction.delete,
+              entityType: T.toString(),
+              entityId: 'query',
+              metadata: {'count': count},
+            );
+          }
+          // coverage:ignore-end
+
+          return count;
+        },
+      );
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // Transaction Operations
   // ---------------------------------------------------------------------------
