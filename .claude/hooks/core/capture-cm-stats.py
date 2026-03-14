@@ -159,6 +159,9 @@ def main():
         stats["session_call_count"] = 0
         stats["updated_at"] = now
         stats["authoritative_updated_at"] = now
+        # Persist reduction ratio for hybrid display between ctx_stats calls
+        if stats.get("reduction_pct"):
+            stats["last_known_reduction_pct"] = stats["reduction_pct"]
         write_stats(stats)
         mark_cm_used_this_session()
     else:

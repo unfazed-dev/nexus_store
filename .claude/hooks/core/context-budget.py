@@ -163,12 +163,23 @@ def get_cm_tag() -> str:
                 pct = stats["reduction_pct"]
                 return f" [Context Mode: {total} \u2192 {entered} | saved: {pct}%]"
 
-            # Priority 2: Accumulated stats (fresh)
+            # Priority 2: Hybrid estimate (accumulated bytes + last-known ratio)
+            ratio = stats.get("last_known_reduction_pct") or stats.get("reduction_pct")
+            if has_accumulated and is_acc_fresh and ratio:
+                has_fresh_stats = True
+                _mark_cm_used_this_session()
+                pct = int(ratio)
+                entered = session_bytes  # exact: bytes that entered context
+                estimated_total = int(entered / (1 - pct / 100)) if pct < 100 else entered
+                return f" [Context Mode: ~{format_bytes(estimated_total)} → {format_bytes(entered)} | saved: ~{pct}%]"
+
+            # Priority 3: Accumulated only (no ratio ever known)
             if has_accumulated and is_acc_fresh:
                 has_fresh_stats = True
                 _mark_cm_used_this_session()
                 approx = format_bytes(session_bytes)
-                return f" [Context Mode: ~{approx} in {session_calls} calls]"
+                hint = " (run ctx stats for %)" if session_calls % 20 == 0 else ""
+                return f" [Context Mode: ~{approx} in {session_calls} calls{hint}]"
 
     except (json.JSONDecodeError, OSError, ValueError, KeyError):
         pass
