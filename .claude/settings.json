@@ -69,6 +69,12 @@
         "hooks": [
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/capture-test-results.py"}
         ]
+      },
+      {
+        "matcher": "mcp__plugin_context-mode_context-mode__ctx_",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/capture-cm-stats.py"}
+        ]
       }
     ],
     "PreCompact": [
