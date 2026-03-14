@@ -158,6 +158,7 @@ def main():
         stats["session_entered_bytes"] = 0
         stats["session_call_count"] = 0
         stats["updated_at"] = now
+        stats["authoritative_updated_at"] = now
         write_stats(stats)
         mark_cm_used_this_session()
     else:
@@ -172,17 +173,6 @@ def main():
 
         existing["session_entered_bytes"] = existing.get("session_entered_bytes", 0) + response_bytes
         existing["session_call_count"] = existing.get("session_call_count", 0) + 1
-
-        # Update authoritative totals if baseline exists
-        if existing.get("entered_context") and existing.get("total_processed"):
-            entered_bytes = parse_size_to_bytes(existing["entered_context"]) + response_bytes
-            existing["entered_context"] = format_size(entered_bytes)
-
-            reduction = int(existing.get("reduction_pct", 0)) / 100
-            raw_bytes = parse_size_to_bytes(existing["total_processed"])
-            if reduction < 1:
-                raw_bytes += int(response_bytes / (1 - reduction))
-            existing["total_processed"] = format_size(raw_bytes)
 
         existing["source"] = "accumulated"
         existing["updated_at"] = now

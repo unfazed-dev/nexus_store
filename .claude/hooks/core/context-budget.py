@@ -128,14 +128,25 @@ def get_cm_tag() -> str:
     try:
         if CM_STATS_FILE.exists():
             stats = json.loads(CM_STATS_FILE.read_text())
-            updated_at = stats.get("updated_at", "")
-            age = float("inf")
-            if updated_at:
-                from datetime import datetime as dt
-                ts = dt.fromisoformat(updated_at.replace("Z", "+00:00"))
-                age = (datetime.now(timezone.utc) - ts).total_seconds()
+            from datetime import datetime as dt
 
-            is_fresh = age < CM_STATS_MAX_AGE_SECONDS
+            # Compute authoritative freshness from its own timestamp
+            auth_updated_at = stats.get("authoritative_updated_at", "")
+            auth_age = float("inf")
+            if auth_updated_at:
+                ts = dt.fromisoformat(auth_updated_at.replace("Z", "+00:00"))
+                auth_age = (datetime.now(timezone.utc) - ts).total_seconds()
+
+            # Compute accumulated freshness from general timestamp
+            updated_at = stats.get("updated_at", "")
+            acc_age = float("inf")
+            if updated_at:
+                ts = dt.fromisoformat(updated_at.replace("Z", "+00:00"))
+                acc_age = (datetime.now(timezone.utc) - ts).total_seconds()
+
+            is_auth_fresh = auth_age < CM_STATS_MAX_AGE_SECONDS
+            is_acc_fresh = acc_age < CM_STATS_MAX_AGE_SECONDS
+
             has_authoritative = all(
                 stats.get(k) for k in ("total_processed", "entered_context", "reduction_pct")
             )
@@ -144,7 +155,7 @@ def get_cm_tag() -> str:
             has_accumulated = session_calls > 0
 
             # Priority 1: Fresh authoritative stats
-            if has_authoritative and is_fresh:
+            if has_authoritative and is_auth_fresh:
                 has_fresh_stats = True
                 _mark_cm_used_this_session()
                 total = stats["total_processed"]
@@ -153,7 +164,7 @@ def get_cm_tag() -> str:
                 return f" [Context Mode: {total} \u2192 {entered} | saved: {pct}%]"
 
             # Priority 2: Accumulated stats (fresh)
-            if has_accumulated and is_fresh:
+            if has_accumulated and is_acc_fresh:
                 has_fresh_stats = True
                 _mark_cm_used_this_session()
                 approx = format_bytes(session_bytes)
