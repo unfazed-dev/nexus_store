@@ -41,7 +41,8 @@ import 'package:nexus_store_drift_adapter/src/drift_table_config.dart';
 /// final dynamicBackend = manager.getBackend('users');
 ///
 /// // Typed backend for use with NexusStore<T, ID>
-/// final typedBackend = await manager.createTypedBackend<User, String>('users');
+/// final typedBackend =
+///     await manager.createTypedBackend<User, String>('users');
 /// final store = NexusStore<User, String>(backend: typedBackend);
 /// ```
 class DriftManager {

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# review_by: 2026-09-13
+# review_by: 2026-09-14
 """
 Session-start knowledge base indexing for Context Mode.
 
@@ -70,15 +70,17 @@ def discover_scoped_claude_md():
         skip_dirs = {
             "node_modules", ".dart_tool", "build", ".git",
             "ios", "android", "macos", "windows", "linux", "web",
+            ".pub-cache", ".pub",
         }
         if any(p in skip_dirs for p in parts):
             continue
 
         # Derive a meaningful source label from path
         parent_parts = parts[:-1]  # drop CLAUDE.md
-        if len(parent_parts) >= 3 and parent_parts[0] == "docs" and parent_parts[1] == "features":
-            label = "/".join(parent_parts[2:])
-        elif len(parent_parts) >= 1 and parent_parts[0] == "lib":
+        if len(parent_parts) >= 2 and parent_parts[0] == "packages":
+            # packages/nexus_store/CLAUDE.md -> "scope: nexus_store"
+            label = "/".join(parent_parts[1:])
+        elif len(parent_parts) >= 1 and parent_parts[0] == "docs":
             label = "/".join(parent_parts)
         else:
             label = "/".join(parent_parts)
