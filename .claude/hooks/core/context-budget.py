@@ -98,32 +98,37 @@ def format_bytes(n: int) -> str:
     return f"{n / (1024 * 1024):.1f}MB"
 
 
+def _mark_cm_used_this_session():
+    """Set cm_used_this_session = true in backup-state.json."""
+    try:
+        state = {}
+        if BACKUP_STATE.exists():
+            state = json.loads(BACKUP_STATE.read_text())
+        if not state.get("cm_used_this_session", False):
+            state["cm_used_this_session"] = True
+            BACKUP_STATE.write_text(json.dumps(state, indent=2) + "\n")
+    except (json.JSONDecodeError, OSError):
+        pass
+
+
 def get_cm_tag() -> str:
     """Return Context Mode status tag with savings stats if available.
 
     Priority:
-      1. Authoritative + fresh (<2h): full reduction stats
-      2. Accumulated: approximate bytes in N calls
-      3. Stale authoritative + fresh accumulated: show accumulated
-      4. No data: N/A
+      1. Fresh stats found → self-heal session flag, show full reduction stats
+      2. Accumulated stats (fresh) → show approximate bytes
+      3. No fresh stats AND cm_used_this_session is false → suppress (stale after /clear)
+      4. CM active but no data → N/A
     """
     if not _is_cm_active():
         return ""
 
-    # Check session flag — suppress stale stats after /clear
-    try:
-        if BACKUP_STATE.exists():
-            state = json.loads(BACKUP_STATE.read_text())
-            if not state.get("cm_used_this_session", False):
-                return ""
-    except (json.JSONDecodeError, OSError):
-        pass
-
+    # Check stats file FIRST — fresh stats self-activate the session flag
+    has_fresh_stats = False
     try:
         if CM_STATS_FILE.exists():
             stats = json.loads(CM_STATS_FILE.read_text())
             updated_at = stats.get("updated_at", "")
-            source = stats.get("source", "")
             age = float("inf")
             if updated_at:
                 from datetime import datetime as dt
@@ -138,20 +143,35 @@ def get_cm_tag() -> str:
             session_calls = stats.get("session_call_count", 0)
             has_accumulated = session_calls > 0
 
-            # Priority 1: Fresh authoritative stats (shown regardless of source)
+            # Priority 1: Fresh authoritative stats
             if has_authoritative and is_fresh:
+                has_fresh_stats = True
+                _mark_cm_used_this_session()
                 total = stats["total_processed"]
                 entered = stats["entered_context"]
                 pct = stats["reduction_pct"]
                 return f" [Context Mode: {total} \u2192 {entered} | saved: {pct}%]"
 
-            # Priority 2/3: Accumulated stats (fresh)
+            # Priority 2: Accumulated stats (fresh)
             if has_accumulated and is_fresh:
+                has_fresh_stats = True
+                _mark_cm_used_this_session()
                 approx = format_bytes(session_bytes)
                 return f" [Context Mode: ~{approx} in {session_calls} calls]"
 
     except (json.JSONDecodeError, OSError, ValueError, KeyError):
         pass
+
+    # No fresh stats — check session flag to suppress stale display after /clear
+    if not has_fresh_stats:
+        try:
+            if BACKUP_STATE.exists():
+                state = json.loads(BACKUP_STATE.read_text())
+                if not state.get("cm_used_this_session", False):
+                    return ""
+        except (json.JSONDecodeError, OSError):
+            pass
+
     return " [Context Mode: N/A]"
 
 

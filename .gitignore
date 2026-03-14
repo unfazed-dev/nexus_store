@@ -37,6 +37,7 @@ tests_reports/
 .claude/progress/backup-state.json
 .claude/progress/cm-stats.json
 .claude-archive/
+.claude/hooks/logs/
 
 # Native binaries (downloaded for testing)
 libpowersync.dylib
