@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SessionHandoff",
+  "description": "Structured session handoff for context preservation across compactions and session boundaries.",
+  "type": "object",
+  "required": ["session_id", "timestamp", "decisions_made", "unresolved_blockers", "files_modified", "feature_progress"],
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "description": "Unique session identifier (ISO timestamp + short hash)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the handoff was generated"
+    },
+    "decisions_made": {
+      "type": "array",
+      "description": "Architectural decisions made this session. ALWAYS preserved during compaction.",
+      "items": {
+        "type": "object",
+        "required": ["decision", "rationale"],
+        "properties": {
+          "decision": {"type": "string"},
+          "rationale": {"type": "string"},
+          "alternatives_rejected": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    },
+    "unresolved_blockers": {
+      "type": "array",
+      "description": "Open questions and blockers. ALWAYS preserved during compaction.",
+      "items": {
+        "type": "object",
+        "required": ["blocker", "context"],
+        "properties": {
+          "blocker": {"type": "string"},
+          "context": {"type": "string"},
+          "suggested_resolution": {"type": "string"}
+        }
+      }
+    },
+    "files_modified": {
+      "type": "array",
+      "description": "Files changed this session with one-line rationale. ALWAYS preserved.",
+      "items": {
+        "type": "object",
+        "required": ["path", "reason"],
+        "properties": {
+          "path": {"type": "string"},
+          "reason": {"type": "string"},
+          "action": {
+            "type": "string",
+            "enum": ["created", "modified", "deleted"]
+          }
+        }
+      }
+    },
+    "feature_progress": {
+      "type": "object",
+      "description": "Status per feature touched this session. ALWAYS preserved.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["not_started", "in_progress", "blocked", "completed"]
+          },
+          "tasks_completed": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "tasks_remaining": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    },
+    "raw_outputs_summary": {
+      "type": "string",
+      "description": "Compressed summary of tool outputs. Replaces verbose raw data during compaction."
+    },
+    "invariant_violations": {
+      "type": "array",
+      "description": "Any invariant violations encountered this session.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "invariant": {"type": "string"},
+          "file": {"type": "string"},
+          "resolved": {"type": "boolean"}
+        }
+      }
+    },
+    "tracker_ref": {
+      "type": "string",
+      "description": "Path to the active tracker being worked on, if any."
+    }
+  }
+}

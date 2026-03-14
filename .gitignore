@@ -30,9 +30,13 @@ coverage/
 doc/api/
 tests_reports/
 
-# Project-specific local folders
-.claude/
-docs/
+# Claude Code (personal/ephemeral)
+.claude/settings.local.json
+.claude/test-history/
+.claude/progress/sessions/
+.claude/progress/backup-state.json
+.claude/progress/cm-stats.json
+.claude-archive/
 
 # Native binaries (downloaded for testing)
 libpowersync.dylib

@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-03-14",
+  "harness_compatible": true,
+  "skills": [
+    {
+      "name": "nexus-store",
+      "scope": "core",
+      "description": "NexusStore unified reactive data layer — PowerSync remote sync + Drift local storage"
+    },
+    {
+      "name": "mermaid-diagrams",
+      "scope": "core",
+      "description": "Mermaid diagram generation — sequence, flowchart, ER, Gantt, C4, state, journey, mindmap, block, charts with templates and scripts"
+    },
+    {
+      "name": "commit-helper",
+      "scope": "core",
+      "description": "Semantic commit workflow with pre-commit quality gates and attribution stripping"
+    },
+    {
+      "name": "implementation-tracker",
+      "scope": "core",
+      "description": "Phase-gated implementation tracking with harness verification checkpoints"
+    },
+    {
+      "name": "tracker-executor",
+      "scope": "core",
+      "description": "Universal phase executor — reads any tracker, executes one phase, runs harness gates, updates progress, stops"
+    }
+  ]
+}

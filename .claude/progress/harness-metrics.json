@@ -1,0 +1,53 @@
+{
+  "_comment": "Harness effectiveness metrics for nexus_store. Updated by GC agent runs.",
+  "_updated": "2026-03-14",
+  "docs": {
+    "total_active": 0,
+    "verified": 0,
+    "needs_review": 0,
+    "stale": 0,
+    "invalid": 0,
+    "verification_rate": 0.0
+  },
+  "invariants": {
+    "total": 5,
+    "passing": 0,
+    "violations_last_30d": 0,
+    "new_in_setup": [
+      "layer-deps.dart",
+      "interface-naming.dart",
+      "public-api-surface.dart",
+      "circular-deps.dart",
+      "generated-file-check.dart"
+    ]
+  },
+  "harness_components": {
+    "total": 0,
+    "scanned": 0,
+    "expired": 0,
+    "expiring_soon": 0
+  },
+  "drift": {
+    "contradictions_found": 0,
+    "last_scan_commits": 0
+  },
+  "rule_coverage": {
+    "total_failure_patterns": 7,
+    "covered_by_rules": 0,
+    "gaps": 7
+  },
+  "hooks": {
+    "total": 16,
+    "registered": 12,
+    "supporting": 4,
+    "with_contract_docs": 0
+  },
+  "doc_source_map": {
+    "total_entries": 8,
+    "stale_mappings": 0
+  },
+  "last_gc_run": null,
+  "last_gardener_run": null,
+  "last_drift_scan": null,
+  "last_full_verification": null
+}

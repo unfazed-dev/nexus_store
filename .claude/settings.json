@@ -1,0 +1,82 @@
+{
+  "permissions": {
+    "allow": [
+      "Read", "Edit", "Write",
+      "Bash(dart *)", "Bash(flutter *)", "Bash(melos *)",
+      "Bash(git *)", "Bash(gh *)",
+      "Bash(python3 *)", "Bash(python *)",
+      "Bash(node *)", "Bash(npx *)",
+      "Bash(find *)", "Bash(chmod *)", "Bash(ls *)", "Bash(mkdir *)",
+      "Bash(tree *)", "Bash(file *)", "Bash(wc *)", "Bash(cat *)",
+      "Bash(grep *)", "Bash(xargs *)", "Bash(tee *)", "Bash(tr *)",
+      "Bash(echo *)", "Bash(bc *)", "Bash(curl *)", "Bash(open *)",
+      "Bash(ln *)", "Bash(pgrep *)", "Bash(pkill *)",
+      "Bash(lcov *)", "Bash(genhtml *)",
+      "Bash(pip3 install *)",
+      "WebSearch"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "statusLine": {
+    "type": "command",
+    "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/context-budget.py"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/strip-commit-attribution.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/inject-test-reporter.py"}
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/pre-edit-guard.py"}
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/pre-edit-guard.py"}
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/dart-format-post-edit.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/organize-imports-post-edit.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/lint-check-post-edit.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/invariant-check-post-edit.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/doc-freshness-check.py"}
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/dart-format-post-edit.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/organize-imports-post-edit.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/lint-check-post-edit.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/invariant-check-post-edit.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/doc-freshness-check.py"}
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/capture-test-results.py"}
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/generate-handoff.py"}
+        ]
+      }
+    ]
+  }
+}

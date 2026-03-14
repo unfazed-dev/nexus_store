@@ -1,0 +1,104 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-03-14",
+  "agents": [
+    {
+      "name": "arch-check",
+      "scope": "core",
+      "description": "Validate package architecture compliance",
+      "tools": ["Read", "Grep", "Glob"],
+      "skills": ["nexus-store"]
+    },
+    {
+      "name": "verify-packages",
+      "scope": "core",
+      "description": "Melos-based package verification",
+      "tools": ["Read", "Bash", "Grep", "Glob"],
+      "skills": ["commit-helper"]
+    },
+    {
+      "name": "dead-code",
+      "scope": "core",
+      "description": "Find unused code across packages",
+      "tools": ["Read", "Grep", "Glob"],
+      "skills": []
+    },
+    {
+      "name": "perf-scout",
+      "scope": "core",
+      "description": "Find performance issues in Dart code",
+      "tools": ["Read", "Grep", "Glob"],
+      "skills": []
+    },
+    {
+      "name": "pr-reviewer",
+      "scope": "core",
+      "description": "Code review against standards",
+      "tools": ["Read", "Grep", "Glob", "Bash"],
+      "skills": []
+    },
+    {
+      "name": "test-scaffold",
+      "scope": "core",
+      "description": "Generate test scaffolding",
+      "tools": ["Read", "Write", "Glob"],
+      "skills": []
+    },
+    {
+      "name": "deps-audit",
+      "scope": "core",
+      "description": "Audit multi-package dependencies",
+      "tools": ["Read", "Bash", "Grep", "Glob"],
+      "skills": []
+    },
+    {
+      "name": "doc-gardener",
+      "scope": "core",
+      "description": "Verify documentation freshness",
+      "tools": ["Read", "Grep", "Glob"],
+      "skills": []
+    },
+    {
+      "name": "drift-detector",
+      "scope": "core",
+      "description": "Detect doc-code contradictions",
+      "tools": ["Read", "Grep", "Glob", "Bash"],
+      "skills": []
+    },
+    {
+      "name": "gc-agent",
+      "scope": "core",
+      "description": "Find dead docs and orphaned files",
+      "tools": ["Read", "Grep", "Glob", "Bash"],
+      "skills": []
+    },
+    {
+      "name": "code-simplifier",
+      "scope": "core",
+      "description": "Post-implementation cleanup and DRY",
+      "tools": ["Read", "Edit", "Grep", "Glob"],
+      "skills": []
+    },
+    {
+      "name": "prior-art",
+      "scope": "core",
+      "description": "Find existing patterns before new work",
+      "tools": ["Read", "Grep", "Glob"],
+      "skills": []
+    },
+    {
+      "name": "api-surface",
+      "scope": "core",
+      "description": "Validate public API consistency",
+      "tools": ["Read", "Grep", "Glob"],
+      "skills": []
+    },
+    {
+      "name": "cross-package-deps",
+      "scope": "core",
+      "description": "Validate dependency graph health",
+      "tools": ["Read", "Grep", "Glob", "Bash"],
+      "skills": []
+    }
+  ]
+}
