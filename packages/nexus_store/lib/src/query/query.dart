@@ -113,6 +113,9 @@ class Query<T> {
     List<Object?>? whereIn,
     List<Object?>? whereNotIn,
     bool? isNull,
+    String? contains,
+    String? startsWith,
+    String? endsWith,
   }) {
     final newFilters = List<QueryFilter>.from(_filters);
 
@@ -212,6 +215,33 @@ class Query<T> {
           field: field,
           operator: isNull ? FilterOperator.isNull : FilterOperator.isNotNull,
           value: null,
+        ),
+      );
+    }
+    if (contains != null) {
+      newFilters.add(
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.contains,
+          value: contains,
+        ),
+      );
+    }
+    if (startsWith != null) {
+      newFilters.add(
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.startsWith,
+          value: startsWith,
+        ),
+      );
+    }
+    if (endsWith != null) {
+      newFilters.add(
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.endsWith,
+          value: endsWith,
         ),
       );
     }
