@@ -7,10 +7,10 @@
 # Orchestrator Contract:
 #   Invocation: bash .claude/orchestrators/pre-commit-check.sh
 #   Input:      none (reads project files directly)
-#   Output:     JSON {status, checks{format_clean, analyze_clean, invariants_pass},
+#   Output:     JSON {status, checks{format_clean, analyze_clean, invariants_pass, coverage_met},
 #                      recommendation, action_needed, details, acceptance_criteria, accepted}
 #   Exit codes: 0 = all checks pass, 1 = one or more checks failed
-#   Dependencies: dart CLI, .claude/invariants/*.dart, python3
+#   Dependencies: dart CLI, .claude/invariants/*.dart, python3, check-coverage.py
 #   Side effects: None (read-only — does NOT modify files)
 
 set -euo pipefail
@@ -23,6 +23,7 @@ cd "$PROJECT_ROOT"
 format_ok=true
 analyze_ok=true
 invariants_ok=true
+coverage_ok=true
 details=()
 
 # 1. Format check
@@ -51,8 +52,16 @@ for f in .claude/invariants/*.dart; do
     fi
 done
 
+# 4. Coverage check (changed packages only)
+if [ "${CHECK_COVERAGE:-true}" = "true" ]; then
+    if ! python3 .claude/hooks/core/check-coverage.py --changed --threshold=95 --json > /dev/null 2>&1; then
+        coverage_ok=false
+        details+=("Coverage: one or more packages below 95% threshold")
+    fi
+fi
+
 # Build JSON output
-if $format_ok && $analyze_ok && $invariants_ok; then
+if $format_ok && $analyze_ok && $invariants_ok && $coverage_ok; then
     status="pass"
     recommendation="All pre-commit checks pass"
     action_needed=false
@@ -73,6 +82,7 @@ result = {
         'format_clean': $( $format_ok && echo 'True' || echo 'False' ),
         'analyze_clean': $( $analyze_ok && echo 'True' || echo 'False' ),
         'invariants_pass': $( $invariants_ok && echo 'True' || echo 'False' ),
+        'coverage_met': $( $coverage_ok && echo 'True' || echo 'False' ),
     },
     'recommendation': '$recommendation',
     'action_needed': $( $action_needed && echo 'True' || echo 'False' ),
@@ -81,7 +91,8 @@ result = {
         'format_clean': $( $format_ok && echo 'True' || echo 'False' ),
         'lint_clean': $( $analyze_ok && echo 'True' || echo 'False' ),
         'invariants_pass': $( $invariants_ok && echo 'True' || echo 'False' ),
-        'proof_items': ['format', 'analyze', 'invariants'],
+        'coverage_met': $( $coverage_ok && echo 'True' || echo 'False' ),
+        'proof_items': ['format', 'analyze', 'invariants', 'coverage'],
     },
     'accepted': $( $accepted && echo 'True' || echo 'False' ),
 }

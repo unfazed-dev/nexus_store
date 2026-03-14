@@ -139,6 +139,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] All tasks checked
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
+- [ ] Coverage >= 95% for changed packages
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 1 — [feature] data layer`
 
@@ -182,6 +183,7 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] All tasks checked
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
+- [ ] Coverage >= 95% for changed packages
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 2 — [feature] service layer`
 
@@ -226,6 +228,7 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] All tasks checked
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
+- [ ] Coverage >= 95% for changed packages
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 3 — [feature] UI layer`
 
@@ -268,6 +271,7 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] All tasks checked
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
+- [ ] Coverage >= 95% for changed packages
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 4 — [feature] GenUI integration`
 
@@ -377,6 +381,7 @@ Every phase commit MUST:
 Each phase boundary should have explicit gate criteria:
 - **Code gate:** All tasks checked, files listed in "Files Modified"
 - **Test gate:** Estimated vs actual test count tracked (e.g., "Tests: 12 estimated / 15 actual")
+- **Coverage gate:** Changed packages meet 95% line coverage
 - **Quality gate:** Pre-commit check passes, no regressions
 - **Doc gate:** Tracker progress table updated, History row added
 
@@ -401,6 +406,8 @@ Bookings, wallet, funds, invoices, managed_participants, onboarding, trust_fund,
 - Missing Completion Checklist (trackers stall at "done but not closed")
 - Listing implementation tasks before test tasks in Code trackers (violates TDD)
 - Omitting RED/GREEN/REFACTOR substep structure in Code tracker phases
+- Committing without 95% coverage for changed packages
+- Excluding files to inflate coverage numbers
 
 ## References
 - Verify feature: `.claude/orchestrators/verify-feature.py`

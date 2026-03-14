@@ -219,6 +219,74 @@ def main():
     # Add the command to the run data
     run_data["command"] = command
 
+    # Parse coverage data if --coverage flag was in the command
+    if "--coverage" in command:
+        try:
+            from pathlib import Path as _Path
+            script_dir = _Path(__file__).resolve().parent
+            project_root = script_dir.parent.parent.parent
+
+            # Determine package name from command or cwd
+            pkg_name = "unknown"
+            # Try to extract package from command path
+            for part in command.split():
+                if "packages/" in part:
+                    pkg_name = part.split("packages/")[1].split("/")[0]
+                    break
+
+            # Find lcov.info
+            lcov_candidates = [
+                project_root / "coverage" / "lcov.info",
+            ]
+            # Check package-level coverage
+            if pkg_name != "unknown":
+                lcov_candidates.insert(
+                    0, project_root / "packages" / pkg_name / "coverage" / "lcov.info"
+                )
+
+            for lcov_path in lcov_candidates:
+                if lcov_path.exists():
+                    # Parse LCOV inline (SF/DA/end_of_record)
+                    lines_hit = 0
+                    lines_total = 0
+                    generated_patterns = (".g.dart", ".freezed.dart")
+                    current_file = None
+                    skip_file = False
+                    with open(lcov_path, "r") as lf:
+                        for lcov_line in lf:
+                            lcov_line = lcov_line.strip()
+                            if lcov_line.startswith("SF:"):
+                                current_file = lcov_line[3:]
+                                skip_file = any(
+                                    current_file.endswith(p) for p in generated_patterns
+                                )
+                            elif lcov_line.startswith("DA:") and not skip_file:
+                                parts = lcov_line[3:].split(",")
+                                if len(parts) >= 2:
+                                    lines_total += 1
+                                    try:
+                                        if int(parts[1]) > 0:
+                                            lines_hit += 1
+                                    except ValueError:
+                                        pass
+                            elif lcov_line == "end_of_record":
+                                current_file = None
+                                skip_file = False
+
+                    if lines_total > 0:
+                        pct = round((lines_hit / lines_total) * 100, 2)
+                        run_data["coverage"] = {
+                            "package": pkg_name,
+                            "line_coverage_pct": pct,
+                            "lines_hit": lines_hit,
+                            "lines_total": lines_total,
+                            "threshold": 95,
+                            "met": pct >= 95,
+                        }
+                    break
+        except Exception:
+            pass  # Silent on coverage parsing errors
+
     # Determine trigger type
     if ".claude/hooks/smart-test-run.py" in command:
         run_data["trigger"] = "smart"

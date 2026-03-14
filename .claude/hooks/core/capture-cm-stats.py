@@ -96,6 +96,32 @@ def parse_size_to_bytes(s: str) -> int:
     return int(float(m.group(1)) * _SIZE_UNITS.get(m.group(2).upper(), 1))
 
 
+def parse_raw_bytes_from_footer(text: str) -> int:
+    """Extract raw data size from ctx tool response footers.
+
+    Parses patterns like:
+      - "Executed 8 commands (2401 lines, 85.8KB). Indexed 24 sections."
+      - "Output: N lines (SIZE)"
+      - "Found N results across N sources (SIZE total)"
+
+    Returns total raw bytes from all size mentions in the last 10 lines,
+    or 0 if no sizes found.
+    """
+    # Look at the last 10 lines where footers typically appear
+    lines = text.strip().splitlines()
+    footer = "\n".join(lines[-10:]) if len(lines) > 10 else text
+
+    # Find all size mentions (e.g. "85.8KB", "1.2MB")
+    matches = re.findall(r"([\d.]+)\s*(B|KB|MB|GB)", footer, re.IGNORECASE)
+    if not matches:
+        return 0
+
+    total = 0
+    for value, unit in matches:
+        total += int(float(value) * _SIZE_UNITS.get(unit.upper(), 1))
+    return total
+
+
 def format_size(n: int) -> str:
     """Format bytes to human-readable string (e.g. '165.1KB')."""
     if n < 1024:
@@ -156,7 +182,9 @@ def main():
 
         stats["source"] = "authoritative"
         stats["session_entered_bytes"] = 0
+        stats["session_raw_bytes"] = 0
         stats["session_call_count"] = 0
+        stats.pop("session_reduction_pct", None)
         stats["updated_at"] = now
         stats["authoritative_updated_at"] = now
         # Persist reduction ratio for hybrid display between ctx_stats calls
@@ -166,16 +194,30 @@ def main():
         mark_cm_used_this_session()
     else:
         # Path B: Accumulated — track response bytes from any ctx_* tool
-        # Also dynamically update authoritative totals if baseline exists
+        # Also parse footer for raw data size to compute dynamic savings
         response_bytes = len(text.encode("utf-8"))
+        raw_bytes = parse_raw_bytes_from_footer(text)
         existing = read_existing_stats()
 
         if should_reset_session(existing):
             existing["session_entered_bytes"] = 0
+            existing["session_raw_bytes"] = 0
             existing["session_call_count"] = 0
+            existing.pop("session_reduction_pct", None)
 
         existing["session_entered_bytes"] = existing.get("session_entered_bytes", 0) + response_bytes
         existing["session_call_count"] = existing.get("session_call_count", 0) + 1
+
+        # Track raw bytes processed (from footer parsing)
+        if raw_bytes > 0:
+            existing["session_raw_bytes"] = existing.get("session_raw_bytes", 0) + raw_bytes
+
+        # Compute dynamic session reduction percentage
+        session_raw = existing.get("session_raw_bytes", 0)
+        session_entered = existing.get("session_entered_bytes", 0)
+        if session_raw > 0 and session_raw > session_entered:
+            pct = int((1 - session_entered / session_raw) * 100)
+            existing["session_reduction_pct"] = str(max(0, min(99, pct)))
 
         existing["source"] = "accumulated"
         existing["updated_at"] = now

@@ -8,7 +8,7 @@
 | Phase | Status | Tests | Committed | Last Updated |
 |-------|--------|-------|-----------|--------------|
 | 1. count() Method | ✅ Complete | 22 | `422497f` | 2026-03-14 |
-| 2. deleteWhere() on NexusStore | ✅ Complete | 21 | ⏳ | 2026-03-15 |
+| 2. deleteWhere() on NexusStore | ✅ Complete | 21 | `d5fbe0b` | 2026-03-15 |
 | 3. Text Search in Query.where() | ⏳ Pending | ~12 | — | — |
 | 4. Backend Capability Introspection | ⏳ Pending | ~5 | — | — |
 | 5. Firefly Repository Migration | ⏳ Pending | ~15-20 | — | — |
@@ -176,6 +176,7 @@ flutter analyze
 - [x] `dart test` passes in `nexus_store/`
 - [x] `dart test` passes in `nexus_store_powersync_adapter/`
 - [x] `dart analyze` clean in both packages
+- [ ] Coverage >= 95% for changed packages (retroactive — not checked at time of implementation)
 - [x] Tracker progress table updated
 - [x] Harness verification checkpoint passed
 
@@ -239,6 +240,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [x] Tests passing (expected: ~19, actual: 21)
 - [x] `dart test` passes in `nexus_store/`
 - [x] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages (retroactive — not checked at time of implementation)
 - [x] Tracker progress table updated
 - [x] Harness verification checkpoint passed
 
@@ -294,6 +296,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] `dart test` passes in `nexus_store/`
 - [ ] `dart test` passes in `nexus_store_powersync_adapter/`
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -340,6 +343,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] All tasks checked
 - [ ] Tests passing (expected: ~5)
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -394,6 +398,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~15-20 updated)
 - [ ] `python3 .claude/hooks/core/smart-test-run.py` passes
 - [ ] `flutter analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -453,6 +458,7 @@ python3 .claude/hooks/core/smart-test-run.py
 - [ ] Tests passing (expected: ~15)
 - [ ] `dart test` passes in `nexus_store_drift_adapter/`
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -524,6 +530,7 @@ Query<T>()
 - [ ] Tests passing (expected: ~20)
 - [ ] `dart test` passes in `nexus_store/`, `nexus_store_powersync_adapter/`, `nexus_store_drift_adapter/`
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -581,6 +588,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~18)
 - [ ] `dart test` passes in all packages
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -638,6 +646,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~12)
 - [ ] `dart test` passes in all packages
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -695,6 +704,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~16)
 - [ ] `dart test` passes in all packages
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -752,6 +762,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~14)
 - [ ] `dart test` passes in all packages
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -805,6 +816,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~10)
 - [ ] `dart test` passes in `nexus_store/`
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -857,6 +869,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~14)
 - [ ] `dart test` passes in all packages
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -907,6 +920,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] All tasks checked
 - [ ] Tests passing (expected: ~8)
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -964,6 +978,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~16)
 - [ ] `dart test` passes in all packages
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -1020,6 +1035,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~12)
 - [ ] `dart test` passes in all packages
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -1076,6 +1092,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~18)
 - [ ] `dart test` passes in all packages
 - [ ] `dart analyze` clean
+- [ ] Coverage >= 95% for changed packages
 - [ ] Tracker progress table updated
 
 ### Harness Verification Checkpoint

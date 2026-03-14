@@ -44,6 +44,15 @@ scripts:
       noDependsOn: flutter
     description: Run tests with coverage in Dart packages
 
+  test:flutter:coverage:
+    run: flutter test --coverage
+    exec:
+      concurrency: 1
+    packageFilters:
+      dirExists: test
+      dependsOn: flutter
+    description: Run tests with coverage in Flutter packages
+
   build:runner:
     run: dart run build_runner build --delete-conflicting-outputs
     exec:

@@ -21,6 +21,7 @@ Zones (expressed as remaining_percentage accounting for 16.5% buffer):
 #   Dependencies: none (stdlib only)
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -78,6 +79,8 @@ def get_zone(remaining_pct: float) -> tuple:
 CM_STATS_FILE = Path(PROJECT_DIR) / ".claude" / "progress" / "cm-stats.json"
 CM_STATS_MAX_AGE_SECONDS = 7200  # 2 hours
 
+_SIZE_UNITS = {"B": 1, "KB": 1024, "MB": 1024 * 1024, "GB": 1024 ** 3}
+
 
 def _is_cm_active() -> bool:
     """Check if Context Mode is active (cached per invocation)."""
@@ -98,6 +101,29 @@ def format_bytes(n: int) -> str:
     return f"{n / (1024 * 1024):.1f}MB"
 
 
+def _parse_size_to_bytes(s: str) -> int:
+    """Parse human-readable size string (e.g. '80.6KB') to bytes."""
+    m = re.match(r"([\d.]+)\s*(B|KB|MB|GB)", s.strip(), re.IGNORECASE)
+    if not m:
+        return 0
+    return int(float(m.group(1)) * _SIZE_UNITS.get(m.group(2).upper(), 1))
+
+
+def _reset_cm_session_counters():
+    """Reset session counters in cm-stats.json on /clear detection."""
+    try:
+        if CM_STATS_FILE.exists():
+            stats = json.loads(CM_STATS_FILE.read_text())
+            stats["session_entered_bytes"] = 0
+            stats["session_raw_bytes"] = 0
+            stats["session_call_count"] = 0
+            stats.pop("session_reduction_pct", None)
+            stats["updated_at"] = datetime.now(timezone.utc).isoformat()
+            CM_STATS_FILE.write_text(json.dumps(stats, indent=2) + "\n")
+    except (json.JSONDecodeError, OSError):
+        pass
+
+
 def _mark_cm_used_this_session():
     """Set cm_used_this_session = true in backup-state.json."""
     try:
@@ -111,19 +137,54 @@ def _mark_cm_used_this_session():
         pass
 
 
-def get_cm_tag() -> str:
-    """Return Context Mode status tag with savings stats if available.
+def _compute_token_savings(total_bytes: int, entered_bytes: int, window_size: int) -> tuple:
+    """Compute token savings metrics from byte totals and context window size.
 
-    Priority:
-      1. Fresh stats found → self-heal session flag, show full reduction stats
-      2. Accumulated stats (fresh) → show approximate bytes
-      3. No fresh stats AND cm_used_this_session is false → suppress (stale after /clear)
-      4. CM active but no data → N/A
+    Returns (saved_tokens_k, budget_pct) or (None, None) if insufficient data.
+    """
+    if total_bytes <= 0 or entered_bytes <= 0 or window_size <= 0:
+        return None, None
+    if total_bytes <= entered_bytes:
+        return None, None
+
+    ctx_entered_tokens = entered_bytes / 4  # approx bytes-to-tokens
+    raw_tokens = total_bytes / 4
+    saved_tokens = raw_tokens - ctx_entered_tokens
+    saved_k = round(saved_tokens / 1000)
+    budget_pct = round(saved_tokens / window_size * 100)
+
+    if saved_k <= 0:
+        return None, None
+    return saved_k, budget_pct
+
+
+def get_cm_tag(context_window: dict = None) -> str:
+    """Return Context Mode status tag with live token savings stats.
+
+    Uses context_window.context_window_size (live from StatusLine payload)
+    combined with session byte tracking from cm-stats.json to compute
+    token savings that update every turn.
+
+    Data sources (best available wins):
+      - Authoritative baseline (from ctx_stats) + session delta
+      - Authoritative baseline only (no session ctx calls yet)
+      - Session-only data (no baseline)
+      - No data -> N/A
     """
     if not _is_cm_active():
         return ""
 
-    # Check stats file FIRST — fresh stats self-activate the session flag
+    # Check session flag FIRST -- after /clear, suppress until first ctx call
+    try:
+        if BACKUP_STATE.exists():
+            state = json.loads(BACKUP_STATE.read_text())
+            if not state.get("cm_used_this_session", False):
+                return ""
+    except (json.JSONDecodeError, OSError):
+        pass
+
+    window_size = (context_window or {}).get("context_window_size", 0)
+
     has_fresh_stats = False
     try:
         if CM_STATS_FILE.exists():
@@ -154,70 +215,99 @@ def get_cm_tag() -> str:
             session_calls = stats.get("session_call_count", 0)
             has_accumulated = session_calls > 0
 
-            # Priority 1: Fresh authoritative stats
+            # Compute total_bytes and entered_bytes from best available data
+            total_bytes = 0
+            entered_bytes = 0
+
             if has_authoritative and is_auth_fresh:
                 has_fresh_stats = True
                 _mark_cm_used_this_session()
-                total = stats["total_processed"]
-                entered = stats["entered_context"]
-                pct = stats["reduction_pct"]
-                return f" [Context Mode: {total} \u2192 {entered} | saved: {pct}%]"
+                base_total = _parse_size_to_bytes(stats["total_processed"])
+                base_entered = _parse_size_to_bytes(stats["entered_context"])
 
-            # Priority 2: Hybrid estimate (accumulated bytes + last-known ratio)
-            ratio = stats.get("last_known_reduction_pct") or stats.get("reduction_pct")
-            if has_accumulated and is_acc_fresh and ratio:
+                if has_accumulated and is_acc_fresh:
+                    # Authoritative baseline + session delta
+                    session_raw = stats.get("session_raw_bytes", 0)
+                    ratio = int(stats.get("last_known_reduction_pct") or stats["reduction_pct"])
+                    session_raw_est = int(session_bytes / (1 - ratio / 100)) if ratio < 100 else session_bytes
+                    total_bytes = base_total + max(session_raw, session_raw_est)
+                    entered_bytes = base_entered + session_bytes
+                else:
+                    # Authoritative only (no session ctx calls yet)
+                    total_bytes = base_total
+                    entered_bytes = base_entered
+
+            elif has_accumulated and is_acc_fresh:
                 has_fresh_stats = True
                 _mark_cm_used_this_session()
-                pct = int(ratio)
-                entered = session_bytes  # exact: bytes that entered context
-                estimated_total = int(entered / (1 - pct / 100)) if pct < 100 else entered
-                return f" [Context Mode: ~{format_bytes(estimated_total)} → {format_bytes(entered)} | saved: ~{pct}%]"
+                entered_bytes = session_bytes
+                session_raw = stats.get("session_raw_bytes", 0)
+                ratio = stats.get("last_known_reduction_pct") or stats.get("reduction_pct")
+                if ratio:
+                    # Ratio-based estimate is most reliable
+                    pct = int(ratio)
+                    estimated_total = int(entered_bytes / (1 - pct / 100)) if pct < 100 else entered_bytes
+                    # Use max of raw and estimate -- footer-parsed raw can undercount
+                    total_bytes = max(session_raw, estimated_total)
+                elif session_raw > entered_bytes:
+                    # No ratio but raw > entered -- raw is usable
+                    total_bytes = session_raw
+                else:
+                    # No ratio known, raw unreliable -- show bytes only
+                    approx = format_bytes(session_bytes)
+                    hint = " (run ctx stats for %)" if session_calls % 20 == 0 else ""
+                    return f" [Context Mode: ~{approx} in {session_calls} calls{hint}]"
 
-            # Priority 3: Accumulated only (no ratio ever known)
-            if has_accumulated and is_acc_fresh:
-                has_fresh_stats = True
-                _mark_cm_used_this_session()
-                approx = format_bytes(session_bytes)
-                hint = " (run ctx stats for %)" if session_calls % 20 == 0 else ""
-                return f" [Context Mode: ~{approx} in {session_calls} calls{hint}]"
+            if has_fresh_stats and total_bytes > 0 and entered_bytes > 0:
+                # Build unified display with token savings
+                tag = f" [Context Mode: {format_bytes(total_bytes)} \u2192 {format_bytes(entered_bytes)}"
+                saved_k, budget_pct = _compute_token_savings(total_bytes, entered_bytes, window_size)
+                if saved_k is not None:
+                    tag += f" | ~{saved_k}k tokens saved (~{budget_pct}% of budget)"
+                else:
+                    # Fallback: show byte reduction percentage
+                    pct = round((1 - entered_bytes / total_bytes) * 100)
+                    tag += f" | saved: ~{pct}%"
+                tag += "]"
+                return tag
 
     except (json.JSONDecodeError, OSError, ValueError, KeyError):
         pass
 
-    # No fresh stats — check session flag to suppress stale display after /clear
-    if not has_fresh_stats:
-        try:
-            if BACKUP_STATE.exists():
-                state = json.loads(BACKUP_STATE.read_text())
-                if not state.get("cm_used_this_session", False):
-                    return ""
-        except (json.JSONDecodeError, OSError):
-            pass
-
     return " [Context Mode: N/A]"
 
 
-SESSION_RESET_THRESHOLD = 95.0  # remaining_pct above this = fresh context (/clear)
-SESSION_RESET_PREV_MAX = 85.0   # previous remaining must be below this to confirm jump
+FRESH_CONTEXT_THRESHOLD = 96.0  # Above this = definitely fresh context (/clear)
+COMPACTION_JUMP_THRESHOLD = 95.0  # Above this + previous < 85 = likely /clear after deep use
+COMPACTION_PREV_MAX = 85.0  # Compaction recovers to ~70-85%, not above this
 
 
 def update_backup_state(zone: str, remaining_pct: float):
     """Update shared backup state for coordination with PreCompact handler.
 
-    Detects session resets (/clear) by observing remaining_pct jumping above 95%
-    from a previous value below 85%. Compaction typically recovers to ~70-85%,
-    so 95% is a safe threshold for detecting fresh context windows.
+    Detects session resets (/clear) via two heuristics:
+      1. remaining > 96% — compaction can't recover this high, must be fresh context
+      2. remaining > 95% AND previous < 85% — jump from deep usage to near-empty
     """
     try:
         state = {}
         if BACKUP_STATE.exists():
             state = json.loads(BACKUP_STATE.read_text())
 
-        # Detect session reset: remaining jumped above 95% (fresh context after /clear)
+        # Detect session reset
         last_remaining = state.get("last_remaining_pct")
-        if remaining_pct > SESSION_RESET_THRESHOLD:
-            if last_remaining is None or last_remaining < SESSION_RESET_PREV_MAX:
-                state["cm_used_this_session"] = False
+        is_fresh_context = (
+            remaining_pct > FRESH_CONTEXT_THRESHOLD
+            and (last_remaining is None or last_remaining <= FRESH_CONTEXT_THRESHOLD)
+        )
+        is_jump_from_deep = (
+            remaining_pct > COMPACTION_JUMP_THRESHOLD
+            and (last_remaining is None or last_remaining < COMPACTION_PREV_MAX)
+        )
+        if is_fresh_context or is_jump_from_deep:
+            state["cm_used_this_session"] = False
+            # Also reset session counters in cm-stats.json
+            _reset_cm_session_counters()
 
         state["last_zone"] = zone
         state["last_remaining_pct"] = remaining_pct
@@ -232,7 +322,7 @@ def main():
     try:
         payload = json.loads(sys.stdin.read())
     except (json.JSONDecodeError, ValueError):
-        # No valid input — output empty status
+        # No valid input -- output empty status
         print("")
         return
 
@@ -261,8 +351,8 @@ def main():
     except (subprocess.TimeoutExpired, OSError):
         pass
 
-    # Context Mode indicator with savings stats
-    cm_tag = get_cm_tag()
+    # Context Mode indicator with live token savings
+    cm_tag = get_cm_tag(context_window)
 
     # Build StatusLine output (plain text)
     if zone == "green":

@@ -22,7 +22,17 @@
 ## Results Tracking
 - Results auto-captured to `.claude/test-history/test-runs.jsonl`
 
+## Coverage Enforcement
+- **Threshold:** 95% line coverage required for all changed packages
+- **Tool:** `python3 .claude/hooks/core/check-coverage.py --changed`
+- **Integrated:** Pre-commit orchestrator stage 4
+- **Scope:** Only packages with modified files (not all 13)
+- **Skip:** Packages without `test/` directory are exempt
+- **Override:** `CHECK_COVERAGE=false` for non-code phases
+- **Generated files excluded:** `.g.dart`, `.freezed.dart` filtered from coverage data
+
 ## Enforcement
 - **Hook:** `.claude/hooks/core/inject-test-reporter.py` — intercepts full-suite runs, forces smart runner
 - **Hook:** `.claude/hooks/core/capture-test-results.py` — auto-captures results to test-runs.jsonl
+- **Hook:** `.claude/hooks/core/check-coverage.py` — enforces 95% line coverage at pre-commit
 - **Manual only:** TDD discipline and narrow-target preference are not automatically enforced
