@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 # review_by: 2026-09-14
 """PreToolUse hook: enforces context-mode tool usage in dumb/danger zones.
 

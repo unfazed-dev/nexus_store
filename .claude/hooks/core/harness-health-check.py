@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 # review_by: 2026-09-14
 """StatusLine helper: one-time-per-session harness health check.
 
