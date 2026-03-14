@@ -147,19 +147,19 @@ Replace Firefly invariants with package-appropriate ones.
 
 ---
 
-## Phase 7: Context-Mode Verification ⬜
+## Phase 7: Context-Mode Verification ✅
 
-Requires live session in nexus_store project to verify.
+Verified in live session 2026-03-14.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 7.1 | Verify context-mode plugin installed | ⬜ | Needs live session |
-| 7.2 | Verify StatusLine displays context zone | ⬜ | Needs live session |
-| 7.3 | Verify escalation hook fires | ⬜ | Needs live session |
-| 7.4 | Run `ctx doctor` | ⬜ | Needs live session |
-| 7.5 | Run `ctx stats` | ⬜ | Needs live session |
+| 7.1 | Verify context-mode plugin installed | ✅ | Plugin enabled, v1.0.18 |
+| 7.2 | Verify StatusLine displays context zone | ✅ | context-budget.py wired in settings.json, SessionStart hook PASS |
+| 7.3 | Verify escalation hook fires | ✅ | context-mode-escalation.py wired, PreToolUse hook PASS |
+| 7.4 | Run `ctx doctor` | ✅ | All PASS: runtimes 5/11, server, hooks, FTS5, plugin |
+| 7.5 | Run `ctx stats` | ✅ | Active and tracking session data |
 
-**Gate:** Requires live session in nexus_store directory.
+**Gate:** ✅ All 5 checks passed. Minor: v1.0.18 vs latest v1.0.21 (non-blocking).
 
 ---
 
@@ -198,10 +198,16 @@ Requires live session in nexus_store project to verify.
 | Phase 4: Orchestrators Adaptation | ✅ | 5/5 |
 | Phase 5: Agents Adaptation | ✅ | 8/8 |
 | Phase 6: Progress & Doc-Source-Map | ✅ | 8/8 |
-| Phase 7: Context-Mode Verification | ⬜ | 0/5 (needs live session) |
+| Phase 7: Context-Mode Verification | ✅ | 5/5 |
 | Phase 8: End-to-End Verification | ⬜ | 1/13 (needs live session) |
-| **Total** | **87%** | **60/77** |
+| **Total** | **91%** | **65/77** |
 
 **Files created/modified:** ~65
 **Firefly terms remaining in core harness:** 0 (grep verified)
-**Remaining work:** Phases 7-8 require a live Claude Code session in the nexus_store directory
+**Remaining work:** Phase 8 requires live Claude Code session verification
+
+**Phase 7 Results (2026-03-14):**
+- All 5 context-mode checks passed in live session
+- ctx doctor: runtimes 5/11, server PASS, hooks PASS, FTS5 PASS, plugin enabled
+- ctx stats: active and tracking session data
+- Minor note: v1.0.18 installed vs v1.0.21 latest (non-blocking)
