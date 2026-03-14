@@ -303,6 +303,62 @@ def load_test_cache_module():
         return None
 
 
+def check_tdd_coverage(changed_files, verbose=False):
+    """Warn when recently-created source files have no corresponding test file.
+
+    Checks changed lib/ .dart files for a matching test/ *_test.dart file.
+    Returns list of warnings (source files missing tests).
+    """
+    warnings = []
+    skip_patterns = (
+        ".g.dart",
+        ".freezed.dart",
+        ".config.dart",
+    )
+    skip_basenames = {
+        # Barrel files, generated registrations
+        "nexus_store.dart",
+    }
+
+    for f in sorted(changed_files):
+        if not f.startswith("packages/"):
+            continue
+        parts = f.split("/")
+        if len(parts) < 3:
+            continue
+
+        package_name = parts[1]
+        rel_to_pkg = "/".join(parts[2:])
+
+        # Only check lib/ source files
+        if not rel_to_pkg.startswith("lib/") or not rel_to_pkg.endswith(".dart"):
+            continue
+
+        # Skip generated files, barrel files
+        basename = os.path.basename(f)
+        if any(f.endswith(pat) for pat in skip_patterns):
+            continue
+        if basename in skip_basenames:
+            continue
+
+        # Check for corresponding test file
+        lib_path = rel_to_pkg[4:]  # strip 'lib/'
+        test_path = f"packages/{package_name}/test/{lib_path[:-5]}_test.dart"
+        if not (PROJECT_ROOT / test_path).exists():
+            warnings.append((package_name, rel_to_pkg, test_path))
+
+    if warnings:
+        print(f"\n⚠ TDD coverage warning: {len(warnings)} source file(s) have no corresponding test file:")
+        for pkg, src, expected_test in warnings:
+            print(f"  [{pkg}] {src}")
+            if verbose:
+                print(f"           expected: {expected_test}")
+        print("  Hint: write tests BEFORE implementation (RED → GREEN → REFACTOR)")
+        print()
+
+    return warnings
+
+
 def main():
     args = parse_args(sys.argv[1:])
 
@@ -349,6 +405,9 @@ def main():
     if not changed_files:
         print("No changed files detected. Nothing to test.")
         return 0
+
+    # TDD coverage diagnostic
+    check_tdd_coverage(changed_files, verbose=args["verbose"])
 
     if args["verbose"]:
         print(f"Changed files ({len(changed_files)}):")
