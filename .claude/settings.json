@@ -75,12 +75,39 @@
         "hooks": [
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/capture-cm-stats.py"}
         ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/context-mode-escalation.py"}
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/context-mode-escalation.py"}
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/context-mode-escalation.py"}
+        ]
       }
     ],
     "PreCompact": [
       {
+        "matcher": "",
         "hooks": [
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/generate-handoff.py"}
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/subagent-output-guard.py"}
         ]
       }
     ]
