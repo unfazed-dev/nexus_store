@@ -7,7 +7,7 @@
 ### Overview
 | Phase | Status | Tests | Committed | Last Updated |
 |-------|--------|-------|-----------|--------------|
-| 1. count() Method | ✅ Complete | 22 | ⏳ | 2026-03-14 |
+| 1. count() Method | ✅ Complete | 22 | `422497f` | 2026-03-14 |
 | 2. deleteWhere() on NexusStore | ⏳ Pending | ~19 | — | — |
 | 3. Text Search in Query.where() | ⏳ Pending | ~12 | — | — |
 | 4. Backend Capability Introspection | ⏳ Pending | ~5 | — | — |
@@ -197,18 +197,25 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `store_operation.dart` — existing delete enum, `isDelete` extension
 
 ### Tasks
-1. Add `StoreOperation.deleteWhere` enum, update `isDelete` extension
-2. Add `OperationType.deleteWhere` for telemetry
-3. Add `deleteWhere()` to `WritePolicyHandler` (mirror `delete()` policy strategies)
-4. Add `Future<int> deleteWhere(Query<T> query, {WritePolicy? policy})` to `NexusStore`
-5. Wire through interceptor chain, telemetry, cache invalidation (`invalidateAll()`)
+#### RED: Write Failing Tests (~19)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Enum properties (isDelete includes deleteWhere, modifiesData true)
+- [ ] Write policy per strategy (cacheAndNetwork, networkFirst, cacheFirst, cacheOnly)
+- [ ] Interceptor chain fires for deleteWhere
+- [ ] Cache invalidation after deleteWhere
+- [ ] Telemetry tracks OperationType.deleteWhere
+- [ ] Verify all tests FAIL
 
-### Tests (~19)
-- Enum properties (isDelete includes deleteWhere, modifiesData true)
-- Write policy per strategy (cacheAndNetwork, networkFirst, cacheFirst, cacheOnly)
-- Interceptor chain fires for deleteWhere
-- Cache invalidation after deleteWhere
-- Telemetry tracks OperationType.deleteWhere
+#### GREEN: Implement
+1. [ ] Add `StoreOperation.deleteWhere` enum, update `isDelete` extension
+2. [ ] Add `OperationType.deleteWhere` for telemetry
+3. [ ] Add `deleteWhere()` to `WritePolicyHandler` (mirror `delete()` policy strategies)
+4. [ ] Add `Future<int> deleteWhere(Query<T> query, {WritePolicy? policy})` to `NexusStore`
+5. [ ] Wire through interceptor chain, telemetry, cache invalidation (`invalidateAll()`)
+6. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `store.deleteWhere(Query<T>().where('status', isEqualTo: 'archived'))` works
@@ -249,14 +256,21 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `powersync_query_translator.dart` — existing LIKE translation
 
 ### Tasks
-1. Add `String? contains`, `String? startsWith`, `String? endsWith` named params to `Query.where()`
-2. Each creates a `QueryFilter` with corresponding `FilterOperator`
+#### RED: Write Failing Tests (~12)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Query builder creates correct filter for each param
+- [ ] PowerSync SQL generates `LIKE '%value%'`, `LIKE 'value%'`, `LIKE '%value'`
+- [ ] In-memory evaluator matches correctly
+- [ ] Combined with other filters (AND composition)
+- [ ] Verify all tests FAIL
 
-### Tests (~12)
-- Query builder creates correct filter for each param
-- PowerSync SQL generates `LIKE '%value%'`, `LIKE 'value%'`, `LIKE '%value'`
-- In-memory evaluator matches correctly
-- Combined with other filters (AND composition)
+#### GREEN: Implement
+1. [ ] Add `String? contains`, `String? startsWith`, `String? endsWith` named params to `Query.where()`
+2. [ ] Each creates a `QueryFilter` with corresponding `FilterOperator`
+3. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `Query<T>().where('name', contains: 'john')` generates correct filter
@@ -292,13 +306,20 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `nexus_store.dart` — public API surface
 
 ### Tasks
-1. Create `BackendCapabilities` class
-2. Add `BackendCapabilities get capabilities` to `NexusStore`
-3. Delegate to backend properties
+#### RED: Write Failing Tests (~5)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Capabilities reflect backend flags
+- [ ] Each flag delegated correctly
+- [ ] Verify all tests FAIL
 
-### Tests (~5)
-- Capabilities reflect backend flags
-- Each flag delegated correctly
+#### GREEN: Implement
+1. [ ] Create `BackendCapabilities` class
+2. [ ] Add `BackendCapabilities get capabilities` to `NexusStore`
+3. [ ] Delegate to backend properties
+4. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `store.capabilities.supportsOffline` delegates to backend
@@ -335,15 +356,22 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Run `prior-art` agent to identify all migration targets
 
 ### Tasks
-1. Replace `getAll().length` with `count()` in: training_repository, local_message_repository, local_draft_repository, payslip_repository, user_selection_repository
-2. Replace `getAll()` + `deleteAll(ids)` with `deleteWhere()` in: local_message_repository, local_draft_repository
-3. Replace in-memory text search with `Query.where(contains:)` where applicable
-4. Update corresponding tests
+#### RED: Write Failing Tests (~15-20)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Updated repository tests for count() usage
+- [ ] Updated repository tests for deleteWhere() usage
+- [ ] Updated text search tests
+- [ ] Verify all tests FAIL
 
-### Tests (~15-20)
-- Updated repository tests for count() usage
-- Updated repository tests for deleteWhere() usage
-- Updated text search tests
+#### GREEN: Implement
+1. [ ] Replace `getAll().length` with `count()` in: training_repository, local_message_repository, local_draft_repository, payslip_repository, user_selection_repository
+2. [ ] Replace `getAll()` + `deleteAll(ids)` with `deleteWhere()` in: local_message_repository, local_draft_repository
+3. [ ] Replace in-memory text search with `Query.where(contains:)` where applicable
+4. [ ] Update corresponding tests
+5. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] No repository uses `getAll().length` pattern
@@ -386,16 +414,23 @@ python3 .claude/hooks/core/smart-test-run.py
 - [ ] Read `drift_query_translator.dart` — existing query translation
 
 ### Tasks
-1. Add `count({Query<T>? query})` to Drift adapter using `SELECT COUNT(*)`
-2. Verify `deleteWhere(Query<T> query)` works (may be inherited from defaults)
-3. Add text search LIKE support to Drift query translator
-4. Verify `DriftQueryTranslator` handles `FilterOperator.contains/startsWith/endsWith`
+#### RED: Write Failing Tests (~15)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Drift count with/without query
+- [ ] Drift deleteWhere
+- [ ] Text search LIKE in Drift
+- [ ] Integration with local stores
+- [ ] Verify all tests FAIL
 
-### Tests (~15)
-- Drift count with/without query
-- Drift deleteWhere
-- Text search LIKE in Drift
-- Integration with local stores
+#### GREEN: Implement
+1. [ ] Add `count({Query<T>? query})` to Drift adapter using `SELECT COUNT(*)`
+2. [ ] Verify `deleteWhere(Query<T> query)` works (may be inherited from defaults)
+3. [ ] Add text search LIKE support to Drift query translator
+4. [ ] Verify `DriftQueryTranslator` handles `FilterOperator.contains/startsWith/endsWith`
+5. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `localStore.count()` uses `SELECT COUNT(*)` via Drift
@@ -434,11 +469,6 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `in_memory_query_evaluator.dart` — OrExpression handling
 
 ### Tasks
-1. Introduce `QueryFilterGroup` concept — group of filters with AND/OR combinator
-2. Add `.or(Query<T> Function(Query<T>) builder)` method to `Query`
-3. Update `PowerSyncQueryTranslator` to generate `(condition1 OR condition2)` SQL
-4. Update `DriftQueryTranslator` for OR support
-5. Update `toFilters()` to handle OR groups
 
 ### API Design
 ```dart
@@ -451,13 +481,26 @@ Query<T>()
 // Generates: status = 'active' AND (role = 'admin' OR role = 'superadmin')
 ```
 
-### Tests (~20)
-- Query builder OR composition
-- Nested AND/OR
-- PowerSync SQL generation
-- Drift SQL generation
-- In-memory evaluation
-- Edge cases (empty OR, single-condition OR)
+#### RED: Write Failing Tests (~20)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Query builder OR composition
+- [ ] Nested AND/OR
+- [ ] PowerSync SQL generation
+- [ ] Drift SQL generation
+- [ ] In-memory evaluation
+- [ ] Edge cases (empty OR, single-condition OR)
+- [ ] Verify all tests FAIL
+
+#### GREEN: Implement
+1. [ ] Introduce `QueryFilterGroup` concept — group of filters with AND/OR combinator
+2. [ ] Add `.or(Query<T> Function(Query<T>) builder)` method to `Query`
+3. [ ] Update `PowerSyncQueryTranslator` to generate `(condition1 OR condition2)` SQL
+4. [ ] Update `DriftQueryTranslator` for OR support
+5. [ ] Update `toFilters()` to handle OR groups
+6. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `.or()` builder creates correct OR filter group
@@ -495,19 +538,26 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `store_backend.dart` — count() pattern to follow
 
 ### Tasks
-1. Add `AggregateResult` class
-2. Add `Future<num?> aggregate(String field, AggregateType type, {Query<T>? query})` to `StoreBackend`
-3. Default impl using in-memory calculation on `getAll()` results
-4. PowerSync adapter: `SELECT SUM(field), AVG(field), ...`
-5. Drift adapter: same SQL pattern
-6. Add to `NexusStore` with interceptor chain
-7. Add convenience methods: `sum()`, `avg()`, `min()`, `max()`
+#### RED: Write Failing Tests (~18)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Each aggregate type with/without query
+- [ ] Null handling, empty result sets
+- [ ] PowerSync SQL, Drift SQL
+- [ ] In-memory fallback
+- [ ] Verify all tests FAIL
 
-### Tests (~18)
-- Each aggregate type with/without query
-- Null handling, empty result sets
-- PowerSync SQL, Drift SQL
-- In-memory fallback
+#### GREEN: Implement
+1. [ ] Add `AggregateResult` class
+2. [ ] Add `Future<num?> aggregate(String field, AggregateType type, {Query<T>? query})` to `StoreBackend`
+3. [ ] Default impl using in-memory calculation on `getAll()` results
+4. [ ] PowerSync adapter: `SELECT SUM(field), AVG(field), ...`
+5. [ ] Drift adapter: same SQL pattern
+6. [ ] Add to `NexusStore` with interceptor chain
+7. [ ] Add convenience methods: `sum()`, `avg()`, `min()`, `max()`
+8. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `store.sum('amount', query: query)` returns correct sum
@@ -547,18 +597,25 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `nexus_store.dart` — interceptor chain for read ops
 
 ### Tasks
-1. Add `Future<bool> exists(ID id)` to `StoreBackend`
-2. Add `Future<bool> existsWhere(Query<T> query)` to `StoreBackend`
-3. Default impl: `get(id).then((v) => v != null)` and `getAll(query: query.limitTo(1)).then((l) => l.isNotEmpty)`
-4. PowerSync: `SELECT EXISTS(SELECT 1 FROM table WHERE id = ?)`
-5. Drift: same SQL pattern
-6. Add to `NexusStore` with interceptor chain
+#### RED: Write Failing Tests (~12)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] exists by ID (found/not found)
+- [ ] existsWhere with query
+- [ ] PowerSync SQL, Drift SQL
+- [ ] Interceptor chain
+- [ ] Verify all tests FAIL
 
-### Tests (~12)
-- exists by ID (found/not found)
-- existsWhere with query
-- PowerSync SQL, Drift SQL
-- Interceptor chain
+#### GREEN: Implement
+1. [ ] Add `Future<bool> exists(ID id)` to `StoreBackend`
+2. [ ] Add `Future<bool> existsWhere(Query<T> query)` to `StoreBackend`
+3. [ ] Default impl: `get(id).then((v) => v != null)` and `getAll(query: query.limitTo(1)).then((l) => l.isNotEmpty)`
+4. [ ] PowerSync: `SELECT EXISTS(SELECT 1 FROM table WHERE id = ?)`
+5. [ ] Drift: same SQL pattern
+6. [ ] Add to `NexusStore` with interceptor chain
+7. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `store.exists(id)` returns bool without loading entity
@@ -597,17 +654,24 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `write_policy_handler.dart` — deleteWhere policy pattern
 
 ### Tasks
-1. Add `Future<int> updateWhere(Query<T> query, Map<String, dynamic> updates)` to `StoreBackend`
-2. Default impl: `getAll(query:)` -> apply updates -> `saveAll()`
-3. PowerSync: `UPDATE table SET field1=val1 WHERE ...`
-4. Drift: Drift's update builder
-5. Add to `NexusStore` with interceptor chain, write policy, cache invalidation
+#### RED: Write Failing Tests (~16)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Update single/multiple records
+- [ ] Empty result, write policy strategies
+- [ ] Cache invalidation
+- [ ] PowerSync SQL, Drift SQL
+- [ ] Verify all tests FAIL
 
-### Tests (~16)
-- Update single/multiple records
-- Empty result, write policy strategies
-- Cache invalidation
-- PowerSync SQL, Drift SQL
+#### GREEN: Implement
+1. [ ] Add `Future<int> updateWhere(Query<T> query, Map<String, dynamic> updates)` to `StoreBackend`
+2. [ ] Default impl: `getAll(query:)` -> apply updates -> `saveAll()`
+3. [ ] PowerSync: `UPDATE table SET field1=val1 WHERE ...`
+4. [ ] Drift: Drift's update builder
+5. [ ] Add to `NexusStore` with interceptor chain, write policy, cache invalidation
+6. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `store.updateWhere(query, {'status': 'archived'})` updates matching records
@@ -647,17 +711,24 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `nexus_store.dart` — write op interceptor chain
 
 ### Tasks
-1. Add `Future<T> patch(ID id, Map<String, dynamic> updates)` to `StoreBackend`
-2. Default impl: `get(id)` -> apply updates via toJson/fromJson -> `save()`
-3. PowerSync: `UPDATE table SET field1=val1 WHERE id = ?`
-4. Drift: Drift's update builder with single-row filter
-5. Add to `NexusStore` with interceptor chain, write policy, cache update
+#### RED: Write Failing Tests (~14)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Patch single/multiple fields
+- [ ] Non-existent entity
+- [ ] Write policy, cache update
+- [ ] PowerSync SQL, Drift SQL
+- [ ] Verify all tests FAIL
 
-### Tests (~14)
-- Patch single/multiple fields
-- Non-existent entity
-- Write policy, cache update
-- PowerSync SQL, Drift SQL
+#### GREEN: Implement
+1. [ ] Add `Future<T> patch(ID id, Map<String, dynamic> updates)` to `StoreBackend`
+2. [ ] Default impl: `get(id)` -> apply updates via toJson/fromJson -> `save()`
+3. [ ] PowerSync: `UPDATE table SET field1=val1 WHERE id = ?`
+4. [ ] Drift: Drift's update builder with single-row filter
+5. [ ] Add to `NexusStore` with interceptor chain, write policy, cache update
+6. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `store.patch(id, {'name': 'updated'})` updates without loading entity
@@ -697,14 +768,21 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `nexus_store.dart` — existing `watchAll()` implementation
 
 ### Tasks
-1. Add `Stream<int> watchCount({Query<T>? query})` to `NexusStore`
-2. Add `Stream<T?> watchOne(Query<T> query)` to `NexusStore`
-3. Default impl: `watchAll(query:).map((l) => l.length)` and `watchAll(query: query.limitTo(1)).map((l) => l.firstOrNull)`
+#### RED: Write Failing Tests (~10)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] watchCount empty/populated/changes
+- [ ] watchOne found/not-found/changes
+- [ ] Query filtering
+- [ ] Verify all tests FAIL
 
-### Tests (~10)
-- watchCount empty/populated/changes
-- watchOne found/not-found/changes
-- Query filtering
+#### GREEN: Implement
+1. [ ] Add `Stream<int> watchCount({Query<T>? query})` to `NexusStore`
+2. [ ] Add `Stream<T?> watchOne(Query<T> query)` to `NexusStore`
+3. [ ] Default impl: `watchAll(query:).map((l) => l.length)` and `watchAll(query: query.limitTo(1)).map((l) => l.firstOrNull)`
+4. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `store.watchCount()` emits count updates reactively
@@ -739,16 +817,23 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `query.dart` — existing builder methods
 
 ### Tasks
-1. Add `.whereBetween(field, start, end)` — sugar for >= + <=
-2. Add `.whereNull(field)` / `.whereNotNull(field)` — sugar for isNull
-3. Add `.select(Set<String> fields)` for field projection
-4. Add `.distinct()` for unique results
-5. Update PowerSync and Drift query translators for `SELECT field1, field2`
+#### RED: Write Failing Tests (~14)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] whereBetween, whereNull/whereNotNull
+- [ ] select projection, distinct
+- [ ] SQL generation for each
+- [ ] Verify all tests FAIL
 
-### Tests (~14)
-- whereBetween, whereNull/whereNotNull
-- select projection, distinct
-- SQL generation for each
+#### GREEN: Implement
+1. [ ] Add `.whereBetween(field, start, end)` — sugar for >= + <=
+2. [ ] Add `.whereNull(field)` / `.whereNotNull(field)` — sugar for isNull
+3. [ ] Add `.select(Set<String> fields)` for field projection
+4. [ ] Add `.distinct()` for unique results
+5. [ ] Update PowerSync and Drift query translators for `SELECT field1, field2`
+6. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `Query<T>().whereBetween('age', 18, 65)` generates >= AND <= filters
@@ -786,14 +871,21 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `operation_metric.dart` — telemetry data available
 
 ### Tasks
-1. Add `StoreDiagnostics getDiagnostics()` to `NexusStore`
-2. Include: entity count, pending changes, cache size, hit rate, avg latency
-3. Add slow operations list from stats
+#### RED: Write Failing Tests (~8)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Diagnostics accuracy
+- [ ] Slow operation tracking
+- [ ] Cache info per entity
+- [ ] Verify all tests FAIL
 
-### Tests (~8)
-- Diagnostics accuracy
-- Slow operation tracking
-- Cache info per entity
+#### GREEN: Implement
+1. [ ] Add `StoreDiagnostics getDiagnostics()` to `NexusStore`
+2. [ ] Include: entity count, pending changes, cache size, hit rate, avg latency
+3. [ ] Add slow operations list from stats
+4. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `store.getDiagnostics()` returns comprehensive health snapshot
@@ -829,19 +921,26 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `powersync_backend.dart` — SQL insert patterns
 
 ### Tasks
-1. Add `ConflictStrategy` enum: `update`, `ignore`, `replace`, `error`
-2. Add `Future<T> upsert(T item, {ConflictStrategy onConflict})` to `StoreBackend`
-3. Default impl: `get(id)` -> if exists, apply strategy -> `save()`
-4. PowerSync: `INSERT OR REPLACE INTO ...`
-5. Drift: `insertOnConflictUpdate`
-6. Add `upsertAll()` for batch
-7. Add to `NexusStore` with interceptor chain
+#### RED: Write Failing Tests (~16)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Upsert insert-new, update-existing
+- [ ] Each conflict strategy
+- [ ] Batch upsert
+- [ ] PowerSync SQL, Drift SQL
+- [ ] Verify all tests FAIL
 
-### Tests (~16)
-- Upsert insert-new, update-existing
-- Each conflict strategy
-- Batch upsert
-- PowerSync SQL, Drift SQL
+#### GREEN: Implement
+1. [ ] Add `ConflictStrategy` enum: `update`, `ignore`, `replace`, `error`
+2. [ ] Add `Future<T> upsert(T item, {ConflictStrategy onConflict})` to `StoreBackend`
+3. [ ] Default impl: `get(id)` -> if exists, apply strategy -> `save()`
+4. [ ] PowerSync: `INSERT OR REPLACE INTO ...`
+5. [ ] Drift: `insertOnConflictUpdate`
+6. [ ] Add `upsertAll()` for batch
+7. [ ] Add to `NexusStore` with interceptor chain
+8. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `store.upsert(item)` inserts or updates atomically
@@ -881,16 +980,23 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `nexus_store.dart` — read op interceptor chain
 
 ### Tasks
-1. Add `Future<List<T>> getByIds(List<ID> ids, {FetchPolicy? policy})` to `StoreBackend`
-2. Default impl: `getAll(query: Query<T>().where('id', isIn: ids))`
-3. PowerSync: `SELECT * FROM table WHERE id IN (?, ?, ...)`
-4. Add `Stream<List<T>> watchByIds(List<ID> ids)` reactive variant
-5. Add to `NexusStore` with interceptor chain
+#### RED: Write Failing Tests (~12)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] getByIds all found, partial, none, empty list
+- [ ] Cache hits, PowerSync SQL IN clause
+- [ ] watchByIds reactivity
+- [ ] Verify all tests FAIL
 
-### Tests (~12)
-- getByIds all found, partial, none, empty list
-- Cache hits, PowerSync SQL IN clause
-- watchByIds reactivity
+#### GREEN: Implement
+1. [ ] Add `Future<List<T>> getByIds(List<ID> ids, {FetchPolicy? policy})` to `StoreBackend`
+2. [ ] Default impl: `getAll(query: Query<T>().where('id', isIn: ids))`
+3. [ ] PowerSync: `SELECT * FROM table WHERE id IN (?, ?, ...)`
+4. [ ] Add `Stream<List<T>> watchByIds(List<ID> ids)` reactive variant
+5. [ ] Add to `NexusStore` with interceptor chain
+6. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `store.getByIds(['id1', 'id2'])` returns list efficiently
@@ -929,17 +1035,24 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Read `powersync_backend.dart` — transaction handling
 
 ### Tasks
-1. Create `TransactionCoordinator` class
-2. Add `static Future<R> NexusStore.crossTransaction<R>(...)`
-3. PowerSync: use shared `PowerSyncDatabase.writeTransaction()`
-4. Drift: use shared Drift database transaction
-5. Rollback: compensating actions for non-transactional backends
+#### RED: Write Failing Tests (~18)
+- [ ] Scaffold test files (`test-scaffold` agent)
+- [ ] Success commit, failure rollback
+- [ ] Partial failure, nested cross-tx
+- [ ] PowerSync shared DB tx
+- [ ] Drift shared DB tx
+- [ ] Verify all tests FAIL
 
-### Tests (~18)
-- Success commit, failure rollback
-- Partial failure, nested cross-tx
-- PowerSync shared DB tx
-- Drift shared DB tx
+#### GREEN: Implement
+1. [ ] Create `TransactionCoordinator` class
+2. [ ] Add `static Future<R> NexusStore.crossTransaction<R>(...)`
+3. [ ] PowerSync: use shared `PowerSyncDatabase.writeTransaction()`
+4. [ ] Drift: use shared Drift database transaction
+5. [ ] Rollback: compensating actions for non-transactional backends
+6. [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - [ ] `NexusStore.crossTransaction([store1, store2], (tx) => ...)` works atomically

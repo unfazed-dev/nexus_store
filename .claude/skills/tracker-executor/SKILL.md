@@ -120,9 +120,36 @@ Execute each task in the Tasks/Diagrams/Files section.
 
 | Type | Execution Mode | Hook Behavior |
 |------|---------------|---------------|
-| Code | TDD: write tests BEFORE implementation. Run `smart-test-run.py` after each task group | All PostToolUse hooks fire on .dart Edit/Write: dart-format, organize-imports, lint-check, invariant-check, doc-freshness |
+| Code | TDD: RED → GREEN → REFACTOR (see substeps below) | All PostToolUse hooks fire on .dart Edit/Write: dart-format, organize-imports, lint-check, invariant-check, doc-freshness |
 | Doc | Create files sequentially. Follow `.claude/rules/diagrams.md` for diagram files | invariant-check + doc-freshness hooks fire on .md edits in `lib/` or scanned `docs/` subdirs |
 | Generic | Execute tasks per checklist. Follow `.claude/rules/*.md` | Hooks fire based on file type edited |
+
+#### Code Tracker — TDD Execution Protocol
+
+**5a. RED Phase — Write Failing Tests**
+1. Parse the phase's `RED: Write Failing Tests` subsection (or `Tests` section in legacy format)
+2. If `test-scaffold` listed in Skills & Agents: invoke it for scaffolding
+3. Write all test files/cases
+4. Run `dart test <test_file>` — verify tests FAIL
+5. If tests unexpectedly PASS: review — they aren't testing new behavior
+
+**5b. GREEN Phase — Implement Minimum Code**
+1. Parse the phase's `GREEN: Implement` subsection (or `Tasks` section in legacy format)
+2. Implement each task targeting minimum code to pass failing tests
+3. After each task group: run `smart-test-run.py`
+4. PostToolUse hooks fire on .dart Edit/Write
+5. Continue until all tests PASS
+
+**5c. REFACTOR Phase — Clean Up**
+1. Parse `REFACTOR` subsection (if present)
+2. Refactor: extract methods, rename, simplify — keep tests green
+3. Run `smart-test-run.py` — confirm no regressions
+
+**5d. TDD Compliance Fallback (Legacy Trackers)**
+If phase lacks RED/GREEN/REFACTOR subsections:
+1. Locate `Tests` section — write these FIRST
+2. Locate `Tasks` section — implement AFTER tests exist and fail
+3. Log warning in Progress Log: "Phase N used legacy format — TDD order enforced by executor"
 
 **Frontmatter rules by directory** (enforced by `verification-frontmatter.dart`):
 
@@ -294,6 +321,8 @@ Report to user:
 - Modifying phases other than the target phase
 - Amending commits after hook failure (create NEW commit instead)
 - Invoking agents listed in Skills & Agents table automatically (agents are task-triggered, not phase-triggered)
+- Writing implementation code before test files exist (violates TDD protocol)
+- Skipping RED phase verification (tests must fail before GREEN phase)
 
 ## References
 - Tracker template: `.claude/skills/implementation-tracker/SKILL.md`

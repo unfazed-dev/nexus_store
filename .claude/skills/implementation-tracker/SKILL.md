@@ -73,10 +73,10 @@ Brief description of the feature and its scope.
 | Phase | Skills | Agents |
 |-------|--------|--------|
 | 0. Documentation | `/flutter-app-blueprint`, `/mermaid-diagrams` | `prior-art`, `flow-checker` |
-| 1. Data Layer | `/supabase-flutter-stacked`, `/nexus-store` | `migration-planner`, `arch-check` |
+| 1. Data Layer | `/supabase-flutter-stacked`, `/nexus-store` | `migration-planner`, `arch-check`, `test-scaffold` |
 | 2. Service Layer | `/stacked` | `arch-check`, `test-scaffold` |
-| 3. UI Layer | `/stacked`, `/flutter-ui-patterns` | `widget-finder`, `arch-check` |
-| 4. GenUI Integration | `/genui` | — |
+| 3. UI Layer | `/stacked`, `/flutter-ui-patterns` | `widget-finder`, `arch-check`, `test-scaffold` |
+| 4. GenUI Integration | `/genui` | `test-scaffold` |
 | **Every phase end** | `/commit-helper` | `verify-app` |
 
 ---
@@ -118,12 +118,22 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Phase 0 complete and committed
 
 ### Tasks
+#### RED: Write Failing Tests
+- [ ] Invoke `test-scaffold` agent for repository test scaffolding
+- [ ] Write unit tests for model serialization
+- [ ] Write unit tests for repository interface methods
+- [ ] Verify tests FAIL
+
+#### GREEN: Implement
 - [ ] Create migration: `supabase/migrations/YYYYMMDD_feature.sql`
 - [ ] Update sync rules: `powersync/sync-rules.yaml`
 - [ ] Create model: `lib/core/models/feature.dart`
 - [ ] Create repository interface + implementation (use `InterfaceXxxRepository` naming)
 - [ ] Register in DI locator
-- [ ] Write unit tests
+- [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Post-Implementation Checklist
 - [ ] All tasks checked
@@ -154,10 +164,19 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] Phase 1 complete and committed
 
 ### Tasks
+#### RED: Write Failing Tests
+- [ ] Invoke `test-scaffold` agent for service test scaffolding
+- [ ] Write unit tests for service methods (mock repository)
+- [ ] Verify tests FAIL
+
+#### GREEN: Implement
 - [ ] Create service with `ListenableServiceMixin` + `BehaviorSubject`
 - [ ] Inject repository via `locator<InterfaceXxxRepository>()`
 - [ ] Register service in DI locator
-- [ ] Write unit tests (mock repository)
+- [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Post-Implementation Checklist
 - [ ] All tasks checked
@@ -187,12 +206,21 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] Run `widget-finder` agent to identify reusable widgets
 
 ### Tasks
+#### RED: Write Failing Tests
+- [ ] Invoke `test-scaffold` agent for widget test scaffolding
+- [ ] Write widget tests for view rendering and interactions
+- [ ] Verify tests FAIL
+
+#### GREEN: Implement
 - [ ] Create view + viewmodel: `stacked create view feature_name`
 - [ ] Wire viewmodel to service via `locator<FeatureService>()`
 - [ ] Use `KinlySpacing` tokens for all spacing (no raw `SizedBox`)
 - [ ] Use `setBusy()` / `setBusyForObject()` for loading states
 - [ ] Use `RouterService` for navigation
-- [ ] Write widget tests
+- [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Post-Implementation Checklist
 - [ ] All tasks checked
@@ -222,10 +250,19 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] Phase 3 complete and committed
 
 ### Tasks
+#### RED: Write Failing Tests
+- [ ] Invoke `test-scaffold` agent for provider test scaffolding
+- [ ] Write provider unit tests for data provider methods
+- [ ] Verify tests FAIL
+
+#### GREEN: Implement
 - [ ] Create `EntityDataProvider` (use `/genui` skill)
 - [ ] Register provider in `EntityDataRegistry`
 - [ ] Create MCQ catalog entries
-- [ ] Write provider unit tests
+- [ ] Verify all tests PASS
+
+#### REFACTOR
+- [ ] Clean up, run `smart-test-run.py` — all green
 
 ### Post-Implementation Checklist
 - [ ] All tasks checked
@@ -290,6 +327,26 @@ The default template uses "Tests" as the metric column. Substitute based on work
 | **Standard** | Tests | Code features, UI, services |
 | **Task-based** | Tasks | Documentation, harness audits, refactoring |
 
+## TDD Task Structure (Code Trackers)
+
+Code trackers (with a `Tests` column) MUST use RED-GREEN-REFACTOR substep structure in every phase:
+
+### Tasks
+#### RED: Write Failing Tests
+- [ ] Invoke `test-scaffold` agent for test file scaffolding
+- [ ] Write test cases for [behavior 1]
+- [ ] Write test cases for [behavior 2]
+- [ ] Verify all new tests FAIL (`dart test` — expect failures)
+
+#### GREEN: Implement Minimum Code
+- [ ] Implement [component 1] to pass tests
+- [ ] Implement [component 2] to pass tests
+- [ ] Verify all tests PASS (`dart test`)
+
+#### REFACTOR: Clean Up
+- [ ] Refactor while keeping tests green
+- [ ] Run `smart-test-run.py` — no regressions
+
 ## Tracker Lifecycle
 
 | Status | Folder |
@@ -342,6 +399,8 @@ Bookings, wallet, funds, invoices, managed_participants, onboarding, trust_fund,
 - Missing Pre/Post-Implementation Checklists on gate-critical phases
 - Missing combined Files section (Files to Create / Files to Modify) at bottom
 - Missing Completion Checklist (trackers stall at "done but not closed")
+- Listing implementation tasks before test tasks in Code trackers (violates TDD)
+- Omitting RED/GREEN/REFACTOR substep structure in Code tracker phases
 
 ## References
 - Verify feature: `.claude/orchestrators/verify-feature.py`
