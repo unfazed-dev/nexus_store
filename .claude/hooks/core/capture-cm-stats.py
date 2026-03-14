@@ -99,27 +99,57 @@ def parse_size_to_bytes(s: str) -> int:
 def parse_raw_bytes_from_footer(text: str) -> int:
     """Extract raw data size from ctx tool response footers.
 
-    Parses patterns like:
+    Parses the PRIMARY size from specific footer patterns:
       - "Executed 8 commands (2401 lines, 85.8KB). Indexed 24 sections."
+      - "N sections matched ... (281 lines, 11.4KB):"
       - "Output: N lines (SIZE)"
-      - "Found N results across N sources (SIZE total)"
+      - "N-line output (SIZE)"
 
-    Returns total raw bytes from all size mentions in the last 10 lines,
-    or 0 if no sizes found.
+    Only extracts the main raw-stdout size — NOT section preview sizes
+    or other incidental size mentions.
+    Returns 0 if no recognized footer pattern found.
     """
-    # Look at the last 10 lines where footers typically appear
     lines = text.strip().splitlines()
-    footer = "\n".join(lines[-10:]) if len(lines) > 10 else text
 
-    # Find all size mentions (e.g. "85.8KB", "1.2MB")
-    matches = re.findall(r"([\d.]+)\s*(B|KB|MB|GB)", footer, re.IGNORECASE)
-    if not matches:
-        return 0
+    # Pattern 1: batch_execute footer — "Executed N commands (X lines, SIZE)."
+    # This SIZE is the total raw stdout across all commands
+    for line in reversed(lines[-15:] if len(lines) > 15 else lines):
+        m = re.search(
+            r"Executed\s+\d+\s+commands?\s*\(\d+\s+lines?,\s*([\d.]+\s*(?:B|KB|MB|GB))\)",
+            line, re.IGNORECASE,
+        )
+        if m:
+            return parse_size_to_bytes(m.group(1))
 
-    total = 0
-    for value, unit in matches:
-        total += int(float(value) * _SIZE_UNITS.get(unit.upper(), 1))
-    return total
+    # Pattern 2: ctx_execute with intent — "N sections matched ... (X lines, SIZE):"
+    # This SIZE is totalBytes = Buffer.byteLength(stdout) — the raw output
+    for line in reversed(lines[-15:] if len(lines) > 15 else lines):
+        m = re.search(
+            r"\d+\s+sections?\s+matched\b.*?\(\d+\s+lines?,\s*([\d.]+\s*(?:B|KB|MB|GB))\)",
+            line, re.IGNORECASE,
+        )
+        if m:
+            return parse_size_to_bytes(m.group(1))
+
+    # Pattern 3: no-match case — "N-line output (SIZE)"
+    for line in reversed(lines[-15:] if len(lines) > 15 else lines):
+        m = re.search(
+            r"\d+-line\s+output\s*\(([\d.]+\s*(?:B|KB|MB|GB))\)",
+            line, re.IGNORECASE,
+        )
+        if m:
+            return parse_size_to_bytes(m.group(1))
+
+    # Pattern 4: fetch_and_index — "Fetched and indexed ... (SIZE)"
+    for line in reversed(lines[-15:] if len(lines) > 15 else lines):
+        m = re.search(
+            r"(?:Fetched|Indexed)\b.*?\(([\d.]+\s*(?:B|KB|MB|GB))\)",
+            line, re.IGNORECASE,
+        )
+        if m:
+            return parse_size_to_bytes(m.group(1))
+
+    return 0
 
 
 def format_size(n: int) -> str:
@@ -197,6 +227,7 @@ def main():
         # Also parse footer for raw data size to compute dynamic savings
         response_bytes = len(text.encode("utf-8"))
         raw_bytes = parse_raw_bytes_from_footer(text)
+        indexed = "indexed" in text.lower() and "sections" in text.lower()
         existing = read_existing_stats()
 
         if should_reset_session(existing):
@@ -209,8 +240,15 @@ def main():
         existing["session_call_count"] = existing.get("session_call_count", 0) + 1
 
         # Track raw bytes processed (from footer parsing)
-        if raw_bytes > 0:
-            existing["session_raw_bytes"] = existing.get("session_raw_bytes", 0) + raw_bytes
+        # When indexing happened: raw_bytes = actual raw stdout, response is a summary
+        # When no indexing: raw = entered (no savings to track)
+        if raw_bytes > 0 and indexed:
+            # Indexing happened — raw is the full stdout, response is filtered
+            # Use max(raw, response) since raw should always >= entered for indexed calls
+            existing["session_raw_bytes"] = existing.get("session_raw_bytes", 0) + max(raw_bytes, response_bytes)
+        else:
+            # No indexing — raw output was returned directly, no savings
+            existing["session_raw_bytes"] = existing.get("session_raw_bytes", 0) + response_bytes
 
         # Compute dynamic session reduction percentage
         session_raw = existing.get("session_raw_bytes", 0)

@@ -262,12 +262,11 @@ def get_cm_tag(context_window: dict = None) -> str:
                 # Build unified display with token savings
                 tag = f" [Context Mode: {format_bytes(total_bytes)} \u2192 {format_bytes(entered_bytes)}"
                 saved_k, budget_pct = _compute_token_savings(total_bytes, entered_bytes, window_size)
+                reduction_pct = round((1 - entered_bytes / total_bytes) * 100)
                 if saved_k is not None:
-                    tag += f" | ~{saved_k}k tokens saved (~{budget_pct}% of budget)"
+                    tag += f" | saved ~{reduction_pct}%, ~{saved_k}k tokens"
                 else:
-                    # Fallback: show byte reduction percentage
-                    pct = round((1 - entered_bytes / total_bytes) * 100)
-                    tag += f" | saved: ~{pct}%"
+                    tag += f" | saved: ~{reduction_pct}%"
                 tag += "]"
                 return tag
 
