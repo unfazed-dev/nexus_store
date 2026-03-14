@@ -54,7 +54,8 @@ void main() {
           if (line.contains("'package:$pkg/") ||
               line.contains("'package:$pkg'")) {
             violations.add(
-                '${file.path}:${i + 1}: $pkgName imports forbidden package $pkg',);
+              '${file.path}:${i + 1}: $pkgName imports forbidden package $pkg',
+            );
           }
         }
       }
@@ -88,7 +89,17 @@ List<String> _getForbiddenImports(String pkgName) {
     return [..._bindings.where((b) => b != pkgName), ..._generators];
   }
   if (_generators.contains(pkgName)) {
-    return [..._adapters, ..._bindings, ..._widgets];
+    // nexus_store_riverpod_generator legitimately depends on the binding
+    // package because it generates code referencing binding types
+    final allowedBindings = <String>[];
+    if (pkgName == 'nexus_store_riverpod_generator') {
+      allowedBindings.add('nexus_store_riverpod_binding');
+    }
+    return [
+      ..._adapters,
+      ..._bindings.where((b) => !allowedBindings.contains(b)),
+      ..._widgets,
+    ];
   }
   return [];
 }

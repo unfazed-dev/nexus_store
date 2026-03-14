@@ -53,7 +53,20 @@ void main() {
         continue;
       }
       final lines = file.readAsLinesSync();
+      var inMultiLineString = false;
       for (var i = 0; i < lines.length; i++) {
+        // Track triple-quoted strings to skip import patterns inside them
+        // (e.g., build_test source inputs for generator tests)
+        final tripleQuoteCount = "'''".allMatches(lines[i]).length +
+            '"""'.allMatches(lines[i]).length;
+        if (tripleQuoteCount.isOdd) inMultiLineString = !inMultiLineString;
+        if (inMultiLineString && tripleQuoteCount == 0) continue;
+        // Skip lines that are entirely inside a multi-line string
+        if (inMultiLineString && !lines[i].trimLeft().startsWith('import ')) {
+          continue;
+        }
+        // Only flag actual top-level import statements
+        if (!lines[i].trimLeft().startsWith('import ')) continue;
         final match = srcImportPattern.firstMatch(lines[i]);
         if (match != null) {
           final importedPkg = match.group(1)!;
