@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('StoreOperation', () {
     test('should have all expected operations', () {
-      expect(StoreOperation.values, hasLength(9));
+      expect(StoreOperation.values, hasLength(10));
       expect(StoreOperation.values, contains(StoreOperation.get));
       expect(StoreOperation.values, contains(StoreOperation.getAll));
       expect(StoreOperation.values, contains(StoreOperation.save));
@@ -14,6 +14,7 @@ void main() {
       expect(StoreOperation.values, contains(StoreOperation.watch));
       expect(StoreOperation.values, contains(StoreOperation.watchAll));
       expect(StoreOperation.values, contains(StoreOperation.sync));
+      expect(StoreOperation.values, contains(StoreOperation.count));
     });
 
     test('should be iterable', () {
@@ -21,7 +22,7 @@ void main() {
       for (final op in StoreOperation.values) {
         operations.add(op);
       }
-      expect(operations, hasLength(9));
+      expect(operations, hasLength(10));
     });
 
     group('name property', () {
@@ -59,6 +60,10 @@ void main() {
 
       test('sync should have name "sync"', () {
         expect(StoreOperation.sync.name, equals('sync'));
+      });
+
+      test('count should have name "count"', () {
+        expect(StoreOperation.count.name, equals('count'));
       });
     });
 
@@ -98,6 +103,7 @@ void main() {
           StoreOperation.save || StoreOperation.saveAll => 'write',
           StoreOperation.delete || StoreOperation.deleteAll => 'delete',
           StoreOperation.sync => 'sync',
+          StoreOperation.count => 'read',
         };
       }
 
@@ -129,6 +135,10 @@ void main() {
 
       test('returns true for getAll operation', () {
         expect(StoreOperation.getAll.isRead, isTrue);
+      });
+
+      test('returns true for count operation', () {
+        expect(StoreOperation.count.isRead, isTrue);
       });
 
       test('returns false for save operation', () {
@@ -229,6 +239,7 @@ void main() {
       test('returns false for read operations', () {
         expect(StoreOperation.get.modifiesData, isFalse);
         expect(StoreOperation.getAll.modifiesData, isFalse);
+        expect(StoreOperation.count.modifiesData, isFalse);
       });
 
       test('returns false for stream operations', () {

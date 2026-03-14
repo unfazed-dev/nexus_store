@@ -57,6 +57,13 @@ abstract interface class StoreBackend<T, ID> {
   /// updates when entities are added, modified, or removed.
   Stream<List<T>> watchAll({Query<T>? query});
 
+  /// Returns the count of entities matching the optional [query].
+  ///
+  /// If [query] is `null`, returns the total count of all entities.
+  /// Backends should implement this using efficient SQL (e.g., `SELECT COUNT(*)`)
+  /// rather than loading all entities into memory.
+  Future<int> count({Query<T>? query});
+
   // ---------------------------------------------------------------------------
   // Write Operations
   // ---------------------------------------------------------------------------
@@ -370,6 +377,12 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
         pageInfo: const PageInfo.empty(),
       ),
     );
+  }
+
+  @override
+  Future<int> count({Query<T>? query}) async {
+    final items = await getAll(query: query);
+    return items.length;
   }
 
   @override

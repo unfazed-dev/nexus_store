@@ -242,6 +242,9 @@ class CompositeBackend<T, ID>
   }
 
   @override
+  Future<int> count({Query<T>? query}) => primary.count(query: query);
+
+  @override
   Future<int> deleteWhere(Query<T> query) => primary.deleteWhere(query);
 
   // ---------------------------------------------------------------------------

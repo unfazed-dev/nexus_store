@@ -78,13 +78,20 @@ enum StoreOperation {
   ///
   /// Triggered when calling `store.sync()`.
   sync,
+
+  /// Count of entities matching an optional query.
+  ///
+  /// Triggered when calling `store.count()`.
+  count,
 }
 
 /// Extension methods for [StoreOperation].
 extension StoreOperationExtension on StoreOperation {
-  /// Whether this is a read operation (get, getAll).
+  /// Whether this is a read operation (get, getAll, count).
   bool get isRead =>
-      this == StoreOperation.get || this == StoreOperation.getAll;
+      this == StoreOperation.get ||
+      this == StoreOperation.getAll ||
+      this == StoreOperation.count;
 
   /// Whether this is a stream operation (watch, watchAll).
   bool get isStream =>

@@ -33,6 +33,9 @@ enum OperationType {
 
   /// Transaction operation.
   transaction,
+
+  /// Count operation.
+  count,
 }
 
 /// Metric for tracking store operation performance.

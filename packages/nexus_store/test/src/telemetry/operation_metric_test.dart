@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('OperationType', () {
     test('should have all required operation types', () {
-      expect(OperationType.values, hasLength(10));
+      expect(OperationType.values, hasLength(11));
       expect(OperationType.values, contains(OperationType.get));
       expect(OperationType.values, contains(OperationType.getAll));
       expect(OperationType.values, contains(OperationType.save));
@@ -15,6 +15,7 @@ void main() {
       expect(OperationType.values, contains(OperationType.watchAll));
       expect(OperationType.values, contains(OperationType.sync));
       expect(OperationType.values, contains(OperationType.transaction));
+      expect(OperationType.values, contains(OperationType.count));
     });
 
     test('should have correct names', () {
@@ -28,6 +29,7 @@ void main() {
       expect(OperationType.watchAll.name, equals('watchAll'));
       expect(OperationType.sync.name, equals('sync'));
       expect(OperationType.transaction.name, equals('transaction'));
+      expect(OperationType.count.name, equals('count'));
     });
   });
 

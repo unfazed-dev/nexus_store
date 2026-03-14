@@ -100,6 +100,7 @@ class TimingInterceptor extends StoreInterceptor {
       StoreOperation.watch => OperationType.watch,
       StoreOperation.watchAll => OperationType.watchAll,
       StoreOperation.sync => OperationType.sync,
+      StoreOperation.count => OperationType.count,
     };
   }
 }

@@ -337,6 +337,25 @@ class NexusStore<T, ID> {
     }, itemCount: 0); // itemCount updated after fetch
   }
 
+  /// Returns the count of entities matching the optional [query].
+  ///
+  /// Uses the configured [FetchPolicy] or the provided [policy] override.
+  /// More efficient than `getAll().length` as backends can use
+  /// `SELECT COUNT(*)` instead of loading all entities.
+  Future<int> count({Query<T>? query, FetchPolicy? policy}) async {
+    _ensureInitialized();
+
+    return _trackOperation(OperationType.count, () async {
+      return _interceptorChain.execute<Query<T>?, int>(
+        operation: StoreOperation.count,
+        request: query,
+        execute: () async {
+          return _backend.count(query: query);
+        },
+      );
+    });
+  }
+
   /// Watches a single entity for changes.
   ///
   /// Returns a [BehaviorSubject] stream that emits the current value

@@ -419,6 +419,63 @@ void main() {
       });
     });
 
+    group('toCountSql', () {
+      test('generates COUNT without query', () {
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+          query: null,
+        );
+
+        expect(sql, equals('SELECT COUNT(*) AS count FROM users'));
+        expect(args, isEmpty);
+      });
+
+      test('generates COUNT with empty query', () {
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+          query: const Query<Map<String, dynamic>>(),
+        );
+
+        expect(sql, equals('SELECT COUNT(*) AS count FROM users'));
+        expect(args, isEmpty);
+      });
+
+      test('generates COUNT with single filter', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('status', isEqualTo: 'active');
+
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(
+          sql,
+          equals('SELECT COUNT(*) AS count FROM users WHERE status = ?'),
+        );
+        expect(args, equals(['active']));
+      });
+
+      test('generates COUNT with multiple filters', () {
+        final query = const Query<Map<String, dynamic>>()
+            .where('status', isEqualTo: 'active')
+            .where('age', isGreaterThan: 18);
+
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(
+          sql,
+          equals(
+            'SELECT COUNT(*) AS count FROM users WHERE status = ? AND age > ?',
+          ),
+        );
+        expect(args, equals(['active', 18]));
+      });
+    });
+
     group('field mapping', () {
       test('applies field name mapping', () {
         final translatorWithMapping =

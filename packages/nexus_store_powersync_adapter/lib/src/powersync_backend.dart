@@ -476,6 +476,24 @@ class PowerSyncBackend<T, ID>
     return stream;
   }
 
+  @override
+  Future<int> count({nexus.Query<T>? query}) async {
+    _ensureInitialized();
+
+    try {
+      final (sql, args) = _queryTranslator.toCountSql(
+        tableName: _tableName,
+        query: query,
+      );
+
+      final results = await _db.execute(sql, args);
+      if (results.isEmpty) return 0;
+      return results.first['count'] as int? ?? 0;
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
   // ===================== WRITE OPERATIONS =====================
 
   @override

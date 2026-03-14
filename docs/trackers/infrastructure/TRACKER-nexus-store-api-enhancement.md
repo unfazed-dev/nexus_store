@@ -1,13 +1,13 @@
 # TRACKER: NexusStore API Enhancement
 
-## Status: PLANNING
+## Status: IN PROGRESS
 
 ## Progress
 
 ### Overview
 | Phase | Status | Tests | Committed | Last Updated |
 |-------|--------|-------|-----------|--------------|
-| 1. count() Method | ⏳ Pending | ~22 | — | — |
+| 1. count() Method | ✅ Complete | 22 | ⏳ | 2026-03-14 |
 | 2. deleteWhere() on NexusStore | ⏳ Pending | ~19 | — | — |
 | 3. Text Search in Query.where() | ⏳ Pending | ~12 | — | — |
 | 4. Backend Capability Introspection | ⏳ Pending | ~5 | — | — |
@@ -25,16 +25,27 @@
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — |
 
-**Overall:** ░░░░░░░░░░░░░░░░ 0% complete
-**Tests:** 0 passing | ~246-251 estimated total
+**Overall:** █░░░░░░░░░░░░░░░ 6% complete
+**Tests:** 22 passing | ~246-251 estimated total
 
 ### Progress Log
 
+
+**Phase 1 Results (2026-03-14):**
+- Added `count()` method to StoreBackend interface, StoreBackendDefaults, CompositeBackend, PowerSyncBackend, and NexusStore
+- Added `StoreOperation.count` enum value with `isRead` classification
+- Added `OperationType.count` for telemetry tracking
+- Added `toCountSql()` to PowerSyncQueryTranslator (SELECT COUNT(*))
+- Wired through interceptor chain and `_trackOperation` in NexusStore
+- Updated timing_interceptor switch for count mapping
+- Tests: 22 count-related tests added/updated across 4 test files
+- Harness: accepted: true (format, analyze, invariants all pass)
+
 **Current State (2026-03-14):**
-- Working on: PLANNING
-- Last completed: N/A
+- Working on: COMPLETE (Phase 1)
+- Last completed: Phase 1 — count() method
 - Blocked by: Nothing
-- Next up: Phase 1 (count) — highest priority, no dependencies
+- Next up: Phase 2 — deleteWhere() on NexusStore
 
 ---
 
@@ -113,24 +124,24 @@ flutter analyze
 **Dependencies:** None — can start immediately.
 
 ### Pre-Implementation Checklist
-- [ ] Read `store_backend.dart` — StoreBackend interface, StoreBackendDefaults mixin
-- [ ] Read `nexus_store.dart` — public API, `_trackOperation`, `_interceptorChain.execute` pattern
-- [ ] Read `composite_backend.dart` — delegation pattern
-- [ ] Read `store_operation.dart` — StoreOperation enum, extension methods
-- [ ] Read `operation_metric.dart` — OperationType enum
-- [ ] Read `powersync_backend.dart` — how other methods use `_queryTranslator`
-- [ ] Read `powersync_query_translator.dart` — `toSelectSql()`, `toDeleteSql()` patterns
+- [x] Read `store_backend.dart` — StoreBackend interface, StoreBackendDefaults mixin
+- [x] Read `nexus_store.dart` — public API, `_trackOperation`, `_interceptorChain.execute` pattern
+- [x] Read `composite_backend.dart` — delegation pattern
+- [x] Read `store_operation.dart` — StoreOperation enum, extension methods
+- [x] Read `operation_metric.dart` — OperationType enum
+- [x] Read `powersync_backend.dart` — how other methods use `_queryTranslator`
+- [x] Read `powersync_query_translator.dart` — `toSelectSql()`, `toDeleteSql()` patterns
 
 ### Tasks
-1. Add `Future<int> count({Query<T>? query})` to `StoreBackend` interface
-2. Add default impl in `StoreBackendDefaults`: `getAll(query:).then((l) => l.length)`
-3. Add `count()` to `CompositeBackend` (delegate to primary)
-4. Add `StoreOperation.count` enum value, update `isRead` extension
-5. Add `OperationType.count` for telemetry
-6. Add `toCountSql()` to `PowerSyncQueryTranslator`
-7. Add `count()` to `PowerSyncBackend` using `SELECT COUNT(*)`
-8. Add `Future<int> count({Query<T>? query, FetchPolicy? policy})` to `NexusStore`
-9. Wire through interceptor chain and `_trackOperation`
+1. [x] Add `Future<int> count({Query<T>? query})` to `StoreBackend` interface
+2. [x] Add default impl in `StoreBackendDefaults`: `getAll(query:).then((l) => l.length)`
+3. [x] Add `count()` to `CompositeBackend` (delegate to primary)
+4. [x] Add `StoreOperation.count` enum value, update `isRead` extension
+5. [x] Add `OperationType.count` for telemetry
+6. [x] Add `toCountSql()` to `PowerSyncQueryTranslator`
+7. [x] Add `count()` to `PowerSyncBackend` using `SELECT COUNT(*)`
+8. [x] Add `Future<int> count({Query<T>? query, FetchPolicy? policy})` to `NexusStore`
+9. [x] Wire through interceptor chain and `_trackOperation`
 
 ### Tests (~22)
 - `store_backend_test.dart` — default count fallback
@@ -142,20 +153,20 @@ flutter analyze
 - `operation_metric_test.dart` — OperationType.count exists
 
 ### Acceptance Criteria
-- [ ] `store.count()` returns total count without fetching all entities
-- [ ] `store.count(query: Query<T>().where('status', isEqualTo: 'active'))` returns filtered count
-- [ ] PowerSync uses `SELECT COUNT(*)` (not in-memory)
-- [ ] Interceptor chain processes `StoreOperation.count`
-- [ ] Telemetry tracks `OperationType.count`
+- [x] `store.count()` returns total count without fetching all entities
+- [x] `store.count(query: Query<T>().where('status', isEqualTo: 'active'))` returns filtered count
+- [x] PowerSync uses `SELECT COUNT(*)` (not in-memory)
+- [x] Interceptor chain processes `StoreOperation.count`
+- [x] Telemetry tracks `OperationType.count`
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~22)
-- [ ] `dart test` passes in `nexus_store/`
-- [ ] `dart test` passes in `nexus_store_powersync_adapter/`
-- [ ] `dart analyze` clean in both packages
-- [ ] Tracker progress table updated
-- [ ] Harness verification checkpoint passed
+- [x] All tasks checked
+- [x] Tests passing (expected: ~22)
+- [x] `dart test` passes in `nexus_store/`
+- [x] `dart test` passes in `nexus_store_powersync_adapter/`
+- [x] `dart analyze` clean in both packages
+- [x] Tracker progress table updated
+- [x] Harness verification checkpoint passed
 
 ### Harness Verification Checkpoint
 ```bash
@@ -1014,3 +1025,4 @@ bash .claude/orchestrators/pre-commit-check.sh
 |------|-------|
 | 2026-03-14 | Tracker created — 17 phases, ~246-251 estimated tests |
 | 2026-03-14 | Tracker re-created with harness template format (pre/post checklists, verification checkpoints, completion checklist) |
+| 2026-03-14 | Phase 1 complete — count() method added to StoreBackend, NexusStore, PowerSyncBackend, CompositeBackend |

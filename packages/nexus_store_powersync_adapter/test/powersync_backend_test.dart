@@ -435,6 +435,87 @@ void main() {
       });
     });
 
+    group('count operations', () {
+      setUp(() async {
+        await backend.initialize();
+      });
+
+      test('count returns total count without query', () async {
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'count': 5},
+          ],
+        );
+
+        final result = await backend.count();
+
+        expect(result, equals(5));
+        verify(
+          () => mockDb.execute(
+            any(that: contains('SELECT COUNT(*)')),
+            any(),
+          ),
+        ).called(1);
+      });
+
+      test('count returns filtered count with query', () async {
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'count': 3},
+          ],
+        );
+
+        final query =
+            const nexus.Query<TestUser>().where('name', isEqualTo: 'John');
+        final result = await backend.count(query: query);
+
+        expect(result, equals(3));
+        verify(
+          () => mockDb.execute(
+            any(that: allOf(contains('COUNT(*)'), contains('WHERE'))),
+            any(that: equals(['John'])),
+          ),
+        ).called(1);
+      });
+
+      test('count returns 0 when no results', () async {
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [],
+        );
+
+        final result = await backend.count();
+
+        expect(result, equals(0));
+      });
+
+      test('count returns 0 when count is null', () async {
+        when(() => mockDb.execute(any(), any())).thenAnswer(
+          (_) async => [
+            {'count': null},
+          ],
+        );
+
+        final result = await backend.count();
+
+        expect(result, equals(0));
+      });
+
+      test('count throws on uninitialized backend', () async {
+        final uninitBackend = PowerSyncBackend<TestUser, String>.withWrapper(
+          db: mockDb,
+          tableName: 'users',
+          getId: (user) => user.id,
+          fromJson: TestUser.fromJson,
+          toJson: (user) => user.toJson(),
+        );
+
+        expect(
+          uninitBackend.count,
+          throwsA(isA<nexus.StoreError>()),
+        );
+      });
+    });
+
     group('watch operations', () {
       late StreamController<List<Map<String, dynamic>>> watchController;
 
