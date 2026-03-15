@@ -11,7 +11,7 @@
 | 2. deleteWhere() on NexusStore | ✅ Complete | 21 | ✅ 97.9% | `d5fbe0b` | 2026-03-15 |
 | 3. Text Search in Query.where() | ✅ Complete | 14 | ✅ 97.9% | `45f60c9` | 2026-03-15 |
 | 4. Backend Capability Introspection | ✅ Complete | 6 | ✅ 97.9% | `e83e79d` | 2026-03-15 |
-| 5. Firefly Repository Migration | ⏳ Pending | ~15-20 | — | — | — |
+| 5. Firefly Repository Migration | ✅ Complete | 13 | — | ⏳ | 2026-03-15 |
 | 6. Drift Adapter Parity | ⏳ Pending | ~15 | — | — | — |
 | 7. OR Logic in Query | ⏳ Pending | ~20 | — | — | — |
 | 8. Aggregate Operations | ⏳ Pending | ~18 | — | — | — |
@@ -25,8 +25,8 @@
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
-**Overall:** ████░░░░░░░░░░░░ 24% complete
-**Tests:** 63 passing | ~246-251 estimated total
+**Overall:** █████░░░░░░░░░░░ 29% complete
+**Tests:** 76 passing | ~246-251 estimated total
 
 ### Progress Log
 
@@ -67,11 +67,19 @@
 - Tests: 6 tests (4 for BackendCapabilities class, 2 for NexusStore.capabilities delegation)
 - Harness: accepted: true (format, analyze, invariants, coverage all pass)
 
+**Phase 5 Results (2026-03-15):**
+- Migrated 5 Firefly repositories to use `count()` and `deleteWhere()` APIs
+- count() replacements: TrainingRepository (getProgramsCount, getActiveEnrollmentsCount), PayslipRepository (getPendingPayslipsCount, getUnpaidPayslipsCount), UserSelectionRepository (getSelectionCounts), LocalMessageRepository (getPendingSyncCount), LocalDraftRepository (getPendingDraftCount)
+- deleteWhere() replacements: LocalMessageRepository (clearAll, clearSyncQueue, clearAllCache), LocalDraftRepository (clearDraftsForUser, clearAllDrafts), UserSelectionRepository (clearAllSelections)
+- Updated nexus_store dependency to local path overrides for development
+- Tests: 13 new/updated tests (4 training, 4 payslip, 5 user_selection) + 99 total passing across all 5 repos
+- Harness: flutter analyze clean, all tests passing
+
 **Current State (2026-03-15):**
-- Working on: COMPLETE (Phase 4)
-- Last completed: Phase 4 — Backend Capability Introspection
+- Working on: COMPLETE (Phase 5)
+- Last completed: Phase 5 — Firefly Repository Migration
 - Blocked by: Nothing
-- Next up: Phase 5 — Firefly Repository Migration
+- Next up: Phase 6 — Drift Adapter Parity
 
 ---
 
@@ -387,41 +395,41 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** Phases 1, 2, 3 must be complete.
 
 ### Pre-Implementation Checklist
-- [ ] Phase 1 (count) complete and committed
-- [ ] Phase 2 (deleteWhere) complete and committed
-- [ ] Phase 3 (text search) complete and committed
-- [ ] Run `prior-art` agent to identify all migration targets
+- [x] Phase 1 (count) complete and committed
+- [x] Phase 2 (deleteWhere) complete and committed
+- [x] Phase 3 (text search) complete and committed
+- [x] Run `prior-art` agent to identify all migration targets
 
 ### Tasks
 #### RED: Write Failing Tests (~15-20)
-- [ ] Scaffold test files (`test-scaffold` agent)
-- [ ] Updated repository tests for count() usage
-- [ ] Updated repository tests for deleteWhere() usage
-- [ ] Updated text search tests
-- [ ] Verify all tests FAIL
+- [x] Scaffold test files (`test-scaffold` agent)
+- [x] Updated repository tests for count() usage
+- [x] Updated repository tests for deleteWhere() usage
+- [x] Updated text search tests — N/A (no text search patterns found in target repos)
+- [x] Verify all tests FAIL
 
 #### GREEN: Implement
-1. [ ] Replace `getAll().length` with `count()` in: training_repository, local_message_repository, local_draft_repository, payslip_repository, user_selection_repository
-2. [ ] Replace `getAll()` + `deleteAll(ids)` with `deleteWhere()` in: local_message_repository, local_draft_repository
-3. [ ] Replace in-memory text search with `Query.where(contains:)` where applicable
-4. [ ] Update corresponding tests
-5. [ ] Verify all tests PASS
+1. [x] Replace `getAll().length` with `count()` in: training_repository, local_message_repository, local_draft_repository, payslip_repository, user_selection_repository
+2. [x] Replace `getAll()` + `deleteAll(ids)` with `deleteWhere()` in: local_message_repository, local_draft_repository
+3. [x] Replace in-memory text search with `Query.where(contains:)` where applicable — N/A (no text search patterns found)
+4. [x] Update corresponding tests
+5. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
-- [ ] No repository uses `getAll().length` pattern
-- [ ] No repository uses `getAll()` + `deleteAll(ids)` pattern where `deleteWhere()` is applicable
-- [ ] All Firefly tests pass
+- [x] No repository uses `getAll().length` pattern
+- [x] No repository uses `getAll()` + `deleteAll(ids)` pattern where `deleteWhere()` is applicable
+- [x] All Firefly tests pass
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~15-20 updated)
-- [ ] `python3 .claude/hooks/core/smart-test-run.py` passes
-- [ ] `flutter analyze` clean
-- [ ] Coverage >= 95% for changed packages
-- [ ] Tracker progress table updated
+- [x] All tasks checked
+- [x] Tests passing (expected: ~15-20 updated, actual: 13 new + 99 total passing)
+- [x] `python3 .claude/hooks/core/smart-test-run.py` passes
+- [x] `flutter analyze` clean
+- [x] Coverage >= 95% for changed packages — N/A (Firefly app migration, no nexus_store package changes)
+- [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
 ```bash
@@ -1190,3 +1198,6 @@ bash .claude/orchestrators/pre-commit-check.sh
 | 2026-03-14 | Tracker re-created with harness template format (pre/post checklists, verification checkpoints, completion checklist) |
 | 2026-03-14 | Phase 1 complete — count() method added to StoreBackend, NexusStore, PowerSyncBackend, CompositeBackend |
 | 2026-03-15 | Phase 2 complete — deleteWhere() added to WritePolicyHandler, NexusStore with interceptor chain, telemetry, cache invalidation |
+| 2026-03-15 | Phase 3 complete — Text search (contains/startsWith/endsWith) added to Query.where() |
+| 2026-03-15 | Phase 4 complete — BackendCapabilities class with 5 capability flags |
+| 2026-03-15 | Phase 5 complete — Firefly repository migration: 5 repos migrated to count() and deleteWhere(), 13 new tests, 99 total passing |
