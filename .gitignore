@@ -32,7 +32,7 @@ tests_reports/
 
 # Claude Code (personal/ephemeral)
 .claude/settings.local.json
-.claude/test-history/
+**/.claude/test-history/
 .claude/progress/sessions/
 .claude/progress/backup-state.json
 .claude/progress/cm-stats.json
