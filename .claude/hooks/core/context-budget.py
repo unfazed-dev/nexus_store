@@ -118,6 +118,9 @@ def _reset_cm_session_counters():
             stats["session_raw_bytes"] = 0
             stats["session_call_count"] = 0
             stats.pop("session_reduction_pct", None)
+            # Clear stale "0" ratio so it doesn't poison the next session
+            if stats.get("last_known_reduction_pct") and int(stats.get("last_known_reduction_pct", "0")) == 0:
+                stats.pop("last_known_reduction_pct", None)
             stats["updated_at"] = datetime.now(timezone.utc).isoformat()
             CM_STATS_FILE.write_text(json.dumps(stats, indent=2) + "\n")
     except (json.JSONDecodeError, OSError):
@@ -243,7 +246,7 @@ def get_cm_tag(context_window: dict = None) -> str:
                 entered_bytes = session_bytes
                 session_raw = stats.get("session_raw_bytes", 0)
                 ratio = stats.get("last_known_reduction_pct") or stats.get("reduction_pct")
-                if ratio:
+                if ratio and int(ratio) > 0:
                     # Ratio-based estimate is most reliable
                     pct = int(ratio)
                     estimated_total = int(entered_bytes / (1 - pct / 100)) if pct < 100 else entered_bytes
@@ -258,7 +261,7 @@ def get_cm_tag(context_window: dict = None) -> str:
                     hint = " (run ctx stats for %)" if session_calls % 20 == 0 else ""
                     return f" [Context Mode: ~{approx} in {session_calls} calls{hint}]"
 
-            if has_fresh_stats and total_bytes > 0 and entered_bytes > 0:
+            if has_fresh_stats and total_bytes > 0 and entered_bytes > 0 and total_bytes > entered_bytes:
                 # Build unified display with token savings
                 tag = f" [Context Mode: {format_bytes(total_bytes)} \u2192 {format_bytes(entered_bytes)}"
                 saved_k, budget_pct = _compute_token_savings(total_bytes, entered_bytes, window_size)
@@ -269,6 +272,9 @@ def get_cm_tag(context_window: dict = None) -> str:
                     tag += f" | saved: ~{reduction_pct}%"
                 tag += "]"
                 return tag
+            elif has_fresh_stats and entered_bytes > 0:
+                # No measurable savings — show simple indicator without misleading 0%
+                return f" [Context Mode: ~{format_bytes(entered_bytes)} in {session_calls} calls]"
 
     except (json.JSONDecodeError, OSError, ValueError, KeyError):
         pass

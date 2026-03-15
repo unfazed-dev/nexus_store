@@ -218,7 +218,8 @@ def main():
         stats["updated_at"] = now
         stats["authoritative_updated_at"] = now
         # Persist reduction ratio for hybrid display between ctx_stats calls
-        if stats.get("reduction_pct"):
+        # Don't persist "0" — a 0% ratio is useless as estimation baseline
+        if stats.get("reduction_pct") and int(stats.get("reduction_pct", "0")) > 0:
             stats["last_known_reduction_pct"] = stats["reduction_pct"]
         write_stats(stats)
         mark_cm_used_this_session()
