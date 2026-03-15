@@ -262,6 +262,10 @@ class CompositeBackend<T, ID>
   @override
   Future<int> deleteWhere(Query<T> query) => primary.deleteWhere(query);
 
+  @override
+  Future<int> updateWhere(Query<T> query, Map<String, dynamic> updates) =>
+      primary.updateWhere(query, updates);
+
   // ---------------------------------------------------------------------------
   // Sync Operations
   // ---------------------------------------------------------------------------

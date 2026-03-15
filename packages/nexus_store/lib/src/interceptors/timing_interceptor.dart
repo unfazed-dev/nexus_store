@@ -105,6 +105,7 @@ class TimingInterceptor extends StoreInterceptor {
       StoreOperation.aggregate => OperationType.aggregate,
       StoreOperation.exists => OperationType.exists,
       StoreOperation.existsWhere => OperationType.existsWhere,
+      StoreOperation.updateWhere => OperationType.updateWhere,
     };
   }
 }

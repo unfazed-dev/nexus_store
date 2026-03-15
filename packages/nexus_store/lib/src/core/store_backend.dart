@@ -121,6 +121,16 @@ abstract interface class StoreBackend<T, ID> {
   /// Returns the count of entities deleted.
   Future<int> deleteWhere(Query<T> query);
 
+  /// Updates all entities matching the [query] with the given [updates].
+  ///
+  /// The [updates] map contains field names and their new values.
+  /// Returns the count of entities updated.
+  ///
+  /// Backends should implement this using efficient SQL
+  /// (e.g., `UPDATE table SET field=value WHERE ...`) rather than
+  /// loading all entities into memory.
+  Future<int> updateWhere(Query<T> query, Map<String, dynamic> updates);
+
   // ---------------------------------------------------------------------------
   // Sync Operations
   // ---------------------------------------------------------------------------
@@ -441,6 +451,27 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
     throw UnsupportedError(
       'In-memory aggregate requires a backend with field extraction support. '
       'Override aggregate() in your backend or use an SQL-based backend.',
+    );
+  }
+
+  @override
+  Future<int> updateWhere(
+    Query<T> query,
+    Map<String, dynamic> updates,
+  ) async {
+    if (updates.isEmpty) return 0;
+
+    // Default in-memory implementation: load matching entities,
+    // apply updates, and save them back.
+    final items = await getAll(query: query);
+    if (items.isEmpty) return 0;
+
+    // Subclasses with toJson/fromJson should override this for proper
+    // field-level updates. This default throws UnsupportedError since
+    // we can't update fields on generic T without serialization knowledge.
+    throw UnsupportedError(
+      'In-memory updateWhere requires a backend with field update support. '
+      'Override updateWhere() in your backend or use an SQL-based backend.',
     );
   }
 

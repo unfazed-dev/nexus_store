@@ -76,6 +76,26 @@ class WritePolicyHandler<T, ID> {
     };
   }
 
+  /// Updates all entities matching the [query] with [updates] according to
+  /// the [policy].
+  ///
+  /// Returns the count of updated entities.
+  Future<int> updateWhere(
+    Query<T> query,
+    Map<String, dynamic> updates, {
+    WritePolicy? policy,
+  }) async {
+    final effectivePolicy = policy ?? defaultPolicy;
+
+    return switch (effectivePolicy) {
+      WritePolicy.cacheAndNetwork =>
+        _updateWhereCacheAndNetwork(query, updates),
+      WritePolicy.networkFirst => _updateWhereNetworkFirst(query, updates),
+      WritePolicy.cacheFirst => _updateWhereCacheFirst(query, updates),
+      WritePolicy.cacheOnly => backend.updateWhere(query, updates),
+    };
+  }
+
   // ---------------------------------------------------------------------------
   // Cache-And-Network Strategy (Optimistic)
   // ---------------------------------------------------------------------------
@@ -189,6 +209,42 @@ class WritePolicyHandler<T, ID> {
 
   Future<int> _deleteWhereCacheFirst(Query<T> query) async {
     final count = await backend.deleteWhere(query);
+    unawaited(_syncInBackground());
+    return count;
+  }
+
+  // ---------------------------------------------------------------------------
+  // UpdateWhere Strategies
+  // ---------------------------------------------------------------------------
+
+  Future<int> _updateWhereCacheAndNetwork(
+    Query<T> query,
+    Map<String, dynamic> updates,
+  ) async {
+    final count = await backend.updateWhere(query, updates);
+
+    try {
+      await backend.sync();
+      return count;
+    } on StoreError {
+      rethrow;
+    }
+  }
+
+  Future<int> _updateWhereNetworkFirst(
+    Query<T> query,
+    Map<String, dynamic> updates,
+  ) async {
+    final count = await backend.updateWhere(query, updates);
+    await backend.sync();
+    return count;
+  }
+
+  Future<int> _updateWhereCacheFirst(
+    Query<T> query,
+    Map<String, dynamic> updates,
+  ) async {
+    final count = await backend.updateWhere(query, updates);
     unawaited(_syncInBackground());
     return count;
   }

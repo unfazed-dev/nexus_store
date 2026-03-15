@@ -16,7 +16,7 @@
 | 7. OR Logic in Query | ✅ Complete | 35 | ✅ 97.9% | `1e8333e` | 2026-03-15 |
 | 8. Aggregate Operations | ✅ Complete | 42 | ✅ 95.8% | `00288c3` | 2026-03-15 |
 | 9. exists() Method | ✅ Complete | 17 | ✅ 95.8% | `30135f5` | 2026-03-16 |
-| 10. updateWhere() / Batch Update | ⏳ Pending | ~16 | — | — | — |
+| 10. updateWhere() / Batch Update | ✅ Complete | 37 | ✅ 95.8% | ⏳ | 2026-03-16 |
 | 11. patch() / Partial Update | ⏳ Pending | ~14 | — | — | — |
 | 12. Reactive Streams (watchCount, watchOne) | ⏳ Pending | ~10 | — | — | — |
 | 13. Query Convenience Methods | ⏳ Pending | ~14 | — | — | — |
@@ -25,10 +25,22 @@
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
-**Overall:** █████████░░░░░░░ 53% complete
-**Tests:** 189 passing | ~246-251 estimated total
+**Overall:** ██████████░░░░░░ 59% complete
+**Tests:** 226 passing | ~246-251 estimated total
 
 ### Progress Log
+
+**Phase 10 Results (2026-03-16):**
+- Added `updateWhere(Query<T> query, Map<String, dynamic> updates)` to `StoreBackend` interface
+- Default implementation in `StoreBackendDefaults` throws `UnsupportedError` (requires field extraction knowledge)
+- Added `updateWhere` to `NexusStore` with interceptor chain, write policy, cache invalidation, audit logging
+- Added `updateWhere` to `WritePolicyHandler` with all 4 write policy strategies
+- Added `toUpdateWhereSql` to both `PowerSyncQueryTranslator` and `DriftQueryTranslator`
+- Native SQL `UPDATE SET ... WHERE ...` in both PowerSync and Drift backends
+- Added `StoreOperation.updateWhere` (classified as write) and `OperationType.updateWhere`
+- Added `updateWhere` to `CompositeBackend` (delegates to primary)
+- 37 tests across 7 test files (core, backend, policy, interceptor, telemetry, PowerSync, Drift)
+- Harness: accepted=true, all packages >= 95% coverage
 
 **Phase 9 Results (2026-03-16):**
 - Added `exists(ID id)` and `existsWhere(Query<T> query)` to `StoreBackend` interface

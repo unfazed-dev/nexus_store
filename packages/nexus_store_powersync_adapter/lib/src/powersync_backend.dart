@@ -695,6 +695,35 @@ class PowerSyncBackend<T, ID>
     }
   }
 
+  @override
+  Future<int> updateWhere(
+    nexus.Query<T> query,
+    Map<String, dynamic> updates,
+  ) async {
+    _ensureInitialized();
+
+    if (updates.isEmpty) return 0;
+
+    try {
+      _syncStatusSubject.add(nexus.SyncStatus.pending);
+
+      final (sql, args) = _queryTranslator.toUpdateWhereSql(
+        tableName: _tableName,
+        query: query,
+        updates: updates,
+      );
+
+      await _db.execute(sql, args);
+
+      _syncStatusSubject.add(nexus.SyncStatus.synced);
+      // Note: SQLite doesn't return affected row count from execute
+      return 0;
+    } catch (e, stackTrace) {
+      _syncStatusSubject.add(nexus.SyncStatus.error);
+      throw _mapException(e, stackTrace);
+    }
+  }
+
   // ===================== SYNC OPERATIONS =====================
 
   @override

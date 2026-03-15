@@ -161,6 +161,24 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
     return count;
   }
 
+  /// Control flag for updateWhere failures.
+  bool shouldFailOnUpdate = false;
+
+  @override
+  Future<int> updateWhere(
+    Query<T> query,
+    Map<String, dynamic> updates,
+  ) async {
+    if (shouldFailOnUpdate) {
+      throw errorToThrow ?? Exception('UpdateWhere failed');
+    }
+    if (updates.isEmpty) return 0;
+    // For testing, update all items in storage
+    final count = _storage.length;
+    _watchAllSubject?.add(_storage.values.toList());
+    return count;
+  }
+
   @override
   Future<void> sync() async {
     if (shouldFailOnSync) {

@@ -48,6 +48,9 @@ enum OperationType {
 
   /// Existence check by query.
   existsWhere,
+
+  /// Update by query operation.
+  updateWhere,
 }
 
 /// Metric for tracking store operation performance.

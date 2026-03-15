@@ -138,6 +138,36 @@ class PowerSyncQueryTranslator<T>
     return (buffer.toString(), args);
   }
 
+  /// Generates an UPDATE SET SQL statement with WHERE clause.
+  ///
+  /// Returns a tuple of (sql, arguments) for parameterized query execution.
+  (String sql, List<Object?> args) toUpdateWhereSql({
+    required String tableName,
+    required Query<T> query,
+    required Map<String, dynamic> updates,
+  }) {
+    final args = <Object?>[];
+    final buffer = StringBuffer('UPDATE $tableName SET ');
+
+    // Build SET clause
+    final setClauses = <String>[];
+    for (final entry in updates.entries) {
+      final column = _mapFieldName(entry.key);
+      setClauses.add('$column = ?');
+      args.add(entry.value);
+    }
+    buffer.write(setClauses.join(', '));
+
+    // Build WHERE clause
+    if (query.hasFilters) {
+      buffer
+        ..write(' WHERE ')
+        ..write(_buildFullWhereClause(query, args));
+    }
+
+    return (buffer.toString(), args);
+  }
+
   /// Generates a DELETE SQL statement with optional WHERE clause.
   ///
   /// Returns a tuple of (sql, arguments) for parameterized query execution.

@@ -585,6 +585,37 @@ class DriftBackend<T, ID>
     }
   }
 
+  @override
+  Future<int> updateWhere(
+    nexus.Query<T> query,
+    Map<String, dynamic> updates,
+  ) async {
+    _ensureInitialized();
+
+    if (updates.isEmpty) return 0;
+
+    try {
+      final (sql, args) = _queryTranslator.toUpdateWhereSql(
+        tableName: _tableName,
+        query: query,
+        updates: updates,
+      );
+
+      final updated = await _executor!.customUpdate(
+        sql,
+        variables: [for (final arg in args) Variable(arg)],
+        updates: {},
+      );
+
+      // Refresh watchers since we don't know which items were updated
+      _refreshAllWatchers();
+
+      return updated;
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Sync Operations (Local-Only Stubs)
   // ---------------------------------------------------------------------------
