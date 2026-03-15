@@ -13,7 +13,7 @@
 | 4. Backend Capability Introspection | ✅ Complete | 6 | ✅ 97.9% | `e83e79d` | 2026-03-15 |
 | 5. Firefly Repository Migration | ✅ Complete | 13 | — | `38c46e65` | 2026-03-15 |
 | 6. Drift Adapter Parity | ✅ Complete | 19 | ✅ 95.8% | `40b15d8` | 2026-03-15 |
-| 7. OR Logic in Query | ✅ Complete | 35 | ✅ 97.9% | ⏳ | 2026-03-15 |
+| 7. OR Logic in Query | ✅ Complete | 35 | ✅ 97.9% | `1e8333e` | 2026-03-15 |
 | 8. Aggregate Operations | ⏳ Pending | ~18 | — | — | — |
 | 9. exists() Method | ⏳ Pending | ~12 | — | — | — |
 | 10. updateWhere() / Batch Update | ⏳ Pending | ~16 | — | — | — |
