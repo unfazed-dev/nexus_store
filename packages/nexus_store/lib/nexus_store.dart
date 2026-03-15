@@ -86,6 +86,7 @@ export 'src/interceptors/store_interceptor.dart';
 export 'src/interceptors/store_operation.dart';
 export 'src/interceptors/timing_interceptor.dart';
 export 'src/interceptors/validation_interceptor.dart';
+export 'src/core/aggregate_result.dart';
 export 'src/core/backend_capabilities.dart';
 export 'src/core/composite_backend.dart';
 // Core

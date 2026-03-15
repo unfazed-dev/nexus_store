@@ -494,6 +494,32 @@ class PowerSyncBackend<T, ID>
     }
   }
 
+  @override
+  Future<num?> aggregate(
+    String field,
+    nexus.AggregateType type, {
+    nexus.Query<T>? query,
+  }) async {
+    _ensureInitialized();
+
+    try {
+      final (sql, args) = _queryTranslator.toAggregateSql(
+        tableName: _tableName,
+        field: field,
+        type: type,
+        query: query,
+      );
+
+      final results = await _db.execute(sql, args);
+      if (results.isEmpty) return null;
+      final value = results.first['result'];
+      if (value == null) return null;
+      return value as num;
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
   // ===================== WRITE OPERATIONS =====================
 
   @override

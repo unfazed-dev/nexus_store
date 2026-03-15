@@ -13,6 +13,7 @@ import 'package:nexus_store/src/compliance/audit_service.dart';
 import 'package:nexus_store/src/compliance/gdpr_service.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/store_config.dart';
+import 'package:nexus_store/src/core/aggregate_result.dart';
 import 'package:nexus_store/src/core/backend_capabilities.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/interceptors/interceptor_chain.dart';
@@ -372,6 +373,65 @@ class NexusStore<T, ID> {
       );
     });
   }
+
+  /// Computes an aggregate value for a numeric [field].
+  ///
+  /// Returns the result of applying [type] (sum, avg, min, max) to [field]
+  /// across all entities matching the optional [query].
+  ///
+  /// Returns `null` if no entities match or if the field contains only nulls.
+  ///
+  /// Example:
+  /// ```dart
+  /// final total = await store.aggregate('amount', AggregateType.sum,
+  ///   query: Query<Order>().where('status', isEqualTo: 'completed'),
+  /// );
+  /// ```
+  Future<num?> aggregate(
+    String field,
+    AggregateType type, {
+    Query<T>? query,
+  }) async {
+    _ensureInitialized();
+
+    return _trackOperation(OperationType.aggregate, () async {
+      return _interceptorChain.execute<Query<T>?, num?>(
+        operation: StoreOperation.aggregate,
+        request: query,
+        execute: () async {
+          return _backend.aggregate(field, type, query: query);
+        },
+      );
+    });
+  }
+
+  /// Computes the sum of a numeric [field] across matching entities.
+  ///
+  /// Convenience wrapper for `aggregate(field, AggregateType.sum)`.
+  /// Returns `null` if no entities match.
+  Future<num?> sum(String field, {Query<T>? query}) =>
+      aggregate(field, AggregateType.sum, query: query);
+
+  /// Computes the average of a numeric [field] across matching entities.
+  ///
+  /// Convenience wrapper for `aggregate(field, AggregateType.avg)`.
+  /// Returns `null` if no entities match.
+  Future<num?> avg(String field, {Query<T>? query}) =>
+      aggregate(field, AggregateType.avg, query: query);
+
+  /// Finds the minimum value of a numeric [field] across matching entities.
+  ///
+  /// Convenience wrapper for `aggregate(field, AggregateType.min)`.
+  /// Returns `null` if no entities match.
+  Future<num?> min(String field, {Query<T>? query}) =>
+      aggregate(field, AggregateType.min, query: query);
+
+  /// Finds the maximum value of a numeric [field] across matching entities.
+  ///
+  /// Convenience wrapper for `aggregate(field, AggregateType.max)`.
+  /// Returns `null` if no entities match.
+  Future<num?> max(String field, {Query<T>? query}) =>
+      aggregate(field, AggregateType.max, query: query);
 
   /// Watches a single entity for changes.
   ///

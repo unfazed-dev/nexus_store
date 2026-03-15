@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:nexus_store/src/config/policies.dart';
+import 'package:nexus_store/src/core/aggregate_result.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/pagination/page_info.dart';
 import 'package:nexus_store/src/pagination/paged_result.dart';
@@ -243,6 +244,14 @@ class CompositeBackend<T, ID>
 
   @override
   Future<int> count({Query<T>? query}) => primary.count(query: query);
+
+  @override
+  Future<num?> aggregate(
+    String field,
+    AggregateType type, {
+    Query<T>? query,
+  }) =>
+      primary.aggregate(field, type, query: query);
 
   @override
   Future<int> deleteWhere(Query<T> query) => primary.deleteWhere(query);

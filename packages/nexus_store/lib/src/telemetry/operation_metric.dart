@@ -39,6 +39,9 @@ enum OperationType {
 
   /// Delete by query operation.
   deleteWhere,
+
+  /// Aggregate computation (sum, avg, min, max).
+  aggregate,
 }
 
 /// Metric for tracking store operation performance.

@@ -368,6 +368,36 @@ class DriftBackend<T, ID>
     }
   }
 
+  @override
+  Future<num?> aggregate(
+    String field,
+    nexus.AggregateType type, {
+    nexus.Query<T>? query,
+  }) async {
+    _ensureInitialized();
+
+    try {
+      final (sql, args) = _queryTranslator.toAggregateSql(
+        tableName: _tableName,
+        field: field,
+        type: type,
+        query: query,
+      );
+
+      final results = await _executor!.customSelect(
+        sql,
+        variables: [for (final arg in args) Variable(arg)],
+      ).get();
+
+      if (results.isEmpty) return null;
+      final value = results.first.data['result'];
+      if (value == null) return null;
+      return value as num;
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Write Operations
   // ---------------------------------------------------------------------------

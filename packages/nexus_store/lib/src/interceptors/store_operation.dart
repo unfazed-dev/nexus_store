@@ -88,15 +88,22 @@ enum StoreOperation {
   ///
   /// Triggered when calling `store.deleteWhere(query)`.
   deleteWhere,
+
+  /// Aggregate computation on a numeric field.
+  ///
+  /// Triggered when calling `store.aggregate()`, `store.sum()`,
+  /// `store.avg()`, `store.min()`, or `store.max()`.
+  aggregate,
 }
 
 /// Extension methods for [StoreOperation].
 extension StoreOperationExtension on StoreOperation {
-  /// Whether this is a read operation (get, getAll, count).
+  /// Whether this is a read operation (get, getAll, count, aggregate).
   bool get isRead =>
       this == StoreOperation.get ||
       this == StoreOperation.getAll ||
-      this == StoreOperation.count;
+      this == StoreOperation.count ||
+      this == StoreOperation.aggregate;
 
   /// Whether this is a stream operation (watch, watchAll).
   bool get isStream =>

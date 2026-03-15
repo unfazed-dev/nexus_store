@@ -1,4 +1,5 @@
 import 'package:nexus_store/src/config/policies.dart';
+import 'package:nexus_store/src/core/aggregate_result.dart';
 import 'package:nexus_store/src/pagination/page_info.dart';
 import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:nexus_store/src/query/query.dart';
@@ -63,6 +64,20 @@ abstract interface class StoreBackend<T, ID> {
   /// Backends should implement this using efficient SQL (e.g., `SELECT COUNT(*)`)
   /// rather than loading all entities into memory.
   Future<int> count({Query<T>? query});
+
+  /// Computes an aggregate value for a numeric [field].
+  ///
+  /// Returns the result of applying [type] (sum, avg, min, max) to [field]
+  /// across all entities matching the optional [query].
+  ///
+  /// Returns `null` if no entities match or if the field contains only nulls.
+  /// Backends should implement this using efficient SQL (e.g., `SELECT SUM(field)`)
+  /// rather than loading all entities into memory.
+  Future<num?> aggregate(
+    String field,
+    AggregateType type, {
+    Query<T>? query,
+  });
 
   // ---------------------------------------------------------------------------
   // Write Operations
@@ -383,6 +398,26 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
   Future<int> count({Query<T>? query}) async {
     final items = await getAll(query: query);
     return items.length;
+  }
+
+  @override
+  Future<num?> aggregate(
+    String field,
+    AggregateType type, {
+    Query<T>? query,
+  }) async {
+    // Default in-memory implementation: load all matching entities
+    // and compute the aggregate from their JSON representations.
+    final items = await getAll(query: query);
+    if (items.isEmpty) return null;
+
+    // Subclasses with toJson should override this for proper field access.
+    // This default throws UnsupportedError since we can't extract fields
+    // from generic T without serialization knowledge.
+    throw UnsupportedError(
+      'In-memory aggregate requires a backend with field extraction support. '
+      'Override aggregate() in your backend or use an SQL-based backend.',
+    );
   }
 
   @override

@@ -102,6 +102,35 @@ class DriftQueryTranslator<T>
     return (buffer.toString(), args);
   }
 
+  /// Generates a SELECT aggregate SQL statement (SUM, AVG, MIN, MAX).
+  ///
+  /// Returns a tuple of (sql, arguments) for parameterized query execution.
+  (String sql, List<Object?> args) toAggregateSql({
+    required String tableName,
+    required String field,
+    required AggregateType type,
+    Query<T>? query,
+  }) {
+    final args = <Object?>[];
+    final column = _mapFieldName(field);
+    final function = switch (type) {
+      AggregateType.sum => 'SUM',
+      AggregateType.avg => 'AVG',
+      AggregateType.min => 'MIN',
+      AggregateType.max => 'MAX',
+    };
+    final buffer =
+        StringBuffer('SELECT $function($column) AS result FROM $tableName');
+
+    if (query != null && query.hasFilters) {
+      buffer
+        ..write(' WHERE ')
+        ..write(_buildFullWhereClause(query, args));
+    }
+
+    return (buffer.toString(), args);
+  }
+
   String _buildFullWhereClause(Query<T> query, List<Object?> args) {
     final parts = <String>[];
 
