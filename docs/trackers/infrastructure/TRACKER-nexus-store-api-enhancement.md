@@ -17,7 +17,7 @@
 | 8. Aggregate Operations | ✅ Complete | 42 | ✅ 95.8% | `00288c3` | 2026-03-15 |
 | 9. exists() Method | ✅ Complete | 17 | ✅ 95.8% | `30135f5` | 2026-03-16 |
 | 10. updateWhere() / Batch Update | ✅ Complete | 37 | ✅ 95.8% | `90635c3` | 2026-03-16 |
-| 11. patch() / Partial Update | ✅ Complete | 18 | ✅ 95.8% | ⏳ | 2026-03-16 |
+| 11. patch() / Partial Update | ✅ Complete | 18 | ✅ 95.8% | `3c42f6b` | 2026-03-16 |
 | 12. Reactive Streams (watchCount, watchOne) | ⏳ Pending | ~10 | — | — | — |
 | 13. Query Convenience Methods | ⏳ Pending | ~14 | — | — | — |
 | 14. Diagnostics & Health | ⏳ Pending | ~8 | — | — | — |
