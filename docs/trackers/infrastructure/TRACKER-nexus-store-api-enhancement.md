@@ -10,7 +10,7 @@
 | 1. count() Method | ✅ Complete | 22 | `422497f` | 2026-03-14 |
 | 2. deleteWhere() on NexusStore | ✅ Complete | 21 | `d5fbe0b` | 2026-03-15 |
 | 3. Text Search in Query.where() | ✅ Complete | 14 | `45f60c9` | 2026-03-15 |
-| 4. Backend Capability Introspection | ⏳ Pending | ~5 | — | — |
+| 4. Backend Capability Introspection | ✅ Complete | 6 | ⏳ | 2026-03-15 |
 | 5. Firefly Repository Migration | ⏳ Pending | ~15-20 | — | — |
 | 6. Drift Adapter Parity | ⏳ Pending | ~15 | — | — |
 | 7. OR Logic in Query | ⏳ Pending | ~20 | — | — |
@@ -25,8 +25,8 @@
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — |
 
-**Overall:** ███░░░░░░░░░░░░░ 18% complete
-**Tests:** 57 passing | ~246-251 estimated total
+**Overall:** ████░░░░░░░░░░░░ 24% complete
+**Tests:** 63 passing | ~246-251 estimated total
 
 ### Progress Log
 
@@ -60,11 +60,18 @@
 - Tests: 14 new tests across 3 test files (query builder, PowerSync SQL, in-memory evaluator)
 - Harness: format ✅, analyze ✅, invariants ✅ (coverage pre-existing gap on nexus_store core)
 
+**Phase 4 Results (2026-03-15):**
+- Created `BackendCapabilities` class bundling 5 capability flags with value equality
+- Added `BackendCapabilities get capabilities` getter to `NexusStore` delegating to backend
+- Exported via barrel file `nexus_store.dart`
+- Tests: 6 tests (4 for BackendCapabilities class, 2 for NexusStore.capabilities delegation)
+- Harness: accepted: true (format, analyze, invariants, coverage all pass)
+
 **Current State (2026-03-15):**
-- Working on: COMPLETE (Phase 3)
-- Last completed: Phase 3 — Text Search in Query.where()
+- Working on: COMPLETE (Phase 4)
+- Last completed: Phase 4 — Backend Capability Introspection
 - Blocked by: Nothing
-- Next up: Phase 4 — Backend Capability Introspection
+- Next up: Phase 5 — Firefly Repository Migration
 
 ---
 
@@ -324,35 +331,35 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** None — can start independently.
 
 ### Pre-Implementation Checklist
-- [ ] Read `store_backend.dart` — existing capability flags
-- [ ] Read `nexus_store.dart` — public API surface
+- [x] Read `store_backend.dart` — existing capability flags
+- [x] Read `nexus_store.dart` — public API surface
 
 ### Tasks
 #### RED: Write Failing Tests (~5)
-- [ ] Scaffold test files (`test-scaffold` agent)
-- [ ] Capabilities reflect backend flags
-- [ ] Each flag delegated correctly
-- [ ] Verify all tests FAIL
+- [x] Scaffold test files (`test-scaffold` agent)
+- [x] Capabilities reflect backend flags
+- [x] Each flag delegated correctly
+- [x] Verify all tests FAIL
 
 #### GREEN: Implement
-1. [ ] Create `BackendCapabilities` class
-2. [ ] Add `BackendCapabilities get capabilities` to `NexusStore`
-3. [ ] Delegate to backend properties
-4. [ ] Verify all tests PASS
+1. [x] Create `BackendCapabilities` class
+2. [x] Add `BackendCapabilities get capabilities` to `NexusStore`
+3. [x] Delegate to backend properties
+4. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
-- [ ] `store.capabilities.supportsOffline` delegates to backend
-- [ ] All 5 capability flags exposed
+- [x] `store.capabilities.supportsOffline` delegates to backend
+- [x] All 5 capability flags exposed
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~5)
-- [ ] `dart analyze` clean
-- [ ] Coverage >= 95% for changed packages
-- [ ] Tracker progress table updated
+- [x] All tasks checked
+- [x] Tests passing (expected: ~5)
+- [x] `dart analyze` clean
+- [x] Coverage >= 95% for changed packages
+- [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
 ```bash

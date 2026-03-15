@@ -13,6 +13,7 @@ import 'package:nexus_store/src/compliance/audit_service.dart';
 import 'package:nexus_store/src/compliance/gdpr_service.dart';
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/store_config.dart';
+import 'package:nexus_store/src/core/backend_capabilities.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/interceptors/interceptor_chain.dart';
 import 'package:nexus_store/src/interceptors/store_operation.dart';
@@ -208,6 +209,22 @@ class NexusStore<T, ID> {
 
   /// Audit service, if provided.
   AuditService? get audit => _auditService;
+
+  /// The capabilities of the underlying backend.
+  ///
+  /// Use this for runtime feature detection:
+  /// ```dart
+  /// if (store.capabilities.supportsOffline) {
+  ///   // Enable offline-first UX
+  /// }
+  /// ```
+  BackendCapabilities get capabilities => BackendCapabilities(
+        supportsOffline: _backend.supportsOffline,
+        supportsRealtime: _backend.supportsRealtime,
+        supportsTransactions: _backend.supportsTransactions,
+        supportsPagination: _backend.supportsPagination,
+        supportsFieldOperations: _backend.supportsFieldOperations,
+      );
 
   /// Whether this store has been initialized.
   bool get isInitialized => _initialized;
