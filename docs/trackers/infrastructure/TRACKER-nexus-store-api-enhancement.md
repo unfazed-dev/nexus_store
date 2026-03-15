@@ -11,7 +11,7 @@
 | 2. deleteWhere() on NexusStore | ✅ Complete | 21 | ✅ 97.9% | `d5fbe0b` | 2026-03-15 |
 | 3. Text Search in Query.where() | ✅ Complete | 14 | ✅ 97.9% | `45f60c9` | 2026-03-15 |
 | 4. Backend Capability Introspection | ✅ Complete | 6 | ✅ 97.9% | `e83e79d` | 2026-03-15 |
-| 5. Firefly Repository Migration | ✅ Complete | 13 | — | ⏳ | 2026-03-15 |
+| 5. Firefly Repository Migration | ✅ Complete | 13 | — | `38c46e65` | 2026-03-15 |
 | 6. Drift Adapter Parity | ⏳ Pending | ~15 | — | — | — |
 | 7. OR Logic in Query | ⏳ Pending | ~20 | — | — | — |
 | 8. Aggregate Operations | ⏳ Pending | ~18 | — | — | — |
