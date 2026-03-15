@@ -131,6 +131,18 @@ abstract interface class StoreBackend<T, ID> {
   /// loading all entities into memory.
   Future<int> updateWhere(Query<T> query, Map<String, dynamic> updates);
 
+  /// Partially updates a single entity by its [id] with the given [updates].
+  ///
+  /// The [updates] map contains field names and their new values. Only the
+  /// specified fields are modified; all other fields are preserved.
+  ///
+  /// Returns the updated entity, or `null` if no entity exists with [id].
+  ///
+  /// Backends should implement this using efficient SQL
+  /// (e.g., `UPDATE table SET field=value WHERE id = ?`) rather than
+  /// loading the full entity into memory.
+  Future<T?> patch(ID id, Map<String, dynamic> updates);
+
   // ---------------------------------------------------------------------------
   // Sync Operations
   // ---------------------------------------------------------------------------
@@ -472,6 +484,17 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
     throw UnsupportedError(
       'In-memory updateWhere requires a backend with field update support. '
       'Override updateWhere() in your backend or use an SQL-based backend.',
+    );
+  }
+
+  @override
+  Future<T?> patch(ID id, Map<String, dynamic> updates) async {
+    // Default implementation: get entity, but can't apply field-level
+    // updates to generic T without serialization knowledge.
+    // Subclasses with toJson/fromJson should override this.
+    throw UnsupportedError(
+      'In-memory patch requires a backend with field update support. '
+      'Override patch() in your backend or use an SQL-based backend.',
     );
   }
 

@@ -266,6 +266,10 @@ class CompositeBackend<T, ID>
   Future<int> updateWhere(Query<T> query, Map<String, dynamic> updates) =>
       primary.updateWhere(query, updates);
 
+  @override
+  Future<T?> patch(ID id, Map<String, dynamic> updates) =>
+      primary.patch(id, updates);
+
   // ---------------------------------------------------------------------------
   // Sync Operations
   // ---------------------------------------------------------------------------

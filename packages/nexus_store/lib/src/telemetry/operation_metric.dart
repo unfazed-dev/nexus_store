@@ -51,6 +51,9 @@ enum OperationType {
 
   /// Update by query operation.
   updateWhere,
+
+  /// Partial update of a single entity by ID.
+  patch,
 }
 
 /// Metric for tracking store operation performance.

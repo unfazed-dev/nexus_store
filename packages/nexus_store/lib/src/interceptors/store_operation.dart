@@ -109,6 +109,11 @@ enum StoreOperation {
   ///
   /// Triggered when calling `store.updateWhere(query, updates)`.
   updateWhere,
+
+  /// Partial update of a single entity by ID.
+  ///
+  /// Triggered when calling `store.patch(id, updates)`.
+  patch,
 }
 
 /// Extension methods for [StoreOperation].
@@ -126,11 +131,12 @@ extension StoreOperationExtension on StoreOperation {
   bool get isStream =>
       this == StoreOperation.watch || this == StoreOperation.watchAll;
 
-  /// Whether this is a write operation (save, saveAll, updateWhere).
+  /// Whether this is a write operation (save, saveAll, updateWhere, patch).
   bool get isWrite =>
       this == StoreOperation.save ||
       this == StoreOperation.saveAll ||
-      this == StoreOperation.updateWhere;
+      this == StoreOperation.updateWhere ||
+      this == StoreOperation.patch;
 
   /// Whether this is a delete operation (delete, deleteAll, deleteWhere).
   bool get isDelete =>

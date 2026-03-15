@@ -865,6 +865,63 @@ class NexusStore<T, ID> {
     });
   }
 
+  /// Partially updates a single entity by its [id] with the given [updates].
+  ///
+  /// Only the specified fields are modified; all other fields are preserved.
+  /// Returns the updated entity, or `null` if no entity exists with [id].
+  ///
+  /// Uses the configured [WritePolicy] or the provided [policy] override.
+  ///
+  /// Example:
+  /// ```dart
+  /// final updated = await store.patch('user-1', {'name': 'New Name'});
+  /// ```
+  Future<T?> patch(
+    ID id,
+    Map<String, dynamic> updates, {
+    WritePolicy? policy,
+  }) async {
+    _ensureInitialized();
+
+    if (updates.isEmpty) {
+      return _backend.get(id);
+    }
+
+    return _trackOperation(OperationType.patch, () async {
+      return _interceptorChain.execute<ID, T?>(
+        operation: StoreOperation.patch,
+        request: id,
+        execute: () async {
+          final result = await _writeHandler.patch(
+            id,
+            updates,
+            policy: policy,
+          );
+
+          if (result != null && _idExtractor != null) {
+            final resultId = _idExtractor(result);
+            _fetchHandler.recordCachedItem(resultId);
+            _memoryManager?.recordItem(resultId, result);
+          }
+
+          // coverage:ignore-start
+          // Audit logging: Optional feature requiring full audit configuration
+          if (_config.enableAuditLogging && result != null) {
+            await _auditService?.log(
+              action: AuditAction.update,
+              entityType: T.toString(),
+              entityId: id.toString(),
+              metadata: {'updates': updates},
+            );
+          }
+          // coverage:ignore-end
+
+          return result;
+        },
+      );
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // Transaction Operations
   // ---------------------------------------------------------------------------

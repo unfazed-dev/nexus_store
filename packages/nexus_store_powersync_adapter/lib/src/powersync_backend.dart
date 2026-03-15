@@ -724,6 +724,33 @@ class PowerSyncBackend<T, ID>
     }
   }
 
+  @override
+  Future<T?> patch(ID id, Map<String, dynamic> updates) async {
+    _ensureInitialized();
+
+    if (updates.isEmpty) return get(id);
+
+    try {
+      _syncStatusSubject.add(nexus.SyncStatus.pending);
+
+      // Build UPDATE SET ... WHERE id = ?
+      final setClauses = updates.keys.map((k) => '$k = ?').join(', ');
+      final sql =
+          'UPDATE $_tableName SET $setClauses WHERE $_primaryKeyColumn = ?';
+      final args = [...updates.values, id];
+
+      await _db.execute(sql, args);
+
+      _syncStatusSubject.add(nexus.SyncStatus.synced);
+
+      // Return the updated entity
+      return get(id);
+    } catch (e, stackTrace) {
+      _syncStatusSubject.add(nexus.SyncStatus.error);
+      throw _mapException(e, stackTrace);
+    }
+  }
+
   // ===================== SYNC OPERATIONS =====================
 
   @override

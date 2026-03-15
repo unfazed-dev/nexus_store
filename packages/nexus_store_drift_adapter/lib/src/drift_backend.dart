@@ -616,6 +616,36 @@ class DriftBackend<T, ID>
     }
   }
 
+  @override
+  Future<T?> patch(ID id, Map<String, dynamic> updates) async {
+    _ensureInitialized();
+
+    if (updates.isEmpty) return get(id);
+
+    try {
+      // Build UPDATE SET ... WHERE id = ?
+      final setClauses = updates.keys.map((k) => '$k = ?').join(', ');
+      final sql =
+          'UPDATE $_tableName SET $setClauses WHERE $_primaryKeyField = ?';
+      final args = [...updates.values, id];
+
+      final affected = await _executor!.customUpdate(
+        sql,
+        variables: [for (final arg in args) Variable(arg)],
+        updates: {},
+      );
+
+      if (affected == 0) return null;
+
+      _refreshAllWatchers();
+
+      // Return the updated entity
+      return get(id);
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Sync Operations (Local-Only Stubs)
   // ---------------------------------------------------------------------------

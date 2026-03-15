@@ -179,6 +179,39 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
     return count;
   }
 
+  /// Control flag for patch failures.
+  bool shouldFailOnPatch = false;
+
+  /// Function to apply partial updates to an entity.
+  ///
+  /// Must be provided for patch() to work. Takes the existing entity
+  /// and a map of updates, returns the updated entity.
+  T Function(T entity, Map<String, dynamic> updates)? patchApplier;
+
+  @override
+  Future<T?> patch(ID id, Map<String, dynamic> updates) async {
+    if (shouldFailOnPatch) {
+      throw errorToThrow ?? Exception('Patch failed');
+    }
+
+    final existing = _storage[id];
+    if (existing == null) return null;
+
+    if (updates.isEmpty) return existing;
+
+    if (patchApplier == null) {
+      throw UnsupportedError(
+        'FakeStoreBackend.patch requires patchApplier to be set.',
+      );
+    }
+
+    final updated = patchApplier!(existing, updates);
+    _storage[id] = updated;
+    _watchers[id]?.add(updated);
+    _watchAllSubject?.add(_storage.values.toList());
+    return updated;
+  }
+
   @override
   Future<void> sync() async {
     if (shouldFailOnSync) {

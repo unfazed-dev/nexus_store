@@ -96,6 +96,24 @@ class WritePolicyHandler<T, ID> {
     };
   }
 
+  /// Patches a single entity by [id] with [updates] according to the [policy].
+  ///
+  /// Returns the updated entity, or `null` if no entity exists with [id].
+  Future<T?> patch(
+    ID id,
+    Map<String, dynamic> updates, {
+    WritePolicy? policy,
+  }) async {
+    final effectivePolicy = policy ?? defaultPolicy;
+
+    return switch (effectivePolicy) {
+      WritePolicy.cacheAndNetwork => _patchCacheAndNetwork(id, updates),
+      WritePolicy.networkFirst => _patchNetworkFirst(id, updates),
+      WritePolicy.cacheFirst => _patchCacheFirst(id, updates),
+      WritePolicy.cacheOnly => backend.patch(id, updates),
+    };
+  }
+
   // ---------------------------------------------------------------------------
   // Cache-And-Network Strategy (Optimistic)
   // ---------------------------------------------------------------------------
@@ -247,6 +265,33 @@ class WritePolicyHandler<T, ID> {
     final count = await backend.updateWhere(query, updates);
     unawaited(_syncInBackground());
     return count;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Patch Strategies
+  // ---------------------------------------------------------------------------
+
+  Future<T?> _patchCacheAndNetwork(ID id, Map<String, dynamic> updates) async {
+    final result = await backend.patch(id, updates);
+
+    try {
+      await backend.sync();
+      return result;
+    } on StoreError {
+      rethrow;
+    }
+  }
+
+  Future<T?> _patchNetworkFirst(ID id, Map<String, dynamic> updates) async {
+    final result = await backend.patch(id, updates);
+    await backend.sync();
+    return result;
+  }
+
+  Future<T?> _patchCacheFirst(ID id, Map<String, dynamic> updates) async {
+    final result = await backend.patch(id, updates);
+    unawaited(_syncInBackground());
+    return result;
   }
 
   Future<void> _syncInBackground() async {
