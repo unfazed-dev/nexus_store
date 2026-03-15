@@ -9,7 +9,7 @@
 |-------|--------|-------|-----------|--------------|
 | 1. count() Method | ✅ Complete | 22 | `422497f` | 2026-03-14 |
 | 2. deleteWhere() on NexusStore | ✅ Complete | 21 | `d5fbe0b` | 2026-03-15 |
-| 3. Text Search in Query.where() | ✅ Complete | 14 | ⏳ | 2026-03-15 |
+| 3. Text Search in Query.where() | ✅ Complete | 14 | `45f60c9` | 2026-03-15 |
 | 4. Backend Capability Introspection | ⏳ Pending | ~5 | — | — |
 | 5. Firefly Repository Migration | ⏳ Pending | ~15-20 | — | — |
 | 6. Drift Adapter Parity | ⏳ Pending | ~15 | — | — |
