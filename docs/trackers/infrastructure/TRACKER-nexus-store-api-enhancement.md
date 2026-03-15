@@ -5,25 +5,25 @@
 ## Progress
 
 ### Overview
-| Phase | Status | Tests | Committed | Last Updated |
-|-------|--------|-------|-----------|--------------|
-| 1. count() Method | ✅ Complete | 22 | `422497f` | 2026-03-14 |
-| 2. deleteWhere() on NexusStore | ✅ Complete | 21 | `d5fbe0b` | 2026-03-15 |
-| 3. Text Search in Query.where() | ✅ Complete | 14 | `45f60c9` | 2026-03-15 |
-| 4. Backend Capability Introspection | ✅ Complete | 6 | `e83e79d` | 2026-03-15 |
-| 5. Firefly Repository Migration | ⏳ Pending | ~15-20 | — | — |
-| 6. Drift Adapter Parity | ⏳ Pending | ~15 | — | — |
-| 7. OR Logic in Query | ⏳ Pending | ~20 | — | — |
-| 8. Aggregate Operations | ⏳ Pending | ~18 | — | — |
-| 9. exists() Method | ⏳ Pending | ~12 | — | — |
-| 10. updateWhere() / Batch Update | ⏳ Pending | ~16 | — | — |
-| 11. patch() / Partial Update | ⏳ Pending | ~14 | — | — |
-| 12. Reactive Streams (watchCount, watchOne) | ⏳ Pending | ~10 | — | — |
-| 13. Query Convenience Methods | ⏳ Pending | ~14 | — | — |
-| 14. Diagnostics & Health | ⏳ Pending | ~8 | — | — |
-| 15. upsert() / Save-If-Not-Exists | ⏳ Pending | ~16 | — | — |
-| 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — |
-| 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — |
+| Phase | Status | Tests | Coverage | Committed | Last Updated |
+|-------|--------|-------|----------|-----------|--------------|
+| 1. count() Method | ✅ Complete | 22 | ✅ 97.9% | `422497f` | 2026-03-14 |
+| 2. deleteWhere() on NexusStore | ✅ Complete | 21 | ✅ 97.9% | `d5fbe0b` | 2026-03-15 |
+| 3. Text Search in Query.where() | ✅ Complete | 14 | ✅ 97.9% | `45f60c9` | 2026-03-15 |
+| 4. Backend Capability Introspection | ✅ Complete | 6 | ✅ 97.9% | `e83e79d` | 2026-03-15 |
+| 5. Firefly Repository Migration | ⏳ Pending | ~15-20 | — | — | — |
+| 6. Drift Adapter Parity | ⏳ Pending | ~15 | — | — | — |
+| 7. OR Logic in Query | ⏳ Pending | ~20 | — | — | — |
+| 8. Aggregate Operations | ⏳ Pending | ~18 | — | — | — |
+| 9. exists() Method | ⏳ Pending | ~12 | — | — | — |
+| 10. updateWhere() / Batch Update | ⏳ Pending | ~16 | — | — | — |
+| 11. patch() / Partial Update | ⏳ Pending | ~14 | — | — | — |
+| 12. Reactive Streams (watchCount, watchOne) | ⏳ Pending | ~10 | — | — | — |
+| 13. Query Convenience Methods | ⏳ Pending | ~14 | — | — | — |
+| 14. Diagnostics & Health | ⏳ Pending | ~8 | — | — | — |
+| 15. upsert() / Save-If-Not-Exists | ⏳ Pending | ~16 | — | — | — |
+| 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — | — |
+| 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
 **Overall:** ████░░░░░░░░░░░░ 24% complete
 **Tests:** 63 passing | ~246-251 estimated total
@@ -191,7 +191,9 @@ flutter analyze
 - [x] `dart test` passes in `nexus_store/`
 - [x] `dart test` passes in `nexus_store_powersync_adapter/`
 - [x] `dart analyze` clean in both packages
-- [x] Coverage >= 95% for changed packages (retroactive: powersync_adapter 99.2%, nexus_store 61% pre-existing gap across 160 files — phase 1 code fully tested with 22 tests)
+- [x] Coverage >= 95% for changed packages
+  - `nexus_store`: 97.9% (4398/4491 lines)
+  - `nexus_store_powersync_adapter`: 99.2% (769/775 lines)
 - [x] Tracker progress table updated
 - [x] Harness verification checkpoint passed
 
@@ -255,7 +257,9 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [x] Tests passing (expected: ~19, actual: 21)
 - [x] `dart test` passes in `nexus_store/`
 - [x] `dart analyze` clean
-- [x] Coverage >= 95% for changed packages (retroactive: powersync_adapter 99.2%, nexus_store 61% pre-existing gap — phase 2 code fully tested with 21 tests)
+- [x] Coverage >= 95% for changed packages
+  - `nexus_store`: 97.9% (4398/4491 lines)
+  - `nexus_store_powersync_adapter`: 99.2% (769/775 lines)
 - [x] Tracker progress table updated
 - [x] Harness verification checkpoint passed
 
@@ -311,7 +315,9 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [x] `dart test` passes in `nexus_store/`
 - [x] `dart test` passes in `nexus_store_powersync_adapter/`
 - [x] `dart analyze` clean
-- [x] Coverage >= 95% for changed packages (powersync 99.2%, nexus_store pre-existing gap)
+- [x] Coverage >= 95% for changed packages
+  - `nexus_store`: 97.9% (4398/4491 lines)
+  - `nexus_store_powersync_adapter`: 99.2% (769/775 lines)
 - [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -359,6 +365,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [x] Tests passing (expected: ~5)
 - [x] `dart analyze` clean
 - [x] Coverage >= 95% for changed packages
+  - `nexus_store`: 97.9% (4398/4491 lines)
 - [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint

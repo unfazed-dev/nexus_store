@@ -248,6 +248,7 @@ Update the tracker file with these changes:
 1. **Progress table row** for this phase:
    - Status: `✅ Complete`
    - Tests/Tasks/Diagrams: actual count achieved
+   - Coverage: compute `min()` of all package percentages from `check-coverage.py --changed --json`. Format: `✅ NN.N%` if all packages >= 95%, `⚠️ NN.N%` if any < 95%. Use `—` for non-code phases or phases with no coverage data.
    - Committed: `⏳` (updated to commit hash in Step 10)
    - Last Updated: today's date (`YYYY-MM-DD`)
 
@@ -272,7 +273,15 @@ Update the tracker file with these changes:
 
 6. **Checkboxes**: All `- [ ]` → `- [x]` for completed items in the phase
 
-7. **History table**: Add row with date, action, and details
+7. **Coverage results**: When marking `Coverage >= 95%` checkbox, append per-package results:
+   ```
+   - [x] Coverage >= 95% for changed packages
+     - `package_name`: 97.2% (1234/1269 lines)
+     - `package_name_2`: 100% (89/89 lines)
+   ```
+   Data sourced from `python3 .claude/hooks/core/check-coverage.py --changed --json` output fields: `name`, `coverage_pct`, `lines_hit`, `lines_total`
+
+8. **History table**: Add row with date, action, and details
 
 ### Step 10: Commit
 

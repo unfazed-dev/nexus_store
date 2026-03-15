@@ -42,13 +42,13 @@ metadata:
 ## Progress
 
 ### Overview
-| Phase | Status | Tests | Committed | Last Updated |
-|-------|--------|-------|-----------|--------------|
-| 0. Documentation | ✅ Complete | 0 | ✅ | YYYY-MM-DD |
-| 1. Data Layer | 🔄 In Progress | 12 | ⏳ | YYYY-MM-DD |
-| 2. Service Layer | ⏳ Pending | — | — | — |
-| 3. UI Layer | ⏳ Pending | — | — | — |
-| 4. GenUI Integration | ⏳ Pending | — | — | — |
+| Phase | Status | Tests | Coverage | Committed | Last Updated |
+|-------|--------|-------|----------|-----------|--------------|
+| 0. Documentation | ✅ Complete | 0 | — | ✅ | YYYY-MM-DD |
+| 1. Data Layer | 🔄 In Progress | 12 | — | ⏳ | YYYY-MM-DD |
+| 2. Service Layer | ⏳ Pending | — | — | — | — |
+| 3. UI Layer | ⏳ Pending | — | — | — | — |
+| 4. GenUI Integration | ⏳ Pending | — | — | — | — |
 
 **Overall:** ░░░░░░░░░░░░░░░░ 0% complete
 **Tests:** 0 passing | 0 failing
@@ -140,6 +140,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
 - [ ] Coverage >= 95% for changed packages
+  - _Results recorded on completion: package: pct% (hit/total lines)_
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 1 — [feature] data layer`
 
@@ -184,6 +185,7 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
 - [ ] Coverage >= 95% for changed packages
+  - _Results recorded on completion: package: pct% (hit/total lines)_
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 2 — [feature] service layer`
 
@@ -229,6 +231,7 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
 - [ ] Coverage >= 95% for changed packages
+  - _Results recorded on completion: package: pct% (hit/total lines)_
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 3 — [feature] UI layer`
 
@@ -272,6 +275,7 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
 - [ ] Coverage >= 95% for changed packages
+  - _Results recorded on completion: package: pct% (hit/total lines)_
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 4 — [feature] GenUI integration`
 
@@ -321,6 +325,18 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 |------|--------|---------|
 | YYYY-MM-DD | Created | Initial tracker |
 ```
+
+## Coverage Column Rules
+
+The `Coverage` column in the Overview table shows the **minimum package percentage** for each phase:
+
+| Condition | Cell Value |
+|-----------|------------|
+| All packages >= 95% | `✅ NN.N%` (min package pct) |
+| Any package < 95% | `⚠️ NN.N%` (min package pct) |
+| Pending / in-progress / non-code phases | `—` |
+
+Full per-package breakdowns remain in the Post-Implementation Checklist checkboxes.
 
 ## Template Variants
 
@@ -381,7 +397,7 @@ Every phase commit MUST:
 Each phase boundary should have explicit gate criteria:
 - **Code gate:** All tasks checked, files listed in "Files Modified"
 - **Test gate:** Estimated vs actual test count tracked (e.g., "Tests: 12 estimated / 15 actual")
-- **Coverage gate:** Changed packages meet 95% line coverage
+- **Coverage gate:** Changed packages meet 95% line coverage — record per-package in checkboxes; populate Overview table Coverage column with min package pct
 - **Quality gate:** Pre-commit check passes, no regressions
 - **Doc gate:** Tracker progress table updated, History row added
 
