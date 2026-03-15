@@ -26,6 +26,7 @@ class Query<T> {
   /// Creates an empty query.
   const Query()
       : _filters = const [],
+        _filterGroups = const [],
         _orderBy = const [],
         _limit = null,
         _offset = null,
@@ -37,6 +38,7 @@ class Query<T> {
 
   const Query._({
     required List<QueryFilter> filters,
+    required List<QueryFilterGroup> filterGroups,
     required List<QueryOrderBy> orderBy,
     required int? limit,
     required int? offset,
@@ -46,6 +48,7 @@ class Query<T> {
     int? last,
     Set<String> preloadFields = const {},
   })  : _filters = filters,
+        _filterGroups = filterGroups,
         _orderBy = orderBy,
         _limit = limit,
         _offset = offset,
@@ -56,6 +59,7 @@ class Query<T> {
         _preloadFields = preloadFields;
 
   final List<QueryFilter> _filters;
+  final List<QueryFilterGroup> _filterGroups;
   final List<QueryOrderBy> _orderBy;
   final int? _limit;
   final int? _offset;
@@ -67,6 +71,12 @@ class Query<T> {
 
   /// The filter conditions for this query.
   List<QueryFilter> get filters => List.unmodifiable(_filters);
+
+  /// The filter groups (e.g., OR groups) for this query.
+  List<QueryFilterGroup> get filterGroups => List.unmodifiable(_filterGroups);
+
+  /// Returns `true` if this query has any filter conditions or filter groups.
+  bool get hasFilters => _filters.isNotEmpty || _filterGroups.isNotEmpty;
 
   /// The ordering specifications for this query.
   List<QueryOrderBy> get orderBy => List.unmodifiable(_orderBy);
@@ -248,6 +258,47 @@ class Query<T> {
 
     return Query._(
       filters: newFilters,
+      filterGroups: _filterGroups,
+      orderBy: _orderBy,
+      limit: _limit,
+      offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
+      preloadFields: _preloadFields,
+    );
+  }
+
+  /// Adds an OR filter group to the query.
+  ///
+  /// The [builder] function receives an empty [Query] and should add
+  /// conditions using [where]. Those conditions are OR-ed together and
+  /// AND-ed with the rest of the query.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// Query<User>()
+  ///   .where('status', isEqualTo: 'active')
+  ///   .or((q) => q
+  ///     .where('role', isEqualTo: 'admin')
+  ///     .where('role', isEqualTo: 'superadmin')
+  ///   );
+  /// // status = 'active' AND (role = 'admin' OR role = 'superadmin')
+  /// ```
+  Query<T> or(Query<T> Function(Query<T>) builder) {
+    final subQuery = builder(const Query());
+    if (subQuery.filters.isEmpty) return this;
+
+    final group = QueryFilterGroup(
+      filters: subQuery.filters,
+      combinator: FilterGroupCombinator.or,
+    );
+
+    return Query._(
+      filters: _filters,
+      filterGroups: [..._filterGroups, group],
       orderBy: _orderBy,
       limit: _limit,
       offset: _offset,
@@ -270,6 +321,7 @@ class Query<T> {
 
     return Query._(
       filters: _filters,
+      filterGroups: _filterGroups,
       orderBy: newOrderBy,
       limit: _limit,
       offset: _offset,
@@ -290,6 +342,7 @@ class Query<T> {
     assert(count > 0, 'Limit must be positive');
     return Query._(
       filters: _filters,
+      filterGroups: _filterGroups,
       orderBy: _orderBy,
       limit: count,
       offset: _offset,
@@ -306,6 +359,7 @@ class Query<T> {
     assert(count >= 0, 'Offset must be non-negative');
     return Query._(
       filters: _filters,
+      filterGroups: _filterGroups,
       orderBy: _orderBy,
       limit: _limit,
       offset: count,
@@ -335,6 +389,7 @@ class Query<T> {
   Query<T> after(Cursor cursor) {
     return Query._(
       filters: _filters,
+      filterGroups: _filterGroups,
       orderBy: _orderBy,
       limit: _limit,
       offset: _offset,
@@ -360,6 +415,7 @@ class Query<T> {
   Query<T> before(Cursor cursor) {
     return Query._(
       filters: _filters,
+      filterGroups: _filterGroups,
       orderBy: _orderBy,
       limit: _limit,
       offset: _offset,
@@ -385,6 +441,7 @@ class Query<T> {
     assert(count > 0, 'First count must be positive');
     return Query._(
       filters: _filters,
+      filterGroups: _filterGroups,
       orderBy: _orderBy,
       limit: _limit,
       offset: _offset,
@@ -411,6 +468,7 @@ class Query<T> {
     assert(count > 0, 'Last count must be positive');
     return Query._(
       filters: _filters,
+      filterGroups: _filterGroups,
       orderBy: _orderBy,
       limit: _limit,
       offset: _offset,
@@ -440,6 +498,7 @@ class Query<T> {
   Query<T> preload(Set<String> fields) {
     return Query._(
       filters: _filters,
+      filterGroups: _filterGroups,
       orderBy: _orderBy,
       limit: _limit,
       offset: _offset,
@@ -461,9 +520,10 @@ class Query<T> {
   ///   .where('status', isEqualTo: 'active')
   ///   .preloadField('thumbnail');
   /// ```
-  Query<T> preloadField(String field) {
+  Query<T> preloadField(String fieldName) {
     return Query._(
       filters: _filters,
+      filterGroups: _filterGroups,
       orderBy: _orderBy,
       limit: _limit,
       offset: _offset,
@@ -471,7 +531,7 @@ class Query<T> {
       beforeCursor: _beforeCursor,
       first: _first,
       last: _last,
-      preloadFields: {..._preloadFields, field},
+      preloadFields: {..._preloadFields, fieldName},
     );
   }
 
@@ -482,6 +542,7 @@ class Query<T> {
   /// Returns `true` if this query has no filters, ordering, pagination, or preloads.
   bool get isEmpty =>
       _filters.isEmpty &&
+      _filterGroups.isEmpty &&
       _orderBy.isEmpty &&
       _limit == null &&
       _offset == null &&
@@ -497,6 +558,7 @@ class Query<T> {
   /// Creates a copy of this query with the specified changes.
   Query<T> copyWith({
     List<QueryFilter>? filters,
+    List<QueryFilterGroup>? filterGroups,
     List<QueryOrderBy>? orderBy,
     int? limit,
     int? offset,
@@ -508,6 +570,7 @@ class Query<T> {
   }) =>
       Query._(
         filters: filters ?? _filters,
+        filterGroups: filterGroups ?? _filterGroups,
         orderBy: orderBy ?? _orderBy,
         limit: limit ?? _limit,
         offset: offset ?? _offset,
@@ -524,6 +587,7 @@ class Query<T> {
       other is Query<T> &&
           runtimeType == other.runtimeType &&
           _listsEqual(_filters, other._filters) &&
+          _listsEqual(_filterGroups, other._filterGroups) &&
           _listsEqual(_orderBy, other._orderBy) &&
           _limit == other._limit &&
           _offset == other._offset &&
@@ -536,6 +600,7 @@ class Query<T> {
   @override
   int get hashCode => Object.hash(
         Object.hashAll(_filters),
+        Object.hashAll(_filterGroups),
         Object.hashAll(_orderBy),
         _limit,
         _offset,
@@ -549,6 +614,7 @@ class Query<T> {
   @override
   String toString() => 'Query<$T>('
       'filters: $_filters, '
+      'filterGroups: $_filterGroups, '
       'orderBy: $_orderBy, '
       'limit: $_limit, '
       'offset: $_offset, '
@@ -685,4 +751,64 @@ class QueryOrderBy {
 
   @override
   String toString() => 'QueryOrderBy($field ${descending ? 'DESC' : 'ASC'})';
+}
+
+/// Combinator for a group of filter conditions.
+enum FilterGroupCombinator {
+  /// All conditions combined with AND.
+  and,
+
+  /// Any condition combined with OR.
+  or,
+}
+
+/// A group of filter conditions combined with a [FilterGroupCombinator].
+///
+/// Used to represent OR groups in queries:
+/// ```dart
+/// Query<User>()
+///   .where('status', isEqualTo: 'active')
+///   .or((q) => q
+///     .where('role', isEqualTo: 'admin')
+///     .where('role', isEqualTo: 'superadmin')
+///   );
+/// // Generates: status = 'active' AND (role = 'admin' OR role = 'superadmin')
+/// ```
+@immutable
+class QueryFilterGroup {
+  /// Creates a filter group.
+  const QueryFilterGroup({
+    required this.filters,
+    required this.combinator,
+  });
+
+  /// The filter conditions in this group.
+  final List<QueryFilter> filters;
+
+  /// How to combine the filters (AND or OR).
+  final FilterGroupCombinator combinator;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is QueryFilterGroup &&
+          runtimeType == other.runtimeType &&
+          combinator == other.combinator &&
+          _listsEqual(filters, other.filters);
+
+  @override
+  int get hashCode => Object.hash(combinator, Object.hashAll(filters));
+
+  @override
+  String toString() =>
+      'QueryFilterGroup(${combinator.name.toUpperCase()}: $filters)';
+
+  static bool _listsEqual<E>(List<E> a, List<E> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 }

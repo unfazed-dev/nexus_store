@@ -12,8 +12,8 @@
 | 3. Text Search in Query.where() | ✅ Complete | 14 | ✅ 97.9% | `45f60c9` | 2026-03-15 |
 | 4. Backend Capability Introspection | ✅ Complete | 6 | ✅ 97.9% | `e83e79d` | 2026-03-15 |
 | 5. Firefly Repository Migration | ✅ Complete | 13 | — | `38c46e65` | 2026-03-15 |
-| 6. Drift Adapter Parity | ✅ Complete | 19 | ✅ 95.8% | ⏳ | 2026-03-15 |
-| 7. OR Logic in Query | ⏳ Pending | ~20 | — | — | — |
+| 6. Drift Adapter Parity | ✅ Complete | 19 | ✅ 95.8% | `40b15d8` | 2026-03-15 |
+| 7. OR Logic in Query | ✅ Complete | 35 | ✅ 97.9% | ⏳ | 2026-03-15 |
 | 8. Aggregate Operations | ⏳ Pending | ~18 | — | — | — |
 | 9. exists() Method | ⏳ Pending | ~12 | — | — | — |
 | 10. updateWhere() / Batch Update | ⏳ Pending | ~16 | — | — | — |
@@ -25,11 +25,20 @@
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
-**Overall:** ██████░░░░░░░░░░ 35% complete
-**Tests:** 95 passing | ~246-251 estimated total
+**Overall:** ███████░░░░░░░░░ 41% complete
+**Tests:** 130 passing | ~246-251 estimated total
 
 ### Progress Log
 
+**Phase 7 Results (2026-03-15):**
+- Added `QueryFilterGroup` class with `FilterGroupCombinator` enum (AND/OR)
+- Added `.or()` builder method to `Query` with immutable filter group composition
+- Added `hasFilters` getter and updated `isEmpty`/`==`/`hashCode`/`copyWith`/`toString`
+- Updated `PowerSyncQueryTranslator` with `_buildFullWhereClause` for OR SQL generation
+- Updated `DriftQueryTranslator` with `_buildFullWhereClause` for OR SQL generation
+- Updated `InMemoryQueryEvaluator.matches()` with `_matchesFilterGroup` for OR evaluation
+- 35 new tests: 14 core Query, 8 PowerSync SQL, 7 Drift SQL, 6 in-memory evaluator
+- Harness: format clean, analyze clean, invariants pass, coverage 97.9%/95.8%/99.2%
 
 **Phase 1 Results (2026-03-14):**
 - Added `count()` method to StoreBackend interface, StoreBackendDefaults, CompositeBackend, PowerSyncBackend, and NexusStore
@@ -520,10 +529,10 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** Phase 3 must be complete.
 
 ### Pre-Implementation Checklist
-- [ ] Phase 3 (text search) complete and committed
-- [ ] Read `query.dart` — existing expression tree
-- [ ] Read `powersync_query_translator.dart` — SQL generation
-- [ ] Read `in_memory_query_evaluator.dart` — OrExpression handling
+- [x] Phase 3 (text search) complete and committed
+- [x] Read `query.dart` — existing expression tree
+- [x] Read `powersync_query_translator.dart` — SQL generation
+- [x] Read `in_memory_query_evaluator.dart` — OrExpression handling
 
 ### Tasks
 
@@ -539,39 +548,42 @@ Query<T>()
 ```
 
 #### RED: Write Failing Tests (~20)
-- [ ] Scaffold test files (`test-scaffold` agent)
-- [ ] Query builder OR composition
-- [ ] Nested AND/OR
-- [ ] PowerSync SQL generation
-- [ ] Drift SQL generation
-- [ ] In-memory evaluation
-- [ ] Edge cases (empty OR, single-condition OR)
-- [ ] Verify all tests FAIL
+- [x] Scaffold test files (`test-scaffold` agent)
+- [x] Query builder OR composition
+- [x] Nested AND/OR
+- [x] PowerSync SQL generation
+- [x] Drift SQL generation
+- [x] In-memory evaluation
+- [x] Edge cases (empty OR, single-condition OR)
+- [x] Verify all tests FAIL
 
 #### GREEN: Implement
-1. [ ] Introduce `QueryFilterGroup` concept — group of filters with AND/OR combinator
-2. [ ] Add `.or(Query<T> Function(Query<T>) builder)` method to `Query`
-3. [ ] Update `PowerSyncQueryTranslator` to generate `(condition1 OR condition2)` SQL
-4. [ ] Update `DriftQueryTranslator` for OR support
-5. [ ] Update `toFilters()` to handle OR groups
-6. [ ] Verify all tests PASS
+1. [x] Introduce `QueryFilterGroup` concept — group of filters with AND/OR combinator
+2. [x] Add `.or(Query<T> Function(Query<T>) builder)` method to `Query`
+3. [x] Update `PowerSyncQueryTranslator` to generate `(condition1 OR condition2)` SQL
+4. [x] Update `DriftQueryTranslator` for OR support
+5. [x] Update `toFilters()` to handle OR groups
+6. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
-- [ ] `.or()` builder creates correct OR filter group
-- [ ] PowerSync generates `(condition1 OR condition2)` SQL
-- [ ] Drift generates equivalent OR SQL
-- [ ] In-memory evaluator handles OR correctly
+- [x] `.or()` builder creates correct OR filter group
+- [x] PowerSync generates `(condition1 OR condition2)` SQL
+- [x] Drift generates equivalent OR SQL
+- [x] In-memory evaluator handles OR correctly
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~20)
-- [ ] `dart test` passes in `nexus_store/`, `nexus_store_powersync_adapter/`, `nexus_store_drift_adapter/`
-- [ ] `dart analyze` clean
-- [ ] Coverage >= 95% for changed packages
-- [ ] Tracker progress table updated
+- [x] All tasks checked
+- [x] Tests passing (expected: ~20, actual: 35)
+- [x] `dart test` passes in `nexus_store/`, `nexus_store_powersync_adapter/`, `nexus_store_drift_adapter/`
+- [x] `dart analyze` clean
+- [x] Coverage >= 95% for changed packages
+  - `nexus_store`: 97.93% (4398/4491 lines)
+  - `nexus_store_drift_adapter`: 95.84% (507/529 lines)
+  - `nexus_store_powersync_adapter`: 99.23% (769/775 lines)
+- [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
 ```bash

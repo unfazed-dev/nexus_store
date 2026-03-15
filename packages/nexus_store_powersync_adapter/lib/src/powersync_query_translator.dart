@@ -39,10 +39,10 @@ class PowerSyncQueryTranslator<T>
     final args = <Object?>[];
     final buffer = StringBuffer('SELECT * FROM $tableName');
 
-    if (query != null && query.filters.isNotEmpty) {
+    if (query != null && query.hasFilters) {
       buffer
         ..write(' WHERE ')
-        ..write(_buildWhereClause(query.filters, args));
+        ..write(_buildFullWhereClause(query, args));
     }
 
     if (query != null && query.orderBy.isNotEmpty) {
@@ -75,10 +75,10 @@ class PowerSyncQueryTranslator<T>
     final args = <Object?>[];
     final buffer = StringBuffer('SELECT COUNT(*) AS count FROM $tableName');
 
-    if (query != null && query.filters.isNotEmpty) {
+    if (query != null && query.hasFilters) {
       buffer
         ..write(' WHERE ')
-        ..write(_buildWhereClause(query.filters, args));
+        ..write(_buildFullWhereClause(query, args));
     }
 
     return (buffer.toString(), args);
@@ -94,13 +94,34 @@ class PowerSyncQueryTranslator<T>
     final args = <Object?>[];
     final buffer = StringBuffer('DELETE FROM $tableName');
 
-    if (query.filters.isNotEmpty) {
+    if (query.hasFilters) {
       buffer
         ..write(' WHERE ')
-        ..write(_buildWhereClause(query.filters, args));
+        ..write(_buildFullWhereClause(query, args));
     }
 
     return (buffer.toString(), args);
+  }
+
+  String _buildFullWhereClause(Query<T> query, List<Object?> args) {
+    final parts = <String>[];
+
+    if (query.filters.isNotEmpty) {
+      parts.add(_buildWhereClause(query.filters, args));
+    }
+
+    for (final group in query.filterGroups) {
+      final groupConditions = <String>[];
+      for (final filter in group.filters) {
+        final column = _mapFieldName(filter.field);
+        groupConditions.add(_buildCondition(column, filter, args));
+      }
+      final combinator =
+          group.combinator == FilterGroupCombinator.or ? ' OR ' : ' AND ';
+      parts.add('(${groupConditions.join(combinator)})');
+    }
+
+    return parts.join(' AND ');
   }
 
   String _buildWhereClause(List<QueryFilter> filters, List<Object?> args) {
@@ -235,10 +256,10 @@ class PowerSyncQueryTranslator<T>
     final args = <Object?>[];
     final buffer = StringBuffer();
 
-    if (query.filters.isNotEmpty) {
+    if (query.hasFilters) {
       buffer
         ..write(' WHERE ')
-        ..write(_buildWhereClause(query.filters, args));
+        ..write(_buildFullWhereClause(query, args));
     }
 
     if (query.orderBy.isNotEmpty) {

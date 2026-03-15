@@ -18,21 +18,37 @@ class InMemoryQueryEvaluator<T> {
 
   /// Evaluates the query against a list of items.
   ///
-  /// Returns items that match all query filters.
+  /// Returns items that match all query filters and filter groups.
   List<T> evaluate(List<T> items, Query<T> query) {
-    if (query.filters.isEmpty) return List.from(items);
+    if (!query.hasFilters) return List.from(items);
 
     return items.where((item) => matches(item, query)).toList();
   }
 
-  /// Returns true if the item matches all query filters.
+  /// Returns true if the item matches all query filters and filter groups.
   bool matches(T item, Query<T> query) {
+    // Check top-level AND filters
     for (final filter in query.filters) {
       if (!_matchesFilter(item, filter)) {
         return false;
       }
     }
+
+    // Check filter groups (e.g., OR groups)
+    for (final group in query.filterGroups) {
+      if (!_matchesFilterGroup(item, group)) {
+        return false;
+      }
+    }
+
     return true;
+  }
+
+  bool _matchesFilterGroup(T item, QueryFilterGroup group) {
+    if (group.combinator == FilterGroupCombinator.or) {
+      return group.filters.any((filter) => _matchesFilter(item, filter));
+    }
+    return group.filters.every((filter) => _matchesFilter(item, filter));
   }
 
   bool _matchesFilter(T item, QueryFilter filter) {
