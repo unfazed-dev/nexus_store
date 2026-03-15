@@ -487,6 +487,26 @@ class NexusStore<T, ID> {
     return _fetchHandler.watchAll(query: query);
   }
 
+  /// Watches the count of entities matching the optional [query].
+  ///
+  /// Returns a stream that emits the current count immediately
+  /// and subsequent updates when entities are added or removed.
+  Stream<int> watchCount({Query<T>? query}) {
+    _ensureInitialized();
+    return _fetchHandler.watchAll(query: query).map((list) => list.length);
+  }
+
+  /// Watches a single entity matching the [query].
+  ///
+  /// Returns a stream that emits the first matching entity or `null`
+  /// if no entity matches. Emits updates when the result changes.
+  Stream<T?> watchOne(Query<T> query) {
+    _ensureInitialized();
+    return _fetchHandler
+        .watchAll(query: query.limitTo(1))
+        .map((list) => list.firstOrNull);
+  }
+
   // ---------------------------------------------------------------------------
   // Pagination Operations
   // ---------------------------------------------------------------------------

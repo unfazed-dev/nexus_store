@@ -18,17 +18,25 @@
 | 9. exists() Method | ✅ Complete | 17 | ✅ 95.8% | `30135f5` | 2026-03-16 |
 | 10. updateWhere() / Batch Update | ✅ Complete | 37 | ✅ 95.8% | `90635c3` | 2026-03-16 |
 | 11. patch() / Partial Update | ✅ Complete | 18 | ✅ 95.8% | `3c42f6b` | 2026-03-16 |
-| 12. Reactive Streams (watchCount, watchOne) | ⏳ Pending | ~10 | — | — | — |
+| 12. Reactive Streams (watchCount, watchOne) | ✅ Complete | 12 | ✅ 97.9% | ⏳ | 2026-03-16 |
 | 13. Query Convenience Methods | ⏳ Pending | ~14 | — | — | — |
 | 14. Diagnostics & Health | ⏳ Pending | ~8 | — | — | — |
 | 15. upsert() / Save-If-Not-Exists | ⏳ Pending | ~16 | — | — | — |
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
-**Overall:** ██████████░░░░░░ 65% complete
-**Tests:** 244 passing | ~258-263 estimated total
+**Overall:** ███████████░░░░░ 71% complete
+**Tests:** 256 passing | ~258-263 estimated total
 
 ### Progress Log
+
+**Phase 12 Results (2026-03-16):**
+- Added `Stream<int> watchCount({Query<T>? query})` to `NexusStore`
+- Added `Stream<T?> watchOne(Query<T> query)` to `NexusStore`
+- `watchCount` delegates to `watchAll().map((l) => l.length)` for reactive count
+- `watchOne` delegates to `watchAll(query: query.limitTo(1)).map((l) => l.firstOrNull)` for single-entity stream
+- 12 tests: throw before init, empty/populated/update/delete/query for both methods
+- Harness: accepted, coverage 97.9%
 
 **Phase 11 Results (2026-03-16):**
 - Added `Future<T?> patch(ID id, Map<String, dynamic> updates)` to `StoreBackend` interface
@@ -893,38 +901,39 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** Phase 1 must be complete.
 
 ### Pre-Implementation Checklist
-- [ ] Phase 1 (count) complete and committed
-- [ ] Read `nexus_store.dart` — existing `watchAll()` implementation
+- [x] Phase 1 (count) complete and committed
+- [x] Read `nexus_store.dart` — existing `watchAll()` implementation
 
 ### Tasks
 #### RED: Write Failing Tests (~10)
-- [ ] Scaffold test files (`test-scaffold` agent)
-- [ ] watchCount empty/populated/changes
-- [ ] watchOne found/not-found/changes
-- [ ] Query filtering
-- [ ] Verify all tests FAIL
+- [x] Scaffold test files (`test-scaffold` agent)
+- [x] watchCount empty/populated/changes
+- [x] watchOne found/not-found/changes
+- [x] Query filtering
+- [x] Verify all tests FAIL
 
 #### GREEN: Implement
-1. [ ] Add `Stream<int> watchCount({Query<T>? query})` to `NexusStore`
-2. [ ] Add `Stream<T?> watchOne(Query<T> query)` to `NexusStore`
-3. [ ] Default impl: `watchAll(query:).map((l) => l.length)` and `watchAll(query: query.limitTo(1)).map((l) => l.firstOrNull)`
-4. [ ] Verify all tests PASS
+1. [x] Add `Stream<int> watchCount({Query<T>? query})` to `NexusStore`
+2. [x] Add `Stream<T?> watchOne(Query<T> query)` to `NexusStore`
+3. [x] Default impl: `watchAll(query:).map((l) => l.length)` and `watchAll(query: query.limitTo(1)).map((l) => l.firstOrNull)`
+4. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
-- [ ] `store.watchCount()` emits count updates reactively
-- [ ] `store.watchOne(query)` emits single entity or null reactively
-- [ ] Both work with query filters
+- [x] `store.watchCount()` emits count updates reactively
+- [x] `store.watchOne(query)` emits single entity or null reactively
+- [x] Both work with query filters
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~10)
-- [ ] `dart test` passes in `nexus_store/`
-- [ ] `dart analyze` clean
-- [ ] Coverage >= 95% for changed packages
-- [ ] Tracker progress table updated
+- [x] All tasks checked
+- [x] Tests passing (expected: ~10, actual: 12)
+- [x] `dart test` passes in `nexus_store/`
+- [x] `dart analyze` clean
+- [x] Coverage >= 95% for changed packages
+  - `nexus_store`: 97.9% (4398/4491 lines)
+- [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
 ```bash
