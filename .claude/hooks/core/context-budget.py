@@ -179,7 +179,7 @@ def get_cm_tag(context_window: dict = None) -> str:
         if BACKUP_STATE.exists():
             state = json.loads(BACKUP_STATE.read_text())
             if not state.get("cm_used_this_session", False):
-                return ""
+                return " [context-mode: not applicable]"
     except (json.JSONDecodeError, OSError):
         pass
 
