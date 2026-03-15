@@ -398,6 +398,52 @@ class DriftBackend<T, ID>
     }
   }
 
+  @override
+  Future<bool> exists(ID id) async {
+    _ensureInitialized();
+
+    try {
+      final (sql, args) = _queryTranslator.toExistsSql(
+        tableName: _tableName,
+        primaryKeyColumn: _primaryKeyField,
+        id: id,
+      );
+
+      final results = await _executor!.customSelect(
+        sql,
+        variables: [for (final arg in args) Variable(arg)],
+      ).get();
+
+      if (results.isEmpty) return false;
+      return (results.first.data['result'] as int? ?? 0) == 1;
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
+  @override
+  Future<bool> existsWhere(nexus.Query<T> query) async {
+    _ensureInitialized();
+
+    try {
+      final (sql, args) = _queryTranslator.toExistsSql(
+        tableName: _tableName,
+        primaryKeyColumn: _primaryKeyField,
+        query: query,
+      );
+
+      final results = await _executor!.customSelect(
+        sql,
+        variables: [for (final arg in args) Variable(arg)],
+      ).get();
+
+      if (results.isEmpty) return false;
+      return (results.first.data['result'] as int? ?? 0) == 1;
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Write Operations
   // ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('StoreOperation', () {
     test('should have all expected operations', () {
-      expect(StoreOperation.values, hasLength(12));
+      expect(StoreOperation.values, hasLength(14));
       expect(StoreOperation.values, contains(StoreOperation.get));
       expect(StoreOperation.values, contains(StoreOperation.getAll));
       expect(StoreOperation.values, contains(StoreOperation.save));
@@ -22,7 +22,7 @@ void main() {
       for (final op in StoreOperation.values) {
         operations.add(op);
       }
-      expect(operations, hasLength(12));
+      expect(operations, hasLength(14));
     });
 
     group('name property', () {
@@ -106,7 +106,11 @@ void main() {
           StoreOperation.deleteWhere =>
             'delete',
           StoreOperation.sync => 'sync',
-          StoreOperation.count || StoreOperation.aggregate => 'read',
+          StoreOperation.count ||
+          StoreOperation.aggregate ||
+          StoreOperation.exists ||
+          StoreOperation.existsWhere =>
+            'read',
         };
       }
 

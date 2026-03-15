@@ -79,6 +79,18 @@ abstract interface class StoreBackend<T, ID> {
     Query<T>? query,
   });
 
+  /// Returns `true` if an entity with the given [id] exists.
+  ///
+  /// More efficient than `get(id) != null` as backends can use
+  /// `SELECT EXISTS(SELECT 1 FROM table WHERE id = ?)`.
+  Future<bool> exists(ID id);
+
+  /// Returns `true` if any entity matches the given [query].
+  ///
+  /// More efficient than `getAll(query: query).isNotEmpty` as backends can
+  /// use `SELECT EXISTS(SELECT 1 FROM table WHERE ...)`.
+  Future<bool> existsWhere(Query<T> query);
+
   // ---------------------------------------------------------------------------
   // Write Operations
   // ---------------------------------------------------------------------------
@@ -398,6 +410,18 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
   Future<int> count({Query<T>? query}) async {
     final items = await getAll(query: query);
     return items.length;
+  }
+
+  @override
+  Future<bool> exists(ID id) async {
+    final item = await get(id);
+    return item != null;
+  }
+
+  @override
+  Future<bool> existsWhere(Query<T> query) async {
+    final items = await getAll(query: query);
+    return items.isNotEmpty;
   }
 
   @override

@@ -81,6 +81,31 @@ class DriftQueryTranslator<T>
     return (buffer.toString(), args);
   }
 
+  /// Generates a SELECT EXISTS SQL statement with optional WHERE clause.
+  ///
+  /// Returns a tuple of (sql, arguments) for parameterized query execution.
+  (String sql, List<Object?> args) toExistsSql({
+    required String tableName,
+    required String primaryKeyColumn,
+    Query<T>? query,
+    Object? id,
+  }) {
+    final args = <Object?>[];
+    final buffer = StringBuffer('SELECT EXISTS(SELECT 1 FROM $tableName');
+
+    if (id != null) {
+      buffer.write(' WHERE $primaryKeyColumn = ?');
+      args.add(id);
+    } else if (query != null && query.hasFilters) {
+      buffer
+        ..write(' WHERE ')
+        ..write(_buildFullWhereClause(query, args));
+    }
+
+    buffer.write(') AS result');
+    return (buffer.toString(), args);
+  }
+
   /// Generates a SELECT COUNT(*) SQL statement with optional WHERE clause.
   ///
   /// Ignores limit, offset, and orderBy since they are not relevant for

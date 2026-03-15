@@ -42,6 +42,12 @@ enum OperationType {
 
   /// Aggregate computation (sum, avg, min, max).
   aggregate,
+
+  /// Existence check by ID.
+  exists,
+
+  /// Existence check by query.
+  existsWhere,
 }
 
 /// Metric for tracking store operation performance.

@@ -15,7 +15,7 @@
 | 6. Drift Adapter Parity | ✅ Complete | 19 | ✅ 95.8% | `40b15d8` | 2026-03-15 |
 | 7. OR Logic in Query | ✅ Complete | 35 | ✅ 97.9% | `1e8333e` | 2026-03-15 |
 | 8. Aggregate Operations | ✅ Complete | 42 | ✅ 95.8% | `00288c3` | 2026-03-15 |
-| 9. exists() Method | ⏳ Pending | ~12 | — | — | — |
+| 9. exists() Method | ✅ Complete | 17 | ✅ 95.8% | ⏳ | 2026-03-16 |
 | 10. updateWhere() / Batch Update | ⏳ Pending | ~16 | — | — | — |
 | 11. patch() / Partial Update | ⏳ Pending | ~14 | — | — | — |
 | 12. Reactive Streams (watchCount, watchOne) | ⏳ Pending | ~10 | — | — | — |
@@ -25,10 +25,22 @@
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
-**Overall:** ████████░░░░░░░░ 47% complete
-**Tests:** 172 passing | ~246-251 estimated total
+**Overall:** █████████░░░░░░░ 53% complete
+**Tests:** 189 passing | ~246-251 estimated total
 
 ### Progress Log
+
+**Phase 9 Results (2026-03-16):**
+- Added `exists(ID id)` and `existsWhere(Query<T> query)` to `StoreBackend` interface
+- Default implementations in `StoreBackendDefaults`: `exists` uses `get()`, `existsWhere` uses `getAll()`
+- Optimized SQL implementations in PowerSync and Drift adapters using `SELECT EXISTS(SELECT 1 FROM ...)`
+- Added `toExistsSql()` to both `PowerSyncQueryTranslator` and `DriftQueryTranslator`
+- Added `StoreOperation.exists` and `StoreOperation.existsWhere` enum values
+- Added `OperationType.exists` and `OperationType.existsWhere` enum values
+- Updated `CompositeBackend` to delegate exists to primary backend
+- Updated interceptor chain, timing interceptor, and extension methods
+- 17 tests passing (12 nexus_store exists + 5 store_backend exists)
+- Harness: accepted
 
 **Phase 8 Results (2026-03-15):**
 - Added `AggregateType` enum (sum, avg, min, max) in `aggregate_result.dart`

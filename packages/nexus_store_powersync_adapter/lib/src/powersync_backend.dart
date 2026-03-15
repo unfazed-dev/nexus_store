@@ -520,6 +520,44 @@ class PowerSyncBackend<T, ID>
     }
   }
 
+  @override
+  Future<bool> exists(ID id) async {
+    _ensureInitialized();
+
+    try {
+      final (sql, args) = _queryTranslator.toExistsSql(
+        tableName: _tableName,
+        primaryKeyColumn: _primaryKeyColumn,
+        id: id,
+      );
+
+      final results = await _db.execute(sql, args);
+      if (results.isEmpty) return false;
+      return (results.first['result'] as int? ?? 0) == 1;
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
+  @override
+  Future<bool> existsWhere(nexus.Query<T> query) async {
+    _ensureInitialized();
+
+    try {
+      final (sql, args) = _queryTranslator.toExistsSql(
+        tableName: _tableName,
+        primaryKeyColumn: _primaryKeyColumn,
+        query: query,
+      );
+
+      final results = await _db.execute(sql, args);
+      if (results.isEmpty) return false;
+      return (results.first['result'] as int? ?? 0) == 1;
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
   // ===================== WRITE OPERATIONS =====================
 
   @override

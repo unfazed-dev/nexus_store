@@ -374,6 +374,42 @@ class NexusStore<T, ID> {
     });
   }
 
+  /// Returns `true` if an entity with the given [id] exists.
+  ///
+  /// More efficient than `get(id) != null` as backends can use
+  /// `SELECT EXISTS(...)` instead of loading the full entity.
+  Future<bool> exists(ID id) async {
+    _ensureInitialized();
+
+    return _trackOperation(OperationType.exists, () async {
+      return _interceptorChain.execute<ID, bool>(
+        operation: StoreOperation.exists,
+        request: id,
+        execute: () async {
+          return _backend.exists(id);
+        },
+      );
+    });
+  }
+
+  /// Returns `true` if any entity matches the given [query].
+  ///
+  /// More efficient than `getAll(query: query).isNotEmpty` as backends can
+  /// use `SELECT EXISTS(...)` instead of loading all matching entities.
+  Future<bool> existsWhere(Query<T> query) async {
+    _ensureInitialized();
+
+    return _trackOperation(OperationType.existsWhere, () async {
+      return _interceptorChain.execute<Query<T>, bool>(
+        operation: StoreOperation.existsWhere,
+        request: query,
+        execute: () async {
+          return _backend.existsWhere(query);
+        },
+      );
+    });
+  }
+
   /// Computes an aggregate value for a numeric [field].
   ///
   /// Returns the result of applying [type] (sum, avg, min, max) to [field]

@@ -246,6 +246,12 @@ class CompositeBackend<T, ID>
   Future<int> count({Query<T>? query}) => primary.count(query: query);
 
   @override
+  Future<bool> exists(ID id) => primary.exists(id);
+
+  @override
+  Future<bool> existsWhere(Query<T> query) => primary.existsWhere(query);
+
+  @override
   Future<num?> aggregate(
     String field,
     AggregateType type, {

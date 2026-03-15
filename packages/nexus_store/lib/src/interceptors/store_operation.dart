@@ -94,16 +94,28 @@ enum StoreOperation {
   /// Triggered when calling `store.aggregate()`, `store.sum()`,
   /// `store.avg()`, `store.min()`, or `store.max()`.
   aggregate,
+
+  /// Existence check by ID.
+  ///
+  /// Triggered when calling `store.exists(id)`.
+  exists,
+
+  /// Existence check by query.
+  ///
+  /// Triggered when calling `store.existsWhere(query)`.
+  existsWhere,
 }
 
 /// Extension methods for [StoreOperation].
 extension StoreOperationExtension on StoreOperation {
-  /// Whether this is a read operation (get, getAll, count, aggregate).
+  /// Whether this is a read operation (get, getAll, count, aggregate, exists, existsWhere).
   bool get isRead =>
       this == StoreOperation.get ||
       this == StoreOperation.getAll ||
       this == StoreOperation.count ||
-      this == StoreOperation.aggregate;
+      this == StoreOperation.aggregate ||
+      this == StoreOperation.exists ||
+      this == StoreOperation.existsWhere;
 
   /// Whether this is a stream operation (watch, watchAll).
   bool get isStream =>
