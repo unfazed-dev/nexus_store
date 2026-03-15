@@ -300,7 +300,9 @@ def main():
         os.makedirs(HISTORY_DIR, exist_ok=True)
         with open(RUNS_FILE, "a", encoding="utf-8") as f:
             f.write(json.dumps(run_data) + "\n")
-    except OSError:
+    except OSError as e:
+        print(f"[capture-test-results] WARNING: could not write test history: {e}",
+              file=sys.stderr)
         sys.exit(0)
 
     # Rotate old report files and trim runs log if oversized

@@ -43,6 +43,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent.parent
 PACKAGES_DIR = PROJECT_ROOT / "packages"
+TEST_TIMEOUT = int(os.environ.get("NEXUS_TEST_TIMEOUT", "600"))
 HISTORY_DIR = PROJECT_ROOT / ".claude" / "test-history"
 REPORTS_DIR = HISTORY_DIR / "reports"
 RUNS_FILE = HISTORY_DIR / "test-runs.jsonl"
@@ -82,7 +83,12 @@ def run_tests_in_package(package_dir, test_files=None, trigger="smart"):
             rel = os.path.relpath(str(PROJECT_ROOT / tf), str(package_dir))
             cmd.append(rel)
 
-    exit_code = subprocess.call(cmd, cwd=str(package_dir))
+    try:
+        proc = subprocess.run(cmd, cwd=str(package_dir), timeout=TEST_TIMEOUT)
+        exit_code = proc.returncode
+    except subprocess.TimeoutExpired:
+        print(f"  [TIMEOUT] Tests in {package_dir.name} exceeded {TEST_TIMEOUT}s")
+        exit_code = 1
 
     # Capture results from report file
     if os.path.exists(report_path):

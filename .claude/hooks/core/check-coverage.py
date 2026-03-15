@@ -28,12 +28,24 @@ I/O:
 """
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
 import re
 import subprocess
 import sys
 from pathlib import Path
+
+
+@dataclasses.dataclass
+class _CoverageResult:
+    lcov_path: Path | None
+    tests_failed: bool = False
+    failed_tests: list[str] = dataclasses.field(default_factory=list)
+
+
+# Regex to strip ANSI escape codes from test output
+_ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent.parent
@@ -157,8 +169,35 @@ def is_flutter_package(package_dir: Path) -> bool:
         return False
 
 
-def run_coverage_for_package(package_dir: Path) -> Path | None:
-    """Run tests with coverage for a package. Returns path to lcov.info or None."""
+def _try_format_coverage(coverage_dir: Path, package_dir: Path) -> Path | None:
+    """Try to format coverage JSON files into lcov.info. Returns path or None."""
+    lcov_path = coverage_dir / "lcov.info"
+    if lcov_path.exists():
+        return lcov_path
+
+    if not coverage_dir.is_dir():
+        return None
+
+    fmt_cmd = [
+        "dart", "run", "coverage:format_coverage",
+        "--lcov",
+        f"--in={coverage_dir}",
+        f"--out={lcov_path}",
+        f"--report-on=lib/",
+    ]
+    fmt_result = subprocess.run(
+        fmt_cmd, cwd=str(package_dir),
+        capture_output=True, text=True,
+    )
+    if fmt_result.returncode != 0:
+        print(f"  Warning: Could not format coverage for {package_dir.name}")
+        return None
+
+    return lcov_path if lcov_path.exists() else None
+
+
+def run_coverage_for_package(package_dir: Path) -> _CoverageResult:
+    """Run tests with coverage for a package. Returns _CoverageResult."""
     coverage_dir = package_dir / "coverage"
 
     if is_flutter_package(package_dir):
@@ -172,38 +211,33 @@ def run_coverage_for_package(package_dir: Path) -> Path | None:
     if result.returncode != 0:
         print(f"  Tests failed in {package_dir.name}")
         if result.stderr:
-            # Print last few lines of error
             lines = result.stderr.strip().split("\n")
             for line in lines[-5:]:
                 print(f"    {line}")
-        return None
 
-    # For dart test --coverage, we need to generate lcov
-    lcov_path = coverage_dir / "lcov.info"
-    if not lcov_path.exists():
-        # dart test --coverage outputs .json files, need to convert
-        # Check for package_config.json-based format
-        dart_coverage = coverage_dir
-        if dart_coverage.is_dir():
-            # Try using dart run coverage:format_coverage
-            fmt_cmd = [
-                "dart", "run", "coverage:format_coverage",
-                "--lcov",
-                f"--in={coverage_dir}",
-                f"--out={lcov_path}",
-                f"--report-on=lib/",
-            ]
-            fmt_result = subprocess.run(
-                fmt_cmd, cwd=str(package_dir),
-                capture_output=True, text=True,
-            )
-            if fmt_result.returncode != 0:
-                print(f"  Warning: Could not format coverage for {package_dir.name}")
-                return None
+        # Surface failing test names from stdout
+        failed_test_names: list[str] = []
+        if result.stdout:
+            clean = _ANSI_RE.sub('', result.stdout)
+            failed = [l.strip() for l in clean.split('\n') if '[E]' in l]
+            if failed:
+                print(f"  Failed tests ({len(failed)}):")
+                for name in failed[:10]:
+                    print(f"    {name}")
+                if len(failed) > 10:
+                    print(f"    ... and {len(failed) - 10} more")
+                failed_test_names = failed
 
-    if lcov_path.exists():
-        return lcov_path
-    return None
+        # Still try to collect partial coverage data
+        lcov_path = _try_format_coverage(coverage_dir, package_dir)
+        return _CoverageResult(
+            lcov_path=lcov_path,
+            tests_failed=True,
+            failed_tests=failed_test_names,
+        )
+
+    lcov_path = _try_format_coverage(coverage_dir, package_dir)
+    return _CoverageResult(lcov_path=lcov_path)
 
 
 def run_coverage_for_app() -> Path | None:
@@ -263,8 +297,8 @@ def parse_lcov(lcov_path: Path) -> dict:
                             "total": lines_total,
                         }
                     current_file = None
-    except (OSError, UnicodeDecodeError):
-        pass
+    except (OSError, UnicodeDecodeError) as e:
+        print(f"  Warning: could not parse lcov file {lcov_path}: {e}")
 
     return files
 
@@ -276,6 +310,15 @@ def filter_generated_files(file_coverage: dict) -> dict:
         if any(filepath.endswith(pat) for pat in GENERATED_FILE_PATTERNS):
             continue
         filtered[filepath] = data
+
+    excluded = len(file_coverage) - len(filtered)
+    if excluded > 0:
+        raw_hit = sum(d["hit"] for d in file_coverage.values())
+        raw_total = sum(d["total"] for d in file_coverage.values())
+        raw_pct = round((raw_hit / raw_total) * 100, 2) if raw_total else 100.0
+        print(f"  Filtered {excluded} generated file(s) "
+              f"(raw: {raw_pct}%, filtered will be higher)")
+
     return filtered
 
 
@@ -316,28 +359,40 @@ def check_package(package_name: str, threshold: float, dry_run: bool = False) ->
             "dry_run": True,
         }
 
-    lcov_path = run_coverage_for_package(package_dir)
-    if lcov_path is None:
-        return {
-            "name": package_name,
-            "coverage_pct": 0.0,
-            "threshold": threshold,
-            "passed": False,
-            "reason": "tests failed or no coverage data",
-        }
+    result = run_coverage_for_package(package_dir)
 
-    file_coverage = parse_lcov(lcov_path)
-    file_coverage = filter_generated_files(file_coverage)
-    lines_hit, lines_total, pct = compute_coverage(file_coverage)
+    # Try to parse coverage data regardless of test success
+    if result.lcov_path is not None:
+        file_coverage = parse_lcov(result.lcov_path)
+        file_coverage = filter_generated_files(file_coverage)
+        lines_hit, lines_total, pct = compute_coverage(file_coverage)
+    else:
+        lines_hit, lines_total, pct = 0, 0, 0.0
 
-    return {
+    output = {
         "name": package_name,
         "coverage_pct": pct,
         "lines_hit": lines_hit,
         "lines_total": lines_total,
         "threshold": threshold,
-        "passed": pct >= threshold,
     }
+
+    if result.tests_failed:
+        output["passed"] = False
+        output["tests_failed"] = True
+        output["failed_tests"] = result.failed_tests[:10]
+        if pct > 0:
+            output["partial_coverage_pct"] = pct
+            output["reason"] = f"tests failed (partial coverage: {pct}%)"
+        else:
+            output["reason"] = "tests failed and no coverage data collected"
+    elif lines_total == 0 and result.lcov_path is None:
+        output["passed"] = False
+        output["reason"] = "no coverage data"
+    else:
+        output["passed"] = pct >= threshold
+
+    return output
 
 
 def check_app(threshold: float, dry_run: bool = False) -> dict:

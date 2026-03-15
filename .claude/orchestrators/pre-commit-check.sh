@@ -33,11 +33,12 @@ if ! dart format --set-exit-if-changed . > /dev/null 2>&1; then
 fi
 
 # 2. Analyzer
-analyze_output=$(dart analyze --fatal-infos 2>&1) || true
-if echo "$analyze_output" | grep -q "error •\|error -\|info •\|warning •"; then
+analyze_output=$(dart analyze --fatal-infos 2>&1)
+analyze_exit=$?
+if [ $analyze_exit -ne 0 ]; then
     analyze_ok=false
-    error_count=$(echo "$analyze_output" | grep -c "error •\|error -\|info •\|warning •" || true)
-    details+=("dart analyze: $error_count issue(s) found")
+    error_count=$(echo "$analyze_output" | grep -cE '[[:space:]](error|warning|info)[[:space:]]' || true)
+    details+=("dart analyze: $error_count issue(s)")
 fi
 
 # 3. Invariants

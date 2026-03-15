@@ -31,6 +31,11 @@
 - **Override:** `CHECK_COVERAGE=false` for non-code phases
 - **Generated files excluded:** `.g.dart`, `.freezed.dart` filtered from coverage data
 
+## Coverage Gotchas
+- **Raw vs filtered:** `lcov --summary` includes .g.dart/.freezed.dart (may show ~60%); `check-coverage.py` filters these (actual hand-written coverage is typically 95%+)
+- **Test failure ≠ 0% coverage:** When tests fail, the gate reports failure but now also shows partial coverage data and lists failing test names
+- **Silent LCOV parse errors:** If `parse_lcov` warns about read failures, the lcov.info file may be corrupted or have encoding issues
+
 ## Enforcement
 - **Hook:** `.claude/hooks/core/inject-test-reporter.py` — intercepts full-suite runs, forces smart runner
 - **Hook:** `.claude/hooks/core/capture-test-results.py` — auto-captures results to test-runs.jsonl
