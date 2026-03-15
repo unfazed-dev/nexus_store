@@ -81,6 +81,27 @@ class DriftQueryTranslator<T>
     return (buffer.toString(), args);
   }
 
+  /// Generates a SELECT COUNT(*) SQL statement with optional WHERE clause.
+  ///
+  /// Ignores limit, offset, and orderBy since they are not relevant for
+  /// counting. Returns a tuple of (sql, arguments) for parameterized query
+  /// execution.
+  (String sql, List<Object?> args) toCountSql({
+    required String tableName,
+    Query<T>? query,
+  }) {
+    final args = <Object?>[];
+    final buffer = StringBuffer('SELECT COUNT(*) AS count FROM $tableName');
+
+    if (query != null && query.filters.isNotEmpty) {
+      buffer
+        ..write(' WHERE ')
+        ..write(_buildWhereClause(query.filters, args));
+    }
+
+    return (buffer.toString(), args);
+  }
+
   String _buildWhereClause(List<QueryFilter> filters, List<Object?> args) {
     final conditions = <String>[];
 

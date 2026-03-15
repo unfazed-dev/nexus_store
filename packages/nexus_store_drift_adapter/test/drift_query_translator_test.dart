@@ -564,5 +564,141 @@ void main() {
         expect(args, isEmpty);
       });
     });
+
+    group('toCountSql', () {
+      test('generates COUNT without query', () {
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+        );
+
+        expect(sql, equals('SELECT COUNT(*) AS count FROM users'));
+        expect(args, isEmpty);
+      });
+
+      test('generates COUNT with empty query', () {
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+          query: const Query<TestModel>(),
+        );
+
+        expect(sql, equals('SELECT COUNT(*) AS count FROM users'));
+        expect(args, isEmpty);
+      });
+
+      test('generates COUNT with single filter', () {
+        final query =
+            const Query<TestModel>().where('status', isEqualTo: 'active');
+
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(
+          sql,
+          equals('SELECT COUNT(*) AS count FROM users WHERE status = ?'),
+        );
+        expect(args, ['active']);
+      });
+
+      test('generates COUNT with multiple filters', () {
+        final query = const Query<TestModel>()
+            .where('status', isEqualTo: 'active')
+            .where('age', isGreaterThan: 18);
+
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(
+          sql,
+          equals(
+            'SELECT COUNT(*) AS count FROM users WHERE status = ? AND age > ?',
+          ),
+        );
+        expect(args, ['active', 18]);
+      });
+
+      test('generates COUNT with text search filter', () {
+        final query = const Query<TestModel>().copyWith(
+          filters: [
+            const QueryFilter(
+              field: 'name',
+              operator: FilterOperator.contains,
+              value: 'john',
+            ),
+          ],
+        );
+
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(
+          sql,
+          equals('SELECT COUNT(*) AS count FROM users WHERE name LIKE ?'),
+        );
+        expect(args, ['%john%']);
+      });
+
+      test('ignores limit and offset in COUNT', () {
+        final query = const Query<TestModel>()
+            .where('status', isEqualTo: 'active')
+            .limitTo(10)
+            .offsetBy(5);
+
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(
+          sql,
+          equals('SELECT COUNT(*) AS count FROM users WHERE status = ?'),
+        );
+        expect(args, ['active']);
+      });
+
+      test('ignores orderBy in COUNT', () {
+        final query = const Query<TestModel>()
+            .where('status', isEqualTo: 'active')
+            .orderByField('name');
+
+        final (sql, args) = translator.toCountSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(
+          sql,
+          equals('SELECT COUNT(*) AS count FROM users WHERE status = ?'),
+        );
+        expect(args, ['active']);
+      });
+
+      test('generates COUNT with field mapping', () {
+        final mappedTranslator = DriftQueryTranslator<TestModel>(
+          fieldMapping: {'status': 'user_status'},
+        );
+
+        final query =
+            const Query<TestModel>().where('status', isEqualTo: 'active');
+
+        final (sql, args) = mappedTranslator.toCountSql(
+          tableName: 'users',
+          query: query,
+        );
+
+        expect(
+          sql,
+          equals(
+            'SELECT COUNT(*) AS count FROM users WHERE user_status = ?',
+          ),
+        );
+        expect(args, ['active']);
+      });
+    });
   });
 }

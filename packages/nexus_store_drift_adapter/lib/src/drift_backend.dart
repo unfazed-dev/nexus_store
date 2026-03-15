@@ -347,6 +347,27 @@ class DriftBackend<T, ID>
     return subject.stream;
   }
 
+  @override
+  Future<int> count({nexus.Query<T>? query}) async {
+    _ensureInitialized();
+
+    try {
+      final (sql, args) = _queryTranslator.toCountSql(
+        tableName: _tableName,
+        query: query,
+      );
+
+      final results = await _executor!.customSelect(
+        sql,
+        variables: [for (final arg in args) Variable(arg)],
+      ).get();
+
+      return results.first.data['count'] as int? ?? 0;
+    } catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Write Operations
   // ---------------------------------------------------------------------------

@@ -750,5 +750,177 @@ void main() {
         expect(all.length, equals(3));
       });
     });
+
+    group('count', () {
+      test('count returns 0 on empty table', () async {
+        final result = await backend.count();
+        expect(result, equals(0));
+      });
+
+      test('count returns total items without query', () async {
+        await backend.saveAll([
+          TestModel(id: '1', name: 'Alice', age: 30),
+          TestModel(id: '2', name: 'Bob', age: 25),
+          TestModel(id: '3', name: 'Charlie', age: 35),
+        ]);
+
+        final result = await backend.count();
+        expect(result, equals(3));
+      });
+
+      test('count with equality filter', () async {
+        await backend.saveAll([
+          TestModel(id: '1', name: 'Alice', age: 30),
+          TestModel(id: '2', name: 'Bob', age: 25),
+          TestModel(id: '3', name: 'Alice', age: 35),
+        ]);
+
+        final query =
+            const nexus.Query<TestModel>().where('name', isEqualTo: 'Alice');
+        final result = await backend.count(query: query);
+        expect(result, equals(2));
+      });
+
+      test('count with comparison filter', () async {
+        await backend.saveAll([
+          TestModel(id: '1', name: 'Alice', age: 30),
+          TestModel(id: '2', name: 'Bob', age: 25),
+          TestModel(id: '3', name: 'Charlie', age: 35),
+        ]);
+
+        final query =
+            const nexus.Query<TestModel>().where('age', isGreaterThan: 28);
+        final result = await backend.count(query: query);
+        expect(result, equals(2));
+      });
+
+      test(
+        'count with text search filter (contains)',
+        () async {
+          await backend.saveAll([
+            TestModel(id: '1', name: 'Alice Smith', age: 30),
+            TestModel(id: '2', name: 'Bob Jones', age: 25),
+            TestModel(id: '3', name: 'Alice Johnson', age: 35),
+          ]);
+
+          final query = const nexus.Query<TestModel>().copyWith(
+            filters: [
+              const nexus.QueryFilter(
+                field: 'name',
+                operator: nexus.FilterOperator.contains,
+                value: 'Alice',
+              ),
+            ],
+          );
+          final result = await backend.count(query: query);
+          expect(result, equals(2));
+        },
+      );
+    });
+
+    group('deleteWhere', () {
+      test('deleteWhere removes matching items', () async {
+        await backend.saveAll([
+          TestModel(id: '1', name: 'Alice', age: 30),
+          TestModel(id: '2', name: 'Bob', age: 25),
+          TestModel(id: '3', name: 'Alice', age: 35),
+        ]);
+
+        final query =
+            const nexus.Query<TestModel>().where('name', isEqualTo: 'Alice');
+        final deleted = await backend.deleteWhere(query);
+
+        expect(deleted, equals(2));
+        final remaining = await backend.getAll();
+        expect(remaining.length, equals(1));
+        expect(remaining.first.name, equals('Bob'));
+      });
+
+      test('deleteWhere with comparison filter', () async {
+        await backend.saveAll([
+          TestModel(id: '1', name: 'Alice', age: 30),
+          TestModel(id: '2', name: 'Bob', age: 25),
+          TestModel(id: '3', name: 'Charlie', age: 35),
+        ]);
+
+        final query =
+            const nexus.Query<TestModel>().where('age', isLessThan: 30);
+        final deleted = await backend.deleteWhere(query);
+
+        expect(deleted, equals(1));
+        final remaining = await backend.getAll();
+        expect(remaining.length, equals(2));
+      });
+
+      test('deleteWhere returns 0 when no match', () async {
+        await backend.save(
+          TestModel(id: '1', name: 'Alice', age: 30),
+        );
+
+        final query =
+            const nexus.Query<TestModel>().where('name', isEqualTo: 'Nobody');
+        final deleted = await backend.deleteWhere(query);
+
+        expect(deleted, equals(0));
+        final remaining = await backend.getAll();
+        expect(remaining.length, equals(1));
+      });
+    });
+
+    group('text search', () {
+      setUp(() async {
+        await backend.saveAll([
+          TestModel(id: '1', name: 'Alice Smith', age: 30),
+          TestModel(id: '2', name: 'Bob Johnson', age: 25),
+          TestModel(id: '3', name: 'Charlie Smith', age: 35),
+          TestModel(id: '4', name: 'Alice Johnson', age: 28),
+        ]);
+      });
+
+      test('contains filter matches substring', () async {
+        final query = const nexus.Query<TestModel>().copyWith(
+          filters: [
+            const nexus.QueryFilter(
+              field: 'name',
+              operator: nexus.FilterOperator.contains,
+              value: 'Smith',
+            ),
+          ],
+        );
+
+        final results = await backend.getAll(query: query);
+        expect(results.length, equals(2));
+      });
+
+      test('startsWith filter matches prefix', () async {
+        final query = const nexus.Query<TestModel>().copyWith(
+          filters: [
+            const nexus.QueryFilter(
+              field: 'name',
+              operator: nexus.FilterOperator.startsWith,
+              value: 'Alice',
+            ),
+          ],
+        );
+
+        final results = await backend.getAll(query: query);
+        expect(results.length, equals(2));
+      });
+
+      test('endsWith filter matches suffix', () async {
+        final query = const nexus.Query<TestModel>().copyWith(
+          filters: [
+            const nexus.QueryFilter(
+              field: 'name',
+              operator: nexus.FilterOperator.endsWith,
+              value: 'Johnson',
+            ),
+          ],
+        );
+
+        final results = await backend.getAll(query: query);
+        expect(results.length, equals(2));
+      });
+    });
   });
 }

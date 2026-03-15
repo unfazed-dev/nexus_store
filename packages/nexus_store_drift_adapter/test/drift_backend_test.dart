@@ -934,4 +934,143 @@ void main() {
       expect(updatedChange!.retryCount, equals(3));
     });
   });
+
+  group('count', () {
+    late DriftBackend<TestModel, String> backend;
+    late MockDatabaseConnectionUser mockExecutor;
+    late MockSelectable<QueryRow> mockSelectable;
+
+    setUp(() async {
+      backend = DriftBackend<TestModel, String>(
+        tableName: 'test_models',
+        getId: (model) => model.id,
+        fromJson: TestModel.fromJson,
+        toJson: (model) => model.toJson(),
+        primaryKeyField: 'id',
+      );
+      mockExecutor = MockDatabaseConnectionUser();
+      mockSelectable = MockSelectable<QueryRow>();
+      await backend.initializeWithExecutor(mockExecutor);
+    });
+
+    tearDown(() async {
+      await backend.close();
+    });
+
+    test('count without query uses SELECT COUNT(*)', () async {
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
+      when(() => mockSelectable.get()).thenAnswer(
+        (_) async => [
+          QueryRow(
+            {'count': 5},
+            MockDatabaseConnectionUser(),
+          ),
+        ],
+      );
+
+      final result = await backend.count();
+
+      expect(result, equals(5));
+      verify(
+        () => mockExecutor.customSelect(
+          any(that: contains('COUNT(*)')),
+          variables: any(named: 'variables'),
+        ),
+      ).called(1);
+    });
+
+    test('count with query uses SELECT COUNT(*) with WHERE', () async {
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
+      when(() => mockSelectable.get()).thenAnswer(
+        (_) async => [
+          QueryRow(
+            {'count': 3},
+            MockDatabaseConnectionUser(),
+          ),
+        ],
+      );
+
+      final query =
+          const nexus.Query<TestModel>().where('name', isEqualTo: 'John');
+      final result = await backend.count(query: query);
+
+      expect(result, equals(3));
+      verify(
+        () => mockExecutor.customSelect(
+          any(
+            that: allOf(
+              contains('COUNT(*)'),
+              contains('WHERE'),
+            ),
+          ),
+          variables: any(named: 'variables'),
+        ),
+      ).called(1);
+    });
+
+    test('count returns 0 when result is null', () async {
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
+      when(() => mockSelectable.get()).thenAnswer(
+        (_) async => [
+          QueryRow(
+            {'count': null},
+            MockDatabaseConnectionUser(),
+          ),
+        ],
+      );
+
+      final result = await backend.count();
+
+      expect(result, equals(0));
+    });
+
+    test('count throws StateError when not initialized', () async {
+      final uninitBackend = DriftBackend<TestModel, String>(
+        tableName: 'test_models',
+        getId: (model) => model.id,
+        fromJson: TestModel.fromJson,
+        toJson: (model) => model.toJson(),
+        primaryKeyField: 'id',
+      );
+
+      expect(
+        uninitBackend.count,
+        throwsA(isA<nexus.StateError>()),
+      );
+
+      await uninitBackend.close();
+    });
+
+    test('count maps exceptions correctly', () async {
+      when(
+        () => mockExecutor.customSelect(
+          any(),
+          variables: any(named: 'variables'),
+        ),
+      ).thenReturn(mockSelectable);
+      when(() => mockSelectable.get()).thenThrow(
+        Exception('no such table: test_models'),
+      );
+
+      expect(
+        backend.count,
+        throwsA(isA<nexus.StateError>()),
+      );
+    });
+  });
 }
