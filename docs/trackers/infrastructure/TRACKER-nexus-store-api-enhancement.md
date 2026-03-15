@@ -312,7 +312,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [x] `dart test` passes in `nexus_store_powersync_adapter/`
 - [x] `dart analyze` clean
 - [x] Coverage >= 95% for changed packages (powersync 99.2%, nexus_store pre-existing gap)
-- [ ] Tracker progress table updated
+- [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
 ```bash
