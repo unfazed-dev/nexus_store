@@ -94,8 +94,9 @@ export 'src/core/conflict_strategy.dart';
 export 'src/core/mutation_options.dart';
 export 'src/core/nexus_store.dart';
 export 'src/core/scoped_store.dart';
-export 'src/core/store_diagnostics.dart';
 export 'src/core/store_backend.dart';
+export 'src/core/store_diagnostics.dart';
+export 'src/core/store_join.dart';
 export 'src/core/transaction_coordinator.dart';
 // Errors
 export 'src/errors/store_errors.dart';
