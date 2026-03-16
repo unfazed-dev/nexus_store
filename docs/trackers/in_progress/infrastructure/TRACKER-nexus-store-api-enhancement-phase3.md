@@ -11,7 +11,7 @@
 | A2. `StoreJoin` — Reactive Cross-Store Joins | ✅ Complete | 14 | ✅ 95.8% | `8428416` | 2026-03-16 |
 | A3. `mutateWithTransform` — Atomic Get+Transform+Save | ✅ Complete | 10 | ✅ 100.0% | `79572a8` | 2026-03-16 |
 | A4. `watchPaged` — Paginated Reactive Streams | ✅ Complete | 7 | ✅ 100.0% | `7e625f0` | 2026-03-16 |
-| B1. Compliance Audit Migration | ✅ Complete | 4 | — | ⏳ | 2026-03-16 |
+| B1. Compliance Audit Migration | ✅ Complete | 4 | — | `f40f1cf` | 2026-03-16 |
 | B2. Incident Repository Migration | ⏳ Pending | — | — | — | — |
 | B3. Journal Soft-Delete Redundancy | ⏳ Pending | — | — | — | — |
 
