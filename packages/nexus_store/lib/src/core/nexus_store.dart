@@ -984,13 +984,11 @@ class NexusStore<T, ID> {
         operation: StoreOperation.deleteAll,
         request: ids,
         execute: () async {
-          var count = 0;
+          final count = await _writeHandler.deleteAll(ids, policy: policy);
+
+          // Remove from memory manager tracking
           for (final id in ids) {
-            if (await _writeHandler.delete(id, policy: policy)) {
-              count++;
-              // Remove from memory manager tracking
-              _memoryManager?.removeItem(id);
-            }
+            _memoryManager?.removeItem(id);
           }
 
           // coverage:ignore-start

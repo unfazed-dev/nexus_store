@@ -77,6 +77,20 @@ class WritePolicyHandler<T, ID> {
     };
   }
 
+  /// Deletes multiple entities by their IDs according to the [policy].
+  ///
+  /// Returns the count of entities actually deleted.
+  Future<int> deleteAll(List<ID> ids, {WritePolicy? policy}) async {
+    final effectivePolicy = policy ?? defaultPolicy;
+
+    return switch (effectivePolicy) {
+      WritePolicy.cacheAndNetwork => _deleteAllCacheAndNetwork(ids),
+      WritePolicy.networkFirst => _deleteAllNetworkFirst(ids),
+      WritePolicy.cacheFirst => _deleteAllCacheFirst(ids),
+      WritePolicy.cacheOnly => backend.deleteAll(ids),
+    };
+  }
+
   /// Updates all entities matching the [query] with [updates] according to
   /// the [policy].
   ///
@@ -167,6 +181,17 @@ class WritePolicyHandler<T, ID> {
     }
   }
 
+  Future<int> _deleteAllCacheAndNetwork(List<ID> ids) async {
+    final count = await backend.deleteAll(ids);
+
+    try {
+      await backend.sync();
+      return count;
+    } on StoreError {
+      rethrow;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Network-First Strategy (Consistent)
   // ---------------------------------------------------------------------------
@@ -200,6 +225,12 @@ class WritePolicyHandler<T, ID> {
     return count;
   }
 
+  Future<int> _deleteAllNetworkFirst(List<ID> ids) async {
+    final count = await backend.deleteAll(ids);
+    await backend.sync();
+    return count;
+  }
+
   // ---------------------------------------------------------------------------
   // Cache-First Strategy (Offline-First)
   // ---------------------------------------------------------------------------
@@ -228,6 +259,12 @@ class WritePolicyHandler<T, ID> {
 
   Future<int> _deleteWhereCacheFirst(Query<T> query) async {
     final count = await backend.deleteWhere(query);
+    unawaited(_syncInBackground());
+    return count;
+  }
+
+  Future<int> _deleteAllCacheFirst(List<ID> ids) async {
+    final count = await backend.deleteAll(ids);
     unawaited(_syncInBackground());
     return count;
   }
