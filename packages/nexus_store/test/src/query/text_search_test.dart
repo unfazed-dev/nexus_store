@@ -54,6 +54,33 @@ void main() {
 
       expect(a.hashCode, equals(b.hashCode));
     });
+
+    test('toString includes all fields', () {
+      final config = TextSearchConfig(
+        query: 'test',
+        config: 'english',
+        type: TextSearchType.websearch,
+      );
+
+      final str = config.toString();
+      expect(str, contains('test'));
+      expect(str, contains('english'));
+      expect(str, contains('websearch'));
+    });
+
+    test('inequality with different type', () {
+      final a = TextSearchConfig(query: 'hello', type: TextSearchType.plain);
+      final b = TextSearchConfig(query: 'hello', type: TextSearchType.phrase);
+
+      expect(a, isNot(equals(b)));
+    });
+
+    test('is not equal to non-TextSearchConfig object', () {
+      final config = TextSearchConfig(query: 'hello');
+
+      // ignore: unrelated_type_equality_checks
+      expect(config == 'not a config', isFalse);
+    });
   });
 
   group('FilterOperator.textSearch', () {
@@ -63,6 +90,36 @@ void main() {
 
     test('enum has 19 values', () {
       expect(FilterOperator.values, hasLength(19));
+    });
+  });
+
+  group('InMemoryQueryEvaluator textSearch', () {
+    late InMemoryQueryEvaluator<Map<String, dynamic>> evaluator;
+
+    setUp(() {
+      evaluator = InMemoryQueryEvaluator<Map<String, dynamic>>(
+        fieldAccessor: (item, field) => item[field],
+      );
+    });
+
+    test('matches substring case-insensitively', () {
+      final query = const Query<Map<String, dynamic>>().where(
+        'body',
+        textSearch: TextSearchConfig(query: 'hello'),
+      );
+
+      expect(evaluator.matches({'body': 'Hello World'}, query), isTrue);
+      expect(evaluator.matches({'body': 'HELLO'}, query), isTrue);
+      expect(evaluator.matches({'body': 'goodbye'}, query), isFalse);
+    });
+
+    test('matches with null field value', () {
+      final query = const Query<Map<String, dynamic>>().where(
+        'body',
+        textSearch: TextSearchConfig(query: 'hello'),
+      );
+
+      expect(evaluator.matches({'body': null}, query), isFalse);
     });
   });
 
