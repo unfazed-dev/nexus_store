@@ -1,28 +1,34 @@
 # TRACKER: NexusStore API Gap Closure
 
-## Status: PLANNING
+## Status: IN_PROGRESS
 
 ## Progress
 
 ### Overview
 | Phase | Status | Tests | Coverage | Committed | Last Updated |
 |-------|--------|-------|----------|-----------|--------------|
-| 1. RPC Support | ⏳ Pending | — | — | — | — |
+| 1. RPC Support | ✅ Complete | 8 | ✅ 100.0% | `2b76534` | 2026-03-17 |
 | 2. Text Search | ⏳ Pending | — | — | — | — |
 | 3. JOIN / Relations | ⏳ Pending | — | — | — | — |
 | 4. Storage API | ⏳ Pending | — | — | — | — |
 | 5. Transaction Support | ⏳ Pending | — | — | — | — |
 
-**Overall:** ░░░░░░░░░░░░░░░░ 0% complete
-**Tests:** 0 passing | 0 failing
+**Overall:** ███░░░░░░░░░░░░░ 20% complete
+**Tests:** 8 passing | 0 failing
 
 ### Progress Log
 
 **Current State (2026-03-17):**
-- Working on: Planning
-- Last completed: Tracker creation
+- Working on: COMPLETE (Phase 1)
+- Last completed: Phase 1 — RPC Support
 - Blocked by: Nothing
-- Next up: Phase 1 — RPC Support
+- Next up: Phase 2 — Text Search
+
+**Phase 1 Results (2026-03-17):**
+- Added `rpc<R>()` method to `SupabaseBackend` with optional `fromJson` deserializer
+- Added `rpc()` to `SupabaseClientWrapper` interface + `DefaultSupabaseClientWrapper` implementation
+- 8 tests: 6 for backend rpc behavior, 2 for default wrapper delegation
+- Harness: accepted, delta coverage 100.0% (7/7 lines)
 
 ## Overview
 
@@ -55,30 +61,30 @@ The raw Supabase to NexusStore migration audit identified 5 API gaps. While none
 - Delegates to `supabase.rpc('fn_name', params: {...})`
 
 ### Pre-Implementation Checklist
-- [ ] Read `packages/nexus_store_supabase_adapter/lib/src/supabase_backend.dart`
-- [ ] Read `packages/nexus_store_supabase_adapter/lib/nexus_store_supabase_adapter.dart` (barrel)
-- [ ] Run `prior-art` agent to check existing RPC patterns
-- [ ] Identify test fixtures and mocking patterns in supabase_adapter tests
+- [x] Read `packages/nexus_store_supabase_adapter/lib/src/supabase_backend.dart`
+- [x] Read `packages/nexus_store_supabase_adapter/lib/nexus_store_supabase_adapter.dart` (barrel)
+- [x] Run `prior-art` agent to check existing RPC patterns
+- [x] Identify test fixtures and mocking patterns in supabase_adapter tests
 
 ### Tasks
 #### RED: Write Failing Tests
-- [ ] Invoke `test-scaffold` agent for RPC test scaffolding
-- [ ] Write test: `rpc()` calls Supabase client with correct function name
-- [ ] Write test: `rpc()` passes params correctly
-- [ ] Write test: `rpc()` applies `fromJson` deserializer when provided
-- [ ] Write test: `rpc()` returns raw response when no `fromJson`
-- [ ] Write test: `rpc()` propagates Supabase errors as `StoreError`
-- [ ] Verify all new tests FAIL
+- [x] Invoke `test-scaffold` agent for RPC test scaffolding
+- [x] Write test: `rpc()` calls Supabase client with correct function name
+- [x] Write test: `rpc()` passes params correctly
+- [x] Write test: `rpc()` applies `fromJson` deserializer when provided
+- [x] Write test: `rpc()` returns raw response when no `fromJson`
+- [x] Write test: `rpc()` propagates Supabase errors as `StoreError`
+- [x] Verify all new tests FAIL
 
 #### GREEN: Implement
-- [ ] Add `rpc<T>()` method to `SupabaseBackend`
-- [ ] Handle typed response via generic `fromJson` callback
-- [ ] Wrap Supabase exceptions in `StoreError`
-- [ ] Export any new types from barrel file
-- [ ] Verify all tests PASS
+- [x] Add `rpc<R>()` method to `SupabaseBackend`
+- [x] Handle typed response via generic `fromJson` callback
+- [x] Wrap Supabase exceptions in `StoreError`
+- [x] Export any new types from barrel file (none needed)
+- [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - `SupabaseBackend.rpc()` calls PostgreSQL functions via Supabase client
@@ -87,13 +93,12 @@ The raw Supabase to NexusStore migration audit identified 5 API gaps. While none
 - No changes to core `StoreBackend` interface
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~5)
-- [ ] Tracker progress table updated
-- [ ] Delta coverage >= 95% for changed files
-  - _Per-file delta breakdown recorded on completion_
-- [ ] Harness verification checkpoint passed (below)
-- [ ] Commit: `feat(nexus_store_supabase_adapter): phase 1 — RPC support`
+- [x] All tasks checked
+- [x] Tests passing: 8 (6 backend + 2 wrapper)
+- [x] Tracker progress table updated
+- [x] Delta coverage: ✅ 100.0% (7/7 lines) — `supabase_backend.dart` 5/5 100%, `supabase_client_wrapper.dart` 2/2 100%
+- [x] Harness verification checkpoint passed
+- [x] Commit: `feat(nexus_store_supabase_adapter): phase 1 — RPC support` (`2b76534`)
 
 ### Harness Verification Checkpoint
 ```bash
@@ -105,9 +110,9 @@ bash .claude/orchestrators/pre-commit-check.sh
 ### Critical Files
 | File | Changes |
 |------|---------|
-| `packages/nexus_store_supabase_adapter/lib/src/supabase_backend.dart` | Add `rpc<T>()` method |
-| `packages/nexus_store_supabase_adapter/lib/nexus_store_supabase_adapter.dart` | Export new types if any |
-| `packages/nexus_store_supabase_adapter/test/src/supabase_backend_rpc_test.dart` | NEW — RPC tests |
+| `packages/nexus_store_supabase_adapter/lib/src/supabase_backend.dart` | Added `rpc<R>()` method |
+| `packages/nexus_store_supabase_adapter/lib/src/supabase_client_wrapper.dart` | Added `rpc()` to interface + default impl |
+| `packages/nexus_store_supabase_adapter/test/supabase_backend_rpc_test.dart` | NEW — 8 RPC tests |
 
 ---
 
@@ -557,3 +562,4 @@ bash .claude/orchestrators/pre-commit-check.sh
 | Date | Action | Details |
 |------|--------|---------|
 | 2026-03-17 | Created | Initial tracker — 5 phases for API gap closure |
+| 2026-03-17 | Phase 1 ✅ | RPC support — 8 tests, 100% delta coverage, `2b76534` + `334bd7d` |
