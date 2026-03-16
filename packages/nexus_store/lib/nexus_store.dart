@@ -205,3 +205,11 @@ export 'src/coordination/saga_state.dart';
 export 'src/coordination/saga_step.dart';
 // State
 export 'src/state/state.dart';
+// Storage
+export 'src/storage/bucket.dart';
+export 'src/storage/file_options.dart';
+export 'src/storage/search_options.dart';
+export 'src/storage/signed_url.dart';
+export 'src/storage/storage_backend.dart';
+export 'src/storage/storage_file.dart';
+export 'src/storage/transform_options.dart';

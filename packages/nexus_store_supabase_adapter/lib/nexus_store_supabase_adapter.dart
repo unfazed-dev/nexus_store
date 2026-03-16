@@ -88,4 +88,7 @@ export 'src/supabase_realtime_manager.dart'
     show FromJsonCallback, GetIdCallback, SupabaseRealtimeManager;
 export 'src/supabase_rls.dart'
     show SupabaseRLSOperation, SupabaseRLSPolicy, SupabaseRLSRules;
+export 'src/supabase_storage_backend.dart' show SupabaseStorageBackend;
+export 'src/supabase_storage_wrapper.dart'
+    show DefaultSupabaseStorageWrapper, SupabaseStorageWrapper;
 export 'src/supabase_table_config.dart' show SupabaseTableConfig;
