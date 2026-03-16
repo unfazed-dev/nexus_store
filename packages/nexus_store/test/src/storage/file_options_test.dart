@@ -33,6 +33,26 @@ void main() {
       expect(a.hashCode, b.hashCode);
     });
 
+    test('inequality on later fields', () {
+      const a = FileOptions(
+        contentType: 'image/png',
+        cacheControl: '3600',
+        upsert: true,
+      );
+      const diffCache = FileOptions(
+        contentType: 'image/png',
+        cacheControl: '86400',
+        upsert: true,
+      );
+      const diffUpsert = FileOptions(
+        contentType: 'image/png',
+        cacheControl: '3600',
+        upsert: false,
+      );
+      expect(a, isNot(equals(diffCache)));
+      expect(a, isNot(equals(diffUpsert)));
+    });
+
     test('toString includes all fields', () {
       const options = FileOptions(contentType: 'image/png');
       final str = options.toString();

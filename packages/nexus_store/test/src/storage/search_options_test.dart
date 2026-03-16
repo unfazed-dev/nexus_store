@@ -37,6 +37,36 @@ void main() {
       expect(a.hashCode, b.hashCode);
     });
 
+    test('inequality on later fields', () {
+      const a = SearchOptions(
+        limit: 50,
+        offset: 10,
+        sortBy: SortBy(column: 'name', order: SortOrder.asc),
+        search: 'photo',
+      );
+      const diffOffset = SearchOptions(
+        limit: 50,
+        offset: 20,
+        sortBy: SortBy(column: 'name', order: SortOrder.asc),
+        search: 'photo',
+      );
+      const diffSortBy = SearchOptions(
+        limit: 50,
+        offset: 10,
+        sortBy: SortBy(column: 'size', order: SortOrder.desc),
+        search: 'photo',
+      );
+      const diffSearch = SearchOptions(
+        limit: 50,
+        offset: 10,
+        sortBy: SortBy(column: 'name', order: SortOrder.asc),
+        search: 'doc',
+      );
+      expect(a, isNot(equals(diffOffset)));
+      expect(a, isNot(equals(diffSortBy)));
+      expect(a, isNot(equals(diffSearch)));
+    });
+
     test('toString includes all fields', () {
       const options = SearchOptions(limit: 50, search: 'photo');
       final str = options.toString();
@@ -60,6 +90,7 @@ void main() {
 
       expect(a, equals(b));
       expect(a, isNot(equals(c)));
+      expect(a.hashCode, b.hashCode);
     });
 
     test('toString includes fields', () {

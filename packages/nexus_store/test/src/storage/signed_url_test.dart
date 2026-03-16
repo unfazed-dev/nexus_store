@@ -35,6 +35,18 @@ void main() {
       expect(a.hashCode, b.hashCode);
     });
 
+    test('inequality on later fields', () {
+      const a = SignedUrl(path: 'a.jpg', signedUrl: 'https://url-a');
+      const diffUrl = SignedUrl(path: 'a.jpg', signedUrl: 'https://url-b');
+      const diffError = SignedUrl(
+        path: 'a.jpg',
+        signedUrl: 'https://url-a',
+        error: 'fail',
+      );
+      expect(a, isNot(equals(diffUrl)));
+      expect(a, isNot(equals(diffError)));
+    });
+
     test('toString includes key fields', () {
       const signedUrl = SignedUrl(path: 'a.jpg', signedUrl: 'https://url');
       final str = signedUrl.toString();

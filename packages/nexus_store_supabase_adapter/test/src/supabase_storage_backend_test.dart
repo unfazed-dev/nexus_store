@@ -26,6 +26,8 @@ void main() {
     registerFallbackValue(
       const supa.SearchOptions(),
     );
+    registerFallbackValue(Uint8List(0));
+    registerFallbackValue(<String>[]);
   });
 
   setUp(() {
@@ -459,6 +461,253 @@ void main() {
           () => backend.listBuckets(),
           throwsA(isA<nexus.NetworkError>()),
         );
+      });
+
+      test('wraps generic StorageException as SyncError', () async {
+        when(() => mockWrapper.deleteBucket('x')).thenThrow(
+          const supa.StorageException('Server error', statusCode: '500'),
+        );
+
+        expect(
+          () => backend.deleteBucket('x'),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
+
+      test('wraps non-StorageException as SyncError', () async {
+        when(() => mockWrapper.emptyBucket('x'))
+            .thenThrow(Exception('unexpected'));
+
+        expect(
+          () => backend.emptyBucket('x'),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
+
+      test('wraps upload errors', () async {
+        when(
+          () => mockWrapper.uploadBinary(
+            any(),
+            any(),
+            any(),
+            fileOptions: any(named: 'fileOptions'),
+          ),
+        ).thenThrow(
+          const supa.StorageException('Upload failed', statusCode: '413'),
+        );
+
+        expect(
+          () => backend.upload('bucket', 'path', Uint8List(0)),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
+
+      test('wraps download errors', () async {
+        when(
+          () => mockWrapper.download(
+            any(),
+            any(),
+            transform: any(named: 'transform'),
+          ),
+        ).thenThrow(
+          const supa.StorageException('Not found', statusCode: '404'),
+        );
+
+        expect(
+          () => backend.download('bucket', 'path'),
+          throwsA(isA<nexus.NotFoundError>()),
+        );
+      });
+
+      test('wraps update errors', () async {
+        when(
+          () => mockWrapper.updateBinary(
+            any(),
+            any(),
+            any(),
+            fileOptions: any(named: 'fileOptions'),
+          ),
+        ).thenThrow(
+          const supa.StorageException('Forbidden', statusCode: '403'),
+        );
+
+        expect(
+          () => backend.update('bucket', 'path', Uint8List(0)),
+          throwsA(isA<nexus.AuthorizationError>()),
+        );
+      });
+
+      test('wraps remove errors', () async {
+        when(() => mockWrapper.remove(any(), any())).thenThrow(
+          const supa.StorageException('Unauthorized', statusCode: '401'),
+        );
+
+        expect(
+          () => backend.remove('bucket', ['a']),
+          throwsA(isA<nexus.AuthenticationError>()),
+        );
+      });
+
+      test('wraps move errors', () async {
+        when(() => mockWrapper.move(any(), any(), any())).thenThrow(
+          const supa.StorageException('Error'),
+        );
+
+        expect(
+          () => backend.move('bucket', 'a', 'b'),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
+
+      test('wraps copy errors', () async {
+        when(() => mockWrapper.copy(any(), any(), any())).thenThrow(
+          const supa.StorageException('Error'),
+        );
+
+        expect(
+          () => backend.copy('bucket', 'a', 'b'),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
+
+      test('wraps createSignedUrl errors', () async {
+        when(() => mockWrapper.createSignedUrl(any(), any(), any())).thenThrow(
+          const supa.StorageException('Error'),
+        );
+
+        expect(
+          () => backend.createSignedUrl('bucket', 'path', 3600),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
+
+      test('wraps createSignedUrls errors', () async {
+        when(() => mockWrapper.createSignedUrls(any(), any(), any())).thenThrow(
+          const supa.StorageException('Error'),
+        );
+
+        expect(
+          () => backend.createSignedUrls('bucket', ['a'], 3600),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
+
+      test('wraps list errors', () async {
+        when(
+          () => mockWrapper.list(
+            any(),
+            path: any(named: 'path'),
+            searchOptions: any(named: 'searchOptions'),
+          ),
+        ).thenThrow(
+          const supa.StorageException('Error'),
+        );
+
+        expect(
+          () => backend.list('bucket'),
+          throwsA(isA<nexus.SyncError>()),
+        );
+      });
+    });
+
+    group('mapper branches', () {
+      test('maps ResizeMode.contain and ResizeMode.fill', () async {
+        final bytes = Uint8List.fromList([1]);
+        when(
+          () => mockWrapper.download(
+            any(),
+            any(),
+            transform: any(named: 'transform'),
+          ),
+        ).thenAnswer((_) async => bytes);
+
+        // Test contain
+        await backend.download(
+          'bucket',
+          'path',
+          transform: const nexus.TransformOptions(
+            resize: nexus.ResizeMode.contain,
+          ),
+        );
+        // Test fill
+        await backend.download(
+          'bucket',
+          'path',
+          transform: const nexus.TransformOptions(
+            resize: nexus.ResizeMode.fill,
+          ),
+        );
+
+        verify(
+          () => mockWrapper.download(
+            any(),
+            any(),
+            transform: any(named: 'transform'),
+          ),
+        ).called(2);
+      });
+
+      test('maps SearchOptions with sortBy', () async {
+        when(
+          () => mockWrapper.list(
+            any(),
+            path: any(named: 'path'),
+            searchOptions: any(named: 'searchOptions'),
+          ),
+        ).thenAnswer((_) async => <supa.FileObject>[]);
+
+        await backend.list(
+          'bucket',
+          options: const nexus.SearchOptions(
+            sortBy: nexus.SortBy(
+              column: 'created_at',
+              order: nexus.SortOrder.desc,
+            ),
+          ),
+        );
+
+        final captured = verify(
+          () => mockWrapper.list(
+            any(),
+            path: any(named: 'path'),
+            searchOptions: captureAny(named: 'searchOptions'),
+          ),
+        ).captured.single as supa.SearchOptions;
+        expect(captured.sortBy?.column, 'created_at');
+        expect(captured.sortBy?.order, 'desc');
+      });
+
+      test('maps update with FileOptions', () async {
+        final bytes = Uint8List.fromList([1]);
+        when(
+          () => mockWrapper.updateBinary(
+            any(),
+            any(),
+            any(),
+            fileOptions: any(named: 'fileOptions'),
+          ),
+        ).thenAnswer((_) async => 'path');
+
+        await backend.update(
+          'bucket',
+          'path',
+          bytes,
+          options: const nexus.FileOptions(
+            contentType: 'text/plain',
+            upsert: true,
+          ),
+        );
+
+        final captured = verify(
+          () => mockWrapper.updateBinary(
+            any(),
+            any(),
+            any(),
+            fileOptions: captureAny(named: 'fileOptions'),
+          ),
+        ).captured.single as supa.FileOptions;
+        expect(captured.contentType, 'text/plain');
+        expect(captured.upsert, true);
       });
     });
   });

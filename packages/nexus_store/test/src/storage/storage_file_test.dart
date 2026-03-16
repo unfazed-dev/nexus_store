@@ -64,6 +64,23 @@ void main() {
       expect(a.hashCode, b.hashCode);
     });
 
+    test('copyWith preserves all unspecified fields', () {
+      final original = StorageFile(
+        name: 'photo.jpg',
+        bucketId: 'avatars',
+        id: 'file-1',
+        size: 1024,
+        mimeType: 'image/jpeg',
+      );
+      final copied = original.copyWith(bucketId: 'docs');
+
+      expect(copied.name, 'photo.jpg');
+      expect(copied.bucketId, 'docs');
+      expect(copied.id, 'file-1');
+      expect(copied.size, 1024);
+      expect(copied.mimeType, 'image/jpeg');
+    });
+
     test('copyWith replaces specified fields', () {
       final original = StorageFile(
         name: 'photo.jpg',

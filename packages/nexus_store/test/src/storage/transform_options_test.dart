@@ -39,6 +39,48 @@ void main() {
       expect(a.hashCode, b.hashCode);
     });
 
+    test('inequality on later fields', () {
+      const a = TransformOptions(
+        width: 100,
+        height: 100,
+        quality: 80,
+        format: ImageFormat.origin,
+        resize: ResizeMode.cover,
+      );
+      const diffHeight = TransformOptions(
+        width: 100,
+        height: 200,
+        quality: 80,
+        format: ImageFormat.origin,
+        resize: ResizeMode.cover,
+      );
+      const diffQuality = TransformOptions(
+        width: 100,
+        height: 100,
+        quality: 50,
+        format: ImageFormat.origin,
+        resize: ResizeMode.cover,
+      );
+      const diffFormat = TransformOptions(
+        width: 100,
+        height: 100,
+        quality: 80,
+        format: ImageFormat.avif,
+        resize: ResizeMode.cover,
+      );
+      const diffResize = TransformOptions(
+        width: 100,
+        height: 100,
+        quality: 80,
+        format: ImageFormat.origin,
+        resize: ResizeMode.fill,
+      );
+      expect(a, isNot(equals(diffHeight)));
+      expect(a, isNot(equals(diffQuality)));
+      expect(a, isNot(equals(diffFormat)));
+      expect(a, isNot(equals(diffResize)));
+    });
+
     test('toString includes set fields', () {
       const options = TransformOptions(width: 200, format: ImageFormat.avif);
       final str = options.toString();

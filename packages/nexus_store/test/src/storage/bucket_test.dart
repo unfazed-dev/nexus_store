@@ -64,6 +64,42 @@ void main() {
       expect(a.hashCode, b.hashCode);
     });
 
+    test('inequality detected on later fields', () {
+      final a = Bucket(
+        id: 'avatars',
+        name: 'avatars',
+        public: true,
+        createdAt: DateTime.utc(2026, 1, 1),
+        updatedAt: DateTime.utc(2026, 1, 2),
+      );
+      // Same id/name but different public
+      final diffPublic = Bucket(
+        id: 'avatars',
+        name: 'avatars',
+        public: false,
+        createdAt: DateTime.utc(2026, 1, 1),
+        updatedAt: DateTime.utc(2026, 1, 2),
+      );
+      expect(a, isNot(equals(diffPublic)));
+    });
+
+    test('copyWith preserves unspecified fields', () {
+      final original = Bucket(
+        id: 'avatars',
+        name: 'avatars',
+        public: true,
+        createdAt: DateTime.utc(2026, 1, 1),
+        updatedAt: DateTime.utc(2026, 1, 2),
+        fileSizeLimit: 1024,
+        allowedMimeTypes: ['image/png'],
+      );
+      final copied = original.copyWith(id: 'new-id');
+
+      expect(copied.name, 'avatars');
+      expect(copied.public, true);
+      expect(copied.fileSizeLimit, 1024);
+    });
+
     test('identical returns true for same instance', () {
       final bucket = Bucket(
         id: 'avatars',
@@ -137,6 +173,28 @@ void main() {
       expect(a, equals(b));
       expect(a, isNot(equals(c)));
       expect(a.hashCode, b.hashCode);
+    });
+
+    test('inequality on later fields', () {
+      const a = BucketOptions(
+        public: true,
+        fileSizeLimit: 1024,
+        allowedMimeTypes: ['image/png'],
+      );
+      // Same public but different fileSizeLimit
+      const diffLimit = BucketOptions(
+        public: true,
+        fileSizeLimit: 2048,
+        allowedMimeTypes: ['image/png'],
+      );
+      // Same public + limit but different mimeTypes
+      const diffMime = BucketOptions(
+        public: true,
+        fileSizeLimit: 1024,
+        allowedMimeTypes: ['image/jpeg'],
+      );
+      expect(a, isNot(equals(diffLimit)));
+      expect(a, isNot(equals(diffMime)));
     });
 
     test('toString includes all fields', () {
