@@ -80,6 +80,12 @@ abstract interface class StoreBackend<T, ID> {
     Query<T>? query,
   });
 
+  /// Retrieves multiple entities by their identifiers.
+  ///
+  /// Returns a list of found entities. Missing IDs are silently skipped.
+  /// More efficient than calling [get] multiple times for batch operations.
+  Future<List<T>> getByIds(List<ID> ids);
+
   /// Returns `true` if an entity with the given [id] exists.
   ///
   /// More efficient than `get(id) != null` as backends can use
@@ -459,6 +465,20 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
         pageInfo: const PageInfo.empty(),
       ),
     );
+  }
+
+  @override
+  Future<List<T>> getByIds(List<ID> ids) async {
+    if (ids.isEmpty) return [];
+    final uniqueIds = ids.toSet();
+    final results = <T>[];
+    for (final id in uniqueIds) {
+      final item = await get(id);
+      if (item != null) {
+        results.add(item);
+      }
+    }
+    return results;
   }
 
   @override

@@ -60,6 +60,9 @@ enum OperationType {
 
   /// Atomic insert-or-update of multiple entities.
   upsertAll,
+
+  /// Batch retrieval by IDs.
+  getByIds,
 }
 
 /// Metric for tracking store operation performance.

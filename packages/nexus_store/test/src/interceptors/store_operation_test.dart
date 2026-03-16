@@ -4,9 +4,10 @@ import 'package:test/test.dart';
 void main() {
   group('StoreOperation', () {
     test('should have all expected operations', () {
-      expect(StoreOperation.values, hasLength(18));
+      expect(StoreOperation.values, hasLength(19));
       expect(StoreOperation.values, contains(StoreOperation.get));
       expect(StoreOperation.values, contains(StoreOperation.getAll));
+      expect(StoreOperation.values, contains(StoreOperation.getByIds));
       expect(StoreOperation.values, contains(StoreOperation.save));
       expect(StoreOperation.values, contains(StoreOperation.saveAll));
       expect(StoreOperation.values, contains(StoreOperation.delete));
@@ -22,7 +23,7 @@ void main() {
       for (final op in StoreOperation.values) {
         operations.add(op);
       }
-      expect(operations, hasLength(18));
+      expect(operations, hasLength(19));
     });
 
     group('name property', () {
@@ -98,7 +99,10 @@ void main() {
     test('should be usable in switch expressions', () {
       String categorize(StoreOperation op) {
         return switch (op) {
-          StoreOperation.get || StoreOperation.getAll => 'read',
+          StoreOperation.get ||
+          StoreOperation.getAll ||
+          StoreOperation.getByIds =>
+            'read',
           StoreOperation.watch || StoreOperation.watchAll => 'stream',
           StoreOperation.save ||
           StoreOperation.saveAll ||

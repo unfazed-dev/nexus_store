@@ -124,6 +124,11 @@ enum StoreOperation {
   ///
   /// Triggered when calling `store.upsertAll(items)`.
   upsertAll,
+
+  /// Batch retrieval by IDs.
+  ///
+  /// Triggered when calling `store.getByIds(ids)`.
+  getByIds,
 }
 
 /// Extension methods for [StoreOperation].
@@ -132,6 +137,7 @@ extension StoreOperationExtension on StoreOperation {
   bool get isRead =>
       this == StoreOperation.get ||
       this == StoreOperation.getAll ||
+      this == StoreOperation.getByIds ||
       this == StoreOperation.count ||
       this == StoreOperation.aggregate ||
       this == StoreOperation.exists ||

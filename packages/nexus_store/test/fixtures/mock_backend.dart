@@ -81,6 +81,23 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
   }
 
   @override
+  Future<List<T>> getByIds(List<ID> ids) async {
+    if (shouldFailOnGet) {
+      throw errorToThrow ?? Exception('GetByIds failed');
+    }
+    if (ids.isEmpty) return [];
+    final uniqueIds = ids.toSet();
+    final results = <T>[];
+    for (final id in uniqueIds) {
+      final item = _storage[id];
+      if (item != null) {
+        results.add(item);
+      }
+    }
+    return results;
+  }
+
+  @override
   Stream<T?> watch(ID id) {
     _watchers[id] ??= BehaviorSubject.seeded(_storage[id]);
     return _watchers[id]!.stream;

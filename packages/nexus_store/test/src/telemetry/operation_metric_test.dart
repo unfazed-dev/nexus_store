@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('OperationType', () {
     test('should have all required operation types', () {
-      expect(OperationType.values, hasLength(19));
+      expect(OperationType.values, hasLength(20));
       expect(OperationType.values, contains(OperationType.get));
       expect(OperationType.values, contains(OperationType.getAll));
       expect(OperationType.values, contains(OperationType.save));

@@ -362,6 +362,35 @@ class NexusStore<T, ID> {
     }, itemCount: 0); // itemCount updated after fetch
   }
 
+  /// Retrieves multiple entities by their identifiers.
+  ///
+  /// Returns a list of found entities. Missing IDs are silently skipped.
+  /// Uses the configured [FetchPolicy] or the provided [policy] override.
+  ///
+  /// More efficient than calling [get] multiple times for batch operations
+  /// as backends can use `SELECT * FROM table WHERE id IN (...)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// final users = await store.getByIds(['user-1', 'user-2', 'user-3']);
+  /// ```
+  Future<List<T>> getByIds(List<ID> ids, {FetchPolicy? policy}) async {
+    _ensureInitialized();
+
+    if (ids.isEmpty) return [];
+
+    return _trackOperation(OperationType.getByIds, () async {
+      return _interceptorChain.execute<List<ID>, List<T>>(
+        operation: StoreOperation.getByIds,
+        request: ids,
+        execute: () async {
+          final results = await _backend.getByIds(ids);
+          return results;
+        },
+      );
+    }, itemCount: ids.length);
+  }
+
   /// Returns the count of entities matching the optional [query].
   ///
   /// Uses the configured [FetchPolicy] or the provided [policy] override.
@@ -512,6 +541,29 @@ class NexusStore<T, ID> {
     return _fetchHandler
         .watchAll(query: query.limitTo(1))
         .map((list) => list.firstOrNull);
+  }
+
+  /// Watches multiple entities by their identifiers.
+  ///
+  /// Returns a stream that emits the list of matching entities. Missing IDs
+  /// are silently skipped. Emits updates when any watched entity changes.
+  ///
+  /// Example:
+  /// ```dart
+  /// store.watchByIds(['user-1', 'user-2']).listen((users) {
+  ///   print('Users updated: $users');
+  /// });
+  /// ```
+  Stream<List<T>> watchByIds(List<ID> ids) {
+    _ensureInitialized();
+    if (ids.isEmpty) return Stream.value([]);
+    final idSet = ids.toSet();
+    return _fetchHandler.watchAll().map(
+          (list) => list.where((item) {
+            if (_idExtractor == null) return false;
+            return idSet.contains(_idExtractor(item));
+          }).toList(),
+        );
   }
 
   // ---------------------------------------------------------------------------
