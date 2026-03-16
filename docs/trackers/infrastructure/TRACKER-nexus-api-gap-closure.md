@@ -9,20 +9,29 @@
 |-------|--------|-------|----------|-----------|--------------|
 | 1. RPC Support | ✅ Complete | 8 | ✅ 100.0% | `2b76534` | 2026-03-17 |
 | 2. Text Search | ✅ Complete | 22 | ✅ 100.0% | `3379523` | 2026-03-17 |
-| 3. JOIN / Relations | ⏳ Pending | — | — | — | — |
+| 3. JOIN / Relations | ✅ Complete | 30 | ✅ 100.0% | `aef7c7d` | 2026-03-17 |
 | 4. Storage API | ⏳ Pending | — | — | — | — |
 | 5. Transaction Support | ⏳ Pending | — | — | — | — |
 
-**Overall:** ██████░░░░░░░░░░ 40% complete
-**Tests:** 30 passing | 0 failing
+**Overall:** █████████░░░░░░░ 60% complete
+**Tests:** 60 passing | 0 failing
 
 ### Progress Log
 
 **Current State (2026-03-17):**
-- Working on: COMPLETE (Phase 2)
-- Last completed: Phase 2 — Text Search
+- Working on: COMPLETE (Phase 3)
+- Last completed: Phase 3 — JOIN / Relations
 - Blocked by: Nothing
-- Next up: Phase 3 — JOIN / Relations
+- Next up: Phase 4 — Storage API
+
+**Phase 3 Results (2026-03-17):**
+- Added `QueryRelation` class in core (foreignTable, foreignKey, columns, subQuery)
+- Added `Query.withRelation()` method with immutable builder pattern
+- Added `relations` getter, updated `isEmpty`, `copyWith`, `==`, `hashCode`, `toString`
+- Added `SupabaseQueryTranslator.buildSelectString()` for PostgREST resource embedding
+- Supports: single/multiple relations, nested relations, column selection, FK hints
+- 30 tests: 21 core (QueryRelation + Query.withRelation) + 9 Supabase translator
+- Harness: accepted, delta coverage 100.0% — `nexus_store` 35/35, `supabase_adapter` 21/21
 
 **Phase 2 Results (2026-03-17):**
 - Added `FilterOperator.textSearch` enum value + `TextSearchConfig` + `TextSearchType` in core
@@ -220,37 +229,37 @@ bash .claude/orchestrators/pre-commit-check.sh
 - Nested relations supported: `withRelation('posts', subQuery: Query().withRelation('comments'))`
 
 ### Pre-Implementation Checklist
-- [ ] Phase 2 complete and committed
-- [ ] Read `packages/nexus_store/lib/src/query/query.dart`
-- [ ] Read `packages/nexus_store_supabase_adapter/lib/src/supabase_query_translator.dart`
-- [ ] Run `prior-art` agent to check existing query composition patterns
-- [ ] Research PostgREST resource embedding syntax for edge cases
+- [x] Phase 2 complete and committed
+- [x] Read `packages/nexus_store/lib/src/query/query.dart`
+- [x] Read `packages/nexus_store_supabase_adapter/lib/src/supabase_query_translator.dart`
+- [x] Run `prior-art` agent to check existing query composition patterns
+- [x] Research PostgREST resource embedding syntax for edge cases
 
 ### Tasks
 #### RED: Write Failing Tests
-- [ ] Invoke `test-scaffold` agent for relation query test scaffolding
-- [ ] Write test: `QueryRelation` construction with table name
-- [ ] Write test: `QueryRelation` with foreign key override
-- [ ] Write test: `QueryRelation` with sub-query (nested relation)
-- [ ] Write test: `Query.withRelation()` adds relation to query
-- [ ] Write test: `Query.withRelation()` supports multiple relations
-- [ ] Write test: `SupabaseQueryTranslator` generates `select=*,table(*)` for single relation
-- [ ] Write test: `SupabaseQueryTranslator` generates correct select for multiple relations
-- [ ] Write test: `SupabaseQueryTranslator` generates nested relation embedding
-- [ ] Write test: `SupabaseQueryTranslator` applies sub-query filters to relation
-- [ ] Verify all new tests FAIL
+- [x] Invoke `test-scaffold` agent for relation query test scaffolding
+- [x] Write test: `QueryRelation` construction with table name
+- [x] Write test: `QueryRelation` with foreign key override
+- [x] Write test: `QueryRelation` with sub-query (nested relation)
+- [x] Write test: `Query.withRelation()` adds relation to query
+- [x] Write test: `Query.withRelation()` supports multiple relations
+- [x] Write test: `SupabaseQueryTranslator` generates `select=*,table(*)` for single relation
+- [x] Write test: `SupabaseQueryTranslator` generates correct select for multiple relations
+- [x] Write test: `SupabaseQueryTranslator` generates nested relation embedding
+- [x] Write test: `SupabaseQueryTranslator` applies sub-query filters to relation
+- [x] Verify all new tests FAIL
 
 #### GREEN: Implement
-- [ ] Create `QueryRelation` class (foreignTable, foreignKey, subQuery, columns)
-- [ ] Add `withRelation()` method to `Query`
-- [ ] Add `relations` getter to `Query`
-- [ ] Update `SupabaseQueryTranslator` to build PostgREST `select` with embedded resources
-- [ ] Handle nested relations recursively
-- [ ] Export new types from barrel files
-- [ ] Verify all tests PASS
+- [x] Create `QueryRelation` class (foreignTable, foreignKey, subQuery, columns)
+- [x] Add `withRelation()` method to `Query`
+- [x] Add `relations` getter to `Query`
+- [x] Update `SupabaseQueryTranslator` to build PostgREST `select` with embedded resources
+- [x] Handle nested relations recursively
+- [x] Export new types from barrel files
+- [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - Core query API supports relation embedding via `withRelation()`
@@ -261,13 +270,12 @@ bash .claude/orchestrators/pre-commit-check.sh
 - No breaking changes to existing query API
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~9-12)
-- [ ] Tracker progress table updated
-- [ ] Delta coverage >= 95% for changed files
-  - _Per-file delta breakdown recorded on completion_
-- [ ] Harness verification checkpoint passed (below)
-- [ ] Commit: `feat: phase 3 — JOIN / relation query support`
+- [x] All tasks checked
+- [x] Tests passing: 30 (21 core + 9 Supabase translator)
+- [x] Tracker progress table updated
+- [x] Delta coverage: ✅ 100.0% (56/56 lines) — `nexus_store`: `query_relation.dart` 16/16 100%, `query.dart` 19/19 100%; `supabase_adapter`: `supabase_query_translator.dart` 21/21 100%
+- [x] Harness verification checkpoint passed
+- [x] Commit: `feat: phase 3 — JOIN / relation query support` (`aef7c7d`)
 
 ### Harness Verification Checkpoint
 ```bash
@@ -572,3 +580,4 @@ bash .claude/orchestrators/pre-commit-check.sh
 | 2026-03-17 | Created | Initial tracker — 5 phases for API gap closure |
 | 2026-03-17 | Phase 1 ✅ | RPC support — 8 tests, 100% delta coverage, `2b76534` + `334bd7d` |
 | 2026-03-17 | Phase 2 ✅ | Text search — 22 tests, 100% delta coverage, `3379523` + `0c36873` + `dd641f9` |
+| 2026-03-17 | Phase 3 ✅ | JOIN / relations — 30 tests, 100% delta coverage, `aef7c7d` |
