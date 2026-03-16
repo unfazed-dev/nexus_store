@@ -89,9 +89,9 @@ void main() {
         expect(backend.supportsRealtime, isTrue);
       });
 
-      test('supportsTransactions returns false', () {
+      test('supportsTransactions returns true', () {
         backend = createBackend();
-        expect(backend.supportsTransactions, isFalse);
+        expect(backend.supportsTransactions, isTrue);
       });
     });
 

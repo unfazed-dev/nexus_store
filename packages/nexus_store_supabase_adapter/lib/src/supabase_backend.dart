@@ -58,6 +58,8 @@ class SupabaseBackend<T, ID>
     SupabaseQueryTranslator<T>? queryTranslator,
     Map<String, String>? fieldMapping,
     String schema = 'public',
+    String transactionFunctionName = 'nx_batch_execute',
+    Duration transactionTimeout = const Duration(seconds: 30),
   })  : _wrapper = DefaultSupabaseClientWrapper(client),
         _tableName = tableName,
         _getId = getId,
@@ -67,6 +69,8 @@ class SupabaseBackend<T, ID>
         _queryTranslator = queryTranslator ??
             SupabaseQueryTranslator<T>(fieldMapping: fieldMapping),
         _schema = schema,
+        _transactionFunctionName = transactionFunctionName,
+        _transactionTimeout = transactionTimeout,
         _realtimeManagerWrapper = null;
 
   /// Creates a [SupabaseBackend] with a custom [SupabaseClientWrapper].
@@ -94,6 +98,8 @@ class SupabaseBackend<T, ID>
     SupabaseQueryTranslator<T>? queryTranslator,
     Map<String, String>? fieldMapping,
     String schema = 'public',
+    String transactionFunctionName = 'nx_batch_execute',
+    Duration transactionTimeout = const Duration(seconds: 30),
   })  : _wrapper = wrapper,
         _tableName = tableName,
         _getId = getId,
@@ -103,6 +109,8 @@ class SupabaseBackend<T, ID>
         _queryTranslator = queryTranslator ??
             SupabaseQueryTranslator<T>(fieldMapping: fieldMapping),
         _schema = schema,
+        _transactionFunctionName = transactionFunctionName,
+        _transactionTimeout = transactionTimeout,
         _realtimeManagerWrapper = null;
 
   /// Creates a [SupabaseBackend] with custom wrappers for full testability.
@@ -136,6 +144,8 @@ class SupabaseBackend<T, ID>
     SupabaseQueryTranslator<T>? queryTranslator,
     Map<String, String>? fieldMapping,
     String schema = 'public',
+    String transactionFunctionName = 'nx_batch_execute',
+    Duration transactionTimeout = const Duration(seconds: 30),
   })  : _wrapper = wrapper,
         _realtimeManagerWrapper = realtimeWrapper,
         _tableName = tableName,
@@ -145,7 +155,9 @@ class SupabaseBackend<T, ID>
         _primaryKeyColumn = primaryKeyColumn,
         _queryTranslator = queryTranslator ??
             SupabaseQueryTranslator<T>(fieldMapping: fieldMapping),
-        _schema = schema;
+        _schema = schema,
+        _transactionFunctionName = transactionFunctionName,
+        _transactionTimeout = transactionTimeout;
 
   /// Creates a [SupabaseBackend] from a [SupabaseTableConfig].
   ///
@@ -195,6 +207,8 @@ class SupabaseBackend<T, ID>
   final String _primaryKeyColumn;
   final SupabaseQueryTranslator<T> _queryTranslator;
   final String _schema;
+  final String _transactionFunctionName;
+  final Duration _transactionTimeout;
 
   /// Realtime manager wrapper for watch operations.
   RealtimeManagerWrapper<T, ID>? _realtimeManagerWrapper;
@@ -222,6 +236,25 @@ class SupabaseBackend<T, ID>
   bool _initialized = false;
 
   // ---------------------------------------------------------------------------
+  // Transaction State
+  // ---------------------------------------------------------------------------
+
+  /// Whether the backend is currently in a transaction.
+  // ignore: prefer_final_fields
+  bool _inTransaction = false;
+
+  /// The ID of the current active transaction (null if not in transaction).
+  String? _currentTransactionId;
+
+  /// Pending operations buffered during a transaction.
+  ///
+  /// Operations are collected here instead of being sent to Supabase
+  /// immediately. On commit, they are sent as a single RPC call to
+  /// the transaction wrapper stored procedure for atomic execution.
+  // ignore: prefer_final_fields
+  List<Map<String, dynamic>> _pendingOperations = [];
+
+  // ---------------------------------------------------------------------------
   // Backend Information
   // ---------------------------------------------------------------------------
 
@@ -235,7 +268,7 @@ class SupabaseBackend<T, ID>
   bool get supportsRealtime => true;
 
   @override
-  bool get supportsTransactions => false;
+  bool get supportsTransactions => true;
 
   // ---------------------------------------------------------------------------
   // Lifecycle
@@ -449,6 +482,17 @@ class SupabaseBackend<T, ID>
   Future<T> save(T item) async {
     _ensureInitialized();
 
+    // Buffer operation during transaction
+    if (_inTransaction) {
+      final json = _toJson(item);
+      _pendingOperations.add({
+        'type': 'upsert',
+        'table': _tableName,
+        'data': json,
+      });
+      return item;
+    }
+
     try {
       _syncStatusSubject.add(nexus.SyncStatus.pending);
 
@@ -470,6 +514,19 @@ class SupabaseBackend<T, ID>
   @override
   Future<List<T>> saveAll(List<T> items) async {
     _ensureInitialized();
+
+    // Buffer operations during transaction
+    if (_inTransaction) {
+      for (final item in items) {
+        final json = _toJson(item);
+        _pendingOperations.add({
+          'type': 'upsert',
+          'table': _tableName,
+          'data': json,
+        });
+      }
+      return items;
+    }
 
     try {
       _syncStatusSubject.add(nexus.SyncStatus.pending);
@@ -494,6 +551,17 @@ class SupabaseBackend<T, ID>
   @override
   Future<bool> delete(ID id) async {
     _ensureInitialized();
+
+    // Buffer operation during transaction
+    if (_inTransaction) {
+      _pendingOperations.add({
+        'type': 'delete',
+        'table': _tableName,
+        'primary_key_column': _primaryKeyColumn,
+        'id': id,
+      });
+      return true;
+    }
 
     try {
       _syncStatusSubject.add(nexus.SyncStatus.pending);
@@ -522,6 +590,17 @@ class SupabaseBackend<T, ID>
     _ensureInitialized();
 
     if (ids.isEmpty) return 0;
+
+    // Buffer operation during transaction
+    if (_inTransaction) {
+      _pendingOperations.add({
+        'type': 'delete_many',
+        'table': _tableName,
+        'primary_key_column': _primaryKeyColumn,
+        'ids': ids,
+      });
+      return ids.length;
+    }
 
     try {
       _syncStatusSubject.add(nexus.SyncStatus.pending);
@@ -641,6 +720,137 @@ class SupabaseBackend<T, ID>
     } on Object catch (e, stackTrace) {
       throw _mapException(e, stackTrace);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Transaction Operations
+  // ---------------------------------------------------------------------------
+
+  /// Begins a new transaction.
+  ///
+  /// Operations performed after this call (save, delete, etc.) are buffered
+  /// instead of being sent to Supabase immediately. Call [commitTransaction]
+  /// to send them atomically via a single RPC call, or [rollbackTransaction]
+  /// to discard them.
+  ///
+  /// **PostgREST limitation:** True client-side transactions are not supported
+  /// by PostgREST. This implementation buffers operations and sends them as a
+  /// batch RPC call to a stored procedure that wraps them in
+  /// `BEGIN`/`COMMIT`. Nested transactions are not supported.
+  @override
+  Future<String> beginTransaction() async {
+    _ensureInitialized();
+
+    if (_inTransaction) {
+      throw const nexus.TransactionError(
+        message: 'Nested transactions are not supported by Supabase backend. '
+            'PostgREST does not support client-side transaction nesting.',
+      );
+    }
+
+    _currentTransactionId = 'stx_${DateTime.now().microsecondsSinceEpoch}';
+    _inTransaction = true;
+    _pendingOperations = [];
+    return _currentTransactionId!;
+  }
+
+  /// Commits a transaction, sending all buffered operations as a single
+  /// RPC call to the transaction wrapper stored procedure.
+  ///
+  /// Throws [nexus.TransactionError] if:
+  /// - The transaction ID doesn't match the active transaction
+  /// - The RPC call fails (operations are rolled back server-side)
+  @override
+  Future<void> commitTransaction(String transactionId) async {
+    _ensureInitialized();
+    _validateTransaction(transactionId);
+
+    try {
+      if (_pendingOperations.isNotEmpty) {
+        await _wrapper.rpc(
+          _transactionFunctionName,
+          params: {'operations': _pendingOperations},
+        );
+      }
+    } on Object catch (e, stackTrace) {
+      throw nexus.TransactionError(
+        message: 'Failed to commit transaction: $e',
+        cause: e,
+        stackTrace: stackTrace,
+        wasRolledBack: true,
+      );
+    } finally {
+      _clearTransaction();
+    }
+  }
+
+  /// Rolls back a transaction, discarding all buffered operations.
+  ///
+  /// Since operations are buffered locally and not sent until commit,
+  /// rollback simply clears the buffer.
+  @override
+  Future<void> rollbackTransaction(String transactionId) async {
+    _ensureInitialized();
+    _validateTransaction(transactionId);
+    _clearTransaction();
+  }
+
+  /// Executes operations within a transaction context.
+  ///
+  /// All save/delete operations performed within [callback] are buffered
+  /// and sent as a single atomic RPC call on success. If [callback] throws,
+  /// all operations are discarded (rolled back).
+  ///
+  /// **PostgREST limitation:** Atomicity is provided by the server-side
+  /// stored procedure. The RPC call wraps all operations in
+  /// `BEGIN`/`COMMIT`, with automatic `ROLLBACK` on failure.
+  @override
+  Future<R> runInTransaction<R>(Future<R> Function() callback) async {
+    _ensureInitialized();
+
+    final txId = await beginTransaction();
+    try {
+      final result = await callback().timeout(
+        _transactionTimeout,
+        onTimeout: () {
+          throw nexus.TransactionError(
+            message: 'Transaction timed out after '
+                '${_transactionTimeout.inSeconds}s',
+            wasRolledBack: true,
+          );
+        },
+      );
+      await commitTransaction(txId);
+      return result;
+    } on nexus.TransactionError {
+      _clearTransaction();
+      rethrow;
+    } on Object catch (e, stackTrace) {
+      _clearTransaction();
+      throw nexus.TransactionError(
+        message: 'Transaction failed: $e',
+        cause: e,
+        stackTrace: stackTrace,
+        wasRolledBack: true,
+      );
+    }
+  }
+
+  /// Validates the transaction ID matches the current active transaction.
+  void _validateTransaction(String transactionId) {
+    if (!_inTransaction || _currentTransactionId != transactionId) {
+      throw nexus.TransactionError(
+        message: 'Invalid transaction ID: $transactionId. '
+            'No matching active transaction.',
+      );
+    }
+  }
+
+  /// Clears all transaction state.
+  void _clearTransaction() {
+    _inTransaction = false;
+    _currentTransactionId = null;
+    _pendingOperations = [];
   }
 
   // ---------------------------------------------------------------------------

@@ -111,9 +111,9 @@ void main() {
         expect(backend.supportsRealtime, isTrue);
       });
 
-      test('supportsTransactions returns false', () {
+      test('supportsTransactions returns true', () {
         final backend = createBackend();
-        expect(backend.supportsTransactions, isFalse);
+        expect(backend.supportsTransactions, isTrue);
       });
 
       test('initial syncStatus is synced (online-only)', () {
