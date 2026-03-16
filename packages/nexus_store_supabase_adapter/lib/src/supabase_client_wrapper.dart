@@ -69,6 +69,17 @@ abstract class SupabaseClientWrapper {
     List<Object> ids,
   );
 
+  /// Calls a Supabase Remote Procedure Call (PostgreSQL function).
+  ///
+  /// [functionName] is the name of the PostgreSQL function to invoke.
+  /// [params] is an optional map of parameters to pass to the function.
+  ///
+  /// Returns the raw response from the RPC call.
+  Future<dynamic> rpc(
+    String functionName, {
+    Map<String, dynamic>? params,
+  });
+
   /// Gets access to the underlying SupabaseClient for realtime operations.
   ///
   /// This is needed for initializing the [SupabaseRealtimeManager].
@@ -139,4 +150,11 @@ class DefaultSupabaseClientWrapper implements SupabaseClientWrapper {
   ) async {
     await _client.from(table).delete().inFilter(primaryKeyColumn, ids);
   }
+
+  @override
+  Future<dynamic> rpc(
+    String functionName, {
+    Map<String, dynamic>? params,
+  }) async =>
+      _client.rpc(functionName, params: params);
 }

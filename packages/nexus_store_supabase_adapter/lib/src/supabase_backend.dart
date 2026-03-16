@@ -597,6 +597,53 @@ class SupabaseBackend<T, ID>
   Future<int> get pendingChangesCount async => 0;
 
   // ---------------------------------------------------------------------------
+  // RPC Operations
+  // ---------------------------------------------------------------------------
+
+  /// Calls a Supabase Remote Procedure Call (PostgreSQL function).
+  ///
+  /// This is a Supabase-specific operation not available on the generic
+  /// [nexus.StoreBackend] interface.
+  ///
+  /// [functionName] is the name of the PostgreSQL function to invoke.
+  /// [params] is an optional map of parameters to pass to the function.
+  /// [fromJson] is an optional deserializer to convert the raw response.
+  ///
+  /// Returns the raw response if [fromJson] is null, or the deserialized
+  /// result if [fromJson] is provided.
+  ///
+  /// ```dart
+  /// // Raw response
+  /// final count = await backend.rpc<int>('get_user_count');
+  ///
+  /// // With deserializer
+  /// final stats = await backend.rpc<Stats>(
+  ///   'get_stats',
+  ///   params: {'period': 'monthly'},
+  ///   fromJson: (data) => Stats.fromJson(data as Map<String, dynamic>),
+  /// );
+  /// ```
+  Future<R> rpc<R>(
+    String functionName, {
+    Map<String, dynamic>? params,
+    R Function(Object? responseData)? fromJson,
+  }) async {
+    _ensureInitialized();
+
+    try {
+      final response = await _wrapper.rpc(functionName, params: params);
+
+      if (fromJson != null) {
+        return fromJson(response);
+      }
+
+      return response as R;
+    } on Object catch (e, stackTrace) {
+      throw _mapException(e, stackTrace);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Private Helpers
   // ---------------------------------------------------------------------------
 
