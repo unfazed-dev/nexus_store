@@ -1,6 +1,6 @@
 # TRACKER: NexusStore API Gap Closure
 
-## Status: IN_PROGRESS
+## Status: COMPLETE
 
 ## Progress
 
@@ -11,18 +11,31 @@
 | 2. Text Search | ✅ Complete | 22 | ✅ 100.0% | `3379523` | 2026-03-17 |
 | 3. JOIN / Relations | ✅ Complete | 30 | ✅ 100.0% | `aef7c7d` | 2026-03-17 |
 | 4. Storage API | ✅ Complete | 116 | ✅ 100.0% / 95.7% | `46fbe84` | 2026-03-17 |
-| 5. Transaction Support | ⏳ Pending | — | — | — | — |
+| 5. Transaction Support | ✅ Complete | 15 | ✅ 100.0% | `66f091c` | 2026-03-17 |
 
-**Overall:** ████████████░░░░ 80% complete
-**Tests:** 176 passing | 0 failing
+**Overall:** ████████████████ 100% complete
+**Tests:** 191 passing | 0 failing
 
 ### Progress Log
 
 **Current State (2026-03-17):**
-- Working on: COMPLETE (Phase 4)
-- Last completed: Phase 4 — Storage API
+- Working on: COMPLETE (Phase 5)
+- Last completed: Phase 5 — Transaction Support
 - Blocked by: Nothing
-- Next up: Phase 5 — Transaction Support
+- Next up: N/A — all phases complete
+
+**Phase 5 Results (2026-03-17):**
+- Added RPC-based transaction support to `SupabaseBackend`
+- `runInTransaction()` buffers save/delete/deleteAll/saveAll operations and sends as single atomic RPC call
+- `beginTransaction()` / `commitTransaction()` / `rollbackTransaction()` lifecycle with ID validation
+- Nested transactions rejected with `TransactionError`
+- Transaction timeout support via configurable `Duration`
+- Errors during commit wrapped in `TransactionError` with `wasRolledBack: true`
+- Custom transaction function name configurable (default: `nx_batch_execute`)
+- SQL reference stored procedure: `doc/sql/nx_batch_execute.sql`
+- 15 tests: 14 backend transaction + 1 saveAll coverage
+- Harness: accepted, delta coverage 100.0% (62/62 lines) — `supabase_backend.dart` 62/62 100%
+- Updated 2 existing tests: `supportsTransactions returns false` → `returns true`
 
 **Phase 4 Results (2026-03-17):**
 - Sub-Phase 4A: Core types & interface — `Bucket`, `BucketOptions`, `StorageFile`, `FileOptions`, `TransformOptions`, `SearchOptions`, `SignedUrl`, `SortBy`, `ImageFormat`, `ResizeMode`, `SortOrder` enums, `StorageBackend` abstract interface
@@ -476,37 +489,37 @@ bash .claude/orchestrators/pre-commit-check.sh
 - **Alternative documented:** True client-side transactions are not supported by PostgREST — RPC-based approach is the recommended pattern
 
 ### Pre-Implementation Checklist
-- [ ] Phase 4 complete and committed
-- [ ] Read `packages/nexus_store/lib/src/core/store_backend.dart` (transaction interface)
-- [ ] Read `packages/nexus_store/lib/src/transaction/` (existing transaction support)
-- [ ] Read `packages/nexus_store_supabase_adapter/lib/src/supabase_backend.dart`
-- [ ] Run `prior-art` agent to check existing transaction patterns
-- [ ] Review Phase 1 RPC implementation (dependency)
+- [x] Phase 4 complete and committed
+- [x] Read `packages/nexus_store/lib/src/core/store_backend.dart` (transaction interface)
+- [x] Read `packages/nexus_store/lib/src/transaction/` (existing transaction support)
+- [x] Read `packages/nexus_store_supabase_adapter/lib/src/supabase_backend.dart`
+- [x] Run `prior-art` agent to check existing transaction patterns
+- [x] Review Phase 1 RPC implementation (dependency)
 
 ### Tasks
 #### RED: Write Failing Tests
-- [ ] Invoke `test-scaffold` agent for transaction test scaffolding
-- [ ] Write test: `supportsTransactions` returns `true`
-- [ ] Write test: `runInTransaction()` batches multiple save operations into single RPC call
-- [ ] Write test: `runInTransaction()` rolls back all operations on failure
-- [ ] Write test: `runInTransaction()` returns callback result on success
-- [ ] Write test: `beginTransaction()` / `commitTransaction()` / `rollbackTransaction()` lifecycle
-- [ ] Write test: transaction timeout respected
-- [ ] Write test: error within transaction wraps in `TransactionError`
-- [ ] Verify all new tests FAIL
+- [x] Invoke `test-scaffold` agent for transaction test scaffolding
+- [x] Write test: `supportsTransactions` returns `true`
+- [x] Write test: `runInTransaction()` batches multiple save operations into single RPC call
+- [x] Write test: `runInTransaction()` rolls back all operations on failure
+- [x] Write test: `runInTransaction()` returns callback result on success
+- [x] Write test: `beginTransaction()` / `commitTransaction()` / `rollbackTransaction()` lifecycle
+- [x] Write test: transaction timeout respected
+- [x] Write test: error within transaction wraps in `TransactionError`
+- [x] Verify all new tests FAIL
 
 #### GREEN: Implement
-- [ ] Override `supportsTransactions` to return `true` in `SupabaseBackend`
-- [ ] Implement `runInTransaction()` — batch operations via RPC call (uses Phase 1 `rpc()`)
-- [ ] Implement `beginTransaction()` / `commitTransaction()` / `rollbackTransaction()`
-- [ ] Create SQL migration for transaction wrapper stored procedure
-- [ ] Handle transaction timeout
-- [ ] Wrap errors in `TransactionError` with `wasRolledBack` flag
-- [ ] Document PostgREST transaction limitations in code comments
-- [ ] Verify all tests PASS
+- [x] Override `supportsTransactions` to return `true` in `SupabaseBackend`
+- [x] Implement `runInTransaction()` — batch operations via RPC call (uses Phase 1 `rpc()`)
+- [x] Implement `beginTransaction()` / `commitTransaction()` / `rollbackTransaction()`
+- [x] Create SQL migration for transaction wrapper stored procedure
+- [x] Handle transaction timeout
+- [x] Wrap errors in `TransactionError` with `wasRolledBack` flag
+- [x] Document PostgREST transaction limitations in code comments
+- [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - `SupabaseBackend.supportsTransactions` returns `true`
@@ -517,13 +530,12 @@ bash .claude/orchestrators/pre-commit-check.sh
 - Depends on Phase 1 RPC support
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~7-10)
-- [ ] Tracker progress table updated
-- [ ] Delta coverage >= 95% for changed files
-  - _Per-file delta breakdown recorded on completion_
-- [ ] Harness verification checkpoint passed (below)
-- [ ] Commit: `feat(nexus_store_supabase_adapter): phase 5 — RPC-based transaction support`
+- [x] All tasks checked
+- [x] Tests passing: 15 (14 transaction + 1 saveAll coverage)
+- [x] Tracker progress table updated
+- [x] Delta coverage: ✅ 100.0% (62/62 lines) — `supabase_backend.dart` 62/62 100%
+- [x] Harness verification checkpoint passed
+- [x] Commit: `feat(nexus_store_supabase_adapter): phase 5 — RPC-based transaction support` (`66f091c`) + `e2bef14` (coverage)
 
 ### Harness Verification Checkpoint
 ```bash
@@ -541,12 +553,12 @@ bash .claude/orchestrators/pre-commit-check.sh
 ---
 
 ## Completion Checklist
-- [ ] All phases ✅ in progress table
-- [ ] Status updated to `COMPLETE`
+- [x] All phases ✅ in progress table
+- [x] Status updated to `COMPLETE`
 - [ ] Move tracker to `docs/trackers/completed/infrastructure/`
-- [ ] Final History entry added
-- [ ] Run full test suite: `melos run test:dart`
-- [ ] Run full analysis: `melos run analyze`
+- [x] Final History entry added
+- [x] Run full test suite: `melos run test:dart`
+- [x] Run full analysis: `melos run analyze`
 
 ## Files
 
@@ -591,3 +603,5 @@ bash .claude/orchestrators/pre-commit-check.sh
 | 2026-03-17 | Phase 2 ✅ | Text search — 22 tests, 100% delta coverage, `3379523` + `0c36873` + `dd641f9` |
 | 2026-03-17 | Phase 3 ✅ | JOIN / relations — 30 tests, 100% delta coverage, `aef7c7d` |
 | 2026-03-17 | Phase 4 ✅ | Storage API — 94 tests, package coverage 97.96%/96.53%, `46fbe84` |
+| 2026-03-17 | Phase 5 ✅ | Transaction support — 15 tests, 100% delta coverage, `66f091c` + `e2bef14` |
+| 2026-03-17 | COMPLETE | All 5 phases complete — 191 total tests, tracker closed |
