@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart' as nexus;
 import 'package:nexus_store_supabase_adapter/nexus_store_supabase_adapter.dart';
@@ -8,6 +10,23 @@ class MockSupabaseClientWrapper extends Mock implements SupabaseClientWrapper {}
 
 class MockRealtimeManagerWrapper extends Mock
     implements RealtimeManagerWrapper<TestModel, String> {}
+
+class MockSupabaseClient extends Mock implements SupabaseClient {}
+
+class FakeRpcFilterBuilder extends Fake
+    implements PostgrestFilterBuilder<dynamic> {
+  FakeRpcFilterBuilder(this.data);
+
+  final dynamic data;
+
+  @override
+  Future<S> then<S>(
+    // ignore: avoid_annotating_with_dynamic
+    FutureOr<S> Function(dynamic value) onValue, {
+    Function? onError,
+  }) async =>
+      onValue(data as dynamic);
+}
 
 void main() {
   late MockSupabaseClientWrapper mockWrapper;
@@ -128,6 +147,37 @@ void main() {
         () => uninitializedBackend.rpc<dynamic>('some_function'),
         throwsA(isA<nexus.StateError>()),
       );
+    });
+  });
+
+  group('DefaultSupabaseClientWrapper.rpc', () {
+    test('delegates to SupabaseClient.rpc with function name and params',
+        () async {
+      final mockClient = MockSupabaseClient();
+      final wrapper = DefaultSupabaseClientWrapper(mockClient);
+
+      when(
+        () => mockClient.rpc<dynamic>('get_count', params: {'table': 'users'}),
+      ).thenAnswer((_) => FakeRpcFilterBuilder(42));
+
+      final result = await wrapper.rpc('get_count', params: {'table': 'users'});
+
+      expect(result, 42);
+      verify(
+        () => mockClient.rpc<dynamic>('get_count', params: {'table': 'users'}),
+      ).called(1);
+    });
+
+    test('delegates to SupabaseClient.rpc without params', () async {
+      final mockClient = MockSupabaseClient();
+      final wrapper = DefaultSupabaseClientWrapper(mockClient);
+
+      when(() => mockClient.rpc<dynamic>('get_version'))
+          .thenAnswer((_) => FakeRpcFilterBuilder('1.0.0'));
+
+      final result = await wrapper.rpc('get_version');
+
+      expect(result, '1.0.0');
     });
   });
 }
