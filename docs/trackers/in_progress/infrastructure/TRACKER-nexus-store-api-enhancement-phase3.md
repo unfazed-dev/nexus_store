@@ -11,12 +11,12 @@
 | A2. `StoreJoin` — Reactive Cross-Store Joins | ✅ Complete | 14 | ✅ 95.8% | `8428416` | 2026-03-16 |
 | A3. `mutateWithTransform` — Atomic Get+Transform+Save | ✅ Complete | 10 | ✅ 100.0% | `79572a8` | 2026-03-16 |
 | A4. `watchPaged` — Paginated Reactive Streams | ✅ Complete | 7 | ✅ 100.0% | `7e625f0` | 2026-03-16 |
-| B1. Compliance Audit Migration | ⏳ Pending | — | — | — | — |
+| B1. Compliance Audit Migration | ✅ Complete | 4 | — | ⏳ | 2026-03-16 |
 | B2. Incident Repository Migration | ⏳ Pending | — | — | — | — |
 | B3. Journal Soft-Delete Redundancy | ⏳ Pending | — | — | — | — |
 
-**Overall:** █████████░░░░░░░ 57% complete (4/7 phases done)
-**Tests:** 46 passing | ~60 estimated
+**Overall:** ███████████░░░░░ 71% complete (5/7 phases done)
+**Tests:** 50 passing | ~60 estimated
 
 ### Progress Log
 
@@ -48,11 +48,17 @@
 - 7 tests written (stream type, pageSize limit, re-emit on change, hasMore detection, query filters, empty data, uninitialized error), all passing
 - Harness: accepted=true, delta coverage 100.0% (12/12 lines)
 
+**Phase B1 Results (2026-03-16):**
+- Migrated `getByDateRange` from fetch-all + in-memory filter to `whereBetween` query
+- Migrated `getLatestEntry` from fetch-all + sort to `getOne` + `orderByField(descending: true)`
+- Updated 4 test stubs (2 getByDateRange verification, 2 getLatestEntry getAll→getOne), all 11 tests passing
+- Harness: accepted=true, no lib/ changes in nexus_store (Firefly-only migration)
+
 **Current State (2026-03-16):**
-- Working on: COMPLETE (Phase A4)
-- Last completed: Phase A4 — watchPaged paginated reactive streams
+- Working on: COMPLETE (Phase B1)
+- Last completed: Phase B1 — Compliance Audit Migration
 - Blocked by: Nothing
-- Next up: Phase B1 — Compliance Audit Migration
+- Next up: Phase B2 — Incident Repository Migration
 
 ## Overview
 
@@ -423,46 +429,33 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** None — no NexusStore changes needed.
 
 ### Pre-Implementation Checklist
-- [ ] Read `compliance_audit_repository.dart` — current `getByDateRange` and `getLatestEntry` implementations
-- [ ] Read `compliance_audit_repository_test.dart` — existing test stubs to update
+- [x] Read `compliance_audit_repository.dart` — current `getByDateRange` and `getLatestEntry` implementations
+- [x] Read `compliance_audit_repository_test.dart` — existing test stubs to update
 
 ### Tasks
 #### RED: Update Tests (~4)
-- [ ] Update `getByDateRange` test stubs: `getAll()` → `getAll(query: any(named: 'query'))`
-- [ ] Update `getLatestEntry` test stubs: `getAll()` → `getOne(query: any(named: 'query'))`
-- [ ] Verify updated tests FAIL (old implementation doesn't match new stubs)
+- [x] Update `getByDateRange` test stubs: added `verifyNever(() => mockStore.getAll())` + `verify` with query
+- [x] Update `getLatestEntry` test stubs: `getAll()` → `getOne(query: any(named: 'query'))`
+- [x] Verify updated tests FAIL (2 getLatestEntry tests fail — impl calls getAll, stubs expect getOne)
 
 #### GREEN: Implement
-1. [ ] Replace `getByDateRange` body (lines 54-63):
-   ```dart
-   return _stores.complianceAuditLog.getAll(
-     query: const Query<ComplianceAuditEntry>().whereBetween(
-       'created_at', start.toIso8601String(), end.toIso8601String(),
-     ),
-   );
-   ```
-2. [ ] Replace `getLatestEntry` body (lines 67-72):
-   ```dart
-   return _stores.complianceAuditLog.getOne(
-     query: const Query<ComplianceAuditEntry>()
-         .orderByField('created_at', descending: true),
-   );
-   ```
-3. [ ] Verify all tests PASS
+1. [x] Replace `getByDateRange` body with `whereBetween` query
+2. [x] Replace `getLatestEntry` body with `getOne` + `orderByField('created_at', descending: true)`
+3. [x] Verify all tests PASS (11/11)
 
 #### REFACTOR
-- [ ] Clean up, run Firefly tests — all green
+- [x] Clean up — no refactoring needed, minimal change
 
 ### Acceptance Criteria
-- [ ] `getByDateRange` uses `whereBetween` (no in-memory filtering)
-- [ ] `getLatestEntry` uses `getOne` + `orderByField` (no fetch-all + sort)
-- [ ] Existing tests pass with updated stubs
+- [x] `getByDateRange` uses `whereBetween` (no in-memory filtering)
+- [x] `getLatestEntry` uses `getOne` + `orderByField` (no fetch-all + sort)
+- [x] Existing tests pass with updated stubs
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (4 updated)
-- [ ] `dart analyze` clean for compliance_audit_repository
-- [ ] Tracker progress table updated
+- [x] All tasks checked
+- [x] Tests passing: 11 (4 updated stubs + 7 unchanged)
+- [x] `dart analyze` clean for compliance_audit_repository
+- [x] Tracker progress table updated
 
 ### Critical Files
 - `/Users/unfazed-mac/Developer/apps/firefly/lib/core/repositories/compliance_audit/compliance_audit_repository.dart`
@@ -617,3 +610,4 @@ bash .claude/orchestrators/pre-commit-check.sh
 | 2026-03-16 | Phase A2 complete — `StoreJoin` class with `combine2/3/4` and `withLatest2`, 14 tests, delta 95.8%, `8428416` |
 | 2026-03-16 | Phase A3 complete — `mutateWithTransform` atomic get+transform+save with full MutationOptions lifecycle, 10 tests, delta 100.0%, `79572a8` |
 | 2026-03-16 | Phase A4 complete — `watchPaged` convenience wrapper with N+1 fetch strategy for hasMore detection, 7 tests, delta 100.0%, `7e625f0` |
+| 2026-03-16 | Phase B1 complete — compliance audit migration: `getByDateRange` → `whereBetween`, `getLatestEntry` → `getOne` + `orderByField`, 4 test stubs updated, 11 tests passing |
