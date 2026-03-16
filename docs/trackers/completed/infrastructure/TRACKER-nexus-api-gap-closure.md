@@ -555,7 +555,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 ## Completion Checklist
 - [x] All phases ✅ in progress table
 - [x] Status updated to `COMPLETE`
-- [ ] Move tracker to `docs/trackers/completed/infrastructure/`
+- [x] Move tracker to `docs/trackers/completed/infrastructure/`
 - [x] Final History entry added
 - [x] Run full test suite: `melos run test:dart`
 - [x] Run full analysis: `melos run analyze`
