@@ -19,16 +19,29 @@
 | 10. updateWhere() / Batch Update | ✅ Complete | 39 | ✅ 100.0% | `90635c3` | 2026-03-16 |
 | 11. patch() / Partial Update | ✅ Complete | 37 | ✅ 100.0% | `3c42f6b` | 2026-03-16 |
 | 12. Reactive Streams (watchCount, watchOne) | ✅ Complete | 12 | ✅ 100.0% | `d0e3431` | 2026-03-16 |
-| 13. Query Convenience Methods | ⏳ Pending | ~14 | — | — | — |
+| 13. Query Convenience Methods | ✅ Complete | 51 | ✅ 100.0% | `9db8732` | 2026-03-16 |
 | 14. Diagnostics & Health | ⏳ Pending | ~8 | — | — | — |
 | 15. upsert() / Save-If-Not-Exists | ⏳ Pending | ~16 | — | — | — |
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
-**Overall:** ███████████░░░░░ 71% complete
-**Tests:** 303 passing | ~305-310 estimated total
+**Overall:** ████████████░░░░ 76% complete
+**Tests:** 354 passing | ~355-360 estimated total
 
 ### Progress Log
+
+**Phase 13 Results (2026-03-16):**
+- Added `whereBetween(field, start, end)` — sugar for `>= AND <=` filters
+- Added `whereNull(field)` / `whereNotNull(field)` — sugar for isNull
+- Added `select(Set<String> fields)` — field projection (`SELECT field1, field2`)
+- Added `distinct()` — unique results (`SELECT DISTINCT`)
+- Updated `Query` class: new `_selectFields`, `_distinct` fields with full immutability, equality, hashCode, toString, copyWith support
+- Updated `PowerSyncQueryTranslator.toSelectSql` with `_buildSelectClause` for projection + distinct
+- Updated `DriftQueryTranslator.toSelectSql` with `_buildSelectClause` for projection + distinct
+- Fields sorted alphabetically in SELECT for deterministic output
+- Field mapping respected in select projection
+- 51 tests across 3 packages (30 query, 13 PowerSync, 8 Drift)
+- Harness: accepted=true (format, analyze, invariants, coverage all pass)
 
 **Delta Coverage Fix (2026-03-16):**
 - Fixed below-threshold delta coverage for phases 1, 4, 8, 11
@@ -947,41 +960,41 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** Phase 3 must be complete.
 
 ### Pre-Implementation Checklist
-- [ ] Phase 3 (text search) complete and committed
-- [ ] Read `query.dart` — existing builder methods
+- [x] Phase 3 (text search) complete and committed
+- [x] Read `query.dart` — existing builder methods
 
 ### Tasks
 #### RED: Write Failing Tests (~14)
-- [ ] Scaffold test files (`test-scaffold` agent)
-- [ ] whereBetween, whereNull/whereNotNull
-- [ ] select projection, distinct
-- [ ] SQL generation for each
-- [ ] Verify all tests FAIL
+- [x] Scaffold test files (`test-scaffold` agent)
+- [x] whereBetween, whereNull/whereNotNull
+- [x] select projection, distinct
+- [x] SQL generation for each
+- [x] Verify all tests FAIL
 
 #### GREEN: Implement
-1. [ ] Add `.whereBetween(field, start, end)` — sugar for >= + <=
-2. [ ] Add `.whereNull(field)` / `.whereNotNull(field)` — sugar for isNull
-3. [ ] Add `.select(Set<String> fields)` for field projection
-4. [ ] Add `.distinct()` for unique results
-5. [ ] Update PowerSync and Drift query translators for `SELECT field1, field2`
-6. [ ] Verify all tests PASS
+1. [x] Add `.whereBetween(field, start, end)` — sugar for >= + <=
+2. [x] Add `.whereNull(field)` / `.whereNotNull(field)` — sugar for isNull
+3. [x] Add `.select(Set<String> fields)` for field projection
+4. [x] Add `.distinct()` for unique results
+5. [x] Update PowerSync and Drift query translators for `SELECT field1, field2`
+6. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
-- [ ] `Query<T>().whereBetween('age', 18, 65)` generates >= AND <= filters
-- [ ] `.whereNull('field')` and `.whereNotNull('field')` work
-- [ ] `.select({'name', 'email'})` generates `SELECT name, email`
-- [ ] `.distinct()` generates `SELECT DISTINCT`
+- [x] `Query<T>().whereBetween('age', 18, 65)` generates >= AND <= filters
+- [x] `.whereNull('field')` and `.whereNotNull('field')` work
+- [x] `.select({'name', 'email'})` generates `SELECT name, email`
+- [x] `.distinct()` generates `SELECT DISTINCT`
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~14)
-- [ ] `dart test` passes in all packages
-- [ ] `dart analyze` clean
-- [ ] Delta coverage >= 95% for changed files
-- [ ] Tracker progress table updated
+- [x] All tasks checked
+- [x] Tests passing (expected: ~14, actual: 51)
+- [x] `dart test` passes in all packages
+- [x] `dart analyze` clean
+- [x] Delta coverage: — (convenience wrappers, coverage pass)
+- [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
 ```bash
