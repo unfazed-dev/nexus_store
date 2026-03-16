@@ -10,11 +10,11 @@
 | 1. RPC Support | ✅ Complete | 8 | ✅ 100.0% | `2b76534` | 2026-03-17 |
 | 2. Text Search | ✅ Complete | 22 | ✅ 100.0% | `3379523` | 2026-03-17 |
 | 3. JOIN / Relations | ✅ Complete | 30 | ✅ 100.0% | `aef7c7d` | 2026-03-17 |
-| 4. Storage API | ✅ Complete | 94 | ⚠️ 88.1% / 82.7% | `46fbe84` | 2026-03-17 |
+| 4. Storage API | ✅ Complete | 116 | ✅ 100.0% / 95.7% | `46fbe84` | 2026-03-17 |
 | 5. Transaction Support | ⏳ Pending | — | — | — | — |
 
 **Overall:** ████████████░░░░ 80% complete
-**Tests:** 154 passing | 0 failing
+**Tests:** 176 passing | 0 failing
 
 ### Progress Log
 
@@ -427,11 +427,11 @@ abstract interface class StorageBackend {
 
 ### Post-Implementation Checklist
 - [x] All sub-phase tasks checked
-- [x] Tests passing: 94 (53 core + 25 Supabase backend + 16 wrapper delegation)
+- [x] Tests passing: 116 (61 core + 39 Supabase backend + 16 wrapper delegation)
 - [x] Tracker progress table updated
-- [x] Delta coverage: ⚠️ `nexus_store` 88.1% (141/160) — `bucket.dart` 49/53 92.5%, `storage_file.dart` 39/41 95.1%, `file_options.dart` 11/13 84.6%, `signed_url.dart` 11/13 84.6%, `search_options.dart` 18/23 78.3%, `transform_options.dart` 13/17 76.5%; `supabase_adapter` 82.7% (134/162) — `supabase_storage_backend.dart` 101/129 78.3%, `supabase_storage_wrapper.dart` 33/33 100%. Package-level coverage: `nexus_store` 97.96%, `supabase_adapter` 96.53% — both pass 95% threshold.
+- [x] Delta coverage: ✅ `nexus_store` 100.0% (160/160) — `bucket.dart` 53/53 100%, `storage_file.dart` 41/41 100%, `file_options.dart` 13/13 100%, `signed_url.dart` 13/13 100%, `search_options.dart` 23/23 100%, `transform_options.dart` 17/17 100%; `supabase_adapter` ✅ 95.7% (155/162) — `supabase_storage_backend.dart` 122/129 94.6%, `supabase_storage_wrapper.dart` 33/33 100%
 - [x] Harness verification checkpoint passed
-- [x] Commit: `feat: phase 4 — Storage API with Supabase implementation` (`46fbe84`)
+- [x] Commit: `feat: phase 4 — Storage API with Supabase implementation` (`46fbe84`) + `1ebfff3` (coverage)
 
 ### Harness Verification Checkpoint
 ```bash
