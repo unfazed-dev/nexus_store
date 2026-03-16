@@ -22,7 +22,7 @@
 | 13. Query Convenience Methods | ✅ Complete | 51 | ✅ 100.0% | `9db8732` | 2026-03-16 |
 | 14. Diagnostics & Health | ✅ Complete | 24 | ✅ 100.0% | `11faeea` | 2026-03-16 |
 | 15. upsert() / Save-If-Not-Exists | ✅ Complete | 41 | ✅ 100.0% | `6d94a0f` | 2026-03-16 |
-| 16. getByIds() Batch Get | ✅ Complete | 14 | ✅ 98.5% | `3dda636` | 2026-03-16 |
+| 16. getByIds() Batch Get | ✅ Complete | 15 | ✅ 96.2% | `3dda636` | 2026-03-16 |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
 **Overall:** ███████████████░ 94% complete
@@ -38,7 +38,7 @@
 - Updated `TimingInterceptor` mapping, `StoreOperationExtension.isRead`
 - Updated `FakeStoreBackend` with `getByIds()` implementation for testing
 - Updated existing test enum counts (StoreOperation 18→19, OperationType 19→20)
-- Tests: 14 new tests (7 getByIds, 3 backend defaults, 4 watchByIds)
+- Tests: 15 new tests (7 getByIds, 4 backend defaults, 4 watchByIds)
 - Harness result: accepted
 
 **Phase 15 Results (2026-03-16):**
@@ -448,7 +448,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 
 ### Post-Implementation Checklist
 - [x] All tasks checked
-- [x] Tests passing (expected: ~12, actual: 14)
+- [x] Tests passing (expected: ~12, actual: 15)
 - [x] `dart test` passes in `nexus_store/`
 - [x] `dart test` passes in `nexus_store_powersync_adapter/`
 - [x] `dart analyze` clean
@@ -1188,10 +1188,10 @@ bash .claude/orchestrators/pre-commit-check.sh
 
 ### Post-Implementation Checklist
 - [x] All tasks checked
-- [x] Tests passing (expected: ~12, actual: 14)
+- [x] Tests passing (expected: ~12, actual: 15)
 - [x] `dart test` passes in all packages
 - [x] `dart analyze` clean
-- [x] Delta coverage: ✅ 98.5% overall — delta computation returned null for commit `3dda636` (tool unable to isolate changed lines)
+- [x] Delta coverage: ✅ 96.2% (25/26 lines) — `nexus_store.dart` 17/17 100%, `store_backend.dart` 7/7 100%, `store_operation.dart` 1/1 100%, `timing_interceptor.dart` 0/1 0%
 - [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
