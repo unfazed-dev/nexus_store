@@ -139,8 +139,8 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [ ] All tasks checked
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
-- [ ] Coverage >= 95% for changed packages
-  - _Results recorded on completion: package: pct% (hit/total lines)_
+- [ ] Delta coverage >= 95% for changed files
+  - _Per-file delta breakdown recorded on completion_
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 1 — [feature] data layer`
 
@@ -184,8 +184,8 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] All tasks checked
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
-- [ ] Coverage >= 95% for changed packages
-  - _Results recorded on completion: package: pct% (hit/total lines)_
+- [ ] Delta coverage >= 95% for changed files
+  - _Per-file delta breakdown recorded on completion_
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 2 — [feature] service layer`
 
@@ -230,8 +230,8 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] All tasks checked
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
-- [ ] Coverage >= 95% for changed packages
-  - _Results recorded on completion: package: pct% (hit/total lines)_
+- [ ] Delta coverage >= 95% for changed files
+  - _Per-file delta breakdown recorded on completion_
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 3 — [feature] UI layer`
 
@@ -274,8 +274,8 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 - [ ] All tasks checked
 - [ ] Tests passing (expected: ~N)
 - [ ] Tracker progress table updated
-- [ ] Coverage >= 95% for changed packages
-  - _Results recorded on completion: package: pct% (hit/total lines)_
+- [ ] Delta coverage >= 95% for changed files
+  - _Per-file delta breakdown recorded on completion_
 - [ ] Harness verification checkpoint passed (below)
 - [ ] Commit: `feat: phase 4 — [feature] GenUI integration`
 
@@ -328,15 +328,30 @@ python3 .claude/orchestrators/verify-feature.py portal/feature
 
 ## Coverage Column Rules
 
-The `Coverage` column in the Overview table shows the **minimum package percentage** for each phase:
+The `Coverage` column in the Overview table shows **delta coverage** — the percentage of lines added in THIS phase that are covered by tests:
 
 | Condition | Cell Value |
 |-----------|------------|
-| All packages >= 95% | `✅ NN.N%` (min package pct) |
-| Any package < 95% | `⚠️ NN.N%` (min package pct) |
-| Pending / in-progress / non-code phases | `—` |
+| Delta >= 95% | `✅ NN.N%` (delta coverage pct) |
+| Delta < 95% | `⚠️ NN.N%` (delta coverage pct) |
+| No `lib/` changes / non-code phase / `delta_coverage_pct` is null | `—` |
+| `lib/` changed but lines are delegation-only (sugar methods, pass-through wrappers) | `✅` with explanation |
 
-Full per-package breakdowns remain in the Post-Implementation Checklist checkboxes.
+Delta coverage is computed by `check-coverage.py --changed --json --delta=<COMMIT_HASH>`. It cross-references lines introduced by the phase commit (via `git blame`) against LCOV line-level data. Non-executable lines (comments, imports, blanks) are excluded from the denominator.
+
+Per-file delta breakdowns go in the Post-Implementation Checklist checkboxes (not whole-package stats).
+
+### Coverage Wording Rules
+
+Delta coverage descriptions in the Post-Implementation Checklist must be **precise and meaningful**. Never use vague placeholders like `—` or `(convenience wrappers, coverage pass)` when `lib/` files were modified.
+
+| Scenario | Correct Wording |
+|----------|----------------|
+| Numeric delta available | `✅ 95.5% (21/22 lines)` with per-file breakdown |
+| Sugar/delegation methods (no new logic) | `✅ (new lib/ lines are sugar methods delegating to [tested method]; [N] tests cover [component])` |
+| No lib/ changes at all | `— (no lib/ changes)` |
+
+The goal: a future reader should understand **why** coverage is adequate without re-running the tool.
 
 ## Template Variants
 
@@ -397,7 +412,7 @@ Every phase commit MUST:
 Each phase boundary should have explicit gate criteria:
 - **Code gate:** All tasks checked, files listed in "Files Modified"
 - **Test gate:** Estimated vs actual test count tracked (e.g., "Tests: 12 estimated / 15 actual")
-- **Coverage gate:** Changed packages meet 95% line coverage — record per-package in checkboxes; populate Overview table Coverage column with min package pct
+- **Coverage gate:** Changed files meet 95% delta line coverage — record per-file delta breakdown in checkboxes; populate Overview table Coverage column with aggregate delta coverage pct
 - **Quality gate:** Pre-commit check passes, no regressions
 - **Doc gate:** Tracker progress table updated, History row added
 
@@ -422,7 +437,7 @@ Bookings, wallet, funds, invoices, managed_participants, onboarding, trust_fund,
 - Missing Completion Checklist (trackers stall at "done but not closed")
 - Listing implementation tasks before test tasks in Code trackers (violates TDD)
 - Omitting RED/GREEN/REFACTOR substep structure in Code tracker phases
-- Committing without 95% coverage for changed packages
+- Committing without 95% delta coverage for changed files
 - Excluding files to inflate coverage numbers
 
 ## References

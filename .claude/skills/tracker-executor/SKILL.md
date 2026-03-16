@@ -248,7 +248,7 @@ Update the tracker file with these changes:
 1. **Progress table row** for this phase:
    - Status: `✅ Complete`
    - Tests/Tasks/Diagrams: actual count achieved
-   - Coverage: compute `min()` of all package percentages from `check-coverage.py --changed --json`. Format: `✅ NN.N%` if all packages >= 95%, `⚠️ NN.N%` if any < 95%. Use `—` for non-code phases or phases with no coverage data.
+   - Coverage: run `check-coverage.py --changed --json --delta=<COMMIT_HASH>`. Use `delta_coverage_pct` (min across packages). Format: `✅ NN.N%` if delta >= 95%, `⚠️ NN.N%` if < 95%, `—` if no `lib/` changes, `✅` with explanation if lib/ changed but lines are delegation-only (sugar methods, pass-through wrappers).
    - Committed: `⏳` (updated to commit hash in Step 10)
    - Last Updated: today's date (`YYYY-MM-DD`)
 
@@ -273,13 +273,20 @@ Update the tracker file with these changes:
 
 6. **Checkboxes**: All `- [ ]` → `- [x]` for completed items in the phase
 
-7. **Coverage results**: When marking `Coverage >= 95%` checkbox, append per-package results:
+7. **Coverage results**: When marking the delta coverage checkbox, show per-file breakdown from `delta_files`:
    ```
-   - [x] Coverage >= 95% for changed packages
-     - `package_name`: 97.2% (1234/1269 lines)
-     - `package_name_2`: 100% (89/89 lines)
+   - [x] Delta coverage: ✅ 95.5% (21/22 lines)
+     - `lib/src/core/nexus_store.dart`: 100% (8/8)
+     - `lib/src/interceptors/store_operation.dart`: 90% (9/10)
+     - `lib/src/policy/write_policy_handler.dart`: 80% (4/5)
    ```
-   Data sourced from `python3 .claude/hooks/core/check-coverage.py --changed --json` output fields: `name`, `coverage_pct`, `lines_hit`, `lines_total`
+   Data sourced from `python3 .claude/hooks/core/check-coverage.py --changed --json --delta=<COMMIT_HASH>` output field `delta_files` (array of `{path, hit, total, pct}`). Use `✅` if delta >= 95%, `⚠️` if < 95%.
+
+   **Wording rules for the delta coverage checkbox:**
+   - Numeric delta available: `- [x] Delta coverage: ✅ 95.5% (21/22 lines)` with per-file breakdown
+   - Sugar/delegation methods (lib/ changed but no new logic): `- [x] Delta coverage: ✅ (new lib/ lines are sugar methods delegating to [tested method]; [N] tests cover [component])`
+   - No lib/ changes at all: `- [x] Delta coverage: — (no lib/ changes)`
+   - Never use vague wording like `— (convenience wrappers, coverage pass)` — a future reader must understand **why** coverage is adequate without re-running the tool.
 
 8. **History table**: Add row with date, action, and details
 
