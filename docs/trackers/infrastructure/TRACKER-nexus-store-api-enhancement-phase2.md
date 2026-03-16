@@ -292,6 +292,11 @@ melos run test:dart && melos run analyze
 - `packages/nexus_store/lib/src/query/expression.dart` — updated _invertOperator
 - `packages/nexus_store_powersync_adapter/lib/src/powersync_query_translator.dart` — LOWER() SQL helpers
 - `packages/nexus_store_drift_adapter/lib/src/drift_query_translator.dart` — LOWER() SQL helpers
+- `packages/nexus_store_brick_adapter/lib/src/brick_query_translator.dart` — iContains/iStartsWith/iEndsWith cases (fixed post-phase)
+- `packages/nexus_store_crdt_adapter/lib/src/crdt_query_translator.dart` — LOWER() SQL helpers (fixed post-phase)
+- `packages/nexus_store_supabase_adapter/lib/src/supabase_query_translator.dart` — ilike() calls (fixed post-phase)
+- `example/basic_usage/bin/main.dart` — case-insensitive filter cases (fixed post-phase)
+- `example/flutter_widgets/lib/main.dart` — case-insensitive filter cases (fixed post-phase)
 - `packages/nexus_store/test/fixtures/mock_backend.dart` — updated _matchesFilter
 - `packages/nexus_store/test/src/query/case_insensitive_search_test.dart` — new test file
 - `packages/nexus_store/test/src/query/query_test.dart` — updated FilterOperator count
@@ -583,10 +588,17 @@ melos run test:dart && melos run analyze
 | `packages/nexus_store/lib/nexus_store.dart` | A1-A5 | Barrel exports |
 | `packages/nexus_store_powersync_adapter/lib/src/powersync_query_translator.dart` | A3 | LOWER() SQL helpers |
 | `packages/nexus_store_drift_adapter/lib/src/drift_query_translator.dart` | A3 | LOWER() SQL helpers |
+| `packages/nexus_store_brick_adapter/lib/src/brick_query_translator.dart` | A3 | iContains/iStartsWith/iEndsWith Brick conditions |
+| `packages/nexus_store_crdt_adapter/lib/src/crdt_query_translator.dart` | A3 | LOWER() SQL helpers for CRDT |
+| `packages/nexus_store_supabase_adapter/lib/src/supabase_query_translator.dart` | A3 | ilike() calls for Supabase |
+| `example/basic_usage/bin/main.dart` | A3 | Case-insensitive filter cases |
+| `example/flutter_widgets/lib/main.dart` | A3 | Case-insensitive filter cases |
 | `packages/nexus_store/test/fixtures/mock_backend.dart` | A3 | Case-insensitive filter matching |
 | `packages/nexus_store/test/src/interceptors/store_operation_test.dart` | A1 | Updated enum count + switch |
 | `packages/nexus_store/test/src/query/query_test.dart` | A3 | Updated FilterOperator count |
+| `packages/nexus_store/test/src/telemetry/operation_metric_test.dart` | A1 | Updated OperationType enum count |
 | `.claude/invariants/interface-naming.dart` | C3 | Added self-test mode |
+| `.claude/orchestrators/pre-commit-check.sh` | fix | Fixed set -e bug silently killing analyzer check |
 
 ## History
 
@@ -601,3 +613,7 @@ melos run test:dart && melos run analyze
 | 2026-03-16 | Phase C1 complete — cross-adapter composition tests, 21 tests |
 | 2026-03-16 | Phase C3 complete — 3 invariant validators (barrel-export, no-envied, interface-naming) |
 | 2026-03-16 | Phase C2 skipped — brick adapter already exceeds parity target (2726 lines / 49 tests) |
+| 2026-03-16 | Fix: OperationType enum count test (6c7b18c) — missed hasLength(20) → 21 |
+| 2026-03-16 | Delta coverage retroactively computed — A1 100% (15/15), A2 100% (8/8), A3 100% (25/25), A4 100% (19/19), A5 LCOV gap |
+| 2026-03-16 | Fix: 5 exhaustive switch errors in brick/crdt/supabase adapters + examples for new FilterOperator values (ba8ddd0) |
+| 2026-03-16 | Fix: pre-commit-check.sh set -e bug — analyzer failure silently killed harness instead of reporting (ba8ddd0) |
