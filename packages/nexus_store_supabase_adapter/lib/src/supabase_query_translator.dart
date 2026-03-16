@@ -153,6 +153,9 @@ class SupabaseQueryTranslator<T> implements QueryTranslator<T, void> {
       FilterOperator.arrayContains => builder.contains(column, [value]),
       FilterOperator.arrayContainsAny =>
         _applyArrayContainsAny(builder, column, value),
+      FilterOperator.iContains => builder.ilike(column, '%$value%'),
+      FilterOperator.iStartsWith => builder.ilike(column, '$value%'),
+      FilterOperator.iEndsWith => builder.ilike(column, '%$value'),
     };
   }
 

@@ -33,8 +33,7 @@ if ! dart format --set-exit-if-changed . > /dev/null 2>&1; then
 fi
 
 # 2. Analyzer
-analyze_output=$(dart analyze --fatal-infos 2>&1)
-analyze_exit=$?
+analyze_output=$(dart analyze --fatal-infos 2>&1) && analyze_exit=0 || analyze_exit=$?
 if [ $analyze_exit -ne 0 ]; then
     analyze_ok=false
     error_count=$(echo "$analyze_output" | grep -cE '[[:space:]](error|warning|info)[[:space:]]' || true)

@@ -137,6 +137,13 @@ class BrickQueryTranslator<T> implements QueryTranslator<T, brick.Query> {
         ),
       FilterOperator.startsWith => _createStartsWithCondition(field, value),
       FilterOperator.endsWith => _createEndsWithCondition(field, value),
+      FilterOperator.iContains => brick.Where(
+          field,
+          value: value,
+          compare: brick.Compare.contains,
+        ),
+      FilterOperator.iStartsWith => _createStartsWithCondition(field, value),
+      FilterOperator.iEndsWith => _createEndsWithCondition(field, value),
     };
   }
 

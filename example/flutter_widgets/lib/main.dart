@@ -236,6 +236,18 @@ class InMemoryBackend<T, ID>
           case FilterOperator.arrayContainsAny:
             final list = value as List;
             return (filter.value! as List).any(list.contains);
+          case FilterOperator.iContains:
+            return (value as String)
+                .toLowerCase()
+                .contains((filter.value! as String).toLowerCase());
+          case FilterOperator.iStartsWith:
+            return (value as String)
+                .toLowerCase()
+                .startsWith((filter.value! as String).toLowerCase());
+          case FilterOperator.iEndsWith:
+            return (value as String)
+                .toLowerCase()
+                .endsWith((filter.value! as String).toLowerCase());
         }
       }).toList();
     }

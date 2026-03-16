@@ -144,6 +144,11 @@ class CrdtQueryTranslator<T>
           _likeCondition(column, filter.value, args),
         FilterOperator.arrayContainsAny =>
           _arrayContainsAnyCondition(column, filter.value, args),
+        FilterOperator.iContains => _iLikeCondition(column, filter.value, args),
+        FilterOperator.iStartsWith =>
+          _iStartsWithCondition(column, filter.value, args),
+        FilterOperator.iEndsWith =>
+          _iEndsWithCondition(column, filter.value, args),
       };
 
   String _equalCondition(String column, Object? value, List<Object?> args) {
@@ -201,6 +206,29 @@ class CrdtQueryTranslator<T>
   String _endsWithCondition(String column, Object? value, List<Object?> args) {
     args.add('%$value');
     return '$column LIKE ?';
+  }
+
+  String _iLikeCondition(String column, Object? value, List<Object?> args) {
+    args.add('%$value%');
+    return 'LOWER($column) LIKE LOWER(?)';
+  }
+
+  String _iStartsWithCondition(
+    String column,
+    Object? value,
+    List<Object?> args,
+  ) {
+    args.add('$value%');
+    return 'LOWER($column) LIKE LOWER(?)';
+  }
+
+  String _iEndsWithCondition(
+    String column,
+    Object? value,
+    List<Object?> args,
+  ) {
+    args.add('%$value');
+    return 'LOWER($column) LIKE LOWER(?)';
   }
 
   String _arrayContainsAnyCondition(
