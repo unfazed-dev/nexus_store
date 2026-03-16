@@ -8,21 +8,30 @@
 | Phase | Status | Tests | Coverage | Committed | Last Updated |
 |-------|--------|-------|----------|-----------|--------------|
 | 1. RPC Support | ✅ Complete | 8 | ✅ 100.0% | `2b76534` | 2026-03-17 |
-| 2. Text Search | ⏳ Pending | — | — | — | — |
+| 2. Text Search | ✅ Complete | 22 | ✅ 100.0% | `3379523` | 2026-03-17 |
 | 3. JOIN / Relations | ⏳ Pending | — | — | — | — |
 | 4. Storage API | ⏳ Pending | — | — | — | — |
 | 5. Transaction Support | ⏳ Pending | — | — | — | — |
 
-**Overall:** ███░░░░░░░░░░░░░ 20% complete
-**Tests:** 8 passing | 0 failing
+**Overall:** ██████░░░░░░░░░░ 40% complete
+**Tests:** 30 passing | 0 failing
 
 ### Progress Log
 
 **Current State (2026-03-17):**
-- Working on: COMPLETE (Phase 1)
-- Last completed: Phase 1 — RPC Support
+- Working on: COMPLETE (Phase 2)
+- Last completed: Phase 2 — Text Search
 - Blocked by: Nothing
-- Next up: Phase 2 — Text Search
+- Next up: Phase 3 — JOIN / Relations
+
+**Phase 2 Results (2026-03-17):**
+- Added `FilterOperator.textSearch` enum value + `TextSearchConfig` + `TextSearchType` in core
+- Added `textSearch` parameter to `Query.where()`
+- Updated `SupabaseQueryTranslator` to map to PostgREST `.textSearch()` with type mapping
+- Updated 12 exhaustive switches across 7 packages (adapters throw `UnsupportedError`)
+- Updated `hasLength(18)` to `hasLength(19)` in query_test.dart
+- 22 tests: 17 core (types, evaluator, SQL translator, query builder) + 5 Supabase translator
+- Harness: accepted, delta coverage 100.0% — `nexus_store` 22/22, `supabase_adapter` 11/11
 
 **Phase 1 Results (2026-03-17):**
 - Added `rpc<R>()` method to `SupabaseBackend` with optional `fromJson` deserializer
@@ -128,39 +137,39 @@ bash .claude/orchestrators/pre-commit-check.sh
 - `SupabaseQueryTranslator` maps to PostgREST `.textSearch(column, query, config: ..., type: ...)`
 
 ### Pre-Implementation Checklist
-- [ ] Phase 1 complete and committed
-- [ ] Read `packages/nexus_store/lib/src/query/query.dart`
-- [ ] Read `packages/nexus_store/lib/src/query/filter.dart` (or wherever `FilterOperator` lives)
-- [ ] Read `packages/nexus_store_supabase_adapter/lib/src/supabase_query_translator.dart`
-- [ ] Run `prior-art` agent to check existing filter/operator patterns
-- [ ] Search for all exhaustive switches on `FilterOperator` and `hasLength` count assertions
+- [x] Phase 1 complete and committed
+- [x] Read `packages/nexus_store/lib/src/query/query.dart`
+- [x] Read `packages/nexus_store/lib/src/query/filter.dart` (FilterOperator in query.dart)
+- [x] Read `packages/nexus_store_supabase_adapter/lib/src/supabase_query_translator.dart`
+- [x] Run `prior-art` agent to check existing filter/operator patterns
+- [x] Search for all exhaustive switches on `FilterOperator` and `hasLength` count assertions
 
 ### Tasks
 #### RED: Write Failing Tests
-- [ ] Invoke `test-scaffold` agent for text search test scaffolding
-- [ ] Write test: `TextSearchConfig` construction with all parameters
-- [ ] Write test: `FilterOperator.textSearch` exists in enum
-- [ ] Write test: Query builder accepts `textSearch` parameter
-- [ ] Write test: `SupabaseQueryTranslator` translates `textSearch` to PostgREST `.textSearch()`
-- [ ] Write test: `textSearch` with `plain` type
-- [ ] Write test: `textSearch` with `phrase` type
-- [ ] Write test: `textSearch` with `websearch` type
-- [ ] Write test: `textSearch` with custom locale config
-- [ ] Update any `hasLength(N)` assertions for `FilterOperator` enum count
-- [ ] Verify all new tests FAIL
+- [x] Invoke `test-scaffold` agent for text search test scaffolding
+- [x] Write test: `TextSearchConfig` construction with all parameters
+- [x] Write test: `FilterOperator.textSearch` exists in enum
+- [x] Write test: Query builder accepts `textSearch` parameter
+- [x] Write test: `SupabaseQueryTranslator` translates `textSearch` to PostgREST `.textSearch()`
+- [x] Write test: `textSearch` with `plain` type
+- [x] Write test: `textSearch` with `phrase` type
+- [x] Write test: `textSearch` with `websearch` type
+- [x] Write test: `textSearch` with custom locale config
+- [x] Update `hasLength(18)` to `hasLength(19)` in query_test.dart
+- [x] Verify all new tests FAIL
 
 #### GREEN: Implement
-- [ ] Add `FilterOperator.textSearch` to enum
-- [ ] Create `TextSearchConfig` class (query, config, type)
-- [ ] Create `TextSearchType` enum (plain, phrase, websearch)
-- [ ] Add `textSearch` parameter to query `where()` / filter builder
-- [ ] Update `SupabaseQueryTranslator` to handle `textSearch` operator
-- [ ] Export new types from both barrel files
-- [ ] Update all exhaustive switches on `FilterOperator`
-- [ ] Verify all tests PASS
+- [x] Add `FilterOperator.textSearch` to enum
+- [x] Create `TextSearchConfig` class (query, config, type)
+- [x] Create `TextSearchType` enum (plain, phrase, websearch)
+- [x] Add `textSearch` parameter to query `where()` / filter builder
+- [x] Update `SupabaseQueryTranslator` to handle `textSearch` operator
+- [x] Export new types from both barrel files
+- [x] Update all 12 exhaustive switches on `FilterOperator` across 7 packages
+- [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
 - Core query API supports text search filter
@@ -170,13 +179,12 @@ bash .claude/orchestrators/pre-commit-check.sh
 - No breaking changes to existing query API
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~8-10)
-- [ ] Tracker progress table updated
-- [ ] Delta coverage >= 95% for changed files
-  - _Per-file delta breakdown recorded on completion_
-- [ ] Harness verification checkpoint passed (below)
-- [ ] Commit: `feat: phase 2 — text search support in Query API`
+- [x] All tasks checked
+- [x] Tests passing: 22 (17 core + 5 Supabase translator)
+- [x] Tracker progress table updated
+- [x] Delta coverage: ✅ 100.0% (33/33 lines) — `nexus_store`: `query.dart` 2/2 100%, `text_search_config.dart` 11/11 100%, `query_evaluator.dart` 6/6 100%, `expression.dart` 1/1 100%, `query_translator.dart` 2/2 100%; `supabase_adapter`: `supabase_query_translator.dart` 11/11 100%
+- [x] Harness verification checkpoint passed
+- [x] Commit: `feat: phase 2 — text search support in Query API` (`3379523`)
 
 ### Harness Verification Checkpoint
 ```bash
@@ -563,3 +571,4 @@ bash .claude/orchestrators/pre-commit-check.sh
 |------|--------|---------|
 | 2026-03-17 | Created | Initial tracker — 5 phases for API gap closure |
 | 2026-03-17 | Phase 1 ✅ | RPC support — 8 tests, 100% delta coverage, `2b76534` + `334bd7d` |
+| 2026-03-17 | Phase 2 ✅ | Text search — 22 tests, 100% delta coverage, `3379523` + `0c36873` + `dd641f9` |
