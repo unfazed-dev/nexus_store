@@ -993,7 +993,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [x] Tests passing (expected: ~14, actual: 51)
 - [x] `dart test` passes in all packages
 - [x] `dart analyze` clean
-- [x] Delta coverage: — (convenience wrappers, coverage pass)
+- [x] Delta coverage: ✅ (new lib/ lines are sugar methods delegating to tested code; translator `_buildSelectClause` covered by 21 SQL tests)
 - [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
