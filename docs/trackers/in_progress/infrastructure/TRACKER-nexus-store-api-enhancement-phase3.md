@@ -10,13 +10,13 @@
 | A1. `deleteAll` WritePolicyHandler Fix | ✅ Complete | 15 | ✅ 100.0% | `d262a79` | 2026-03-16 |
 | A2. `StoreJoin` — Reactive Cross-Store Joins | ✅ Complete | 14 | ✅ 95.8% | `8428416` | 2026-03-16 |
 | A3. `mutateWithTransform` — Atomic Get+Transform+Save | ✅ Complete | 10 | ✅ 100.0% | `79572a8` | 2026-03-16 |
-| A4. `watchPaged` — Paginated Reactive Streams | ⏳ Pending | — | — | — | — |
+| A4. `watchPaged` — Paginated Reactive Streams | ✅ Complete | 7 | ✅ 100.0% | `7e625f0` | 2026-03-16 |
 | B1. Compliance Audit Migration | ⏳ Pending | — | — | — | — |
 | B2. Incident Repository Migration | ⏳ Pending | — | — | — | — |
 | B3. Journal Soft-Delete Redundancy | ⏳ Pending | — | — | — | — |
 
-**Overall:** ███████░░░░░░░░░ 43% complete (3/7 phases done)
-**Tests:** 39 passing | ~60 estimated
+**Overall:** █████████░░░░░░░ 57% complete (4/7 phases done)
+**Tests:** 46 passing | ~60 estimated
 
 ### Progress Log
 
@@ -42,11 +42,17 @@
 - 10 tests written, all passing
 - Harness: accepted=true, delta coverage 100.0% (15/15 lines)
 
+**Phase A4 Results (2026-03-16):**
+- Added `watchPaged` convenience wrapper on `NexusStore` — explicit `pageSize` param with N+1 fetch strategy for `hasMore` detection
+- Delegates to `watchAllPaged` with `limitTo(pageSize + 1)`, trims result to `pageSize`, reconstructs `PageInfo`
+- 7 tests written (stream type, pageSize limit, re-emit on change, hasMore detection, query filters, empty data, uninitialized error), all passing
+- Harness: accepted=true, delta coverage 100.0% (12/12 lines)
+
 **Current State (2026-03-16):**
-- Working on: COMPLETE (Phase A3)
-- Last completed: Phase A3 — mutateWithTransform atomic get+transform+save
+- Working on: COMPLETE (Phase A4)
+- Last completed: Phase A4 — watchPaged paginated reactive streams
 - Blocked by: Nothing
-- Next up: Phase A4 — watchPaged paginated reactive streams
+- Next up: Phase B1 — Compliance Audit Migration
 
 ## Overview
 
@@ -353,8 +359,8 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** None — can start independently.
 
 ### Pre-Implementation Checklist
-- [ ] Read `nexus_store.dart` — existing `watchAllPaged()` implementation
-- [ ] Read `store_backend.dart` — `watchAllPaged()` / `PagedResult` types
+- [x] Read `nexus_store.dart` — existing `watchAllPaged()` implementation
+- [x] Read `store_backend.dart` — `watchAllPaged()` / `PagedResult` types
 
 ### API Design
 ```dart
@@ -367,36 +373,37 @@ Stream<PagedResult<T>> watchPaged({
 
 ### Tasks
 #### RED: Write Failing Tests (~6)
-- [ ] Returns Stream of PagedResult
-- [ ] Applies pageSize to query (limitTo)
-- [ ] Re-emits when underlying data changes
-- [ ] hasMore is true when more items exist than pageSize
-- [ ] Works with additional query filters
-- [ ] Handles empty data (hasMore = false)
-- [ ] Verify all tests FAIL
+- [x] Returns Stream of PagedResult
+- [x] Applies pageSize to query (limitTo)
+- [x] Re-emits when underlying data changes
+- [x] hasMore is true when more items exist than pageSize
+- [x] Works with additional query filters
+- [x] Handles empty data (hasMore = false)
+- [x] Throws StateError when not initialized (bonus)
+- [x] Verify all tests FAIL (compile error — method not defined)
 
 #### GREEN: Implement
-1. [ ] Add `watchPaged` method to `NexusStore` near `watchAllPaged`
-2. [ ] Implementation: merge `pageSize` into query via `.limitTo(pageSize + 1)`, delegate to `watchAllPaged`, construct `PagedResult` with `hasMore = results.length > pageSize`
-3. [ ] Verify all tests PASS
+1. [x] Add `watchPaged` method to `NexusStore` near `watchAllPaged`
+2. [x] Implementation: merge `pageSize` into query via `.limitTo(pageSize + 1)`, delegate to `watchAllPaged`, construct `PagedResult` with `hasMore = results.length > pageSize`
+3. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green (7 tests, 0 failures)
 
 ### Acceptance Criteria
-- [ ] `store.watchPaged(pageSize: 10)` returns reactive paginated stream
-- [ ] `hasMore` correctly indicates whether more items exist
-- [ ] Query filters compose with pageSize
-- [ ] No new StoreOperation or OperationType needed
+- [x] `store.watchPaged(pageSize: 10)` returns reactive paginated stream
+- [x] `hasMore` correctly indicates whether more items exist
+- [x] Query filters compose with pageSize
+- [x] No new StoreOperation or OperationType needed
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~6)
-- [ ] `dart test` passes in `nexus_store/`
-- [ ] `dart analyze` clean
-- [ ] Delta coverage >= 95% for changed files
-- [ ] Tracker progress table updated
-- [ ] Harness verification checkpoint passed
+- [x] All tasks checked
+- [x] Tests passing: 7
+- [x] `dart test` passes in `nexus_store/`
+- [x] `dart analyze` clean
+- [x] Delta coverage: ✅ 100.0% (12/12 lines) — `nexus_store.dart` 12/12 100%
+- [x] Tracker progress table updated
+- [x] Harness verification checkpoint passed
 
 ### Harness Verification Checkpoint
 ```bash
@@ -609,3 +616,4 @@ bash .claude/orchestrators/pre-commit-check.sh
 | 2026-03-16 | Phase A1 complete — `WritePolicyHandler.deleteAll` added, `NexusStore.deleteAll` refactored to batch delegate, 15 tests, `d262a79` |
 | 2026-03-16 | Phase A2 complete — `StoreJoin` class with `combine2/3/4` and `withLatest2`, 14 tests, delta 95.8%, `8428416` |
 | 2026-03-16 | Phase A3 complete — `mutateWithTransform` atomic get+transform+save with full MutationOptions lifecycle, 10 tests, delta 100.0%, `79572a8` |
+| 2026-03-16 | Phase A4 complete — `watchPaged` convenience wrapper with N+1 fetch strategy for hasMore detection, 7 tests, delta 100.0%, `7e625f0` |
