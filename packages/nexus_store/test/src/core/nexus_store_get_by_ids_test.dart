@@ -93,25 +93,44 @@ void main() {
     });
   });
 
-  group('StoreBackend.getByIds default implementation', () {
+  group('StoreBackendDefaults.getByIds default implementation', () {
+    late _DefaultsOnlyBackend<TestUser, String> defaultsBackend;
+
+    setUp(() {
+      defaultsBackend = _DefaultsOnlyBackend<TestUser, String>();
+      defaultsBackend.storage['user-1'] =
+          TestFixtures.createUser(id: 'user-1', name: 'Alice');
+      defaultsBackend.storage['user-2'] =
+          TestFixtures.createUser(id: 'user-2', name: 'Bob');
+      defaultsBackend.storage['user-3'] =
+          TestFixtures.createUser(id: 'user-3', name: 'Charlie');
+    });
+
     test('delegates to individual get() calls', () async {
-      final result = await backend.getByIds(['user-1', 'user-2']);
+      final result = await defaultsBackend.getByIds(['user-1', 'user-2']);
 
       expect(result, hasLength(2));
       expect(result.map((u) => u.id), containsAll(['user-1', 'user-2']));
     });
 
     test('filters out null results from missing IDs', () async {
-      final result = await backend.getByIds(['user-1', 'no-such-user']);
+      final result = await defaultsBackend.getByIds(['user-1', 'no-such-user']);
 
       expect(result, hasLength(1));
       expect(result.first.id, equals('user-1'));
     });
 
     test('returns empty list for empty input', () async {
-      final result = await backend.getByIds([]);
+      final result = await defaultsBackend.getByIds([]);
 
       expect(result, isEmpty);
+    });
+
+    test('deduplicates IDs', () async {
+      final result =
+          await defaultsBackend.getByIds(['user-1', 'user-1', 'user-2']);
+
+      expect(result, hasLength(2));
     });
   });
 
@@ -169,4 +188,50 @@ void main() {
       expect(alice.name, equals('Alice Updated'));
     });
   });
+}
+
+/// Minimal backend that uses only [StoreBackendDefaults] (does NOT override getByIds).
+class _DefaultsOnlyBackend<T, ID> with StoreBackendDefaults<T, ID> {
+  final Map<ID, T> storage = {};
+
+  @override
+  String get name => 'DefaultsOnlyBackend';
+
+  @override
+  Future<T?> get(ID id) async => storage[id];
+
+  @override
+  Future<List<T>> getAll({Query<T>? query}) async => storage.values.toList();
+
+  @override
+  Stream<T?> watch(ID id) => Stream.value(storage[id]);
+
+  @override
+  Stream<List<T>> watchAll({Query<T>? query}) =>
+      Stream.value(storage.values.toList());
+
+  @override
+  Future<T> save(T item) async => item;
+
+  @override
+  Future<List<T>> saveAll(List<T> items) async => items;
+
+  @override
+  Future<bool> delete(ID id) async => storage.remove(id) != null;
+
+  @override
+  Future<int> deleteAll(List<ID> ids) async {
+    var count = 0;
+    for (final id in ids) {
+      if (storage.remove(id) != null) count++;
+    }
+    return count;
+  }
+
+  @override
+  Future<int> deleteWhere(Query<T> query) async {
+    final count = storage.length;
+    storage.clear();
+    return count;
+  }
 }
