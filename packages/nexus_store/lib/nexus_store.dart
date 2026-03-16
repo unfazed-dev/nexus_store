@@ -91,6 +91,7 @@ export 'src/core/backend_capabilities.dart';
 export 'src/core/composite_backend.dart';
 export 'src/core/conflict_strategy.dart';
 // Core
+export 'src/core/mutation_options.dart';
 export 'src/core/nexus_store.dart';
 export 'src/core/scoped_store.dart';
 export 'src/core/store_diagnostics.dart';

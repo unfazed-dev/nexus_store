@@ -16,6 +16,7 @@ import 'package:nexus_store/src/config/store_config.dart';
 import 'package:nexus_store/src/core/aggregate_result.dart';
 import 'package:nexus_store/src/core/backend_capabilities.dart';
 import 'package:nexus_store/src/core/conflict_strategy.dart';
+import 'package:nexus_store/src/core/mutation_options.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/core/store_diagnostics.dart';
 import 'package:nexus_store/src/core/transaction_coordinator.dart';
@@ -902,6 +903,74 @@ class NexusStore<T, ID> {
         },
       );
     });
+  }
+
+  /// Performs a structured mutation with lifecycle hooks.
+  ///
+  /// Follows the TanStack Query pattern:
+  /// 1. [MutationOptions.onMutate] — pre-mutation setup
+  /// 2. `save(item)` — the actual mutation
+  /// 3a. [MutationOptions.onSuccess] — on success
+  /// 3b. [MutationOptions.onError] — on failure
+  /// 4. [MutationOptions.onSettled] — always called
+  /// 5. [MutationOptions.invalidateTags] — cache invalidation on success only
+  ///
+  /// If [options] is null, behaves identically to [save].
+  Future<T> mutate(
+    T item, {
+    MutationOptions<T>? options,
+    WritePolicy? policy,
+  }) async {
+    _ensureInitialized();
+
+    if (options == null) return save(item, policy: policy);
+
+    Object? context;
+    try {
+      context = await options.onMutate?.call();
+      final result = await save(item, policy: policy);
+      await options.onSuccess?.call(result, context);
+      await options.onSettled?.call(context);
+      if (options.invalidateTags != null) {
+        invalidateByTags(options.invalidateTags!);
+      }
+      return result;
+    } catch (e) {
+      await options.onError?.call(e, context);
+      await options.onSettled?.call(context);
+      rethrow;
+    }
+  }
+
+  /// Performs a structured delete mutation with lifecycle hooks.
+  ///
+  /// Same lifecycle as [mutate] but for delete operations.
+  /// [MutationOptions.onSuccess] is not called for deletes since
+  /// there is no resulting entity — use [MutationOptions.onSettled].
+  /// If [options] is null, behaves identically to [delete].
+  Future<bool> mutateDelete(
+    ID id, {
+    MutationOptions<T>? options,
+    WritePolicy? policy,
+  }) async {
+    _ensureInitialized();
+
+    if (options == null) return delete(id, policy: policy);
+
+    Object? context;
+    try {
+      context = await options.onMutate?.call();
+      final result = await delete(id, policy: policy);
+      await options.onSettled?.call(context);
+      if (options.invalidateTags != null) {
+        invalidateByTags(options.invalidateTags!);
+      }
+      return result;
+    } catch (e) {
+      await options.onError?.call(e, context);
+      await options.onSettled?.call(context);
+      rethrow;
+    }
   }
 
   /// Deletes multiple entities by their identifiers.
