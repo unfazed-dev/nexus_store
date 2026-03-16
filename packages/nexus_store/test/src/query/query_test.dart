@@ -398,7 +398,7 @@ void main() {
 
   group('FilterOperator', () {
     test('should have all expected operators', () {
-      expect(FilterOperator.values, hasLength(15));
+      expect(FilterOperator.values, hasLength(18));
       expect(FilterOperator.values, contains(FilterOperator.equals));
       expect(FilterOperator.values, contains(FilterOperator.notEquals));
       expect(FilterOperator.values, contains(FilterOperator.lessThan));

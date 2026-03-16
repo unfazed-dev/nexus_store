@@ -48,6 +48,9 @@ mixin SqlQueryTranslatorMixin<T> {
         FilterOperator.endsWith => 'LIKE',
         FilterOperator.arrayContains => 'LIKE',
         FilterOperator.arrayContainsAny => 'LIKE',
+        FilterOperator.iContains => 'LIKE',
+        FilterOperator.iStartsWith => 'LIKE',
+        FilterOperator.iEndsWith => 'LIKE',
       };
 
   /// Escapes a string value for SQL.

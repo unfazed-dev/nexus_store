@@ -221,6 +221,15 @@ final class NotExpression<T> extends Expression<T> {
       FilterOperator.arrayContainsAny => throw UnsupportedError(
           'Cannot invert arrayContainsAny operator. Use expression evaluation instead.',
         ),
+      FilterOperator.iContains => throw UnsupportedError(
+          'Cannot invert iContains operator. Use expression evaluation instead.',
+        ),
+      FilterOperator.iStartsWith => throw UnsupportedError(
+          'Cannot invert iStartsWith operator. Use expression evaluation instead.',
+        ),
+      FilterOperator.iEndsWith => throw UnsupportedError(
+          'Cannot invert iEndsWith operator. Use expression evaluation instead.',
+        ),
     };
   }
 

@@ -143,6 +143,9 @@ class Query<T> {
     String? contains,
     String? startsWith,
     String? endsWith,
+    String? iContains,
+    String? iStartsWith,
+    String? iEndsWith,
   }) {
     final newFilters = List<QueryFilter>.from(_filters);
 
@@ -269,6 +272,33 @@ class Query<T> {
           field: field,
           operator: FilterOperator.endsWith,
           value: endsWith,
+        ),
+      );
+    }
+    if (iContains != null) {
+      newFilters.add(
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.iContains,
+          value: iContains,
+        ),
+      );
+    }
+    if (iStartsWith != null) {
+      newFilters.add(
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.iStartsWith,
+          value: iStartsWith,
+        ),
+      );
+    }
+    if (iEndsWith != null) {
+      newFilters.add(
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.iEndsWith,
+          value: iEndsWith,
         ),
       );
     }
@@ -818,6 +848,15 @@ enum FilterOperator {
 
   /// String ends with suffix.
   endsWith,
+
+  /// String contains substring (case-insensitive).
+  iContains,
+
+  /// String starts with prefix (case-insensitive).
+  iStartsWith,
+
+  /// String ends with suffix (case-insensitive).
+  iEndsWith,
 }
 
 /// A single filter condition in a query.

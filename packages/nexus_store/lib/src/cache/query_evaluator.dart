@@ -107,6 +107,24 @@ class InMemoryQueryEvaluator<T> {
 
       case FilterOperator.endsWith:
         return value.toString().endsWith(filter.value.toString());
+
+      case FilterOperator.iContains:
+        return value
+            .toString()
+            .toLowerCase()
+            .contains(filter.value.toString().toLowerCase());
+
+      case FilterOperator.iStartsWith:
+        return value
+            .toString()
+            .toLowerCase()
+            .startsWith(filter.value.toString().toLowerCase());
+
+      case FilterOperator.iEndsWith:
+        return value
+            .toString()
+            .toLowerCase()
+            .endsWith(filter.value.toString().toLowerCase());
     }
   }
 
