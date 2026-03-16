@@ -20,15 +20,24 @@
 | 11. patch() / Partial Update | ✅ Complete | 37 | ✅ 100.0% | `3c42f6b` | 2026-03-16 |
 | 12. Reactive Streams (watchCount, watchOne) | ✅ Complete | 12 | ✅ 100.0% | `d0e3431` | 2026-03-16 |
 | 13. Query Convenience Methods | ✅ Complete | 51 | ✅ 100.0% | `9db8732` | 2026-03-16 |
-| 14. Diagnostics & Health | ⏳ Pending | ~8 | — | — | — |
+| 14. Diagnostics & Health | ✅ Complete | 22 | ✅ 100.0% | `11faeea` | 2026-03-16 |
 | 15. upsert() / Save-If-Not-Exists | ⏳ Pending | ~16 | — | — | — |
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
-**Overall:** ████████████░░░░ 76% complete
-**Tests:** 354 passing | ~355-360 estimated total
+**Overall:** █████████████░░░ 82% complete
+**Tests:** 376 passing | ~377-382 estimated total
 
 ### Progress Log
+
+**Phase 14 Results (2026-03-16):**
+- Added `StoreDiagnostics` class — comprehensive health snapshot combining StoreStats, CacheStats, slow ops, memory metrics
+- Added `SlowOperation` class — tracks operations exceeding 100ms threshold with ratio calculation
+- Added `getDiagnostics()` async method to `NexusStore` — returns entity count, pending changes, cache/store stats, health status
+- Reused existing `HealthStatus` enum from `reliability/health_status.dart` (no duplication)
+- Health status logic: unhealthy (>10% error rate or critical memory pressure), degraded (slow ops, >50% stale cache, moderate memory pressure), healthy
+- 22 tests: 12 integration tests on NexusStore, 5 health status unit tests, 3 SlowOperation tests, 2 average latency tests
+- Harness: accepted (format, analyze, invariants, coverage all pass)
 
 **Phase 13 Results (2026-03-16):**
 - Added `whereBetween(field, start, end)` — sugar for `>= AND <=` filters
@@ -1015,37 +1024,37 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** None — can start independently.
 
 ### Pre-Implementation Checklist
-- [ ] Read `nexus_store.dart` — existing stats/telemetry access
-- [ ] Read `operation_metric.dart` — telemetry data available
+- [x] Read `nexus_store.dart` — existing stats/telemetry access
+- [x] Read `operation_metric.dart` — telemetry data available
 
 ### Tasks
 #### RED: Write Failing Tests (~8)
-- [ ] Scaffold test files (`test-scaffold` agent)
-- [ ] Diagnostics accuracy
-- [ ] Slow operation tracking
-- [ ] Cache info per entity
-- [ ] Verify all tests FAIL
+- [x] Scaffold test files (`test-scaffold` agent)
+- [x] Diagnostics accuracy
+- [x] Slow operation tracking
+- [x] Cache info per entity
+- [x] Verify all tests FAIL
 
 #### GREEN: Implement
-1. [ ] Add `StoreDiagnostics getDiagnostics()` to `NexusStore`
-2. [ ] Include: entity count, pending changes, cache size, hit rate, avg latency
-3. [ ] Add slow operations list from stats
-4. [ ] Verify all tests PASS
+1. [x] Add `StoreDiagnostics getDiagnostics()` to `NexusStore`
+2. [x] Include: entity count, pending changes, cache size, hit rate, avg latency
+3. [x] Add slow operations list from stats
+4. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
-- [ ] `store.getDiagnostics()` returns comprehensive health snapshot
-- [ ] Slow operations identified above threshold
-- [ ] Cache hit rate reported
+- [x] `store.getDiagnostics()` returns comprehensive health snapshot
+- [x] Slow operations identified above threshold
+- [x] Cache hit rate reported
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~8)
-- [ ] `dart analyze` clean
-- [ ] Delta coverage >= 95% for changed files
-- [ ] Tracker progress table updated
+- [x] All tasks checked
+- [x] Tests passing (expected: ~8, actual: 22)
+- [x] `dart analyze` clean
+- [x] Delta coverage: ✅ (new lib/ lines are the `getDiagnostics()` method and slow operation tracking in `_recordOperationSuccess`, both directly exercised by 12 integration tests; `StoreDiagnostics` class fully covered by 10 unit tests)
+- [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
 ```bash
