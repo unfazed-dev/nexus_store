@@ -1,6 +1,6 @@
 # TRACKER: NexusStore API Enhancement Phase 3
 
-## Status: IN_PROGRESS
+## Status: COMPLETE
 
 ## Progress
 
@@ -13,10 +13,10 @@
 | A4. `watchPaged` — Paginated Reactive Streams | ✅ Complete | 7 | ✅ 100.0% | `7e625f0` | 2026-03-16 |
 | B1. Compliance Audit Migration | ✅ Complete | 4 | — | `f40f1cf` | 2026-03-16 |
 | B2. Incident Repository Migration | ✅ Complete | 12 | — | `b77fd30` | 2026-03-16 |
-| B3. Journal Soft-Delete Redundancy | ⏳ Pending | — | — | — | — |
+| B3. Journal Soft-Delete Redundancy | ✅ Complete | 2 | — | `52c9ebc` | 2026-03-16 |
 
-**Overall:** █████████████░░ 86% complete (6/7 phases done)
-**Tests:** 62 passing | ~64 estimated
+**Overall:** ████████████████ 100% complete (7/7 phases done)
+**Tests:** 64 passing | ~64 estimated
 
 ### Progress Log
 
@@ -62,11 +62,17 @@
 - 12 new tests written, all passing; `dart analyze` clean
 - Harness: no lib/ changes in nexus_store (Firefly-only migration)
 
+**Phase B3 Results (2026-03-16):**
+- Replaced `getEntry` unscoped `_stores.journalEntries.get(id)` + manual `deletedAt` check with `_journalStore.findBy('id', entryId)` (scoped store auto-filters soft-deleted)
+- 2 new tests written: scoped delegation verification + soft-deleted entry returns null
+- All 8 journal tests passing (6 existing + 2 new), `dart analyze` clean
+- Harness: no lib/ changes in nexus_store (Firefly-only migration)
+
 **Current State (2026-03-16):**
-- Working on: COMPLETE (Phase B2)
-- Last completed: Phase B2 — Incident Repository Migration
+- Working on: COMPLETE (Phase B3)
+- Last completed: Phase B3 — Journal Soft-Delete Redundancy
 - Blocked by: Nothing
-- Next up: Phase B3 — Journal Soft-Delete Redundancy
+- Next up: N/A — All phases complete
 
 ## Overview
 
@@ -534,33 +540,27 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** None — no NexusStore changes needed.
 
 ### Pre-Implementation Checklist
-- [ ] Read `journal_repository.dart` — `getEntry` method and `_journalStore` definition
-- [ ] Verify `ScopedStore.get()` applies scope filtering
+- [x] Read `journal_repository.dart` — `getEntry` method and `_journalStore` definition
+- [x] Verify `ScopedStore` applies scope filtering (via `findBy` → `getOne` → `_applyScopes`)
 
 ### Tasks
 #### GREEN: Implement
-1. [ ] Replace `getEntry` body (lines 50-55):
-   ```dart
-   Future<JournalEntry?> getEntry(String entryId) async {
-     return _journalStore.get(entryId);
-   }
-   ```
-   Changes: use `_journalStore` (scoped) instead of `_stores.journalEntries` (unscoped), remove redundant `deletedAt` null check
-2. [ ] Add test verifying `getEntry` for soft-deleted entry returns null via scoped store
-3. [ ] Verify all tests PASS
+1. [x] Replace `getEntry` body: use `_journalStore.findBy('id', entryId)` instead of `_stores.journalEntries.get(entryId)` + manual `deletedAt` check. Note: `ScopedStore` has no `get(id)` method — used `findBy` which delegates to scoped `getOne`.
+2. [x] Add 2 tests verifying `getEntry` delegates to scoped store (not unscoped `get`) and soft-deleted entry returns null
+3. [x] Verify all tests PASS (8/8 journal tests)
 
 #### REFACTOR
-- [ ] Clean up, run Firefly tests — all green
+- [x] Clean up, run Firefly tests — all green (8 tests, 0 failures)
 
 ### Acceptance Criteria
-- [ ] `getEntry(id)` uses scoped store (no manual soft-delete check)
-- [ ] Soft-deleted entries return `null` automatically
+- [x] `getEntry(id)` uses scoped store (no manual soft-delete check)
+- [x] Soft-deleted entries return `null` automatically
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (~2)
-- [ ] `dart analyze` clean for journal_repository
-- [ ] Tracker progress table updated
+- [x] All tasks checked
+- [x] Tests passing: 2 new + 6 existing = 8 total
+- [x] `dart analyze` clean for journal_repository
+- [x] Tracker progress table updated
 
 ### Critical Files
 - `/Users/unfazed-mac/Developer/apps/firefly/lib/core/repositories/journal/journal_repository.dart`
@@ -568,11 +568,11 @@ bash .claude/orchestrators/pre-commit-check.sh
 ---
 
 ## Completion Checklist
-- [ ] All 7 phases ✅ in progress table
-- [ ] Status updated to `COMPLETE`
+- [x] All 7 phases ✅ in progress table
+- [x] Status updated to `COMPLETE`
 - [ ] Move tracker to `docs/trackers/completed/infrastructure/`
 - [ ] Update `docs/trackers/index.md`
-- [ ] Final History entry added
+- [x] Final History entry added
 - [ ] Run `verify-packages` agent for full verification
 
 ## Files
@@ -607,3 +607,4 @@ bash .claude/orchestrators/pre-commit-check.sh
 | 2026-03-16 | Phase A4 complete — `watchPaged` convenience wrapper with N+1 fetch strategy for hasMore detection, 7 tests, delta 100.0%, `7e625f0` |
 | 2026-03-16 | Phase B1 complete — compliance audit migration: `getByDateRange` → `whereBetween`, `getLatestEntry` → `getOne` + `orderByField`, 4 test stubs updated, 11 tests passing |
 | 2026-03-16 | Phase B2 complete — incident repository migration: `searchIncidents` → dual `iContains` merge, severity filters → `whereIn`, `getReportableIncidents` → `whereIn` + query boolean, 12 tests |
+| 2026-03-16 | Phase B3 complete — journal `getEntry` redundant soft-delete check removed, uses `ScopedStore.findBy` instead of unscoped `get` + manual check, 2 tests |
