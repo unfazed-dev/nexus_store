@@ -248,7 +248,7 @@ Update the tracker file with these changes:
 1. **Progress table row** for this phase:
    - Status: `✅ Complete`
    - Tests/Tasks/Diagrams: actual count achieved
-   - Coverage: run `check-coverage.py --changed --json --delta=<COMMIT_HASH>`. Use `delta_coverage_pct` (min across packages). Format: `✅ NN.N%` if delta >= 95%, `⚠️ NN.N%` if < 95%, `—` if no `lib/` changes, `✅` with explanation if lib/ changed but lines are delegation-only (sugar methods, pass-through wrappers).
+   - Coverage: run `check-coverage.py --packages=<pkg> --json --delta=<COMMIT_HASH>`. Use `delta_coverage_pct`. Format: `✅ NN.N%` if delta >= 95%, `⚠️ NN.N%` if < 95%, `—` if no `lib/` changes. **Always run the tool when lib/ changed — never use prose descriptions.**
    - Committed: `⏳` (updated to commit hash in Step 10)
    - Last Updated: today's date (`YYYY-MM-DD`)
 
@@ -273,20 +273,20 @@ Update the tracker file with these changes:
 
 6. **Checkboxes**: All `- [ ]` → `- [x]` for completed items in the phase
 
-7. **Coverage results**: When marking the delta coverage checkbox, show per-file breakdown from `delta_files`:
-   ```
-   - [x] Delta coverage: ✅ 95.5% (21/22 lines)
-     - `lib/src/core/nexus_store.dart`: 100% (8/8)
-     - `lib/src/interceptors/store_operation.dart`: 90% (9/10)
-     - `lib/src/policy/write_policy_handler.dart`: 80% (4/5)
-   ```
-   Data sourced from `python3 .claude/hooks/core/check-coverage.py --changed --json --delta=<COMMIT_HASH>` output field `delta_files` (array of `{path, hit, total, pct}`). Use `✅` if delta >= 95%, `⚠️` if < 95%.
+7. **Coverage results** (MANDATORY when lib/ files changed):
 
-   **Wording rules for the delta coverage checkbox:**
-   - Numeric delta available: `- [x] Delta coverage: ✅ 95.5% (21/22 lines)` with per-file breakdown
-   - Sugar/delegation methods (lib/ changed but no new logic): `- [x] Delta coverage: ✅ (new lib/ lines are sugar methods delegating to [tested method]; [N] tests cover [component])`
-   - No lib/ changes at all: `- [x] Delta coverage: — (no lib/ changes)`
-   - Never use vague wording like `— (convenience wrappers, coverage pass)` — a future reader must understand **why** coverage is adequate without re-running the tool.
+   **Always run:** `python3 .claude/hooks/core/check-coverage.py --packages=<pkg> --json --delta=<COMMIT_HASH>`
+
+   Extract from JSON output: `delta_coverage_pct`, `delta_lines_hit`, `delta_lines_total`, and `delta_files` array (`{path, hit, total, pct}`).
+
+   Format the checkbox as:
+   ```
+   - [x] Delta coverage: ✅ 100.0% (71/71 lines) — `nexus_store.dart` 34/34 100%, `write_policy_handler.dart` 37/37 100%
+   ```
+
+   Use `✅` if delta >= 95%, `⚠️` if < 95%. No lib/ changes: `— (no lib/ changes)`.
+
+   **NEVER substitute prose descriptions** ("sugar methods", "delegation wrappers", "convenience methods") for actual numbers. Every lib/ change MUST have numeric per-file stats from the tool. If the tool can't compute delta (null result), state that explicitly: `— (delta computation returned null for commit <hash>)`.
 
 8. **History table**: Add row with date, action, and details
 

@@ -335,23 +335,23 @@ The `Coverage` column in the Overview table shows **delta coverage** — the per
 | Delta >= 95% | `✅ NN.N%` (delta coverage pct) |
 | Delta < 95% | `⚠️ NN.N%` (delta coverage pct) |
 | No `lib/` changes / non-code phase / `delta_coverage_pct` is null | `—` |
-| `lib/` changed but lines are delegation-only (sugar methods, pass-through wrappers) | `✅` with explanation |
 
-Delta coverage is computed by `check-coverage.py --changed --json --delta=<COMMIT_HASH>`. It cross-references lines introduced by the phase commit (via `git blame`) against LCOV line-level data. Non-executable lines (comments, imports, blanks) are excluded from the denominator.
+Delta coverage is computed by `check-coverage.py --packages=<pkg> --json --delta=<COMMIT_HASH>`. It cross-references lines introduced by the phase commit (via `git blame`) against LCOV line-level data. Non-executable lines (comments, imports, blanks) are excluded from the denominator.
 
-Per-file delta breakdowns go in the Post-Implementation Checklist checkboxes (not whole-package stats).
+**ALWAYS run the tool when lib/ files changed.** Never substitute prose ("sugar methods", "delegation wrappers") for numeric results. Per-file delta breakdowns go in the Post-Implementation Checklist checkboxes (not whole-package stats).
 
 ### Coverage Wording Rules
 
-Delta coverage descriptions in the Post-Implementation Checklist must be **precise and meaningful**. Never use vague placeholders like `—` or `(convenience wrappers, coverage pass)` when `lib/` files were modified.
+Delta coverage descriptions in the Post-Implementation Checklist must **always include numeric stats** from `check-coverage.py`. Never use vague prose descriptions when `lib/` files were modified.
 
 | Scenario | Correct Wording |
 |----------|----------------|
-| Numeric delta available | `✅ 95.5% (21/22 lines)` with per-file breakdown |
-| Sugar/delegation methods (no new logic) | `✅ (new lib/ lines are sugar methods delegating to [tested method]; [N] tests cover [component])` |
+| lib/ files changed | `✅ 100.0% (71/71 lines) — file.dart NN/NN 100%, ...` (ALWAYS run tool, ALWAYS show per-file breakdown) |
 | No lib/ changes at all | `— (no lib/ changes)` |
 
-The goal: a future reader should understand **why** coverage is adequate without re-running the tool.
+**MANDATORY:** When lib/ files are modified, you MUST run `python3 .claude/hooks/core/check-coverage.py --packages=<pkg> --json --delta=<COMMIT>` and extract the `delta_coverage_pct`, `delta_lines_hit`, `delta_lines_total`, and `delta_files` array. Never substitute prose descriptions like "sugar methods" or "delegation wrappers" for actual numbers.
+
+The goal: a future reader should see exact per-file stats without re-running the tool.
 
 ## Template Variants
 
