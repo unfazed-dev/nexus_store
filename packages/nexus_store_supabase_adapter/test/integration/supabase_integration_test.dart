@@ -643,10 +643,9 @@ void main() {
           ),
         );
 
-        final query = const nexus.Query<TestModel>().where(
-          'value',
-          isGreaterThanOrEqualTo: 35,
-        );
+        final query = const nexus.Query<TestModel>()
+            .where('id', startsWith: '${testPrefix}filter-')
+            .where('value', isGreaterThanOrEqualTo: 35);
 
         final results = await backend.getAll(query: query);
 
@@ -890,10 +889,9 @@ void main() {
           const TestModel(id: '${testPrefix}wquery-2', name: 'Old', value: 50),
         );
 
-        final query = const nexus.Query<TestModel>().where(
-          'value',
-          isGreaterThanOrEqualTo: 40,
-        );
+        final query = const nexus.Query<TestModel>()
+            .where('id', startsWith: '${testPrefix}wquery-')
+            .where('value', isGreaterThanOrEqualTo: 40);
 
         final stream = backend.watchAll(query: query);
         final firstValue = await stream.first.timeout(
