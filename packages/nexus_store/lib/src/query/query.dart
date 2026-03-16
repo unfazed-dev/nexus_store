@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 import 'package:nexus_store/src/pagination/cursor.dart';
+import 'package:nexus_store/src/query/query_relation.dart';
 import 'package:nexus_store/src/query/text_search_config.dart';
 
 /// Fluent query builder for filtering, sorting, and paginating data.
@@ -29,6 +30,7 @@ class Query<T> {
       : _filters = const [],
         _filterGroups = const [],
         _orderBy = const [],
+        _relations = const [],
         _limit = null,
         _offset = null,
         _afterCursor = null,
@@ -45,6 +47,7 @@ class Query<T> {
     required List<QueryOrderBy> orderBy,
     required int? limit,
     required int? offset,
+    List<QueryRelation> relations = const [],
     Cursor? afterCursor,
     Cursor? beforeCursor,
     int? first,
@@ -55,6 +58,7 @@ class Query<T> {
   })  : _filters = filters,
         _filterGroups = filterGroups,
         _orderBy = orderBy,
+        _relations = relations,
         _limit = limit,
         _offset = offset,
         _afterCursor = afterCursor,
@@ -68,6 +72,7 @@ class Query<T> {
   final List<QueryFilter> _filters;
   final List<QueryFilterGroup> _filterGroups;
   final List<QueryOrderBy> _orderBy;
+  final List<QueryRelation> _relations;
   final int? _limit;
   final int? _offset;
   final Cursor? _afterCursor;
@@ -122,6 +127,9 @@ class Query<T> {
 
   /// Whether this query should return only distinct (unique) results.
   bool get isDistinct => _distinct;
+
+  /// The relations to embed via resource embedding (JOINs).
+  List<QueryRelation> get relations => List.unmodifiable(_relations);
 
   // ---------------------------------------------------------------------------
   // Filter Methods
@@ -318,6 +326,7 @@ class Query<T> {
       filters: newFilters,
       filterGroups: _filterGroups,
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: _afterCursor,
@@ -360,6 +369,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: [..._filterGroups, group],
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: _afterCursor,
@@ -407,6 +417,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: _filterGroups,
       orderBy: newOrderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: _afterCursor,
@@ -449,6 +460,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: _filterGroups,
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: count,
       afterCursor: _afterCursor,
@@ -481,6 +493,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: _filterGroups,
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: cursor,
@@ -509,6 +522,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: _filterGroups,
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: _afterCursor,
@@ -537,6 +551,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: _filterGroups,
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: _afterCursor,
@@ -566,6 +581,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: _filterGroups,
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: _afterCursor,
@@ -598,6 +614,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: _filterGroups,
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: _afterCursor,
@@ -625,6 +642,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: _filterGroups,
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: _afterCursor,
@@ -657,6 +675,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: _filterGroups,
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: _afterCursor,
@@ -684,6 +703,7 @@ class Query<T> {
       filters: _filters,
       filterGroups: _filterGroups,
       orderBy: _orderBy,
+      relations: _relations,
       limit: _limit,
       offset: _offset,
       afterCursor: _afterCursor,
@@ -697,6 +717,61 @@ class Query<T> {
   }
 
   // ---------------------------------------------------------------------------
+  // Relation Methods (Resource Embedding / JOINs)
+  // ---------------------------------------------------------------------------
+
+  /// Adds a relation to embed via resource embedding (JOIN).
+  ///
+  /// [foreignTable] is the name of the related table to include.
+  /// [foreignKey] optionally disambiguates which FK to use.
+  /// [columns] optionally limits which columns to return from the relation.
+  /// [subQuery] optionally specifies nested relations.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// // Simple relation
+  /// Query<User>().withRelation('posts');
+  ///
+  /// // With FK hint and nested relations
+  /// Query<User>().withRelation(
+  ///   'posts',
+  ///   foreignKey: 'author_id',
+  ///   subQuery: Query().withRelation('comments'),
+  /// );
+  /// ```
+  Query<T> withRelation(
+    String foreignTable, {
+    String? foreignKey,
+    Set<String>? columns,
+    Query<dynamic>? subQuery,
+  }) {
+    return Query._(
+      filters: _filters,
+      filterGroups: _filterGroups,
+      orderBy: _orderBy,
+      relations: [
+        ..._relations,
+        QueryRelation(
+          foreignTable: foreignTable,
+          foreignKey: foreignKey,
+          columns: columns,
+          subQuery: subQuery,
+        ),
+      ],
+      limit: _limit,
+      offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
+      preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: _distinct,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Query Composition
   // ---------------------------------------------------------------------------
 
@@ -705,6 +780,7 @@ class Query<T> {
       _filters.isEmpty &&
       _filterGroups.isEmpty &&
       _orderBy.isEmpty &&
+      _relations.isEmpty &&
       _limit == null &&
       _offset == null &&
       _afterCursor == null &&
@@ -723,6 +799,7 @@ class Query<T> {
     List<QueryFilter>? filters,
     List<QueryFilterGroup>? filterGroups,
     List<QueryOrderBy>? orderBy,
+    List<QueryRelation>? relations,
     int? limit,
     int? offset,
     Cursor? afterCursor,
@@ -737,6 +814,7 @@ class Query<T> {
         filters: filters ?? _filters,
         filterGroups: filterGroups ?? _filterGroups,
         orderBy: orderBy ?? _orderBy,
+        relations: relations ?? _relations,
         limit: limit ?? _limit,
         offset: offset ?? _offset,
         afterCursor: afterCursor ?? _afterCursor,
@@ -756,6 +834,7 @@ class Query<T> {
           _listsEqual(_filters, other._filters) &&
           _listsEqual(_filterGroups, other._filterGroups) &&
           _listsEqual(_orderBy, other._orderBy) &&
+          _listsEqual(_relations, other._relations) &&
           _limit == other._limit &&
           _offset == other._offset &&
           _afterCursor == other._afterCursor &&
@@ -771,6 +850,7 @@ class Query<T> {
         Object.hashAll(_filters),
         Object.hashAll(_filterGroups),
         Object.hashAll(_orderBy),
+        Object.hashAll(_relations),
         _limit,
         _offset,
         _afterCursor,
@@ -787,6 +867,7 @@ class Query<T> {
       'filters: $_filters, '
       'filterGroups: $_filterGroups, '
       'orderBy: $_orderBy, '
+      'relations: $_relations, '
       'limit: $_limit, '
       'offset: $_offset, '
       'afterCursor: $_afterCursor, '

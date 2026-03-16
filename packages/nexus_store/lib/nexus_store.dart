@@ -137,6 +137,7 @@ export 'src/query/field.dart';
 export 'src/query/fields.dart';
 export 'src/query/query.dart';
 export 'src/query/query_expression_extension.dart';
+export 'src/query/query_relation.dart';
 export 'src/query/query_scope.dart';
 export 'src/query/query_translator.dart';
 export 'src/query/text_search_config.dart';

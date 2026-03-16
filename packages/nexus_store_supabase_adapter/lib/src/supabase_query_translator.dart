@@ -226,6 +226,62 @@ class SupabaseQueryTranslator<T> implements QueryTranslator<T, void> {
         nexus.TextSearchType.websearch => TextSearchType.websearch,
       };
 
+  /// Builds the PostgREST `select` string for resource embedding (JOINs).
+  ///
+  /// Returns `'*'` if no relations are specified. Otherwise generates
+  /// PostgREST resource embedding syntax like `'*,posts(*),comments(*)'`.
+  ///
+  /// Supports:
+  /// - Multiple relations: `'*,posts(*),comments(*)'`
+  /// - Nested relations: `'*,posts(*,comments(*))'`
+  /// - Column selection: `'*,posts(id,title)'`
+  /// - Foreign key hints: `'*,posts!author_id(*)'`
+  String buildSelectString(Query<T> query) {
+    if (query.relations.isEmpty) return '*';
+
+    final buffer = StringBuffer('*');
+    for (final relation in query.relations) {
+      buffer.write(',');
+      _writeRelation(buffer, relation);
+    }
+    return buffer.toString();
+  }
+
+  /// Writes a single relation embedding to the buffer.
+  void _writeRelation(StringBuffer buffer, QueryRelation relation) {
+    buffer.write(relation.foreignTable);
+
+    // Foreign key hint: table!foreign_key
+    if (relation.foreignKey != null) {
+      buffer
+        ..write('!')
+        ..write(relation.foreignKey);
+    }
+
+    buffer.write('(');
+
+    // Column selection or wildcard
+    final hasColumns = relation.columns != null && relation.columns!.isNotEmpty;
+    final hasNestedRelations =
+        relation.subQuery != null && relation.subQuery!.relations.isNotEmpty;
+
+    if (hasColumns) {
+      buffer.write(relation.columns!.join(','));
+    } else {
+      buffer.write('*');
+    }
+
+    // Nested relations from sub-query
+    if (hasNestedRelations) {
+      for (final nested in relation.subQuery!.relations) {
+        buffer.write(',');
+        _writeRelation(buffer, nested);
+      }
+    }
+
+    buffer.write(')');
+  }
+
   /// Maps a query field name to the database column name.
   String _mapFieldName(String field) => _fieldMapping[field] ?? field;
 }
