@@ -11,7 +11,7 @@
 | A2. Query Scopes (Soft-Delete, Owner) | ✅ Complete | 22 | ✅ 100.0% (8/8) | d3c9198 | 2026-03-16 |
 | A3. Case-Insensitive Search | ✅ Complete | 14 | ✅ 100.0% (25/25) | a57dc06 | 2026-03-16 |
 | A4. Mutation Lifecycle Hooks | ✅ Complete | 22 | ✅ 100.0% (19/19) | 7f2f748 | 2026-03-16 |
-| A5. Background Refetch Manager | ✅ Complete | 16 | — (LCOV gap) | 03d4861 | 2026-03-16 |
+| A5. Background Refetch Manager | ✅ Complete | 16 | ✅ 95.2% (40/42) | 03d4861 | 2026-03-16 |
 | B1. Firefly Repo Migration (Phase 2) | ⏳ Deferred | — | — | — | — |
 | C1. Cross-Adapter Composition Tests | ✅ Complete | 21 | — (no lib/ changes) | 88fbf2f | 2026-03-16 |
 | C2. Brick Adapter Test Parity | ⏭️ Skipped | — | — | — | 2026-03-16 |
@@ -420,7 +420,7 @@ melos run test:dart && melos run analyze
 - [x] Tests passing: 16
 - [x] `dart test` passes in `nexus_store/`
 - [x] `dart analyze` clean
-- [x] Delta coverage: — (LCOV tooling gap — new files not instrumented by `dart test --coverage` despite 16 passing tests exercising all code paths)
+- [x] Delta coverage >= 95%: ✅ 95.2% (40/42 lines) — refetch_config.dart 14/16 87.5%, refetch_manager.dart 26/26 100%
 - [x] Tracker progress table updated
 
 ### Critical Files
@@ -617,3 +617,5 @@ melos run test:dart && melos run analyze
 | 2026-03-16 | Delta coverage retroactively computed — A1 100% (15/15), A2 100% (8/8), A3 100% (25/25), A4 100% (19/19), A5 LCOV gap |
 | 2026-03-16 | Fix: 5 exhaustive switch errors in brick/crdt/supabase adapters + examples for new FilterOperator values (ba8ddd0) |
 | 2026-03-16 | Fix: pre-commit-check.sh set -e bug — analyzer failure silently killed harness instead of reporting (ba8ddd0) |
+| 2026-03-16 | Fix: check-coverage.py stale lcov.info bug — _try_format_coverage returned stale file instead of regenerating from VM JSON |
+| 2026-03-16 | A5 delta coverage corrected: 95.2% (40/42) — was previously null due to stale lcov.info |

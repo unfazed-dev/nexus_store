@@ -179,11 +179,14 @@ def is_flutter_package(package_dir: Path) -> bool:
 def _try_format_coverage(coverage_dir: Path, package_dir: Path) -> Path | None:
     """Try to format coverage JSON files into lcov.info. Returns path or None."""
     lcov_path = coverage_dir / "lcov.info"
-    if lcov_path.exists():
-        return lcov_path
 
     if not coverage_dir.is_dir():
         return None
+
+    # Always regenerate lcov.info from latest VM JSON data.
+    # A stale lcov.info may be missing newly added source files.
+    if lcov_path.exists():
+        lcov_path.unlink()
 
     fmt_cmd = [
         "dart", "run", "coverage:format_coverage",
