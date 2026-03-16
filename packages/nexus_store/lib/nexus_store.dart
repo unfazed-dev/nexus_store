@@ -126,6 +126,8 @@ export 'src/pool/pool_metrics.dart';
 export 'src/pool/pooled_connection.dart';
 // Policy handlers
 export 'src/policy/fetch_policy_handler.dart';
+export 'src/policy/refetch_config.dart';
+export 'src/policy/refetch_manager.dart';
 export 'src/policy/write_policy_handler.dart';
 // Query
 export 'src/query/annotations.dart';
