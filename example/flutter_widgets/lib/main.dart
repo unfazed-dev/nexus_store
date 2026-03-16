@@ -248,6 +248,8 @@ class InMemoryBackend<T, ID>
             return (value as String)
                 .toLowerCase()
                 .endsWith((filter.value! as String).toLowerCase());
+          case FilterOperator.textSearch:
+            return (value as String).contains(filter.value! as String);
         }
       }).toList();
     }

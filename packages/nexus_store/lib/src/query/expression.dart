@@ -215,6 +215,9 @@ final class NotExpression<T> extends Expression<T> {
       FilterOperator.endsWith => throw UnsupportedError(
           'Cannot invert endsWith operator. Use expression evaluation instead.',
         ),
+      FilterOperator.textSearch => throw UnsupportedError(
+          'Cannot invert textSearch operator. Use expression evaluation instead.',
+        ),
       FilterOperator.arrayContains => throw UnsupportedError(
           'Cannot invert arrayContains operator. Use expression evaluation instead.',
         ),

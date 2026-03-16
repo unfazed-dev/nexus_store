@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 import 'package:nexus_store/src/pagination/cursor.dart';
+import 'package:nexus_store/src/query/text_search_config.dart';
 
 /// Fluent query builder for filtering, sorting, and paginating data.
 ///
@@ -146,6 +147,7 @@ class Query<T> {
     String? iContains,
     String? iStartsWith,
     String? iEndsWith,
+    TextSearchConfig? textSearch,
   }) {
     final newFilters = List<QueryFilter>.from(_filters);
 
@@ -299,6 +301,15 @@ class Query<T> {
           field: field,
           operator: FilterOperator.iEndsWith,
           value: iEndsWith,
+        ),
+      );
+    }
+    if (textSearch != null) {
+      newFilters.add(
+        QueryFilter(
+          field: field,
+          operator: FilterOperator.textSearch,
+          value: textSearch,
         ),
       );
     }
@@ -857,6 +868,9 @@ enum FilterOperator {
 
   /// String ends with suffix (case-insensitive).
   iEndsWith,
+
+  /// Full-text search using PostgreSQL tsvector/tsquery.
+  textSearch,
 }
 
 /// A single filter condition in a query.

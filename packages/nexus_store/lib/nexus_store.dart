@@ -139,6 +139,7 @@ export 'src/query/query.dart';
 export 'src/query/query_expression_extension.dart';
 export 'src/query/query_scope.dart';
 export 'src/query/query_translator.dart';
+export 'src/query/text_search_config.dart';
 // Reactive
 export 'src/reactive/reactive_store_mixin.dart';
 export 'src/security/derived_key.dart';

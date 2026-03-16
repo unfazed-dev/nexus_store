@@ -54,6 +54,7 @@ class TestGdprBackend
           final fieldValue = entity[filter.field];
           return switch (filter.operator) {
             FilterOperator.equals => fieldValue == filter.value,
+            FilterOperator.textSearch => false,
             _ => true, // Other operators not implemented for test backend
           };
         }).toList();

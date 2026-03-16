@@ -149,6 +149,9 @@ class CrdtQueryTranslator<T>
           _iStartsWithCondition(column, filter.value, args),
         FilterOperator.iEndsWith =>
           _iEndsWithCondition(column, filter.value, args),
+        FilterOperator.textSearch => throw UnsupportedError(
+            'Text search is not supported by this adapter',
+          ),
       };
 
   String _equalCondition(String column, Object? value, List<Object?> args) {

@@ -51,6 +51,8 @@ mixin SqlQueryTranslatorMixin<T> {
         FilterOperator.iContains => 'LIKE',
         FilterOperator.iStartsWith => 'LIKE',
         FilterOperator.iEndsWith => 'LIKE',
+        FilterOperator.textSearch =>
+          throw UnsupportedError('textSearch has no SQL equivalent'),
       };
 
   /// Escapes a string value for SQL.

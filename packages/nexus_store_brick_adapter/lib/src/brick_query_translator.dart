@@ -144,6 +144,8 @@ class BrickQueryTranslator<T> implements QueryTranslator<T, brick.Query> {
         ),
       FilterOperator.iStartsWith => _createStartsWithCondition(field, value),
       FilterOperator.iEndsWith => _createEndsWithCondition(field, value),
+      FilterOperator.textSearch =>
+        throw UnsupportedError('Text search is not supported by this adapter'),
     };
   }
 

@@ -531,6 +531,14 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
             .toString()
             .toLowerCase()
             .endsWith(filter.value.toString().toLowerCase());
+      case FilterOperator.textSearch:
+        // Simple in-memory text search for testing
+        if (filter.value is! TextSearchConfig) return false;
+        final config = filter.value! as TextSearchConfig;
+        return value
+            .toString()
+            .toLowerCase()
+            .contains(config.query.toLowerCase());
     }
   }
 

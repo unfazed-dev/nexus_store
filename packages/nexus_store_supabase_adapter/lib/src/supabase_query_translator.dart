@@ -1,4 +1,5 @@
-import 'package:nexus_store/nexus_store.dart';
+import 'package:nexus_store/nexus_store.dart' hide TextSearchType;
+import 'package:nexus_store/nexus_store.dart' as nexus show TextSearchType;
 import 'package:supabase/supabase.dart';
 
 /// Translates [Query] from nexus_store to Supabase PostgREST query format.
@@ -156,6 +157,7 @@ class SupabaseQueryTranslator<T> implements QueryTranslator<T, void> {
       FilterOperator.iContains => builder.ilike(column, '%$value%'),
       FilterOperator.iStartsWith => builder.ilike(column, '$value%'),
       FilterOperator.iEndsWith => builder.ilike(column, '%$value'),
+      FilterOperator.textSearch => _applyTextSearch(builder, column, value),
     };
   }
 
@@ -198,6 +200,31 @@ class SupabaseQueryTranslator<T> implements QueryTranslator<T, void> {
     // Use overlaps for array contains any
     return builder.overlaps(column, value);
   }
+
+  /// Applies a full-text search filter using PostgREST textSearch.
+  PostgrestFilterBuilder<List<Map<String, dynamic>>> _applyTextSearch(
+    PostgrestFilterBuilder<List<Map<String, dynamic>>> builder,
+    String column,
+    Object? value,
+  ) {
+    if (value is! TextSearchConfig) {
+      return builder;
+    }
+    return builder.textSearch(
+      column,
+      value.query,
+      config: value.config,
+      type: _mapTextSearchType(value.type),
+    );
+  }
+
+  /// Maps NexusStore TextSearchType to Supabase TextSearchType.
+  TextSearchType _mapTextSearchType(nexus.TextSearchType type) =>
+      switch (type) {
+        nexus.TextSearchType.plain => TextSearchType.plain,
+        nexus.TextSearchType.phrase => TextSearchType.phrase,
+        nexus.TextSearchType.websearch => TextSearchType.websearch,
+      };
 
   /// Maps a query field name to the database column name.
   String _mapFieldName(String field) => _fieldMapping[field] ?? field;

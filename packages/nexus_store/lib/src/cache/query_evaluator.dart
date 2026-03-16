@@ -1,5 +1,6 @@
 import 'package:nexus_store/src/query/expression.dart';
 import 'package:nexus_store/src/query/query.dart';
+import 'package:nexus_store/src/query/text_search_config.dart';
 
 /// Function to extract a field value from an item.
 typedef FieldAccessor<T> = Object? Function(T item, String field);
@@ -119,6 +120,15 @@ class InMemoryQueryEvaluator<T> {
             .toString()
             .toLowerCase()
             .startsWith(filter.value.toString().toLowerCase());
+
+      case FilterOperator.textSearch:
+        // In-memory text search: simple contains check on string value
+        final searchConfig = filter.value;
+        if (searchConfig is! TextSearchConfig) return false;
+        return value
+            .toString()
+            .toLowerCase()
+            .contains(searchConfig.query.toLowerCase());
 
       case FilterOperator.iEndsWith:
         return value
