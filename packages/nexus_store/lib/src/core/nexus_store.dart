@@ -24,6 +24,7 @@ import 'package:nexus_store/src/interceptors/interceptor_chain.dart';
 import 'package:nexus_store/src/interceptors/store_operation.dart';
 import 'package:nexus_store/src/lazy/field_loader.dart';
 import 'package:nexus_store/src/lazy/lazy_field_state.dart';
+import 'package:nexus_store/src/pagination/page_info.dart';
 import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:nexus_store/src/pagination/pagination_controller.dart';
 import 'package:nexus_store/src/pagination/pagination_state.dart';
@@ -730,6 +731,39 @@ class NexusStore<T, ID> {
   Stream<PagedResult<T>> watchAllPaged({Query<T>? query}) {
     _ensureInitialized();
     return _backend.watchAllPaged(query: query);
+  }
+
+  /// Convenience wrapper for [watchAllPaged] with explicit [pageSize].
+  ///
+  /// Fetches `pageSize + 1` items to determine [PagedResult.hasMore],
+  /// then trims the result to [pageSize] items.
+  ///
+  /// Example:
+  /// ```dart
+  /// store.watchPaged(pageSize: 10).listen((page) {
+  ///   print('Got ${page.length} items, hasMore: ${page.hasMore}');
+  /// });
+  /// ```
+  Stream<PagedResult<T>> watchPaged({
+    Query<T>? query,
+    int pageSize = 20,
+  }) {
+    _ensureInitialized();
+    final pagedQuery = (query ?? Query<T>()).limitTo(pageSize + 1);
+    return _backend.watchAllPaged(query: pagedQuery).map((result) {
+      final hasMore = result.items.length > pageSize;
+      final items = hasMore ? result.items.sublist(0, pageSize) : result.items;
+      return PagedResult<T>(
+        items: items,
+        pageInfo: PageInfo(
+          hasNextPage: hasMore,
+          hasPreviousPage: result.pageInfo.hasPreviousPage,
+          startCursor: result.pageInfo.startCursor,
+          endCursor: result.pageInfo.endCursor,
+          totalCount: result.pageInfo.totalCount,
+        ),
+      );
+    });
   }
 
   /// Watches all entities with automatic pagination and prefetching.
