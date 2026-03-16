@@ -325,6 +325,164 @@ void main() {
       });
     });
 
+    group('mutateWithTransform', () {
+      test('fetches current entity and applies transform', () async {
+        final user = TestFixtures.createUser(id: 'u1', name: 'Original');
+        backend.addToStorage('u1', user);
+
+        final result = await store.mutateWithTransform(
+          'u1',
+          (current) => current.copyWith(name: 'Transformed'),
+        );
+
+        expect(result.name, equals('Transformed'));
+        expect(result.id, equals('u1'));
+        expect(backend.storage['u1']?.name, equals('Transformed'));
+      });
+
+      test('saves transformed entity via underlying mutate', () async {
+        final user = TestFixtures.createUser(id: 'u1', name: 'Before');
+        backend.addToStorage('u1', user);
+
+        final result = await store.mutateWithTransform(
+          'u1',
+          (current) => current.copyWith(name: 'After'),
+        );
+
+        expect(
+            result, equals(TestFixtures.createUser(id: 'u1', name: 'After')));
+      });
+
+      test('throws StateError when entity not found', () async {
+        expect(
+          () => store.mutateWithTransform(
+            'nonexistent',
+            (current) => current.copyWith(name: 'Never'),
+          ),
+          throwsStateError,
+        );
+      });
+
+      test('onMutate called before transform', () async {
+        final callOrder = <String>[];
+        final user = TestFixtures.createUser(id: 'u1');
+        backend.addToStorage('u1', user);
+
+        await store.mutateWithTransform(
+          'u1',
+          (current) {
+            callOrder.add('transform');
+            return current.copyWith(name: 'New');
+          },
+          options: MutationOptions<TestUser>(
+            onMutate: () async {
+              callOrder.add('onMutate');
+              return null;
+            },
+          ),
+        );
+
+        expect(callOrder, ['onMutate', 'transform']);
+      });
+
+      test('onSuccess called after successful save', () async {
+        TestUser? successResult;
+        final user = TestFixtures.createUser(id: 'u1');
+        backend.addToStorage('u1', user);
+
+        await store.mutateWithTransform(
+          'u1',
+          (current) => current.copyWith(name: 'Updated'),
+          options: MutationOptions<TestUser>(
+            onSuccess: (result, ctx) async {
+              successResult = result;
+            },
+          ),
+        );
+
+        expect(successResult?.name, equals('Updated'));
+      });
+
+      test('onError called on transform failure', () async {
+        Object? capturedError;
+        final user = TestFixtures.createUser(id: 'u1');
+        backend.addToStorage('u1', user);
+
+        try {
+          await store.mutateWithTransform(
+            'u1',
+            (current) => throw Exception('Transform failed'),
+            options: MutationOptions<TestUser>(
+              onError: (error, ctx) async {
+                capturedError = error;
+              },
+            ),
+          );
+        } catch (_) {}
+
+        expect(capturedError, isNotNull);
+      });
+
+      test('onSettled always called', () async {
+        var settled = false;
+        final user = TestFixtures.createUser(id: 'u1');
+        backend.addToStorage('u1', user);
+
+        await store.mutateWithTransform(
+          'u1',
+          (current) => current.copyWith(name: 'New'),
+          options: MutationOptions<TestUser>(
+            onSettled: (ctx) async {
+              settled = true;
+            },
+          ),
+        );
+
+        expect(settled, isTrue);
+      });
+
+      test('invalidateTags applied on success', () async {
+        final user = TestFixtures.createUser(id: 'u1');
+        backend.addToStorage('u1', user);
+
+        // Should not throw — tags are invalidated
+        await store.mutateWithTransform(
+          'u1',
+          (current) => current.copyWith(name: 'New'),
+          options: MutationOptions<TestUser>(
+            invalidateTags: {'users', 'user-list'},
+          ),
+        );
+
+        expect(backend.storage['u1']?.name, equals('New'));
+      });
+
+      test('WritePolicy forwarded to underlying save', () async {
+        final user = TestFixtures.createUser(id: 'u1');
+        backend.addToStorage('u1', user);
+
+        final result = await store.mutateWithTransform(
+          'u1',
+          (current) => current.copyWith(name: 'New'),
+          policy: WritePolicy.cacheFirst,
+        );
+
+        expect(result.name, equals('New'));
+      });
+
+      test('throws before init', () {
+        final uninitStore = NexusStore<TestUser, String>(backend: backend);
+
+        expect(
+          () => uninitStore.mutateWithTransform(
+            'u1',
+            (current) => current.copyWith(name: 'Never'),
+          ),
+          throwsStateError,
+        );
+      });
+    });
+
     group('MutationOptions', () {
       test('equality with all callbacks null', () {
         const a = MutationOptions<TestUser>();

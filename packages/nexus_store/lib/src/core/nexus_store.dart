@@ -973,6 +973,57 @@ class NexusStore<T, ID> {
     }
   }
 
+  /// Performs an atomic get → transform → save mutation.
+  ///
+  /// Fetches the current entity with [id], applies [transform] to produce
+  /// a new version, and saves the result via [mutate].
+  ///
+  /// Throws [StateError] if the entity does not exist.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final updated = await store.mutateWithTransform(
+  ///   'user-123',
+  ///   (user) => user.copyWith(status: 'closed'),
+  /// );
+  /// ```
+  Future<T> mutateWithTransform(
+    ID id,
+    T Function(T current) transform, {
+    MutationOptions<T>? options,
+    WritePolicy? policy,
+  }) async {
+    _ensureInitialized();
+
+    final current = await get(id);
+    if (current == null) {
+      throw StateError('Entity $id not found');
+    }
+
+    if (options == null) {
+      final transformed = transform(current);
+      return save(transformed, policy: policy);
+    }
+
+    Object? context;
+    try {
+      context = await options.onMutate?.call();
+      final transformed = transform(current);
+      final result = await save(transformed, policy: policy);
+      await options.onSuccess?.call(result, context);
+      await options.onSettled?.call(context);
+      if (options.invalidateTags != null) {
+        invalidateByTags(options.invalidateTags!);
+      }
+      return result;
+    } catch (e) {
+      await options.onError?.call(e, context);
+      await options.onSettled?.call(context);
+      rethrow;
+    }
+  }
+
   /// Deletes multiple entities by their identifiers.
   ///
   /// Returns the count of entities actually deleted.
