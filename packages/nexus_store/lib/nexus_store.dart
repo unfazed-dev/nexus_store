@@ -92,6 +92,7 @@ export 'src/core/composite_backend.dart';
 export 'src/core/conflict_strategy.dart';
 // Core
 export 'src/core/nexus_store.dart';
+export 'src/core/scoped_store.dart';
 export 'src/core/store_diagnostics.dart';
 export 'src/core/store_backend.dart';
 export 'src/core/transaction_coordinator.dart';
@@ -132,6 +133,7 @@ export 'src/query/field.dart';
 export 'src/query/fields.dart';
 export 'src/query/query.dart';
 export 'src/query/query_expression_extension.dart';
+export 'src/query/query_scope.dart';
 export 'src/query/query_translator.dart';
 // Reactive
 export 'src/reactive/reactive_store_mixin.dart';

@@ -29,7 +29,9 @@ import 'package:nexus_store/src/pagination/pagination_state.dart';
 import 'package:nexus_store/src/pagination/streaming_config.dart';
 import 'package:nexus_store/src/policy/fetch_policy_handler.dart';
 import 'package:nexus_store/src/policy/write_policy_handler.dart';
+import 'package:nexus_store/src/core/scoped_store.dart';
 import 'package:nexus_store/src/query/query.dart';
+import 'package:nexus_store/src/query/query_scope.dart';
 import 'package:nexus_store/src/errors/store_errors.dart' hide StateError;
 import 'package:nexus_store/src/sync/conflict_action.dart';
 import 'package:nexus_store/src/sync/conflict_details.dart';
@@ -447,6 +449,38 @@ class NexusStore<T, ID> {
       query: Query<T>().where(field, isEqualTo: value),
       policy: policy,
     );
+  }
+
+  /// Creates a [ScopedStore] that auto-applies the given [scopes] to all
+  /// read queries.
+  ///
+  /// Write operations pass through unmodified. Useful for automatically
+  /// excluding soft-deleted records or filtering by owner.
+  ///
+  /// Example:
+  /// ```dart
+  /// final active = store.scoped([SoftDeleteScope()]);
+  /// final myRecords = store.scoped([
+  ///   SoftDeleteScope(),
+  ///   OwnerScope(ownerId: currentUserId),
+  /// ]);
+  /// ```
+  ScopedStore<T, ID> scoped(List<QueryScope<T>> scopes) {
+    return ScopedStore<T, ID>(store: this, scopes: scopes);
+  }
+
+  /// Soft-deletes an entity by patching its deletion timestamp field.
+  ///
+  /// Sets [field] (default `'deleted_at'`) to the current UTC timestamp.
+  /// Returns the updated entity, or `null` if the entity doesn't exist.
+  ///
+  /// Example:
+  /// ```dart
+  /// final deleted = await store.softDelete('user-123');
+  /// ```
+  Future<T?> softDelete(ID id, {String field = 'deleted_at'}) {
+    _ensureInitialized();
+    return patch(id, {field: DateTime.now().toUtc().toIso8601String()});
   }
 
   /// Returns the count of entities matching the optional [query].
