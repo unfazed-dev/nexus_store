@@ -73,6 +73,8 @@ export 'src/realtime_manager_wrapper.dart'
 export 'src/supabase_auth_provider.dart'
     show DefaultSupabaseAuthProvider, SupabaseAuthProvider, SupabaseAuthState;
 export 'src/supabase_backend.dart' show SupabaseBackend;
+export 'src/supabase_client_wrapper.dart'
+    show DefaultSupabaseClientWrapper, SupabaseClientWrapper;
 export 'src/supabase_column.dart'
     show
         SupabaseColumn,

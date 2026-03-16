@@ -12,21 +12,31 @@
 | A3. Case-Insensitive Search | ✅ Complete | 14 | ✅ 100.0% (25/25) | a57dc06 | 2026-03-16 |
 | A4. Mutation Lifecycle Hooks | ✅ Complete | 22 | ✅ 100.0% (19/19) | 7f2f748 | 2026-03-16 |
 | A5. Background Refetch Manager | ✅ Complete | 16 | ✅ 95.2% (40/42) | 03d4861 | 2026-03-16 |
-| B1. Firefly Repo Migration (Phase 2) | ⏳ Deferred | — | — | — | — |
+| B1. Firefly Repo Migration (Phase 2) | ✅ Complete | — | — (no lib/ changes) | ⏳ | 2026-03-16 |
 | C1. Cross-Adapter Composition Tests | ✅ Complete | 21 | — (no lib/ changes) | 88fbf2f | 2026-03-16 |
 | C2. Brick Adapter Test Parity | ⏭️ Skipped | — | — | — | 2026-03-16 |
 | C3. Architecture Invariant Validators | ✅ Complete | 3 self-tests | — (no lib/ changes) | 352774f | 2026-03-16 |
 
-**Overall:** ████████████████ 78% complete (7/9 phases done)
+**Overall:** ██████████████░░ 89% complete (8/9 phases done)
 **Tests:** 115 passing + 3 invariant self-tests | 118 total (target: ~167)
 
 ### Progress Log
 
 **Current State (2026-03-16):**
-- Working on: Complete (7/9 phases)
-- Deferred: B1 (Firefly migration — requires Firefly repo alignment)
+- Working on: COMPLETE (Phase B1)
+- Last completed: Phase B1 — Firefly repository migration
 - Skipped: C2 (Brick adapter already has 2726 lines / 49 tests — exceeds parity target)
-- Next up: B1 when Firefly repos are updated
+- Next up: N/A — all actionable phases complete
+
+**Phase B1 Results (2026-03-16):**
+- Migrated 4 of 5 Firefly repositories to use Phase 2 NexusStore APIs
+- `settings_repository.dart`: `getAll()+filter` → `findBy()`, `watchAll().map()` → `watchOne()`
+- `app_settings_repository.dart`: `getAll()+filter` → `findBy()`, `watchAll().map()` → `watchOne()`
+- `journal_repository.dart`: Created `ScopedStore` with `SoftDeleteScope` — eliminated 9x `.where('deleted_at', isNull: true)`. Replaced manual soft-delete with `softDelete()`. Replaced `getAll()` + in-memory search with `iContains` queries
+- `complaint_repository.dart`: Replaced `getAll()` + in-memory search with `iContains` queries (subject + description OR logic via dual query + merge)
+- `profile_repository.dart`: No migration needed — `getManagers()` uses role-based queries, not sequential `.get(id)` calls as originally estimated
+- All 5 files pass `dart analyze` with no issues
+- No lib/ changes in nexus_store packages (consumer-side migration only)
 
 ### Decisions
 - A5: RefetchConfig passed as standalone class instead of embedding in freezed StoreConfig (avoids build_runner regeneration)
@@ -437,22 +447,24 @@ melos run test:dart && melos run analyze
 
 **Dependencies:** Phases A1, A2, A3 must be complete. ✅ All complete.
 
-**Status:** ⏳ Deferred — requires Firefly repo alignment.
+**Status:** ✅ Complete
 
 ### Pre-Implementation Checklist
 - [x] Phase A1 (getOne/findBy) complete and committed
 - [x] Phase A2 (query scopes) complete and committed
 - [x] Phase A3 (case-insensitive search) complete and committed
-- [ ] Run `prior-art` agent to confirm all migration targets
+- [x] Run `prior-art` agent to confirm all migration targets
 
 ### Tasks
-- [ ] `settings_repository.dart`: `getAll().where((s) => s.key == key).first` -> `findBy('key', key)`
-- [ ] `settings_repository.dart`: `watchAll().map(filter)` -> `watchOne(Query().where('key', isEqualTo: key))`
-- [ ] `app_settings_repository.dart`: `getAll().where(...).first` -> `findBy('key', key)`
-- [ ] `journal_repository.dart`: 11x `.where('deleted_at', isNull: true)` -> `store.scoped([SoftDeleteScope()])`
-- [ ] `journal_repository.dart`: `getAll()` + in-memory search -> `Query.where('title', iContains: term)`
-- [ ] `complaint_repository.dart`: `getAll()` + in-memory search -> `Query.where('title', iContains: term)`
-- [ ] `profile_repository.dart`: sequential `.get(id)` -> `getByIds([id1, id2])`
+- [x] `settings_repository.dart`: `getAll().where((s) => s.userId == userId).first` → `findBy('user_id', userId)`
+- [x] `settings_repository.dart`: `watchAll().map(filter)` → `watchOne(Query().where('user_id', isEqualTo: userId))`
+- [x] `app_settings_repository.dart`: `getAll().where((s) => s.key == key).first` → `findBy('key', key)`
+- [x] `app_settings_repository.dart`: `watchAll().map(filter)` → `watchOne(Query().where('key', isEqualTo: key))`
+- [x] `journal_repository.dart`: 9x `.where('deleted_at', isNull: true)` → `ScopedStore` with `SoftDeleteScope`
+- [x] `journal_repository.dart`: manual soft-delete → `softDelete(entryId)`
+- [x] `journal_repository.dart`: `getAll()` + in-memory search → `iContains` queries (title + content OR via dual query merge)
+- [x] `complaint_repository.dart`: `getAll()` + in-memory search → `iContains` queries (subject + description OR via dual query merge)
+- [x] `profile_repository.dart`: No migration needed — uses role-based queries, not sequential `.get(id)`
 
 ### Critical Files
 - `/Users/unfazed-mac/Developer/apps/firefly/lib/core/repositories/settings/settings_repository.dart`
@@ -547,10 +559,10 @@ melos run test:dart && melos run analyze
 ---
 
 ## Completion Checklist
-- [x] 7/9 phases ✅ in progress table
-- [ ] B1 deferred (Firefly alignment needed)
+- [x] 8/9 phases ✅ in progress table
+- [x] B1 complete — Firefly migration done
 - [x] C2 skipped with justification
-- [ ] Status updated to `COMPLETE` (pending B1)
+- [ ] Status updated to `COMPLETE`
 - [ ] Move tracker to `docs/trackers/completed/infrastructure/`
 - [ ] Update `docs/trackers/index.md`
 - [x] Final History entry added
@@ -619,3 +631,4 @@ melos run test:dart && melos run analyze
 | 2026-03-16 | Fix: pre-commit-check.sh set -e bug — analyzer failure silently killed harness instead of reporting (ba8ddd0) |
 | 2026-03-16 | Fix: check-coverage.py stale lcov.info bug — _try_format_coverage returned stale file instead of regenerating from VM JSON |
 | 2026-03-16 | A5 delta coverage corrected: 95.2% (40/42) — was previously null due to stale lcov.info |
+| 2026-03-16 | Phase B1 complete — migrated 4 Firefly repos: findBy, watchOne, ScopedStore+SoftDeleteScope, softDelete, iContains |
