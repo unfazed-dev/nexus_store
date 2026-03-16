@@ -129,6 +129,40 @@ void main() {
       expect(op2['ids'], ['item-2', 'item-3']);
     });
 
+    test('runInTransaction batches saveAll operations into RPC call', () async {
+      when(
+        () => mockWrapper.rpc(
+          'nx_batch_execute',
+          params: any(named: 'params'),
+        ),
+      ).thenAnswer((_) async => {'status': 'ok'});
+
+      await backend.runInTransaction(() async {
+        await backend.saveAll([
+          const TestModel(id: '1', name: 'Alice'),
+          const TestModel(id: '2', name: 'Bob'),
+        ]);
+      });
+
+      final captured = verify(
+        () => mockWrapper.rpc(
+          'nx_batch_execute',
+          params: captureAny(named: 'params'),
+        ),
+      ).captured;
+
+      expect(captured, hasLength(1));
+      final params = captured.first as Map<String, dynamic>;
+      final operations = params['operations'] as List<dynamic>;
+      expect(operations, hasLength(2));
+      final op0 = operations[0] as Map<String, dynamic>;
+      final op1 = operations[1] as Map<String, dynamic>;
+      expect(op0['type'], 'upsert');
+      expect((op0['data'] as Map<String, dynamic>)['name'], 'Alice');
+      expect(op1['type'], 'upsert');
+      expect((op1['data'] as Map<String, dynamic>)['name'], 'Bob');
+    });
+
     test('runInTransaction rolls back on callback failure', () async {
       expect(
         () => backend.runInTransaction(() async {
