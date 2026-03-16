@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/core/aggregate_result.dart';
+import 'package:nexus_store/src/core/conflict_strategy.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/pagination/page_info.dart';
 import 'package:nexus_store/src/pagination/paged_result.dart';
@@ -269,6 +270,20 @@ class CompositeBackend<T, ID>
   @override
   Future<T?> patch(ID id, Map<String, dynamic> updates) =>
       primary.patch(id, updates);
+
+  @override
+  Future<T> upsert(
+    T item, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+  }) =>
+      primary.upsert(item, onConflict: onConflict);
+
+  @override
+  Future<List<T>> upsertAll(
+    List<T> items, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+  }) =>
+      primary.upsertAll(items, onConflict: onConflict);
 
   // ---------------------------------------------------------------------------
   // Sync Operations

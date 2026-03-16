@@ -1,5 +1,6 @@
 import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/core/aggregate_result.dart';
+import 'package:nexus_store/src/core/conflict_strategy.dart';
 import 'package:nexus_store/src/pagination/page_info.dart';
 import 'package:nexus_store/src/pagination/paged_result.dart';
 import 'package:nexus_store/src/query/query.dart';
@@ -142,6 +143,38 @@ abstract interface class StoreBackend<T, ID> {
   /// (e.g., `UPDATE table SET field=value WHERE id = ?`) rather than
   /// loading the full entity into memory.
   Future<T?> patch(ID id, Map<String, dynamic> updates);
+
+  /// Inserts or updates an entity atomically based on the [onConflict] strategy.
+  ///
+  /// If no entity with the same ID exists, inserts it. If an entity already
+  /// exists, applies the [onConflict] strategy:
+  /// - [ConflictStrategy.update]: Updates the existing entity (default)
+  /// - [ConflictStrategy.ignore]: Keeps the existing entity unchanged
+  /// - [ConflictStrategy.replace]: Replaces the existing entity entirely
+  /// - [ConflictStrategy.error]: Throws a [StateError]
+  ///
+  /// The [idExtractor] is used to extract the ID from the entity for
+  /// existence checking in the default implementation.
+  ///
+  /// Backends should implement this using efficient SQL
+  /// (e.g., `INSERT OR REPLACE INTO ...`) rather than loading the entity
+  /// into memory first.
+  Future<T> upsert(
+    T item, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+  });
+
+  /// Inserts or updates multiple entities atomically.
+  ///
+  /// Applies the [onConflict] strategy to each entity individually.
+  /// Returns the list of resulting entities (inserted or existing).
+  ///
+  /// Backends should implement this using efficient batch SQL
+  /// operations where possible.
+  Future<List<T>> upsertAll(
+    List<T> items, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+  });
 
   // ---------------------------------------------------------------------------
   // Sync Operations
@@ -496,6 +529,29 @@ mixin StoreBackendDefaults<T, ID> implements StoreBackend<T, ID> {
       'In-memory patch requires a backend with field update support. '
       'Override patch() in your backend or use an SQL-based backend.',
     );
+  }
+
+  @override
+  Future<T> upsert(
+    T item, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+  }) async {
+    // Default implementation: delegates to save() which already handles
+    // create-or-update semantics in most backends.
+    return save(item);
+  }
+
+  @override
+  Future<List<T>> upsertAll(
+    List<T> items, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+  }) async {
+    // Default implementation: upsert each item individually.
+    final results = <T>[];
+    for (final item in items) {
+      results.add(await upsert(item, onConflict: onConflict));
+    }
+    return results;
   }
 
   @override

@@ -15,6 +15,7 @@ import 'package:nexus_store/src/config/policies.dart';
 import 'package:nexus_store/src/config/store_config.dart';
 import 'package:nexus_store/src/core/aggregate_result.dart';
 import 'package:nexus_store/src/core/backend_capabilities.dart';
+import 'package:nexus_store/src/core/conflict_strategy.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/core/store_diagnostics.dart';
 import 'package:nexus_store/src/interceptors/interceptor_chain.dart';
@@ -946,6 +947,137 @@ class NexusStore<T, ID> {
         },
       );
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Upsert Operations
+  // ---------------------------------------------------------------------------
+
+  /// Inserts or updates an entity atomically based on the [onConflict] strategy.
+  ///
+  /// If no entity with the same ID exists, inserts it. If an entity already
+  /// exists, applies the [onConflict] strategy:
+  /// - [ConflictStrategy.update]: Updates the existing entity (default)
+  /// - [ConflictStrategy.ignore]: Keeps the existing entity unchanged
+  /// - [ConflictStrategy.replace]: Replaces the existing entity entirely
+  /// - [ConflictStrategy.error]: Throws a [StateError]
+  ///
+  /// Uses the configured [WritePolicy] or the provided [policy] override.
+  /// Optionally associates [tags] with the cached item for tag-based invalidation.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Insert or update
+  /// final user = await store.upsert(newUser);
+  ///
+  /// // Skip if exists
+  /// final user = await store.upsert(newUser, onConflict: ConflictStrategy.ignore);
+  /// ```
+  Future<T> upsert(
+    T item, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+    WritePolicy? policy,
+    Set<String>? tags,
+  }) async {
+    _ensureInitialized();
+
+    return _trackOperation(OperationType.upsert, () async {
+      return _interceptorChain.execute<T, T>(
+        operation: StoreOperation.upsert,
+        request: item,
+        execute: () async {
+          final result = await _writeHandler.upsert(
+            item,
+            onConflict: onConflict,
+            policy: policy,
+          );
+
+          // Record in cache with tags if idExtractor is available
+          if (_idExtractor != null) {
+            final id = _idExtractor(result);
+            _fetchHandler.recordCachedItem(id, tags: tags);
+            _memoryManager?.recordItem(id, result);
+          }
+
+          // coverage:ignore-start
+          // Audit logging: Optional feature requiring full audit configuration
+          if (_config.enableAuditLogging) {
+            await _auditService?.log(
+              action: AuditAction.update,
+              entityType: T.toString(),
+              entityId: result.toString(),
+              metadata: {'onConflict': onConflict.name},
+            );
+          }
+          // coverage:ignore-end
+
+          return result;
+        },
+      );
+    });
+  }
+
+  /// Inserts or updates multiple entities atomically.
+  ///
+  /// Applies the [onConflict] strategy to each entity individually.
+  /// Returns the list of resulting entities (inserted or existing).
+  ///
+  /// Uses the configured [WritePolicy] or the provided [policy] override.
+  /// Optionally associates [tags] with all cached items.
+  ///
+  /// Example:
+  /// ```dart
+  /// final users = await store.upsertAll(newUsers);
+  /// ```
+  Future<List<T>> upsertAll(
+    List<T> items, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+    WritePolicy? policy,
+    Set<String>? tags,
+  }) async {
+    _ensureInitialized();
+
+    if (items.isEmpty) return [];
+
+    return _trackOperation(OperationType.upsertAll, () async {
+      return _interceptorChain.execute<List<T>, List<T>>(
+        operation: StoreOperation.upsertAll,
+        request: items,
+        execute: () async {
+          final results = await _writeHandler.upsertAll(
+            items,
+            onConflict: onConflict,
+            policy: policy,
+          );
+
+          // Record each item in cache with tags if idExtractor is available
+          if (_idExtractor != null) {
+            for (final result in results) {
+              final id = _idExtractor(result);
+              _fetchHandler.recordCachedItem(id, tags: tags);
+              _memoryManager?.recordItem(id, result);
+            }
+          }
+
+          // coverage:ignore-start
+          // Audit logging: Optional feature requiring full audit configuration
+          if (_config.enableAuditLogging && results.isNotEmpty) {
+            await _auditService?.log(
+              action: AuditAction.update,
+              entityType: T.toString(),
+              entityId: 'batch_upsert',
+              metadata: {
+                'count': results.length,
+                'onConflict': onConflict.name,
+              },
+            );
+          }
+          // coverage:ignore-end
+
+          return results;
+        },
+      );
+    }, itemCount: items.length);
   }
 
   // ---------------------------------------------------------------------------

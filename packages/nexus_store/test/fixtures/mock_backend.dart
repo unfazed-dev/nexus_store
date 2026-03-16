@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:core' as core;
+import 'dart:core';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:nexus_store/nexus_store.dart';
@@ -210,6 +212,43 @@ class FakeStoreBackend<T, ID> with StoreBackendDefaults<T, ID> {
     _watchers[id]?.add(updated);
     _watchAllSubject?.add(_storage.values.toList());
     return updated;
+  }
+
+  @override
+  Future<T> upsert(
+    T item, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+  }) async {
+    if (shouldFailOnSave) {
+      throw errorToThrow ?? Exception('Upsert failed');
+    }
+
+    final id = idExtractor?.call(item);
+    if (id != null) {
+      final existing = _storage[id];
+
+      if (existing != null) {
+        switch (onConflict) {
+          case ConflictStrategy.ignore:
+            return existing;
+          case ConflictStrategy.error:
+            // ignore: only_throw_errors
+            throw core.StateError('Entity with id $id already exists');
+          case ConflictStrategy.update:
+          case ConflictStrategy.replace:
+            _storage[id] = item;
+            _watchers[id]?.add(item);
+            _watchAllSubject?.add(_storage.values.toList());
+            return item;
+        }
+      } else {
+        _storage[id] = item;
+        _watchers[id]?.add(item);
+        _watchAllSubject?.add(_storage.values.toList());
+        return item;
+      }
+    }
+    return item;
   }
 
   @override

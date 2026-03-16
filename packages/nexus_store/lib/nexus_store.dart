@@ -89,6 +89,7 @@ export 'src/interceptors/validation_interceptor.dart';
 export 'src/core/aggregate_result.dart';
 export 'src/core/backend_capabilities.dart';
 export 'src/core/composite_backend.dart';
+export 'src/core/conflict_strategy.dart';
 // Core
 export 'src/core/nexus_store.dart';
 export 'src/core/store_diagnostics.dart';

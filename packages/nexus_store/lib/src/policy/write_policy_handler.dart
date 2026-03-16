@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:nexus_store/src/config/policies.dart';
+import 'package:nexus_store/src/core/conflict_strategy.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/errors/store_errors.dart';
 import 'package:nexus_store/src/query/query.dart';
@@ -292,6 +293,113 @@ class WritePolicyHandler<T, ID> {
     final result = await backend.patch(id, updates);
     unawaited(_syncInBackground());
     return result;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Upsert Strategies
+  // ---------------------------------------------------------------------------
+
+  /// Upserts an entity according to the [policy].
+  ///
+  /// Returns the upserted entity.
+  Future<T> upsert(
+    T item, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+    WritePolicy? policy,
+  }) async {
+    final effectivePolicy = policy ?? defaultPolicy;
+
+    return switch (effectivePolicy) {
+      WritePolicy.cacheAndNetwork =>
+        _upsertCacheAndNetwork(item, onConflict: onConflict),
+      WritePolicy.networkFirst =>
+        _upsertNetworkFirst(item, onConflict: onConflict),
+      WritePolicy.cacheFirst => _upsertCacheFirst(item, onConflict: onConflict),
+      WritePolicy.cacheOnly => backend.upsert(item, onConflict: onConflict),
+    };
+  }
+
+  /// Upserts multiple entities according to the [policy].
+  Future<List<T>> upsertAll(
+    List<T> items, {
+    ConflictStrategy onConflict = ConflictStrategy.update,
+    WritePolicy? policy,
+  }) async {
+    final effectivePolicy = policy ?? defaultPolicy;
+
+    return switch (effectivePolicy) {
+      WritePolicy.cacheAndNetwork =>
+        _upsertAllCacheAndNetwork(items, onConflict: onConflict),
+      WritePolicy.networkFirst =>
+        _upsertAllNetworkFirst(items, onConflict: onConflict),
+      WritePolicy.cacheFirst =>
+        _upsertAllCacheFirst(items, onConflict: onConflict),
+      WritePolicy.cacheOnly => backend.upsertAll(items, onConflict: onConflict),
+    };
+  }
+
+  Future<T> _upsertCacheAndNetwork(
+    T item, {
+    required ConflictStrategy onConflict,
+  }) async {
+    final result = await backend.upsert(item, onConflict: onConflict);
+
+    try {
+      await backend.sync();
+      return result;
+    } on StoreError {
+      rethrow;
+    }
+  }
+
+  Future<T> _upsertNetworkFirst(
+    T item, {
+    required ConflictStrategy onConflict,
+  }) async {
+    final result = await backend.upsert(item, onConflict: onConflict);
+    await backend.sync();
+    return result;
+  }
+
+  Future<T> _upsertCacheFirst(
+    T item, {
+    required ConflictStrategy onConflict,
+  }) async {
+    final result = await backend.upsert(item, onConflict: onConflict);
+    unawaited(_syncInBackground());
+    return result;
+  }
+
+  Future<List<T>> _upsertAllCacheAndNetwork(
+    List<T> items, {
+    required ConflictStrategy onConflict,
+  }) async {
+    final results = await backend.upsertAll(items, onConflict: onConflict);
+
+    try {
+      await backend.sync();
+      return results;
+    } on StoreError {
+      rethrow;
+    }
+  }
+
+  Future<List<T>> _upsertAllNetworkFirst(
+    List<T> items, {
+    required ConflictStrategy onConflict,
+  }) async {
+    final results = await backend.upsertAll(items, onConflict: onConflict);
+    await backend.sync();
+    return results;
+  }
+
+  Future<List<T>> _upsertAllCacheFirst(
+    List<T> items, {
+    required ConflictStrategy onConflict,
+  }) async {
+    final results = await backend.upsertAll(items, onConflict: onConflict);
+    unawaited(_syncInBackground());
+    return results;
   }
 
   Future<void> _syncInBackground() async {

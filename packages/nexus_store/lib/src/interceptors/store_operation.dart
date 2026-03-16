@@ -114,6 +114,16 @@ enum StoreOperation {
   ///
   /// Triggered when calling `store.patch(id, updates)`.
   patch,
+
+  /// Atomic insert-or-update of a single entity.
+  ///
+  /// Triggered when calling `store.upsert(item)`.
+  upsert,
+
+  /// Atomic insert-or-update of multiple entities.
+  ///
+  /// Triggered when calling `store.upsertAll(items)`.
+  upsertAll,
 }
 
 /// Extension methods for [StoreOperation].
@@ -131,12 +141,14 @@ extension StoreOperationExtension on StoreOperation {
   bool get isStream =>
       this == StoreOperation.watch || this == StoreOperation.watchAll;
 
-  /// Whether this is a write operation (save, saveAll, updateWhere, patch).
+  /// Whether this is a write operation (save, saveAll, updateWhere, patch, upsert, upsertAll).
   bool get isWrite =>
       this == StoreOperation.save ||
       this == StoreOperation.saveAll ||
       this == StoreOperation.updateWhere ||
-      this == StoreOperation.patch;
+      this == StoreOperation.patch ||
+      this == StoreOperation.upsert ||
+      this == StoreOperation.upsertAll;
 
   /// Whether this is a delete operation (delete, deleteAll, deleteWhere).
   bool get isDelete =>

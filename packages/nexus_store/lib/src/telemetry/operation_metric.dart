@@ -54,6 +54,12 @@ enum OperationType {
 
   /// Partial update of a single entity by ID.
   patch,
+
+  /// Atomic insert-or-update of a single entity.
+  upsert,
+
+  /// Atomic insert-or-update of multiple entities.
+  upsertAll,
 }
 
 /// Metric for tracking store operation performance.
