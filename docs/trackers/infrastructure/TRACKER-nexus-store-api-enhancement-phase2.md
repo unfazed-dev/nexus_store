@@ -12,21 +12,20 @@
 | A3. Case-Insensitive Search | ✅ Complete | 14 | ✅ 100.0% (25/25) | a57dc06 | 2026-03-16 |
 | A4. Mutation Lifecycle Hooks | ✅ Complete | 22 | ✅ 100.0% (19/19) | 7f2f748 | 2026-03-16 |
 | A5. Background Refetch Manager | ✅ Complete | 16 | ✅ 95.2% (40/42) | 03d4861 | 2026-03-16 |
-| B1. Firefly Repo Migration (Phase 2) | ✅ Complete | — | — (no lib/ changes) | ⏳ | 2026-03-16 |
+| B1. Firefly Repo Migration (Phase 2) | ✅ Complete | — | — (no lib/ changes) | 904d904 | 2026-03-16 |
 | C1. Cross-Adapter Composition Tests | ✅ Complete | 21 | — (no lib/ changes) | 88fbf2f | 2026-03-16 |
-| C2. Brick Adapter Test Parity | ⏭️ Skipped | — | — | — | 2026-03-16 |
+| C2. Brick Adapter Test Parity | ✅ Complete | 23 | — (no lib/ changes) | ⏳ | 2026-03-16 |
 | C3. Architecture Invariant Validators | ✅ Complete | 3 self-tests | — (no lib/ changes) | 352774f | 2026-03-16 |
 
-**Overall:** ██████████████░░ 89% complete (8/9 phases done)
-**Tests:** 115 passing + 3 invariant self-tests | 118 total (target: ~167)
+**Overall:** ████████████████ 100% complete (9/9 phases done)
+**Tests:** 138 passing + 3 invariant self-tests | 141 total (target: ~167)
 
 ### Progress Log
 
 **Current State (2026-03-16):**
 - Working on: COMPLETE (Phase B1)
 - Last completed: Phase B1 — Firefly repository migration
-- Skipped: C2 (Brick adapter already has 2726 lines / 49 tests — exceeds parity target)
-- Next up: N/A — all actionable phases complete
+- Next up: N/A — all 9 phases complete
 
 **Phase B1 Results (2026-03-16):**
 - Migrated 4 of 5 Firefly repositories to use Phase 2 NexusStore APIs
@@ -522,9 +521,33 @@ melos run test:dart && melos run analyze
 
 ## Phase C2: Brick Adapter Test Parity (Lower Priority)
 
-**Status:** ⏭️ Skipped
+**Status:** ✅ Complete
 
-**Reason:** Brick adapter already has 2726 lines of tests across 6 files with 49 test cases. This far exceeds the 11-test parity target. All StoreBackend interface methods that BrickBackend implements are already tested.
+**Why:** While the brick adapter had 2726 lines / 49+ tests, gap analysis revealed 4 untested StoreBackend methods (exists, getByIds, patch, updateWhere) and no tests for Phase 2 case-insensitive operators (iContains, iStartsWith, iEndsWith).
+
+### Tasks
+- [x] Test `exists()` returns true/false correctly
+- [x] Test `existsWhere()` with matching and non-matching queries
+- [x] Test `getByIds()` — matching items, empty input, missing items, deduplication
+- [x] Test `count()` — all items, with query, empty store
+- [x] Test `patch()` throws UnsupportedError (default implementation)
+- [x] Test `updateWhere()` returns 0 for empty updates
+- [x] Test `iContains` translates to `brick.Compare.contains`
+- [x] Test `iStartsWith` translates to `brick.Compare.contains`
+- [x] Test `iEndsWith` translates to `brick.Compare.contains`
+- [x] Test case-insensitive ops combined with other filters
+- [x] Test case-insensitive ops with field mapping
+- [x] Test `translateFilters` with iContains/iStartsWith/iEndsWith directly
+
+### Post-Implementation Checklist
+- [x] All tasks checked
+- [x] Tests passing: 23 new (207 total in brick adapter)
+- [x] `dart test` passes in `nexus_store_brick_adapter/`
+- [x] Tracker progress table updated
+
+### Critical Files
+- `packages/nexus_store_brick_adapter/test/brick_backend_parity_test.dart` — new: exists, getByIds, count, patch, updateWhere tests
+- `packages/nexus_store_brick_adapter/test/brick_query_translator_case_insensitive_test.dart` — new: iContains/iStartsWith/iEndsWith tests
 
 ---
 
@@ -559,9 +582,9 @@ melos run test:dart && melos run analyze
 ---
 
 ## Completion Checklist
-- [x] 8/9 phases ✅ in progress table
+- [x] 9/9 phases ✅ in progress table
 - [x] B1 complete — Firefly migration done
-- [x] C2 skipped with justification
+- [x] C2 complete — 23 parity tests added
 - [ ] Status updated to `COMPLETE`
 - [ ] Move tracker to `docs/trackers/completed/infrastructure/`
 - [ ] Update `docs/trackers/index.md`
@@ -632,3 +655,4 @@ melos run test:dart && melos run analyze
 | 2026-03-16 | Fix: check-coverage.py stale lcov.info bug — _try_format_coverage returned stale file instead of regenerating from VM JSON |
 | 2026-03-16 | A5 delta coverage corrected: 95.2% (40/42) — was previously null due to stale lcov.info |
 | 2026-03-16 | Phase B1 complete — migrated 4 Firefly repos: findBy, watchOne, ScopedStore+SoftDeleteScope, softDelete, iContains |
+| 2026-03-16 | Phase C2 complete — 23 parity tests: exists, getByIds, count, patch, updateWhere, iContains/iStartsWith/iEndsWith |
