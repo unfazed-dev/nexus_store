@@ -1,6 +1,8 @@
 import 'package:nexus_store/nexus_store.dart';
 import 'package:test/test.dart';
 
+class _TestSqlTranslator with SqlQueryTranslatorMixin<dynamic> {}
+
 void main() {
   group('TextSearchType', () {
     test('has three values', () {
@@ -120,6 +122,17 @@ void main() {
       );
 
       expect(evaluator.matches({'body': null}, query), isFalse);
+    });
+  });
+
+  group('SqlQueryTranslatorMixin textSearch', () {
+    test('operatorToSql throws UnsupportedError for textSearch', () {
+      final translator = _TestSqlTranslator();
+
+      expect(
+        () => translator.operatorToSql(FilterOperator.textSearch),
+        throwsA(isA<UnsupportedError>()),
+      );
     });
   });
 
