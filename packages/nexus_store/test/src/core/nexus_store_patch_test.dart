@@ -124,5 +124,185 @@ void main() {
         throwsA(isA<Error>()),
       );
     });
+
+    test('patch with idExtractor records cached item', () async {
+      final result = await store.patch('user-1', {'name': 'Cached'});
+
+      expect(result, isNotNull);
+      expect(result!.name, equals('Cached'));
+
+      // Verify the cache was updated by fetching again
+      final fetched = await store.get('user-1');
+      expect(fetched!.name, equals('Cached'));
+    });
   });
+
+  group('NexusStore.patch with TimingInterceptor', () {
+    test('patch goes through TimingInterceptor _mapOperation', () async {
+      final reporter = _TestMetricsReporter();
+      final timedBackend = FakeStoreBackend<TestUser, String>(
+        idExtractor: (u) => u.id,
+      );
+      timedBackend.patchApplier = (entity, updates) {
+        return entity.copyWith(
+          name: updates['name'] as String? ?? entity.name,
+        );
+      };
+      timedBackend.addToStorage(
+        'user-1',
+        TestFixtures.createUser(id: 'user-1', name: 'Alice'),
+      );
+
+      final timedStore = NexusStore<TestUser, String>(
+        backend: timedBackend,
+        config: StoreConfig(
+          interceptors: [
+            TimingInterceptor(
+              reporter: reporter,
+              operations: {StoreOperation.patch},
+            ),
+          ],
+        ),
+        idExtractor: (u) => u.id,
+      );
+      await timedStore.initialize();
+
+      await timedStore.patch('user-1', {'name': 'Updated'});
+
+      expect(reporter.operations, contains(OperationType.patch));
+      await timedStore.dispose();
+    });
+  });
+
+  group('CompositeBackend.patch', () {
+    test('delegates patch to primary backend', () async {
+      final primary = FakeStoreBackend<TestUser, String>(
+        idExtractor: (u) => u.id,
+      );
+      primary.patchApplier = (entity, updates) {
+        return entity.copyWith(
+          name: updates['name'] as String? ?? entity.name,
+        );
+      };
+      primary.addToStorage(
+        'user-1',
+        TestFixtures.createUser(id: 'user-1', name: 'Alice'),
+      );
+
+      final composite = CompositeBackend<TestUser, String>(
+        primary: primary,
+      );
+
+      final result = await composite.patch('user-1', {'name': 'Updated'});
+
+      expect(result, isNotNull);
+      expect(result!.name, equals('Updated'));
+    });
+
+    test('returns null for non-existent entity', () async {
+      final primary = FakeStoreBackend<TestUser, String>(
+        idExtractor: (u) => u.id,
+      );
+      primary.patchApplier = (entity, updates) => entity;
+
+      final composite = CompositeBackend<TestUser, String>(
+        primary: primary,
+      );
+
+      final result = await composite.patch('non-existent', {'name': 'Ghost'});
+      expect(result, isNull);
+    });
+  });
+
+  group('NexusStore.patch with audit logging', () {
+    test('patch with audit logging enabled logs update action', () async {
+      final auditStorage = InMemoryAuditStorage();
+      final auditBackend = FakeStoreBackend<TestUser, String>(
+        idExtractor: (u) => u.id,
+      );
+      auditBackend.patchApplier = (entity, updates) {
+        return entity.copyWith(
+          name: updates['name'] as String? ?? entity.name,
+        );
+      };
+      auditBackend.addToStorage(
+        'user-1',
+        TestFixtures.createUser(id: 'user-1', name: 'Alice'),
+      );
+
+      final auditStore = NexusStore<TestUser, String>(
+        backend: auditBackend,
+        config: const StoreConfig(enableAuditLogging: true),
+        idExtractor: (u) => u.id,
+        auditService: AuditService(
+          storage: auditStorage,
+          actorProvider: () async => 'test-actor',
+        ),
+      );
+      await auditStore.initialize();
+
+      await auditStore.patch('user-1', {'name': 'Updated'});
+
+      final entries = await auditStorage.query(action: AuditAction.update);
+      expect(entries, isNotEmpty);
+      await auditStore.dispose();
+    });
+  });
+
+  group('StoreBackendDefaults.patch', () {
+    test('default patch throws UnsupportedError', () {
+      final minimal = _MinimalBackend();
+
+      expect(
+        () => minimal.patch('id-1', {'name': 'Test'}),
+        throwsA(isA<UnsupportedError>()),
+      );
+    });
+  });
+}
+
+class _TestMetricsReporter implements MetricsReporter {
+  final List<OperationType> operations = [];
+
+  @override
+  void reportOperation(OperationMetric metric) {
+    operations.add(metric.operation);
+  }
+
+  @override
+  void reportCacheEvent(CacheMetric metric) {}
+  @override
+  void reportSyncEvent(SyncMetric metric) {}
+  @override
+  void reportError(ErrorMetric metric) {}
+  @override
+  void reportPoolEvent(PoolMetric metric) {}
+  @override
+  Future<void> flush() async {}
+  @override
+  Future<void> dispose() async {}
+}
+
+class _MinimalBackend with StoreBackendDefaults<String, String> {
+  @override
+  String get name => 'MinimalBackend';
+  @override
+  Future<String?> get(String id) async => null;
+  @override
+  Future<List<String>> getAll({Query<String>? query}) async => [];
+  @override
+  Stream<String?> watch(String id) => const Stream.empty();
+  @override
+  Stream<List<String>> watchAll({Query<String>? query}) =>
+      Stream.value(const []);
+  @override
+  Future<String> save(String item) async => item;
+  @override
+  Future<List<String>> saveAll(List<String> items) async => items;
+  @override
+  Future<bool> delete(String id) async => false;
+  @override
+  Future<int> deleteAll(List<String> ids) async => 0;
+  @override
+  Future<int> deleteWhere(Query<String> query) async => 0;
 }

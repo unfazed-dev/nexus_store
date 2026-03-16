@@ -115,5 +115,47 @@ void main() {
 
       expect(results, isEmpty);
     });
+
+    test('evaluates AND filter group (default combinator)', () {
+      // Create an AND group via copyWith — both conditions must match
+      // This exercises query_evaluator.dart line 51:
+      //   group.filters.every((filter) => _matchesFilter(item, filter))
+      final subQuery = const Query<Map<String, dynamic>>()
+          .where('status', isEqualTo: 'active')
+          .where('role', isEqualTo: 'admin');
+      final query = const Query<Map<String, dynamic>>().copyWith(
+        filterGroups: [
+          QueryFilterGroup(
+            filters: subQuery.filters,
+            combinator: FilterGroupCombinator.and,
+          ),
+        ],
+      );
+
+      final results = evaluator.evaluate(items, query);
+
+      // Only Alice is active AND admin
+      expect(results, hasLength(1));
+      expect(results.first['name'], equals('Alice'));
+    });
+
+    test('AND filter group rejects items that only partially match', () {
+      final subQuery = const Query<Map<String, dynamic>>()
+          .where('status', isEqualTo: 'active')
+          .where('role', isEqualTo: 'superadmin');
+      final query = const Query<Map<String, dynamic>>().copyWith(
+        filterGroups: [
+          QueryFilterGroup(
+            filters: subQuery.filters,
+            combinator: FilterGroupCombinator.and,
+          ),
+        ],
+      );
+
+      final results = evaluator.evaluate(items, query);
+
+      // No one is both active AND superadmin
+      expect(results, isEmpty);
+    });
   });
 }

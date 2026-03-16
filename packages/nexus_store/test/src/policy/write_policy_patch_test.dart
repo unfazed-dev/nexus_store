@@ -85,4 +85,53 @@ void main() {
       expect(result!.name, equals('Updated'));
     });
   });
+
+  group('WritePolicyHandler.patch error paths', () {
+    test('cacheAndNetwork rethrows StoreError when sync fails', () async {
+      backend.shouldFailOnSync = true;
+      backend.errorToThrow = const SyncError(
+        message: 'Sync failed',
+      );
+
+      expect(
+        () => handler.patch(
+          'user-1',
+          {'name': 'Updated'},
+          policy: WritePolicy.cacheAndNetwork,
+        ),
+        throwsA(isA<StoreError>()),
+      );
+    });
+
+    test('networkFirst throws when sync fails', () async {
+      backend.shouldFailOnSync = true;
+      backend.errorToThrow = Exception('Network unavailable');
+
+      expect(
+        () => handler.patch(
+          'user-1',
+          {'name': 'Updated'},
+          policy: WritePolicy.networkFirst,
+        ),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('cacheFirst returns result even when background sync fails', () async {
+      backend.shouldFailOnSync = true;
+      backend.errorToThrow = Exception('Background sync failed');
+
+      final result = await handler.patch(
+        'user-1',
+        {'name': 'Updated'},
+        policy: WritePolicy.cacheFirst,
+      );
+
+      expect(result, isNotNull);
+      expect(result!.name, equals('Updated'));
+
+      // Allow background sync to complete (and fail silently)
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    });
+  });
 }

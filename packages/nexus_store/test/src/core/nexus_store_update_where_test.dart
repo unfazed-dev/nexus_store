@@ -125,5 +125,34 @@ void main() {
 
       expect(count, isA<int>());
     });
+
+    test('updateWhere with audit logging enabled logs update action', () async {
+      final auditStorage = InMemoryAuditStorage();
+      final auditBackend = FakeStoreBackend<TestUser, String>(
+        idExtractor: (u) => u.id,
+      );
+      auditBackend.addToStorage(
+        'user-1',
+        TestFixtures.createUser(id: 'user-1', name: 'Alice'),
+      );
+
+      final auditStore = NexusStore<TestUser, String>(
+        backend: auditBackend,
+        config: const StoreConfig(enableAuditLogging: true),
+        idExtractor: (u) => u.id,
+        auditService: AuditService(
+          storage: auditStorage,
+          actorProvider: () async => 'test-actor',
+        ),
+      );
+      await auditStore.initialize();
+
+      final query = const Query<TestUser>().where('name', isEqualTo: 'Alice');
+      await auditStore.updateWhere(query, {'isActive': false});
+
+      final entries = await auditStorage.query(action: AuditAction.update);
+      expect(entries, isNotEmpty);
+      await auditStore.dispose();
+    });
   });
 }

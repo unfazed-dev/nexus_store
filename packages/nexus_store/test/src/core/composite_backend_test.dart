@@ -921,6 +921,43 @@ void main() {
       expect(backend.supportsFieldOperations, isA<bool>());
     });
 
+    test('exists should delegate to primary', () async {
+      final backend = CompositeBackend<TestUser, String>(primary: primary);
+      primary.addToStorage('user-1', TestFixtures.createUser());
+
+      final result = await backend.exists('user-1');
+
+      expect(result, isTrue);
+    });
+
+    test('exists returns false for non-existent entity', () async {
+      final backend = CompositeBackend<TestUser, String>(primary: primary);
+
+      final result = await backend.exists('non-existent');
+
+      expect(result, isFalse);
+    });
+
+    test('existsWhere should delegate to primary', () async {
+      final backend = CompositeBackend<TestUser, String>(primary: primary);
+      primary.addToStorage('user-1', TestFixtures.createUser());
+
+      final query = const Query<TestUser>().where('id', isEqualTo: 'user-1');
+      final result = await backend.existsWhere(query);
+
+      expect(result, isA<bool>());
+    });
+
+    test('updateWhere should delegate to primary', () async {
+      final backend = CompositeBackend<TestUser, String>(primary: primary);
+      primary.addToStorage('user-1', TestFixtures.createUser());
+
+      final query = const Query<TestUser>().where('id', isEqualTo: 'user-1');
+      final count = await backend.updateWhere(query, {'isActive': false});
+
+      expect(count, isA<int>());
+    });
+
     test('deleteWhere should delegate to primary', () async {
       final backend = CompositeBackend<TestUser, String>(primary: primary);
       primary.addToStorage('user-1', TestFixtures.createUser());

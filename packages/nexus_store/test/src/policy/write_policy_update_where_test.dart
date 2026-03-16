@@ -95,5 +95,25 @@ void main() {
 
       expect(count, isA<int>());
     });
+
+    test('cacheAndNetwork rethrows StoreError when sync fails', () async {
+      backend.addToStorage(
+        'user-1',
+        TestFixtures.createUser(id: 'user-1', name: 'Alice'),
+      );
+      backend.shouldFailOnSync = true;
+      backend.errorToThrow = const SyncError(message: 'Sync failed');
+
+      final query = const Query<TestUser>().where('name', isEqualTo: 'Alice');
+
+      expect(
+        () => handler.updateWhere(
+          query,
+          {'isActive': false},
+          policy: WritePolicy.cacheAndNetwork,
+        ),
+        throwsA(isA<StoreError>()),
+      );
+    });
   });
 }

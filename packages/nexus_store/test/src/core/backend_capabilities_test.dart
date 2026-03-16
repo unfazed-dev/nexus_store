@@ -50,6 +50,99 @@ void main() {
       expect(a, isNot(equals(c)));
     });
 
+    test('equality detects single-field differences', () {
+      const base = BackendCapabilities(
+        supportsOffline: true,
+        supportsRealtime: true,
+        supportsTransactions: true,
+        supportsPagination: true,
+        supportsFieldOperations: true,
+      );
+
+      // Each single-field difference should break equality
+      expect(
+        base,
+        isNot(equals(const BackendCapabilities(
+          supportsOffline: false,
+          supportsRealtime: true,
+          supportsTransactions: true,
+          supportsPagination: true,
+          supportsFieldOperations: true,
+        ))),
+      );
+      expect(
+        base,
+        isNot(equals(const BackendCapabilities(
+          supportsOffline: true,
+          supportsRealtime: false,
+          supportsTransactions: true,
+          supportsPagination: true,
+          supportsFieldOperations: true,
+        ))),
+      );
+      expect(
+        base,
+        isNot(equals(const BackendCapabilities(
+          supportsOffline: true,
+          supportsRealtime: true,
+          supportsTransactions: false,
+          supportsPagination: true,
+          supportsFieldOperations: true,
+        ))),
+      );
+      expect(
+        base,
+        isNot(equals(const BackendCapabilities(
+          supportsOffline: true,
+          supportsRealtime: true,
+          supportsTransactions: true,
+          supportsPagination: false,
+          supportsFieldOperations: true,
+        ))),
+      );
+      expect(
+        base,
+        isNot(equals(const BackendCapabilities(
+          supportsOffline: true,
+          supportsRealtime: true,
+          supportsTransactions: true,
+          supportsPagination: true,
+          supportsFieldOperations: false,
+        ))),
+      );
+    });
+
+    test('equality with non-BackendCapabilities object', () {
+      const capabilities = BackendCapabilities(supportsOffline: true);
+      expect(capabilities, isNot(equals('not a capabilities object')));
+      expect(capabilities, isNot(equals(42)));
+      expect(capabilities, isNot(equals(null)));
+    });
+
+    test('identical objects are equal', () {
+      const capabilities = BackendCapabilities(supportsOffline: true);
+      expect(identical(capabilities, capabilities), isTrue);
+      expect(capabilities, equals(capabilities));
+    });
+
+    test('equal objects have equal hashCodes', () {
+      const a = BackendCapabilities(
+        supportsOffline: true,
+        supportsRealtime: true,
+        supportsTransactions: false,
+        supportsPagination: true,
+        supportsFieldOperations: false,
+      );
+      const b = BackendCapabilities(
+        supportsOffline: true,
+        supportsRealtime: true,
+        supportsTransactions: false,
+        supportsPagination: true,
+        supportsFieldOperations: false,
+      );
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
     test('provides descriptive toString', () {
       const capabilities = BackendCapabilities(
         supportsOffline: true,
@@ -60,6 +153,30 @@ void main() {
       expect(str, contains('BackendCapabilities'));
       expect(str, contains('supportsOffline: true'));
       expect(str, contains('supportsPagination: true'));
+    });
+
+    test('toString shows all fields', () {
+      const allTrue = BackendCapabilities(
+        supportsOffline: true,
+        supportsRealtime: true,
+        supportsTransactions: true,
+        supportsPagination: true,
+        supportsFieldOperations: true,
+      );
+      final str = allTrue.toString();
+      expect(str, contains('supportsOffline: true'));
+      expect(str, contains('supportsRealtime: true'));
+      expect(str, contains('supportsTransactions: true'));
+      expect(str, contains('supportsPagination: true'));
+      expect(str, contains('supportsFieldOperations: true'));
+
+      const allFalse = BackendCapabilities();
+      final str2 = allFalse.toString();
+      expect(str2, contains('supportsOffline: false'));
+      expect(str2, contains('supportsRealtime: false'));
+      expect(str2, contains('supportsTransactions: false'));
+      expect(str2, contains('supportsPagination: false'));
+      expect(str2, contains('supportsFieldOperations: false'));
     });
   });
 

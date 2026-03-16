@@ -112,5 +112,34 @@ void main() {
         throwsStateError,
       );
     });
+
+    test('deleteWhere with audit logging enabled logs delete action', () async {
+      final auditStorage = InMemoryAuditStorage();
+      final auditBackend = FakeStoreBackend<TestUser, String>(
+        idExtractor: (u) => u.id,
+      );
+      auditBackend.addToStorage(
+        'user-1',
+        TestFixtures.createUser(id: 'user-1', name: 'Alice'),
+      );
+
+      final auditStore = NexusStore<TestUser, String>(
+        backend: auditBackend,
+        config: const StoreConfig(enableAuditLogging: true),
+        idExtractor: (u) => u.id,
+        auditService: AuditService(
+          storage: auditStorage,
+          actorProvider: () async => 'test-actor',
+        ),
+      );
+      await auditStore.initialize();
+
+      final query = const Query<TestUser>().where('name', isEqualTo: 'Alice');
+      await auditStore.deleteWhere(query);
+
+      final entries = await auditStorage.query(action: AuditAction.delete);
+      expect(entries, isNotEmpty);
+      await auditStore.dispose();
+    });
   });
 }

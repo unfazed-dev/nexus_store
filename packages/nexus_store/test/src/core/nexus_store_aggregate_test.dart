@@ -174,6 +174,133 @@ void main() {
     });
   });
 
+  group('NexusStore aggregate throws before init', () {
+    test('aggregate throws StateError on uninitialized store', () {
+      final uninitBackend = MockAggregateBackend();
+      final uninitStore = NexusStore(
+        backend: uninitBackend,
+        config: const StoreConfig(),
+      );
+
+      expect(
+        () => uninitStore.aggregate('amount', AggregateType.sum),
+        throwsStateError,
+      );
+    });
+
+    test('sum throws StateError on uninitialized store', () {
+      final uninitBackend = MockAggregateBackend();
+      final uninitStore = NexusStore(
+        backend: uninitBackend,
+        config: const StoreConfig(),
+      );
+
+      expect(
+        () => uninitStore.sum('amount'),
+        throwsStateError,
+      );
+    });
+
+    test('avg throws StateError on uninitialized store', () {
+      final uninitBackend = MockAggregateBackend();
+      final uninitStore = NexusStore(
+        backend: uninitBackend,
+        config: const StoreConfig(),
+      );
+
+      expect(
+        () => uninitStore.avg('rating'),
+        throwsStateError,
+      );
+    });
+
+    test('min throws StateError on uninitialized store', () {
+      final uninitBackend = MockAggregateBackend();
+      final uninitStore = NexusStore(
+        backend: uninitBackend,
+        config: const StoreConfig(),
+      );
+
+      expect(
+        () => uninitStore.min('price'),
+        throwsStateError,
+      );
+    });
+
+    test('max throws StateError on uninitialized store', () {
+      final uninitBackend = MockAggregateBackend();
+      final uninitStore = NexusStore(
+        backend: uninitBackend,
+        config: const StoreConfig(),
+      );
+
+      expect(
+        () => uninitStore.max('price'),
+        throwsStateError,
+      );
+    });
+  });
+
+  group('NexusStore aggregate with interceptor chain', () {
+    late NexusStore<Map<String, dynamic>, String> store;
+    late MockAggregateBackend backend;
+
+    setUp(() {
+      backend = MockAggregateBackend();
+      store = NexusStore(
+        backend: backend,
+        config: const StoreConfig(),
+      );
+      store.initialize();
+    });
+
+    test('aggregate tracks operation via _trackOperation', () async {
+      backend.aggregateResult = 42;
+      final result = await store.aggregate('amount', AggregateType.sum);
+      expect(result, equals(42));
+      expect(backend.aggregateCallCount, equals(1));
+    });
+
+    test('sum convenience calls aggregate with correct type', () async {
+      backend.aggregateResult = 100;
+      await store.sum('amount');
+      expect(backend.lastType, equals(AggregateType.sum));
+    });
+
+    test('avg convenience calls aggregate with correct type', () async {
+      backend.aggregateResult = 25.5;
+      await store.avg('rating');
+      expect(backend.lastType, equals(AggregateType.avg));
+    });
+
+    test('min convenience calls aggregate with correct type', () async {
+      backend.aggregateResult = 1;
+      await store.min('price');
+      expect(backend.lastType, equals(AggregateType.min));
+    });
+
+    test('max convenience calls aggregate with correct type', () async {
+      backend.aggregateResult = 999;
+      await store.max('price');
+      expect(backend.lastType, equals(AggregateType.max));
+    });
+
+    test('convenience methods pass query parameter', () async {
+      backend.aggregateResult = 50;
+      final query =
+          Query<Map<String, dynamic>>().where('active', isEqualTo: true);
+
+      await store.avg('rating', query: query);
+      expect(backend.lastQuery, isNotNull);
+
+      await store.min('price', query: query);
+      expect(backend.lastQuery, isNotNull);
+
+      await store.max('price', query: query);
+      expect(backend.lastQuery, isNotNull);
+    });
+  });
+
   group('StoreOperation.aggregate', () {
     test('is classified as read operation', () {
       expect(StoreOperation.aggregate.isRead, isTrue);
@@ -187,4 +314,86 @@ void main() {
       expect(StoreOperation.aggregate.modifiesData, isFalse);
     });
   });
+
+  group('TimingInterceptor aggregate mapping', () {
+    test('aggregate goes through TimingInterceptor _mapOperation', () async {
+      final reporter = _TestMetricsReporter();
+      final backend = MockAggregateBackend()..aggregateResult = 42;
+
+      final store = NexusStore<Map<String, dynamic>, String>(
+        backend: backend,
+        config: StoreConfig(
+          interceptors: [
+            TimingInterceptor(
+              reporter: reporter,
+              operations: {StoreOperation.aggregate},
+            ),
+          ],
+        ),
+      );
+      await store.initialize();
+
+      await store.aggregate('amount', AggregateType.sum);
+
+      expect(reporter.operations, contains(OperationType.aggregate));
+      await store.dispose();
+    });
+  });
+
+  group('CompositeBackend.aggregate', () {
+    test('delegates aggregate to primary backend', () async {
+      final primary = MockAggregateBackend()..aggregateResult = 100;
+
+      final composite = CompositeBackend<Map<String, dynamic>, String>(
+        primary: primary,
+      );
+
+      final result = await composite.aggregate('amount', AggregateType.sum);
+
+      expect(result, equals(100));
+      expect(primary.lastField, equals('amount'));
+      expect(primary.lastType, equals(AggregateType.sum));
+    });
+
+    test('delegates aggregate with query to primary backend', () async {
+      final primary = MockAggregateBackend()..aggregateResult = 50;
+      final query =
+          Query<Map<String, dynamic>>().where('active', isEqualTo: true);
+
+      final composite = CompositeBackend<Map<String, dynamic>, String>(
+        primary: primary,
+      );
+
+      final result = await composite.aggregate(
+        'amount',
+        AggregateType.avg,
+        query: query,
+      );
+
+      expect(result, equals(50));
+      expect(primary.lastQuery, isNotNull);
+    });
+  });
+}
+
+class _TestMetricsReporter implements MetricsReporter {
+  final List<OperationType> operations = [];
+
+  @override
+  void reportOperation(OperationMetric metric) {
+    operations.add(metric.operation);
+  }
+
+  @override
+  void reportCacheEvent(CacheMetric metric) {}
+  @override
+  void reportSyncEvent(SyncMetric metric) {}
+  @override
+  void reportError(ErrorMetric metric) {}
+  @override
+  void reportPoolEvent(PoolMetric metric) {}
+  @override
+  Future<void> flush() async {}
+  @override
+  Future<void> dispose() async {}
 }
