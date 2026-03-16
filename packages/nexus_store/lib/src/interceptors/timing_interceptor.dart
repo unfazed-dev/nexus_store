@@ -110,6 +110,7 @@ class TimingInterceptor extends StoreInterceptor {
       StoreOperation.upsert => OperationType.upsert,
       StoreOperation.upsertAll => OperationType.upsertAll,
       StoreOperation.getByIds => OperationType.getByIds,
+      StoreOperation.getOne => OperationType.getOne,
     };
   }
 }

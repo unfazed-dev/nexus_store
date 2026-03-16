@@ -397,6 +397,58 @@ class NexusStore<T, ID> {
     }, itemCount: ids.length);
   }
 
+  /// Retrieves a single entity matching the optional [query].
+  ///
+  /// Returns the first matching entity, or `null` if no entities match.
+  /// Automatically applies `limitTo(1)` optimization to avoid loading
+  /// unnecessary data from the backend.
+  ///
+  /// More ergonomic than `getAll(query: query).then((l) => l.firstOrNull)`
+  /// for single-entity lookups.
+  ///
+  /// Example:
+  /// ```dart
+  /// final user = await store.getOne(
+  ///   query: Query<User>().where('email', isEqualTo: 'alice@example.com'),
+  /// );
+  /// ```
+  Future<T?> getOne({Query<T>? query, FetchPolicy? policy}) async {
+    _ensureInitialized();
+
+    return _trackOperation(OperationType.getOne, () async {
+      return _interceptorChain.execute<Query<T>?, T?>(
+        operation: StoreOperation.getOne,
+        request: query,
+        execute: () async {
+          final optimizedQuery = (query ?? Query<T>()).limitTo(1);
+          final results =
+              await _fetchHandler.getAll(query: optimizedQuery, policy: policy);
+          return results.isEmpty ? null : results.first;
+        },
+      );
+    });
+  }
+
+  /// Retrieves a single entity by matching a [field] to a [value].
+  ///
+  /// Convenience method that delegates to [getOne] with a query filtering
+  /// on the specified field. Ideal for looking up entities by unique fields
+  /// like email, username, or external ID.
+  ///
+  /// Returns `null` if no entity matches.
+  ///
+  /// Example:
+  /// ```dart
+  /// final user = await store.findBy('email', 'alice@example.com');
+  /// final setting = await store.findBy('key', 'theme');
+  /// ```
+  Future<T?> findBy(String field, Object value, {FetchPolicy? policy}) {
+    return getOne(
+      query: Query<T>().where(field, isEqualTo: value),
+      policy: policy,
+    );
+  }
+
   /// Returns the count of entities matching the optional [query].
   ///
   /// Uses the configured [FetchPolicy] or the provided [policy] override.

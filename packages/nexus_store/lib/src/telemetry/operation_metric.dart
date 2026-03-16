@@ -63,6 +63,9 @@ enum OperationType {
 
   /// Batch retrieval by IDs.
   getByIds,
+
+  /// Single item retrieval with optional query.
+  getOne,
 }
 
 /// Metric for tracking store operation performance.

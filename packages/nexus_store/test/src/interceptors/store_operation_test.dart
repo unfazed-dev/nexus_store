@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('StoreOperation', () {
     test('should have all expected operations', () {
-      expect(StoreOperation.values, hasLength(19));
+      expect(StoreOperation.values, hasLength(20));
       expect(StoreOperation.values, contains(StoreOperation.get));
       expect(StoreOperation.values, contains(StoreOperation.getAll));
       expect(StoreOperation.values, contains(StoreOperation.getByIds));
@@ -23,7 +23,7 @@ void main() {
       for (final op in StoreOperation.values) {
         operations.add(op);
       }
-      expect(operations, hasLength(19));
+      expect(operations, hasLength(20));
     });
 
     group('name property', () {
@@ -101,7 +101,8 @@ void main() {
         return switch (op) {
           StoreOperation.get ||
           StoreOperation.getAll ||
-          StoreOperation.getByIds =>
+          StoreOperation.getByIds ||
+          StoreOperation.getOne =>
             'read',
           StoreOperation.watch || StoreOperation.watchAll => 'stream',
           StoreOperation.save ||

@@ -129,6 +129,11 @@ enum StoreOperation {
   ///
   /// Triggered when calling `store.getByIds(ids)`.
   getByIds,
+
+  /// Single item retrieval with optional query, returning first match.
+  ///
+  /// Triggered when calling `store.getOne()` or `store.findBy()`.
+  getOne,
 }
 
 /// Extension methods for [StoreOperation].
@@ -138,6 +143,7 @@ extension StoreOperationExtension on StoreOperation {
       this == StoreOperation.get ||
       this == StoreOperation.getAll ||
       this == StoreOperation.getByIds ||
+      this == StoreOperation.getOne ||
       this == StoreOperation.count ||
       this == StoreOperation.aggregate ||
       this == StoreOperation.exists ||
