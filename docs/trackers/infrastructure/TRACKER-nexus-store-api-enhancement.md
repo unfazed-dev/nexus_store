@@ -20,8 +20,8 @@
 | 11. patch() / Partial Update | ✅ Complete | 37 | ✅ 100.0% | `3c42f6b` | 2026-03-16 |
 | 12. Reactive Streams (watchCount, watchOne) | ✅ Complete | 12 | ✅ 100.0% | `d0e3431` | 2026-03-16 |
 | 13. Query Convenience Methods | ✅ Complete | 51 | ✅ 100.0% | `9db8732` | 2026-03-16 |
-| 14. Diagnostics & Health | ✅ Complete | 22 | ✅ 100.0% | `11faeea` | 2026-03-16 |
-| 15. upsert() / Save-If-Not-Exists | ✅ Complete | 35 | ✅ 100.0% | `6d94a0f` | 2026-03-16 |
+| 14. Diagnostics & Health | ✅ Complete | 24 | ✅ 100.0% | `11faeea` | 2026-03-16 |
+| 15. upsert() / Save-If-Not-Exists | ✅ Complete | 41 | ✅ 100.0% | `6d94a0f` | 2026-03-16 |
 | 16. getByIds() Batch Get | ⏳ Pending | ~12 | — | — | — |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
@@ -1014,7 +1014,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [x] Tests passing (expected: ~14, actual: 51)
 - [x] `dart test` passes in all packages
 - [x] `dart analyze` clean
-- [x] Delta coverage: ✅ (new lib/ lines are sugar methods delegating to tested code; translator `_buildSelectClause` covered by 21 SQL tests)
+- [x] Delta coverage: ✅ 100.0% (71/71 lines) — `query.dart` 71/71 100%
 - [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -1065,7 +1065,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [x] All tasks checked
 - [x] Tests passing (expected: ~8, actual: 22)
 - [x] `dart analyze` clean
-- [x] Delta coverage: ✅ (new lib/ lines are the `getDiagnostics()` method and slow operation tracking in `_recordOperationSuccess`, both directly exercised by 12 integration tests; `StoreDiagnostics` class fully covered by 10 unit tests)
+- [x] Delta coverage: ✅ 100.0% (60/60 lines) — `nexus_store.dart` 18/18 100%, `store_diagnostics.dart` 42/42 100%
 - [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
@@ -1123,7 +1123,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [x] Tests passing (expected: ~16, actual: 35)
 - [x] `dart test` passes in all packages
 - [x] `dart analyze` clean
-- [x] Delta coverage: ✅ (new lib/ lines are upsert/upsertAll methods delegating to WritePolicyHandler and StoreBackend.save(); ConflictStrategy is a pure enum; 35 tests cover all conflict strategies, write policies, interceptors, composite delegation, and defaults)
+- [x] Delta coverage: ✅ 100.0% (86/86 lines) — `nexus_store.dart` 34/34 100%, `write_policy_handler.dart` 37/37 100%, `store_backend.dart` 6/6 100%, `composite_backend.dart` 4/4 100%, `store_operation.dart` 3/3 100%, `timing_interceptor.dart` 2/2 100%
 - [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint

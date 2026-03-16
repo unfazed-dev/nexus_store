@@ -124,5 +124,73 @@ void main() {
 
       expect(results, hasLength(1));
     });
+
+    test('upsertAll with networkFirst policy waits for sync', () async {
+      final handler3 = WritePolicyHandler<TestUser, String>(
+        backend: backend,
+        defaultPolicy: WritePolicy.networkFirst,
+      );
+      final items = [
+        TestFixtures.createUser(id: 'user-nf1', name: 'NetFirst1'),
+      ];
+
+      final results = await handler3.upsertAll(items);
+
+      expect(results, hasLength(1));
+      expect(results.first.name, equals('NetFirst1'));
+    });
+
+    test('upsertAll with cacheFirst policy does background sync', () async {
+      final handler4 = WritePolicyHandler<TestUser, String>(
+        backend: backend,
+        defaultPolicy: WritePolicy.cacheFirst,
+      );
+      final items = [
+        TestFixtures.createUser(id: 'user-cf1', name: 'CacheF1'),
+      ];
+
+      final results = await handler4.upsertAll(items);
+
+      expect(results, hasLength(1));
+      expect(results.first.name, equals('CacheF1'));
+    });
+  });
+
+  group('WritePolicyHandler.upsert error paths', () {
+    test('upsert cacheAndNetwork rethrows StoreError when sync fails',
+        () async {
+      backend.shouldFailOnSync = true;
+      backend.errorToThrow = const SyncError(message: 'Sync failed');
+
+      final handler2 = WritePolicyHandler<TestUser, String>(
+        backend: backend,
+        defaultPolicy: WritePolicy.cacheAndNetwork,
+      );
+      final newUser = TestFixtures.createUser(id: 'user-err', name: 'Error');
+
+      expect(
+        () => handler2.upsert(newUser),
+        throwsA(isA<StoreError>()),
+      );
+    });
+
+    test('upsertAll cacheAndNetwork rethrows StoreError when sync fails',
+        () async {
+      backend.shouldFailOnSync = true;
+      backend.errorToThrow = const SyncError(message: 'Sync failed');
+
+      final handler2 = WritePolicyHandler<TestUser, String>(
+        backend: backend,
+        defaultPolicy: WritePolicy.cacheAndNetwork,
+      );
+      final items = [
+        TestFixtures.createUser(id: 'user-err1', name: 'Error1'),
+      ];
+
+      expect(
+        () => handler2.upsertAll(items),
+        throwsA(isA<StoreError>()),
+      );
+    });
   });
 }

@@ -325,4 +325,77 @@ void main() {
           diagnostics.averageLatency, equals(const Duration(milliseconds: 15)));
     });
   });
+
+  group('NexusStore slow operation tracking', () {
+    test('records operations exceeding 100ms threshold', () async {
+      final slowBackend = _SlowBackend<TestUser, String>(
+        delay: const Duration(milliseconds: 150),
+        idExtractor: (u) => u.id,
+      );
+
+      final slowStore = NexusStore<TestUser, String>(
+        backend: slowBackend,
+        config: StoreConfig(
+          metricsConfig: const MetricsConfig(sampleRate: 1.0),
+        ),
+        idExtractor: (u) => u.id,
+      );
+      await slowStore.initialize();
+
+      // This operation should take >100ms and be tracked as slow
+      await slowStore.save(
+        TestFixtures.createUser(id: 'user-slow', name: 'Slow'),
+      );
+
+      final diagnostics = await slowStore.getDiagnostics();
+      expect(diagnostics.slowOperations, isNotEmpty);
+      expect(diagnostics.slowOperations.first.duration.inMilliseconds,
+          greaterThanOrEqualTo(100));
+      await slowStore.dispose();
+    });
+
+    test('bounds slow operations list to max size', () async {
+      final slowBackend = _SlowBackend<TestUser, String>(
+        delay: const Duration(milliseconds: 110),
+        idExtractor: (u) => u.id,
+      );
+
+      final slowStore = NexusStore<TestUser, String>(
+        backend: slowBackend,
+        config: StoreConfig(
+          metricsConfig: const MetricsConfig(sampleRate: 1.0),
+        ),
+        idExtractor: (u) => u.id,
+      );
+      await slowStore.initialize();
+
+      // Generate many slow operations (max is 50)
+      for (var i = 0; i < 55; i++) {
+        await slowStore.save(
+          TestFixtures.createUser(id: 'user-$i', name: 'User $i'),
+        );
+      }
+
+      final diagnostics = await slowStore.getDiagnostics();
+      // Should be capped at 50
+      expect(diagnostics.slowOperations.length, lessThanOrEqualTo(50));
+      await slowStore.dispose();
+    });
+  });
+}
+
+/// Backend that introduces artificial delay to trigger slow operation tracking.
+class _SlowBackend<T, ID> extends FakeStoreBackend<T, ID> {
+  _SlowBackend({
+    required this.delay,
+    super.idExtractor,
+  });
+
+  final Duration delay;
+
+  @override
+  Future<T> save(T item) async {
+    await Future<void>.delayed(delay);
+    return super.save(item);
+  }
 }

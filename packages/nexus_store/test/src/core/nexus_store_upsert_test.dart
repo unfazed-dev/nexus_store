@@ -444,6 +444,61 @@ void main() {
     });
   });
 
+  group('NexusStore.upsert with audit logging', () {
+    test('upsert with audit logging enabled logs update action', () async {
+      final auditStorage = InMemoryAuditStorage();
+      final auditBackend = FakeStoreBackend<TestUser, String>(
+        idExtractor: (u) => u.id,
+      );
+
+      final auditStore = NexusStore<TestUser, String>(
+        backend: auditBackend,
+        config: const StoreConfig(enableAuditLogging: true),
+        idExtractor: (u) => u.id,
+        auditService: AuditService(
+          storage: auditStorage,
+          actorProvider: () async => 'test-actor',
+        ),
+      );
+      await auditStore.initialize();
+
+      await auditStore.upsert(
+        TestFixtures.createUser(id: 'user-audit', name: 'Audited'),
+      );
+
+      final entries = await auditStorage.query(action: AuditAction.update);
+      expect(entries, isNotEmpty);
+      await auditStore.dispose();
+    });
+
+    test('upsertAll with audit logging enabled logs update action', () async {
+      final auditStorage = InMemoryAuditStorage();
+      final auditBackend = FakeStoreBackend<TestUser, String>(
+        idExtractor: (u) => u.id,
+      );
+
+      final auditStore = NexusStore<TestUser, String>(
+        backend: auditBackend,
+        config: const StoreConfig(enableAuditLogging: true),
+        idExtractor: (u) => u.id,
+        auditService: AuditService(
+          storage: auditStorage,
+          actorProvider: () async => 'test-actor',
+        ),
+      );
+      await auditStore.initialize();
+
+      await auditStore.upsertAll([
+        TestFixtures.createUser(id: 'user-a1', name: 'Audit1'),
+        TestFixtures.createUser(id: 'user-a2', name: 'Audit2'),
+      ]);
+
+      final entries = await auditStorage.query(action: AuditAction.update);
+      expect(entries, isNotEmpty);
+      await auditStore.dispose();
+    });
+  });
+
   group('StoreOperation.upsert extensions', () {
     test('upsert is a write operation', () {
       expect(StoreOperation.upsert.isWrite, isTrue);
