@@ -12,11 +12,11 @@
 | A3. `mutateWithTransform` — Atomic Get+Transform+Save | ✅ Complete | 10 | ✅ 100.0% | `79572a8` | 2026-03-16 |
 | A4. `watchPaged` — Paginated Reactive Streams | ✅ Complete | 7 | ✅ 100.0% | `7e625f0` | 2026-03-16 |
 | B1. Compliance Audit Migration | ✅ Complete | 4 | — | `f40f1cf` | 2026-03-16 |
-| B2. Incident Repository Migration | ⏳ Pending | — | — | — | — |
+| B2. Incident Repository Migration | ✅ Complete | 12 | — | `b77fd30` | 2026-03-16 |
 | B3. Journal Soft-Delete Redundancy | ⏳ Pending | — | — | — | — |
 
-**Overall:** ███████████░░░░░ 71% complete (5/7 phases done)
-**Tests:** 50 passing | ~60 estimated
+**Overall:** █████████████░░ 86% complete (6/7 phases done)
+**Tests:** 62 passing | ~64 estimated
 
 ### Progress Log
 
@@ -54,11 +54,19 @@
 - Updated 4 test stubs (2 getByDateRange verification, 2 getLatestEntry getAll→getOne), all 11 tests passing
 - Harness: accepted=true, no lib/ changes in nexus_store (Firefly-only migration)
 
+**Phase B2 Results (2026-03-16):**
+- Migrated `searchIncidents` from fetch-all + in-memory toLowerCase to dual `iContains` query merge (description + location), deduplicate by ID
+- Migrated `getAllIncidents` severity filter from fetch-all + in-memory ordinal to `whereIn` query
+- Migrated `watchAllIncidents` severity filter from `stream.map` in-memory to `whereIn` query
+- Migrated `getReportableIncidents` from fetch-all + in-memory `.isReportable` to `whereIn` for types + `isEqualTo: false` for unreported
+- 12 new tests written, all passing; `dart analyze` clean
+- Harness: no lib/ changes in nexus_store (Firefly-only migration)
+
 **Current State (2026-03-16):**
-- Working on: COMPLETE (Phase B1)
-- Last completed: Phase B1 — Compliance Audit Migration
+- Working on: COMPLETE (Phase B2)
+- Last completed: Phase B2 — Incident Repository Migration
 - Blocked by: Nothing
-- Next up: Phase B2 — Incident Repository Migration
+- Next up: Phase B3 — Journal Soft-Delete Redundancy
 
 ## Overview
 
@@ -470,61 +478,48 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** None — no NexusStore changes needed.
 
 ### Pre-Implementation Checklist
-- [ ] Read `incident_repository.dart` — all 3 anti-pattern methods
-- [ ] Read `complaint_repository.dart` — reference dual-query iContains merge pattern (B1 Phase 2 migration)
-- [ ] Identify `IncidentSeverity.value` and `IncidentType.value` field mappings
-- [ ] Check which `IncidentType` values are `.isReportable`
+- [x] Read `incident_repository.dart` — all 3 anti-pattern methods
+- [x] Read `complaint_repository.dart` — reference dual-query iContains merge pattern (B1 Phase 2 migration)
+- [x] Identify `IncidentSeverity.value` and `IncidentType.value` field mappings
+- [x] Check which `IncidentType` values are `.isReportable`
 
 ### Tasks
 #### RED: Write Failing Tests (~12)
-- [ ] searchIncidents returns results matching description iContains
-- [ ] searchIncidents returns results matching location iContains
-- [ ] searchIncidents deduplicates across description + location matches
-- [ ] searchIncidents applies status filter
-- [ ] searchIncidents applies limit
-- [ ] getAllIncidents filters by minSeverity using isIn
-- [ ] getAllIncidents with minSeverity=low returns all (no filter)
-- [ ] getAllIncidents with minSeverity=critical returns only critical
-- [ ] watchAllIncidents filters by minSeverity using isIn
-- [ ] getReportableIncidents uses isIn for reportable types
-- [ ] getReportableIncidents filters unreported via query
-- [ ] getReportableIncidents applies limit via query
-- [ ] Verify all tests FAIL
+- [x] searchIncidents returns results matching description iContains
+- [x] searchIncidents returns results matching location iContains
+- [x] searchIncidents deduplicates across description + location matches
+- [x] searchIncidents applies status filter
+- [x] searchIncidents applies limit
+- [x] getAllIncidents filters by minSeverity using whereIn
+- [x] getAllIncidents with minSeverity=low returns all (no filter)
+- [x] getAllIncidents with minSeverity=critical returns only critical
+- [x] watchAllIncidents filters by minSeverity using whereIn
+- [x] getReportableIncidents uses whereIn for reportable types
+- [x] getReportableIncidents filters unreported via query
+- [x] getReportableIncidents applies limit via query
+- [x] Verify all tests FAIL (6 fail: 3 searchIncidents + 3 getReportableIncidents)
 
 #### GREEN: Implement
-1. [ ] Replace `searchIncidents` (lines 245-272) with dual iContains query merge:
-   - Two queries: `where('description', iContains: query)` and `where('location', iContains: query)`
-   - Merge + deduplicate by ID (same pattern as `complaint_repository.dart`)
-2. [ ] Replace `getAllIncidents` severity filter (lines 88-103) with `isIn`:
-   ```dart
-   final qualifyingValues = severityOrder.sublist(minIndex).map((s) => s.value).toList();
-   query = query.where('severity', isIn: qualifyingValues);
-   ```
-   Remove post-fetch in-memory filter block
-3. [ ] Replace `watchAllIncidents` severity filter (lines 163-182) with same `isIn` pattern:
-   Remove `stream.map` in-memory filter block
-4. [ ] Replace `getReportableIncidents` (lines 222-241) with query-based filtering:
-   ```dart
-   final reportableValues = IncidentType.values.where((t) => t.isReportable).map((t) => t.value).toList();
-   query = query.where('incident_type', isIn: reportableValues);
-   if (onlyUnreported) query = query.where('reported_to_ndis', isEqualTo: false);
-   ```
-5. [ ] Verify all tests PASS
+1. [x] Replace `searchIncidents` with dual iContains query merge (description + location)
+2. [x] Replace `getAllIncidents` severity filter with `whereIn` query
+3. [x] Replace `watchAllIncidents` severity filter with `whereIn` query (remove stream.map)
+4. [x] Replace `getReportableIncidents` with `whereIn` for types + query for boolean
+5. [x] Verify all 12 tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run Firefly tests — all green
+- [x] Clean up, `dart analyze` clean — no refactoring needed
 
 ### Acceptance Criteria
-- [ ] `searchIncidents('fire')` uses `iContains` (no in-memory toLowerCase)
-- [ ] `getAllIncidents(minSeverity: high)` uses `isIn: ['high', 'critical']` (no in-memory ordinal)
-- [ ] `watchAllIncidents(minSeverity:)` uses query-level filter (no stream.map)
-- [ ] `getReportableIncidents()` uses `isIn` for types + query for boolean (no fetch-all)
+- [x] `searchIncidents('fire')` uses `iContains` (no in-memory toLowerCase)
+- [x] `getAllIncidents(minSeverity: high)` uses `whereIn: ['high', 'critical']` (no in-memory ordinal)
+- [x] `watchAllIncidents(minSeverity:)` uses query-level filter (no stream.map)
+- [x] `getReportableIncidents()` uses `whereIn` for types + query for boolean (no fetch-all)
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~12)
-- [ ] `dart analyze` clean for incident_repository
-- [ ] Tracker progress table updated
+- [x] All tasks checked
+- [x] Tests passing: 12
+- [x] `dart analyze` clean for incident_repository
+- [x] Tracker progress table updated
 
 ### Critical Files
 - `/Users/unfazed-mac/Developer/apps/firefly/lib/core/repositories/incident/incident_repository.dart`
@@ -611,3 +606,4 @@ bash .claude/orchestrators/pre-commit-check.sh
 | 2026-03-16 | Phase A3 complete — `mutateWithTransform` atomic get+transform+save with full MutationOptions lifecycle, 10 tests, delta 100.0%, `79572a8` |
 | 2026-03-16 | Phase A4 complete — `watchPaged` convenience wrapper with N+1 fetch strategy for hasMore detection, 7 tests, delta 100.0%, `7e625f0` |
 | 2026-03-16 | Phase B1 complete — compliance audit migration: `getByDateRange` → `whereBetween`, `getLatestEntry` → `getOne` + `orderByField`, 4 test stubs updated, 11 tests passing |
+| 2026-03-16 | Phase B2 complete — incident repository migration: `searchIncidents` → dual `iContains` merge, severity filters → `whereIn`, `getReportableIncidents` → `whereIn` + query boolean, 12 tests |
