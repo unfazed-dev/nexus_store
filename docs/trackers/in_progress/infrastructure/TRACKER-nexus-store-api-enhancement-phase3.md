@@ -8,15 +8,15 @@
 | Phase | Status | Tests | Coverage | Committed | Last Updated |
 |-------|--------|-------|----------|-----------|--------------|
 | A1. `deleteAll` WritePolicyHandler Fix | ✅ Complete | 15 | ✅ 100.0% | `d262a79` | 2026-03-16 |
-| A2. `StoreJoin` — Reactive Cross-Store Joins | ⏳ Pending | — | — | — | — |
+| A2. `StoreJoin` — Reactive Cross-Store Joins | ✅ Complete | 14 | ✅ 95.8% | `8428416` | 2026-03-16 |
 | A3. `mutateWithTransform` — Atomic Get+Transform+Save | ⏳ Pending | — | — | — | — |
 | A4. `watchPaged` — Paginated Reactive Streams | ⏳ Pending | — | — | — | — |
 | B1. Compliance Audit Migration | ⏳ Pending | — | — | — | — |
 | B2. Incident Repository Migration | ⏳ Pending | — | — | — | — |
 | B3. Journal Soft-Delete Redundancy | ⏳ Pending | — | — | — | — |
 
-**Overall:** ██░░░░░░░░░░░░░░ 14% complete (1/7 phases done)
-**Tests:** 15 passing | ~60 estimated
+**Overall:** ████░░░░░░░░░░░░ 29% complete (2/7 phases done)
+**Tests:** 29 passing | ~60 estimated
 
 ### Progress Log
 
@@ -27,11 +27,19 @@
 - Harness: accepted=true, delta coverage 100.0% (18/18 lines)
 - 122 total tests passing, 0 regressions
 
+**Phase A2 Results (2026-03-16):**
+- Created `StoreJoin` class with `combine2`, `combine3`, `combine4`, and `withLatest2` static methods
+- Uses `Rx.combineLatest2/3/4` and `withLatestFrom` from rxdart for reactive cross-store joins
+- Dart 3 record types for type-safe tuple returns
+- 14 tests written (5 combine2 + 2 combine3 + 2 combine4 + 3 withLatest2 + 1 error + 1 cancel), all passing
+- Harness: accepted=true, delta coverage 95.8% (23/24 lines)
+- 2057 total tests passing, 0 regressions
+
 **Current State (2026-03-16):**
-- Working on: COMPLETE (Phase A1)
-- Last completed: Phase A1 — deleteAll WritePolicyHandler fix
+- Working on: COMPLETE (Phase A2)
+- Last completed: Phase A2 — StoreJoin reactive cross-store joins
 - Blocked by: Nothing
-- Next up: Phase A2 — StoreJoin reactive cross-store joins
+- Next up: Phase A3 — mutateWithTransform atomic get+transform+save
 
 ## Overview
 
@@ -164,9 +172,9 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** None — can start independently.
 
 ### Pre-Implementation Checklist
-- [ ] Read `nexus_store.dart` — `watchAll()` stream signature
-- [ ] Verify rxdart is a dependency (for `Rx.combineLatest2/3/4` and `withLatestFrom`)
-- [ ] Read `transaction_coordinator.dart` — cross-store static method precedent
+- [x] Read `nexus_store.dart` — `watchAll()` stream signature
+- [x] Verify rxdart is a dependency (for `Rx.combineLatest2/3/4` and `withLatestFrom`)
+- [x] Read `transaction_coordinator.dart` — cross-store static method precedent
 
 ### API Design
 ```dart
@@ -204,49 +212,49 @@ class StoreJoin {
 
 ### Tasks
 #### RED: Write Failing Tests (~14)
-- [ ] combine2 emits initial combined state
-- [ ] combine2 re-emits when storeA changes
-- [ ] combine2 re-emits when storeB changes
-- [ ] combine2 handles empty stores
-- [ ] combine2 applies query filters
-- [ ] combine3 emits combined state of 3 stores
-- [ ] combine3 re-emits on any store change
-- [ ] combine4 emits combined state of 4 stores
-- [ ] combine4 re-emits on any store change
-- [ ] withLatest2 emits only when primary changes
-- [ ] withLatest2 uses latest secondary value
-- [ ] withLatest2 does NOT emit on secondary-only change
-- [ ] Error propagation from any store
-- [ ] Dispose/cancel handling
-- [ ] Verify all tests FAIL
+- [x] combine2 emits initial combined state
+- [x] combine2 re-emits when storeA changes
+- [x] combine2 re-emits when storeB changes
+- [x] combine2 handles empty stores
+- [x] combine2 applies query filters
+- [x] combine3 emits combined state of 3 stores
+- [x] combine3 re-emits on any store change
+- [x] combine4 emits combined state of 4 stores
+- [x] combine4 re-emits on any store change
+- [x] withLatest2 emits only when primary changes
+- [x] withLatest2 uses latest secondary value
+- [x] withLatest2 does NOT emit on secondary-only change
+- [x] Error propagation from any store
+- [x] Dispose/cancel handling
+- [x] Verify all tests FAIL
 
 #### GREEN: Implement
-1. [ ] Create `StoreJoin` class in `packages/nexus_store/lib/src/core/store_join.dart`
-2. [ ] Implement `combine2` using `Rx.combineLatest2` on `store.watchAll(query:)`
-3. [ ] Implement `combine3` using `Rx.combineLatest3`
-4. [ ] Implement `combine4` using `Rx.combineLatest4`
-5. [ ] Implement `withLatest2` using `primaryStream.withLatestFrom(secondaryStream, (a, b) => (a, b))`
-6. [ ] Export via barrel file `packages/nexus_store/lib/nexus_store.dart`
-7. [ ] Verify all tests PASS
+1. [x] Create `StoreJoin` class in `packages/nexus_store/lib/src/core/store_join.dart`
+2. [x] Implement `combine2` using `Rx.combineLatest2` on `store.watchAll(query:)`
+3. [x] Implement `combine3` using `Rx.combineLatest3`
+4. [x] Implement `combine4` using `Rx.combineLatest4`
+5. [x] Implement `withLatest2` using `primaryStream.withLatestFrom(secondaryStream, (a, b) => (a, b))`
+6. [x] Export via barrel file `packages/nexus_store/lib/nexus_store.dart`
+7. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green (2057 tests, 0 failures)
 
 ### Acceptance Criteria
-- [ ] `StoreJoin.combine2(storeA: users, storeB: orders)` emits combined stream
-- [ ] Re-emits when any participating store changes
-- [ ] Dart 3 record types for type-safe tuple returns
-- [ ] `withLatest2` only emits on primary store changes
-- [ ] No new StoreOperation/OperationType needed — composes existing watch streams
+- [x] `StoreJoin.combine2(storeA: users, storeB: orders)` emits combined stream
+- [x] Re-emits when any participating store changes
+- [x] Dart 3 record types for type-safe tuple returns
+- [x] `withLatest2` only emits on primary store changes
+- [x] No new StoreOperation/OperationType needed — composes existing watch streams
 
 ### Post-Implementation Checklist
-- [ ] All tasks checked
-- [ ] Tests passing (expected: ~14)
-- [ ] `dart test` passes in `nexus_store/`
-- [ ] `dart analyze` clean
-- [ ] Delta coverage >= 95% for changed files
-- [ ] Tracker progress table updated
-- [ ] Harness verification checkpoint passed
+- [x] All tasks checked
+- [x] Tests passing: 14
+- [x] `dart test` passes in `nexus_store/`
+- [x] `dart analyze` clean
+- [x] Delta coverage: ✅ 95.8% (23/24 lines) — `store_join.dart` 23/24 95.8%
+- [x] Tracker progress table updated
+- [x] Harness verification checkpoint passed
 
 ### Harness Verification Checkpoint
 ```bash
@@ -592,3 +600,4 @@ bash .claude/orchestrators/pre-commit-check.sh
 |------|-------|
 | 2026-03-16 | Tracker created — 7 phases (4 NexusStore API + 3 Firefly migration), ~60 estimated tests |
 | 2026-03-16 | Phase A1 complete — `WritePolicyHandler.deleteAll` added, `NexusStore.deleteAll` refactored to batch delegate, 15 tests, `d262a79` |
+| 2026-03-16 | Phase A2 complete — `StoreJoin` class with `combine2/3/4` and `withLatest2`, 14 tests, delta 95.8%, `8428416` |
