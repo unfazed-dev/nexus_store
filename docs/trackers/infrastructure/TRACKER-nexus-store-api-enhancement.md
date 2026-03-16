@@ -22,7 +22,7 @@
 | 13. Query Convenience Methods | ✅ Complete | 51 | ✅ 100.0% | `9db8732` | 2026-03-16 |
 | 14. Diagnostics & Health | ✅ Complete | 24 | ✅ 100.0% | `11faeea` | 2026-03-16 |
 | 15. upsert() / Save-If-Not-Exists | ✅ Complete | 41 | ✅ 100.0% | `6d94a0f` | 2026-03-16 |
-| 16. getByIds() Batch Get | ✅ Complete | 14 | ✅ 98.5% | ⏳ | 2026-03-16 |
+| 16. getByIds() Batch Get | ✅ Complete | 14 | ✅ 98.5% | `3dda636` | 2026-03-16 |
 | 17. Cross-Store Transactions | ⏳ Pending | ~18 | — | — | — |
 
 **Overall:** ███████████████░ 94% complete
@@ -1191,7 +1191,7 @@ bash .claude/orchestrators/pre-commit-check.sh
 - [x] Tests passing (expected: ~12, actual: 14)
 - [x] `dart test` passes in all packages
 - [x] `dart analyze` clean
-- [x] Delta coverage: ✅ 98.5% overall — delta null pre-commit (will compute post-commit)
+- [x] Delta coverage: ✅ 98.5% overall — delta computation returned null for commit `3dda636` (tool unable to isolate changed lines)
 - [x] Tracker progress table updated
 
 ### Harness Verification Checkpoint
