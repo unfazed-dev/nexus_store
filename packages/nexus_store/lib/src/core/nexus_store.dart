@@ -18,6 +18,7 @@ import 'package:nexus_store/src/core/backend_capabilities.dart';
 import 'package:nexus_store/src/core/conflict_strategy.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
 import 'package:nexus_store/src/core/store_diagnostics.dart';
+import 'package:nexus_store/src/core/transaction_coordinator.dart';
 import 'package:nexus_store/src/interceptors/interceptor_chain.dart';
 import 'package:nexus_store/src/interceptors/store_operation.dart';
 import 'package:nexus_store/src/lazy/field_loader.dart';
@@ -171,6 +172,11 @@ class NexusStore<T, ID> {
   final ID Function(T)? _idExtractor;
   final ConflictResolver<T>? _onConflict;
   final SizeEstimator<T>? _sizeEstimator;
+
+  /// The function used to extract an ID from an entity.
+  ///
+  /// Returns `null` if no extractor was provided at construction.
+  ID Function(T)? get idExtractor => _idExtractor;
 
   late final Logger _logger;
   late final FetchPolicyHandler<T, ID> _fetchHandler;
@@ -1130,6 +1136,38 @@ class NexusStore<T, ID> {
         },
       );
     }, itemCount: items.length);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cross-Store Transaction Operations
+  // ---------------------------------------------------------------------------
+
+  /// Executes an atomic transaction across multiple [NexusStore] instances.
+  ///
+  /// All operations performed via the [CrossTransactionContext] are tracked.
+  /// If the [action] throws, all operations are rolled back and a
+  /// [TransactionError] is thrown.
+  ///
+  /// Example:
+  /// ```dart
+  /// await NexusStore.crossTransaction(
+  ///   stores: [userStore, orderStore],
+  ///   action: (ctx) async {
+  ///     await ctx.save(userStore, user);
+  ///     await ctx.save(orderStore, order);
+  ///   },
+  /// );
+  /// ```
+  static Future<R> crossTransaction<R>({
+    required List<NexusStore> stores,
+    required Future<R> Function(CrossTransactionContext ctx) action,
+    Duration? timeout,
+  }) {
+    return TransactionCoordinator.run(
+      stores: stores,
+      action: action,
+      timeout: timeout,
+    );
   }
 
   // ---------------------------------------------------------------------------
