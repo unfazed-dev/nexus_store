@@ -91,6 +91,7 @@ export 'src/core/backend_capabilities.dart';
 export 'src/core/composite_backend.dart';
 // Core
 export 'src/core/nexus_store.dart';
+export 'src/core/store_diagnostics.dart';
 export 'src/core/store_backend.dart';
 // Errors
 export 'src/errors/store_errors.dart';

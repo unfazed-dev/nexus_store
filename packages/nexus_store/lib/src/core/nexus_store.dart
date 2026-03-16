@@ -16,6 +16,7 @@ import 'package:nexus_store/src/config/store_config.dart';
 import 'package:nexus_store/src/core/aggregate_result.dart';
 import 'package:nexus_store/src/core/backend_capabilities.dart';
 import 'package:nexus_store/src/core/store_backend.dart';
+import 'package:nexus_store/src/core/store_diagnostics.dart';
 import 'package:nexus_store/src/interceptors/interceptor_chain.dart';
 import 'package:nexus_store/src/interceptors/store_operation.dart';
 import 'package:nexus_store/src/lazy/field_loader.dart';
@@ -194,6 +195,11 @@ class NexusStore<T, ID> {
   int _syncFailureCount = 0;
   int _errorCount = 0;
   DateTime? _lastUpdated;
+
+  // Slow operation tracking
+  static const Duration _defaultSlowThreshold = Duration(milliseconds: 100);
+  final List<SlowOperation> _slowOperations = [];
+  static const int _maxSlowOperations = 50;
 
   // ---------------------------------------------------------------------------
   // Configuration
@@ -1571,6 +1577,40 @@ class NexusStore<T, ID> {
     );
   }
 
+  /// Returns a comprehensive health snapshot of this store.
+  ///
+  /// Combines operation stats, cache stats, slow operation tracking, and
+  /// memory metrics into a single diagnostic view.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final diagnostics = await store.getDiagnostics();
+  /// print('Health: ${diagnostics.healthStatus}');
+  /// print('Entities: ${diagnostics.entityCount}');
+  /// print('Cache hit rate: ${diagnostics.cacheHitPercentage}%');
+  /// print('Slow operations: ${diagnostics.slowOperations.length}');
+  /// ```
+  Future<StoreDiagnostics> getDiagnostics() async {
+    _ensureInitialized();
+
+    final entityCount = await _backend.count();
+    final pendingCount = await _backend.pendingChangesCount;
+
+    return StoreDiagnostics(
+      storeStats: getStats(),
+      cacheStats: getCacheStats(),
+      slowOperations: List.unmodifiable(_slowOperations),
+      pendingChangesCount: pendingCount,
+      isInitialized: _initialized,
+      entityCount: entityCount,
+      slowOperationThreshold: _defaultSlowThreshold,
+      timestamp: DateTime.now(),
+      memoryMetrics: memoryMetrics,
+      memoryPressure: _memoryManager != null ? memoryPressure : null,
+    );
+  }
+
   /// Resets all statistics to zero.
   void resetStats() {
     _operationCounts.clear();
@@ -1581,6 +1621,7 @@ class NexusStore<T, ID> {
     _syncFailureCount = 0;
     _errorCount = 0;
     _lastUpdated = null;
+    _slowOperations.clear();
   }
 
   /// Returns whether this operation should be sampled based on config.
@@ -1628,6 +1669,20 @@ class NexusStore<T, ID> {
     _operationCounts[type] = (_operationCounts[type] ?? 0) + 1;
     _totalDurations[type] = (_totalDurations[type] ?? Duration.zero) + duration;
     _lastUpdated = DateTime.now();
+
+    // Track slow operations
+    if (duration > _defaultSlowThreshold) {
+      _slowOperations.add(SlowOperation(
+        operation: type,
+        duration: duration,
+        threshold: _defaultSlowThreshold,
+        timestamp: DateTime.now(),
+      ));
+      // Keep bounded
+      if (_slowOperations.length > _maxSlowOperations) {
+        _slowOperations.removeAt(0);
+      }
+    }
 
     _metricsReporter.reportOperation(OperationMetric(
       operation: type,
