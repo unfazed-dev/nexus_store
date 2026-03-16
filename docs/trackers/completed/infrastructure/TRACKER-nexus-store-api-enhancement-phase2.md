@@ -1,6 +1,6 @@
 # TRACKER: NexusStore API Enhancement Phase 2
 
-## Status: IN_PROGRESS
+## Status: COMPLETE
 
 ## Progress
 
@@ -14,7 +14,7 @@
 | A5. Background Refetch Manager | ✅ Complete | 16 | ✅ 95.2% (40/42) | 03d4861 | 2026-03-16 |
 | B1. Firefly Repo Migration (Phase 2) | ✅ Complete | — | — (no lib/ changes) | 904d904 | 2026-03-16 |
 | C1. Cross-Adapter Composition Tests | ✅ Complete | 21 | — (no lib/ changes) | 88fbf2f | 2026-03-16 |
-| C2. Brick Adapter Test Parity | ✅ Complete | 23 | — (no lib/ changes) | ⏳ | 2026-03-16 |
+| C2. Brick Adapter Test Parity | ✅ Complete | 23 | — (no lib/ changes) | 5a3ccdd | 2026-03-16 |
 | C3. Architecture Invariant Validators | ✅ Complete | 3 self-tests | — (no lib/ changes) | 352774f | 2026-03-16 |
 
 **Overall:** ████████████████ 100% complete (9/9 phases done)
@@ -585,9 +585,9 @@ melos run test:dart && melos run analyze
 - [x] 9/9 phases ✅ in progress table
 - [x] B1 complete — Firefly migration done
 - [x] C2 complete — 23 parity tests added
-- [ ] Status updated to `COMPLETE`
-- [ ] Move tracker to `docs/trackers/completed/infrastructure/`
-- [ ] Update `docs/trackers/index.md`
+- [x] Status updated to `COMPLETE`
+- [x] Move tracker to `docs/trackers/completed/infrastructure/`
+- [x] Update `docs/trackers/index.md`
 - [x] Final History entry added
 
 ## Files
