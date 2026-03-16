@@ -34,7 +34,9 @@ class Query<T> {
         _beforeCursor = null,
         _first = null,
         _last = null,
-        _preloadFields = const {};
+        _preloadFields = const {},
+        _selectFields = const {},
+        _distinct = false;
 
   const Query._({
     required List<QueryFilter> filters,
@@ -47,6 +49,8 @@ class Query<T> {
     int? first,
     int? last,
     Set<String> preloadFields = const {},
+    Set<String> selectFields = const {},
+    bool distinct = false,
   })  : _filters = filters,
         _filterGroups = filterGroups,
         _orderBy = orderBy,
@@ -56,7 +60,9 @@ class Query<T> {
         _beforeCursor = beforeCursor,
         _first = first,
         _last = last,
-        _preloadFields = preloadFields;
+        _preloadFields = preloadFields,
+        _selectFields = selectFields,
+        _distinct = distinct;
 
   final List<QueryFilter> _filters;
   final List<QueryFilterGroup> _filterGroups;
@@ -68,6 +74,8 @@ class Query<T> {
   final int? _first;
   final int? _last;
   final Set<String> _preloadFields;
+  final Set<String> _selectFields;
+  final bool _distinct;
 
   /// The filter conditions for this query.
   List<QueryFilter> get filters => List.unmodifiable(_filters);
@@ -104,6 +112,15 @@ class Query<T> {
   /// These fields will be eagerly loaded alongside the main query results,
   /// useful for lazy fields that are known to be needed.
   Set<String> get preloadFields => Set.unmodifiable(_preloadFields);
+
+  /// Fields to select (project) when executing this query.
+  ///
+  /// When empty, all fields are returned (`SELECT *`).
+  /// When non-empty, only the specified fields are returned.
+  Set<String> get selectFields => Set.unmodifiable(_selectFields);
+
+  /// Whether this query should return only distinct (unique) results.
+  bool get isDistinct => _distinct;
 
   // ---------------------------------------------------------------------------
   // Filter Methods
@@ -267,6 +284,8 @@ class Query<T> {
       first: _first,
       last: _last,
       preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: _distinct,
     );
   }
 
@@ -307,7 +326,31 @@ class Query<T> {
       first: _first,
       last: _last,
       preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: _distinct,
     );
+  }
+
+  /// Adds a range filter for values between [start] and [end] (inclusive).
+  ///
+  /// Sugar for:
+  /// ```dart
+  /// query.where(field, isGreaterThanOrEqualTo: start)
+  ///      .where(field, isLessThanOrEqualTo: end)
+  /// ```
+  Query<T> whereBetween(String field, Object start, Object end) {
+    return where(field, isGreaterThanOrEqualTo: start)
+        .where(field, isLessThanOrEqualTo: end);
+  }
+
+  /// Adds a null check filter. Sugar for `.where(field, isNull: true)`.
+  Query<T> whereNull(String field) {
+    return where(field, isNull: true);
+  }
+
+  /// Adds a not-null check filter. Sugar for `.where(field, isNull: false)`.
+  Query<T> whereNotNull(String field) {
+    return where(field, isNull: false);
   }
 
   // ---------------------------------------------------------------------------
@@ -330,6 +373,8 @@ class Query<T> {
       first: _first,
       last: _last,
       preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: _distinct,
     );
   }
 
@@ -351,6 +396,8 @@ class Query<T> {
       first: _first,
       last: _last,
       preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: _distinct,
     );
   }
 
@@ -368,6 +415,8 @@ class Query<T> {
       first: _first,
       last: _last,
       preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: _distinct,
     );
   }
 
@@ -398,6 +447,8 @@ class Query<T> {
       first: _first,
       last: _last,
       preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: _distinct,
     );
   }
 
@@ -424,6 +475,8 @@ class Query<T> {
       first: _first,
       last: _last,
       preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: _distinct,
     );
   }
 
@@ -450,6 +503,8 @@ class Query<T> {
       first: count,
       last: _last,
       preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: _distinct,
     );
   }
 
@@ -477,6 +532,8 @@ class Query<T> {
       first: _first,
       last: count,
       preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: _distinct,
     );
   }
 
@@ -507,6 +564,8 @@ class Query<T> {
       first: _first,
       last: _last,
       preloadFields: {..._preloadFields, ...fields},
+      selectFields: _selectFields,
+      distinct: _distinct,
     );
   }
 
@@ -532,6 +591,67 @@ class Query<T> {
       first: _first,
       last: _last,
       preloadFields: {..._preloadFields, fieldName},
+      selectFields: _selectFields,
+      distinct: _distinct,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Projection & Distinct Methods
+  // ---------------------------------------------------------------------------
+
+  /// Specifies which fields to include in query results.
+  ///
+  /// When set, generates `SELECT field1, field2` instead of `SELECT *`.
+  /// Multiple calls merge the field sets.
+  ///
+  /// Example:
+  /// ```dart
+  /// final query = Query<User>()
+  ///   .where('status', isEqualTo: 'active')
+  ///   .select({'name', 'email'});
+  /// ```
+  Query<T> select(Set<String> fields) {
+    return Query._(
+      filters: _filters,
+      filterGroups: _filterGroups,
+      orderBy: _orderBy,
+      limit: _limit,
+      offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
+      preloadFields: _preloadFields,
+      selectFields: {..._selectFields, ...fields},
+      distinct: _distinct,
+    );
+  }
+
+  /// Marks this query to return only distinct (unique) results.
+  ///
+  /// Generates `SELECT DISTINCT` in SQL backends.
+  ///
+  /// Example:
+  /// ```dart
+  /// final query = Query<User>()
+  ///   .select({'city'})
+  ///   .distinct();
+  /// ```
+  Query<T> distinct() {
+    return Query._(
+      filters: _filters,
+      filterGroups: _filterGroups,
+      orderBy: _orderBy,
+      limit: _limit,
+      offset: _offset,
+      afterCursor: _afterCursor,
+      beforeCursor: _beforeCursor,
+      first: _first,
+      last: _last,
+      preloadFields: _preloadFields,
+      selectFields: _selectFields,
+      distinct: true,
     );
   }
 
@@ -550,7 +670,9 @@ class Query<T> {
       _beforeCursor == null &&
       _first == null &&
       _last == null &&
-      _preloadFields.isEmpty;
+      _preloadFields.isEmpty &&
+      _selectFields.isEmpty &&
+      !_distinct;
 
   /// Returns `true` if this query has any conditions.
   bool get isNotEmpty => !isEmpty;
@@ -567,6 +689,8 @@ class Query<T> {
     int? first,
     int? last,
     Set<String>? preloadFields,
+    Set<String>? selectFields,
+    bool? isDistinct,
   }) =>
       Query._(
         filters: filters ?? _filters,
@@ -579,6 +703,8 @@ class Query<T> {
         first: first ?? _first,
         last: last ?? _last,
         preloadFields: preloadFields ?? _preloadFields,
+        selectFields: selectFields ?? _selectFields,
+        distinct: isDistinct ?? _distinct,
       );
 
   @override
@@ -595,7 +721,9 @@ class Query<T> {
           _beforeCursor == other._beforeCursor &&
           _first == other._first &&
           _last == other._last &&
-          _setsEqual(_preloadFields, other._preloadFields);
+          _setsEqual(_preloadFields, other._preloadFields) &&
+          _setsEqual(_selectFields, other._selectFields) &&
+          _distinct == other._distinct;
 
   @override
   int get hashCode => Object.hash(
@@ -609,6 +737,8 @@ class Query<T> {
         _first,
         _last,
         Object.hashAll(_preloadFields),
+        Object.hashAll(_selectFields),
+        _distinct,
       );
 
   @override
@@ -622,7 +752,9 @@ class Query<T> {
       'beforeCursor: $_beforeCursor, '
       'first: $_first, '
       'last: $_last, '
-      'preloadFields: $_preloadFields)';
+      'preloadFields: $_preloadFields, '
+      'selectFields: $_selectFields, '
+      'distinct: $_distinct)';
 
   static bool _listsEqual<E>(List<E> a, List<E> b) {
     if (identical(a, b)) return true;

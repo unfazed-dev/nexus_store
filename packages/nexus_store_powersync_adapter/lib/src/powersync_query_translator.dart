@@ -37,7 +37,8 @@ class PowerSyncQueryTranslator<T>
     Query<T>? query,
   }) {
     final args = <Object?>[];
-    final buffer = StringBuffer('SELECT * FROM $tableName');
+    final selectClause = _buildSelectClause(query);
+    final buffer = StringBuffer('$selectClause FROM $tableName');
 
     if (query != null && query.hasFilters) {
       buffer
@@ -185,6 +186,15 @@ class PowerSyncQueryTranslator<T>
     }
 
     return (buffer.toString(), args);
+  }
+
+  String _buildSelectClause(Query<T>? query) {
+    final distinct = query?.isDistinct ?? false;
+    final selectFields = query?.selectFields ?? {};
+    final prefix = distinct ? 'SELECT DISTINCT' : 'SELECT';
+    if (selectFields.isEmpty) return '$prefix *';
+    final columns = selectFields.map(_mapFieldName).toList()..sort();
+    return '$prefix ${columns.join(', ')}';
   }
 
   String _buildFullWhereClause(Query<T> query, List<Object?> args) {
