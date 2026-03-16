@@ -736,34 +736,34 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** None — can start independently.
 
 ### Pre-Implementation Checklist
-- [ ] Read `store_backend.dart` — `get()` pattern
-- [ ] Read `nexus_store.dart` — interceptor chain for read ops
+- [x] Read `store_backend.dart` — `get()` pattern
+- [x] Read `nexus_store.dart` — interceptor chain for read ops
 
 ### Tasks
 #### RED: Write Failing Tests (~12)
-- [ ] Scaffold test files (`test-scaffold` agent)
-- [ ] exists by ID (found/not found)
-- [ ] existsWhere with query
-- [ ] PowerSync SQL, Drift SQL
-- [ ] Interceptor chain
-- [ ] Verify all tests FAIL
+- [x] Scaffold test files (`test-scaffold` agent)
+- [x] exists by ID (found/not found)
+- [x] existsWhere with query
+- [x] PowerSync SQL, Drift SQL
+- [x] Interceptor chain
+- [x] Verify all tests FAIL
 
 #### GREEN: Implement
-1. [ ] Add `Future<bool> exists(ID id)` to `StoreBackend`
-2. [ ] Add `Future<bool> existsWhere(Query<T> query)` to `StoreBackend`
-3. [ ] Default impl: `get(id).then((v) => v != null)` and `getAll(query: query.limitTo(1)).then((l) => l.isNotEmpty)`
-4. [ ] PowerSync: `SELECT EXISTS(SELECT 1 FROM table WHERE id = ?)`
-5. [ ] Drift: same SQL pattern
-6. [ ] Add to `NexusStore` with interceptor chain
-7. [ ] Verify all tests PASS
+1. [x] Add `Future<bool> exists(ID id)` to `StoreBackend`
+2. [x] Add `Future<bool> existsWhere(Query<T> query)` to `StoreBackend`
+3. [x] Default impl: `get(id).then((v) => v != null)` and `getAll(query: query.limitTo(1)).then((l) => l.isNotEmpty)`
+4. [x] PowerSync: `SELECT EXISTS(SELECT 1 FROM table WHERE id = ?)`
+5. [x] Drift: same SQL pattern
+6. [x] Add to `NexusStore` with interceptor chain
+7. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
-- [ ] `store.exists(id)` returns bool without loading entity
-- [ ] `store.existsWhere(query)` returns bool with query
-- [ ] PowerSync uses `SELECT EXISTS(...)` (not in-memory)
+- [x] `store.exists(id)` returns bool without loading entity
+- [x] `store.existsWhere(query)` returns bool with query
+- [x] PowerSync uses `SELECT EXISTS(...)` (not in-memory)
 
 ### Post-Implementation Checklist
 - [x] All tasks checked
@@ -794,34 +794,34 @@ bash .claude/orchestrators/pre-commit-check.sh
 **Dependencies:** Phase 2 must be complete.
 
 ### Pre-Implementation Checklist
-- [ ] Phase 2 (deleteWhere) complete and committed
-- [ ] Read `write_policy_handler.dart` — deleteWhere policy pattern
+- [x] Phase 2 (deleteWhere) complete and committed
+- [x] Read `write_policy_handler.dart` — deleteWhere policy pattern
 
 ### Tasks
 #### RED: Write Failing Tests (~16)
-- [ ] Scaffold test files (`test-scaffold` agent)
-- [ ] Update single/multiple records
-- [ ] Empty result, write policy strategies
-- [ ] Cache invalidation
-- [ ] PowerSync SQL, Drift SQL
-- [ ] Verify all tests FAIL
+- [x] Scaffold test files (`test-scaffold` agent)
+- [x] Update single/multiple records
+- [x] Empty result, write policy strategies
+- [x] Cache invalidation
+- [x] PowerSync SQL, Drift SQL
+- [x] Verify all tests FAIL
 
 #### GREEN: Implement
-1. [ ] Add `Future<int> updateWhere(Query<T> query, Map<String, dynamic> updates)` to `StoreBackend`
-2. [ ] Default impl: `getAll(query:)` -> apply updates -> `saveAll()`
-3. [ ] PowerSync: `UPDATE table SET field1=val1 WHERE ...`
-4. [ ] Drift: Drift's update builder
-5. [ ] Add to `NexusStore` with interceptor chain, write policy, cache invalidation
-6. [ ] Verify all tests PASS
+1. [x] Add `Future<int> updateWhere(Query<T> query, Map<String, dynamic> updates)` to `StoreBackend`
+2. [x] Default impl: `getAll(query:)` -> apply updates -> `saveAll()`
+3. [x] PowerSync: `UPDATE table SET field1=val1 WHERE ...`
+4. [x] Drift: Drift's update builder
+5. [x] Add to `NexusStore` with interceptor chain, write policy, cache invalidation
+6. [x] Verify all tests PASS
 
 #### REFACTOR
-- [ ] Clean up, run `smart-test-run.py` — all green
+- [x] Clean up, run `smart-test-run.py` — all green
 
 ### Acceptance Criteria
-- [ ] `store.updateWhere(query, {'status': 'archived'})` updates matching records
-- [ ] Returns count of updated entities
-- [ ] Write policy respected
-- [ ] Cache invalidated after update
+- [x] `store.updateWhere(query, {'status': 'archived'})` updates matching records
+- [x] Returns count of updated entities
+- [x] Write policy respected
+- [x] Cache invalidated after update
 
 ### Post-Implementation Checklist
 - [x] All tasks checked
