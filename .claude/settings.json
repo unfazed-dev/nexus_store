@@ -60,7 +60,8 @@
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/invariant-check-post-edit.py"},
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/doc-freshness-check.py"},
           {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/tracker-sprint-sync.py"},
-          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/route-hash-auto-update.py"}
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/route-hash-auto-update.py"},
+          {"type": "command", "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/core/doc-source-map-suggest.py"}
         ]
       },
       {

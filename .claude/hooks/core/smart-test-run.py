@@ -47,6 +47,7 @@ TEST_TIMEOUT = int(os.environ.get("NEXUS_TEST_TIMEOUT", "600"))
 HISTORY_DIR = PROJECT_ROOT / ".claude" / "test-history"
 REPORTS_DIR = HISTORY_DIR / "reports"
 RUNS_FILE = HISTORY_DIR / "test-runs.jsonl"
+TEST_MAP_PATH = HISTORY_DIR / "test-map.json"
 
 
 def is_flutter_package(package_dir):
@@ -294,6 +295,67 @@ def find_test_files_for_package(package_name, changed_files, verbose=False):
     return sorted(test_files)
 
 
+def load_test_map():
+    """Load the test-map.json if it exists."""
+    if TEST_MAP_PATH.exists():
+        try:
+            with open(TEST_MAP_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return None
+
+
+def find_tests_via_map(package_name, changed_files, test_map, verbose=False):
+    """Use test-map.json to find tests affected by changed source files.
+
+    Returns a set of test file paths (relative to PROJECT_ROOT), or None
+    if the test map has no useful mappings for these files.
+    """
+    if not test_map or "mappings" not in test_map:
+        return None
+
+    mappings = test_map["mappings"]
+    mapped_tests = set()
+    unmapped_sources = []
+
+    for f in changed_files:
+        # Test files are always included directly
+        rel_to_pkg = f[len(f"packages/{package_name}/"):]
+        if rel_to_pkg.startswith("test/") and rel_to_pkg.endswith("_test.dart"):
+            mapped_tests.add(f)
+            continue
+
+        # pubspec changed -> can't use map, need all tests
+        if rel_to_pkg in ("pubspec.yaml", "pubspec.lock"):
+            if verbose:
+                print(f"  [{package_name}] pubspec changed -> test map bypass")
+            return None
+
+        # Look up in test map (key format: packages/<pkg>/lib/...)
+        full_key = f
+        if full_key in mappings:
+            tests = mappings[full_key]
+            for t in tests:
+                # Tests may be relative to package or project root
+                if t.startswith("packages/"):
+                    mapped_tests.add(t)
+                else:
+                    mapped_tests.add(f"packages/{package_name}/{t}")
+            if verbose:
+                print(f"  [{package_name}] MAP: {rel_to_pkg} -> {len(tests)} test(s)")
+        else:
+            unmapped_sources.append(f)
+
+    # If we have unmapped source files, fall back to None (use convention-based)
+    if unmapped_sources:
+        if verbose:
+            print(f"  [{package_name}] {len(unmapped_sources)} file(s) not in test map, falling back")
+        return None
+
+    return mapped_tests if mapped_tests else None
+
+
 def load_test_cache_module():
     """Dynamically load the test-cache module."""
     try:
@@ -428,12 +490,30 @@ def main():
         print(f"Changed {len(changed_files)} files but none map to packages/. Nothing to test.")
         return 0
 
+    # Load test map for dependency-aware test resolution
+    test_map = load_test_map()
+    if test_map and args["verbose"]:
+        print(f"Test map loaded: {test_map.get('source_count', 0)} sources mapped")
+
     # Resolve test files per package
     package_tests = {}
     for pkg_name, pkg_files in package_map.items():
         if args["verbose"]:
             print(f"Resolving tests for {pkg_name}:")
-        tests = find_test_files_for_package(pkg_name, pkg_files, verbose=args["verbose"])
+
+        # Try test-map first for precise dependency-based resolution
+        tests = None
+        if test_map:
+            map_tests = find_tests_via_map(pkg_name, pkg_files, test_map, verbose=args["verbose"])
+            if map_tests is not None:
+                tests = sorted(map_tests)
+                if args["verbose"]:
+                    print(f"  [{pkg_name}] Test map resolved {len(tests)} test(s)")
+
+        # Fall back to convention-based resolution
+        if tests is None:
+            tests = find_test_files_for_package(pkg_name, pkg_files, verbose=args["verbose"])
+
         if tests:
             package_tests[pkg_name] = tests
 

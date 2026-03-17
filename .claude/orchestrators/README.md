@@ -34,6 +34,8 @@ All orchestrators output this structure (regardless of implementation language):
 | `test-and-report.py` | Python | Wraps smart-test-run.py, captures and reports test results |
 | `pre-commit-check.sh` | Bash | Sequential: format → analyze → invariants |
 | `harness-maintenance.py` | Python | GC sweep (expirations, orphans, session rotation) + drift scan, updates harness-metrics.json |
+| `verify-feature.py` | Python | Verify package completeness: docs, tests, barrel file, invariants |
+| `test_orchestrators.py` | Python | Integration tests validating all orchestrators produce valid JSON contracts |
 
 ## Usage
 
@@ -48,6 +50,14 @@ bash .claude/orchestrators/pre-commit-check.sh
 python3 .claude/orchestrators/harness-maintenance.py --all
 python3 .claude/orchestrators/harness-maintenance.py --gc-only
 python3 .claude/orchestrators/harness-maintenance.py --drift-only
+
+# Verify a package's completeness
+python3 .claude/orchestrators/verify-feature.py nexus_store
+python3 .claude/orchestrators/verify-feature.py nexus_store_drift_adapter
+python3 .claude/orchestrators/verify-feature.py --all
+
+# Run orchestrator contract tests
+python3 .claude/orchestrators/test_orchestrators.py
 ```
 
 ## Language Selection
