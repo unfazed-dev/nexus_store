@@ -91,8 +91,8 @@ final user = await userStore.get(userId);
 final users = await userStore.getAll(
   query: Query<User>()
     .where('status', isEqualTo: 'active')
-    .orderBy('name')
-    .limit(10),
+    .orderByField('name')
+    .limitTo(10),
 );
 
 // Insert/Update (unified save)
@@ -155,8 +155,8 @@ await userStore.initialize();
 | `from('users').select().eq('id', id).single()` | `store.get(id)` |
 | `from('users').select()` | `store.getAll()` |
 | `from('users').select().eq('status', 'active')` | `store.getAll(query: Query<User>().where('status', isEqualTo: 'active'))` |
-| `from('users').select().order('name')` | `store.getAll(query: Query<User>().orderBy('name'))` |
-| `from('users').select().limit(10).range(20, 29)` | `store.getAll(query: Query<User>().limit(10).offset(20))` |
+| `from('users').select().order('name')` | `store.getAll(query: Query<User>().orderByField('name'))` |
+| `from('users').select().limit(10).range(20, 29)` | `store.getAll(query: Query<User>().limitTo(10).offsetBy(20))` |
 
 ### Step 5: Migrate Writes
 
@@ -196,10 +196,10 @@ userStore.watchAll().listen((users) {
 | `.gt('age', 18)` | `.where('age', isGreaterThan: 18)` |
 | `.lt('age', 65)` | `.where('age', isLessThan: 65)` |
 | `.in_('role', ['admin', 'mod'])` | `.where('role', whereIn: ['admin', 'mod'])` |
-| `.order('name', ascending: true)` | `.orderBy('name')` |
-| `.order('createdAt', ascending: false)` | `.orderBy('createdAt', descending: true)` |
-| `.limit(10)` | `.limit(10)` |
-| `.range(20, 29)` | `.offset(20).limit(10)` |
+| `.order('name', ascending: true)` | `.orderByField('name')` |
+| `.order('createdAt', ascending: false)` | `.orderByField('createdAt', descending: true)` |
+| `.limit(10)` | `.limitTo(10)` |
+| `.range(20, 29)` | `.offsetBy(20).limitTo(10)` |
 
 ## RLS Compatibility
 

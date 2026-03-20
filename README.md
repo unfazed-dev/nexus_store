@@ -55,8 +55,8 @@ userStore.watchAll().listen((users) => print(users));
 final activeUsers = await userStore.getAll(
   query: Query<User>()
     .where('status', isEqualTo: 'active')
-    .orderBy('createdAt', descending: true)
-    .limit(10),
+    .orderByField('createdAt', descending: true)
+    .limitTo(10),
 );
 ```
 
@@ -139,9 +139,9 @@ final query = Query<User>()
   .where('status', isEqualTo: 'active')
   .where('age', isGreaterThan: 18)
   .where('role', whereIn: ['admin', 'moderator'])
-  .orderBy('createdAt', descending: true)
-  .limit(10)
-  .offset(20);
+  .orderByField('createdAt', descending: true)
+  .limitTo(10)
+  .offsetBy(20);
 ```
 
 #### Filter Operators
@@ -185,10 +185,33 @@ Query<User>()
 // status = 'active' AND (role = 'admin' OR role = 'superadmin')
 ```
 
+#### Null Checks
+
+```dart
+.whereNull('deletedAt')       // IS NULL
+.whereNotNull('email')        // IS NOT NULL
+```
+
 #### Range Filters
 
 ```dart
-.whereBetween('age', start: 18, end: 65)  // 18 <= age <= 65
+.whereBetween('age', 18, 65)  // 18 <= age <= 65
+```
+
+#### Relations (Resource Embedding / JOINs)
+
+```dart
+// Simple relation
+Query<User>().withRelation('posts')
+
+// With foreign key hint and column selection
+Query<User>().withRelation('posts', foreignKey: 'author_id', columns: {'title', 'body'})
+
+// Nested relations
+Query<User>().withRelation(
+  'posts',
+  subQuery: Query().withRelation('comments'),
+)
 ```
 
 #### Field Selection & Preloading
@@ -209,13 +232,13 @@ Query<User>().distinct()
 ```dart
 // Forward pagination
 final page1 = await store.getAll(
-  query: Query<User>().orderBy('createdAt').first(20),
+  query: Query<User>().orderByField('createdAt').first(20),
 );
 
 // Next page using cursor
 final page2 = await store.getAll(
   query: Query<User>()
-    .orderBy('createdAt')
+    .orderByField('createdAt')
     .after(page1.endCursor)
     .first(20),
 );
@@ -223,7 +246,7 @@ final page2 = await store.getAll(
 // Backward pagination
 final prevPage = await store.getAll(
   query: Query<User>()
-    .orderBy('createdAt')
+    .orderByField('createdAt')
     .before(page2.startCursor)
     .last(20),
 );

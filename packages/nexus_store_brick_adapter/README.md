@@ -245,8 +245,8 @@ Queries are translated to Brick queries:
 final query = Query<User>()
   .where('isActive', isEqualTo: true)
   .where('role', whereIn: ['admin', 'editor'])
-  .orderBy('name')
-  .limit(20);
+  .orderByField('name')
+  .limitTo(20);
 
 final users = await userStore.getAll(query: query);
 ```

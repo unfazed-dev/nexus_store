@@ -156,7 +156,7 @@ await userStore.initialize();
 | `db.get('SELECT * FROM users WHERE id = ?', [id])` | `store.get(id)` |
 | `db.getAll('SELECT * FROM users')` | `store.getAll()` |
 | `db.getAll('SELECT * FROM users WHERE status = ?', ['active'])` | `store.getAll(query: Query<User>().where('status', isEqualTo: 'active'))` |
-| `db.getAll('SELECT * FROM users ORDER BY name LIMIT 10')` | `store.getAll(query: Query<User>().orderBy('name').limit(10))` |
+| `db.getAll('SELECT * FROM users ORDER BY name LIMIT 10')` | `store.getAll(query: Query<User>().orderByField('name').limitTo(10))` |
 
 ### Step 5: Migrate Writes
 
@@ -204,10 +204,10 @@ NexusStoreBuilder<User, String>(
 | `WHERE status = 'active'` | `.where('status', isEqualTo: 'active')` |
 | `WHERE age > 18` | `.where('age', isGreaterThan: 18)` |
 | `WHERE role IN ('admin', 'mod')` | `.where('role', whereIn: ['admin', 'mod'])` |
-| `ORDER BY name ASC` | `.orderBy('name')` |
-| `ORDER BY createdAt DESC` | `.orderBy('createdAt', descending: true)` |
-| `LIMIT 10` | `.limit(10)` |
-| `LIMIT 10 OFFSET 20` | `.limit(10).offset(20)` |
+| `ORDER BY name ASC` | `.orderByField('name')` |
+| `ORDER BY createdAt DESC` | `.orderByField('createdAt', descending: true)` |
+| `LIMIT 10` | `.limitTo(10)` |
+| `LIMIT 10 OFFSET 20` | `.limitTo(10).offsetBy(20)` |
 
 ## Column Mapping
 

@@ -13,9 +13,9 @@ import 'package:nexus_store/src/query/text_search_config.dart';
 /// final query = Query<User>()
 ///   .where('status', isEqualTo: 'active')
 ///   .where('age', isGreaterThan: 18)
-///   .orderBy('createdAt', descending: true)
-///   .limit(10)
-///   .offset(20);
+///   .orderByField('createdAt', descending: true)
+///   .limitTo(10)
+///   .offsetBy(20);
 ///
 /// // Cursor-based pagination
 /// final cursorQuery = Query<User>()

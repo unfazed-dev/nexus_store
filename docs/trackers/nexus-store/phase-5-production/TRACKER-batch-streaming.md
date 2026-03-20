@@ -130,7 +130,7 @@ packages/nexus_store/test/src/core/
 ```dart
 // Basic paginated streaming
 store.watchAllPaginated(
-  query: Query<User>().orderBy('name'),
+  query: Query<User>().orderByField('name'),
   pageSize: 50,
 ).listen((result) {
   print('Loaded: ${result.items.length}');
@@ -143,7 +143,7 @@ store.watchAllPaginated(
 
 // With windowed loading (memory-efficient for huge lists)
 store.watchAllPaginated(
-  query: Query<Message>().orderBy('timestamp', descending: true),
+  query: Query<Message>().orderByField('timestamp', descending: true),
   pageSize: 100,
   maxPagesInMemory: 5, // Keep only 500 items max
 ).listen((result) {

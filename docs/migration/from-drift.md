@@ -202,7 +202,7 @@ await userStore.initialize();
 | `(select(users)..where((u) => u.id.equals(id))).getSingleOrNull()` | `store.get(id)` |
 | `select(users).get()` | `store.getAll()` |
 | `(select(users)..where((u) => u.status.equals('active'))).get()` | `store.getAll(query: Query<User>().where('status', isEqualTo: 'active'))` |
-| `(select(users)..orderBy([(u) => OrderingTerm.asc(u.name)])).get()` | `store.getAll(query: Query<User>().orderBy('name'))` |
+| `(select(users)..orderBy([(u) => OrderingTerm.asc(u.name)])).get()` | `store.getAll(query: Query<User>().orderByField('name'))` |
 
 ### Step 6: Migrate Writes
 
@@ -237,10 +237,10 @@ userStore.watchAll(
 | `where((u) => u.status.equals('active'))` | `.where('status', isEqualTo: 'active')` |
 | `where((u) => u.age.isBiggerThan(18))` | `.where('age', isGreaterThan: 18)` |
 | `where((u) => u.role.isIn(['admin', 'mod']))` | `.where('role', whereIn: ['admin', 'mod'])` |
-| `orderBy([(u) => OrderingTerm.asc(u.name)])` | `.orderBy('name')` |
-| `orderBy([(u) => OrderingTerm.desc(u.createdAt)])` | `.orderBy('createdAt', descending: true)` |
-| `limit(10)` | `.limit(10)` |
-| `limit(10, offset: 20)` | `.limit(10).offset(20)` |
+| `orderBy([(u) => OrderingTerm.asc(u.name)])` | `.orderByField('name')` |
+| `orderBy([(u) => OrderingTerm.desc(u.createdAt)])` | `.orderByField('createdAt', descending: true)` |
+| `limit(10)` | `.limitTo(10)` |
+| `limit(10, offset: 20)` | `.limitTo(10).offsetBy(20)` |
 
 ## Column Mapping
 

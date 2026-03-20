@@ -254,8 +254,8 @@ final all = await store.getAll();
 // Good - paginated
 final page = await store.getAll(
   query: store.createQuery()
-    .orderBy('createdAt', descending: true)
-    .limit(50),
+    .orderByField('createdAt', descending: true)
+    .limitTo(50),
 );
 
 // Good - cursor pagination

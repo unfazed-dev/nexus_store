@@ -72,9 +72,9 @@ Implement the Supabase backend adapter for nexus_store, providing direct Supabas
   - [x] `.lte()` for less than or equal
   - [x] `.inFilter()` for IN operator
   - [x] `.isFilter()` for IS NULL
-  - [x] Translate Query.orderBy() to `.order()`
-  - [x] Translate Query.limit() to `.range()`
-  - [x] Translate Query.offset() to `.range()`
+  - [x] Translate Query.orderByField() to `.order()`
+  - [x] Translate Query.limitTo() to `.range()`
+  - [x] Translate Query.offsetBy() to `.range()`
 
 ### Backend Info
 - [x] `name` getter returns 'supabase'

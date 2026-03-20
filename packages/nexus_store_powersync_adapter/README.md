@@ -410,8 +410,8 @@ Queries are automatically translated to SQL:
 final query = Query<User>()
   .where('status', isEqualTo: 'active')
   .where('age', isGreaterThan: 18)
-  .orderBy('createdAt', descending: true)
-  .limit(10);
+  .orderByField('createdAt', descending: true)
+  .limitTo(10);
 
 // Translates to:
 // SELECT * FROM users

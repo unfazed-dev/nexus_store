@@ -60,9 +60,9 @@ Implement the Brick backend adapter for nexus_store, integrating with Brick's of
   - [x] Compare.lessThanOrEqualTo for <=
   - [x] Compare.inIterable for IN
   - [x] Compare.contains for array/string contains
-  - [x] Translate Query.orderBy() to Brick orderBy
-  - [x] Translate Query.limit() to Brick limit
-  - [x] Translate Query.offset() to Brick offset
+  - [x] Translate Query.orderByField() to Brick orderBy
+  - [x] Translate Query.limitTo() to Brick limit
+  - [x] Translate Query.offsetBy() to Brick offset
   - [x] Field name mapping support
 
 ### Backend Info

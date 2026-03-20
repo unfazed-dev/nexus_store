@@ -272,8 +272,8 @@ Queries are translated to Drift SQL:
 final query = Query<User>()
   .where('status', isEqualTo: 'active')
   .where('age', isGreaterThanOrEqualTo: 18)
-  .orderBy('name')
-  .limit(50);
+  .orderByField('name')
+  .limitTo(50);
 
 final users = await userStore.getAll(query: query);
 ```
@@ -333,8 +333,8 @@ final activeUsers = await (db.select(db.users)
 final activeUsers = await userStore.getAll(
   query: Query<User>()
     .where('status', isEqualTo: 'active')
-    .orderBy('createdAt', descending: true)
-    .limit(10),
+    .orderByField('createdAt', descending: true)
+    .limitTo(10),
 );
 ```
 

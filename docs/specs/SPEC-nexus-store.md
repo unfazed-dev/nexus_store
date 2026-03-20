@@ -247,11 +247,11 @@ So that I can efficiently retrieve subsets of data
   THEN it filters results where field > 10
 
 - GIVEN a `Query<T>` builder
-  WHEN I call `.orderBy('field', descending: true)`
+  WHEN I call `.orderByField('field', descending: true)`
   THEN results are sorted by field descending
 
 - GIVEN a `Query<T>` builder
-  WHEN I call `.limit(10).offset(20)`
+  WHEN I call `.limitTo(10).offsetBy(20)`
   THEN it returns 10 items starting from index 20
 
 - GIVEN a complex query
@@ -1668,8 +1668,8 @@ class StoreConfig<T> with _$StoreConfig<T> {
 /// final query = Query<User>()
 ///   .where('age', greaterThan: 18)
 ///   .where('status', 'active')
-///   .orderBy('createdAt', descending: true)
-///   .limit(10);
+///   .orderByField('createdAt', descending: true)
+///   .limitTo(10);
 ///
 /// final users = await store.getAll(query: query);
 /// ```
@@ -1692,13 +1692,13 @@ class Query<T> {
   });
 
   /// Orders results by field.
-  Query<T> orderBy(String field, {bool descending = false});
+  Query<T> orderByField(String field, {bool descending = false});
 
   /// Limits number of results.
-  Query<T> limit(int count);
+  Query<T> limitTo(int count);
 
   /// Skips first N results.
-  Query<T> offset(int count);
+  Query<T> offsetBy(int count);
 }
 ```
 

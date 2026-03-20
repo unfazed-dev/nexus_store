@@ -53,7 +53,7 @@ Watch all entities matching a query:
 userStore.watchAll(
   query: Query<User>()
     .where('status', isEqualTo: 'active')
-    .orderBy('name'),
+    .orderByField('name'),
 ).listen((users) {
   print('Active users: ${users.length}');
 });

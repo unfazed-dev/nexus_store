@@ -312,9 +312,9 @@ final query = Query<User>()
   .where('status', isEqualTo: 'active')
   .where('age', isGreaterThan: 18)
   .where('role', whereIn: ['admin', 'moderator'])
-  .orderBy('createdAt', descending: true)
-  .limit(10)
-  .offset(20);
+  .orderByField('createdAt', descending: true)
+  .limitTo(10)
+  .offsetBy(20);
 
 // Translated to:
 // GET /users?status=eq.active&age=gt.18&role=in.(admin,moderator)&order=created_at.desc&limit=10&offset=20
@@ -365,8 +365,8 @@ final users = (response as List).map((json) => User.fromJson(json)).toList();
 final users = await userStore.getAll(
   query: Query<User>()
     .where('status', isEqualTo: 'active')
-    .orderBy('createdAt', descending: true)
-    .limit(10),
+    .orderByField('createdAt', descending: true)
+    .limitTo(10),
 );
 ```
 

@@ -55,9 +55,9 @@ Implement the Drift backend adapter for nexus_store, providing local-only SQLite
 - [x] `drift_query_translator.dart`
   - [x] Implement QueryTranslator interface
   - [x] Translate Query.where() to SQL WHERE clauses
-  - [x] Translate Query.orderBy() to ORDER BY clauses
-  - [x] Translate Query.limit() to LIMIT clause
-  - [x] Translate Query.offset() to OFFSET clause
+  - [x] Translate Query.orderByField() to ORDER BY clauses
+  - [x] Translate Query.limitTo() to LIMIT clause
+  - [x] Translate Query.offsetBy() to OFFSET clause
   - [x] Handle comparison operators (=, !=, <, <=, >, >=)
   - [x] Handle IN operator with parameterized placeholders
   - [x] Handle IS NULL / IS NOT NULL

@@ -34,14 +34,14 @@ Implement cursor-based pagination for efficient navigation through large dataset
 ### Query Builder Updates
 - [x] Add `after(Cursor cursor)` to `Query<T>`
   - [x] Sets start position after cursor
-  - [x] Works with orderBy fields
+  - [x] Works with orderByField fields
 
 - [x] Add `before(Cursor cursor)` to `Query<T>`
   - [x] Sets end position before cursor
-  - [x] Works with orderBy fields
+  - [x] Works with orderByField fields
 
 - [x] Add `first(int count)` to `Query<T>`
-  - [x] Alias for limit() with cursor semantics
+  - [x] Alias for limitTo() with cursor semantics
   - [x] Returns first N items after cursor
 
 - [x] Add `last(int count)` to `Query<T>`
@@ -55,7 +55,7 @@ Implement cursor-based pagination for efficient navigation through large dataset
   - [x] Version prefix for future compatibility
 
 - [x] Handle multi-field ordering
-  - [x] Encode all orderBy field values
+  - [x] Encode all orderByField field values
   - [x] Decode and apply all conditions
 
 - [x] Handle edge cases
@@ -129,7 +129,7 @@ packages/nexus_store/test/src/query/
 // Basic cursor pagination
 final firstPage = await store.getAllPaged(
   query: Query<User>()
-    .orderBy('createdAt', descending: true)
+    .orderByField('createdAt', descending: true)
     .first(20),
 );
 
@@ -140,7 +140,7 @@ print('Has more: ${firstPage.hasMore}');
 if (firstPage.nextCursor != null) {
   final secondPage = await store.getAllPaged(
     query: Query<User>()
-      .orderBy('createdAt', descending: true)
+      .orderByField('createdAt', descending: true)
       .after(firstPage.nextCursor!)
       .first(20),
   );
@@ -149,7 +149,7 @@ if (firstPage.nextCursor != null) {
 // Reactive pagination
 store.watchAllPaged(
   query: Query<User>()
-    .orderBy('name')
+    .orderByField('name')
     .first(50),
 ).listen((page) {
   updateUI(page.items);
@@ -159,7 +159,7 @@ store.watchAllPaged(
 final connection = await store.getAllPaged(
   query: Query<User>()
     .where('status', 'active')
-    .orderBy('score', descending: true)
+    .orderByField('score', descending: true)
     .first(10)
     .after(cursor),
 );
@@ -172,7 +172,7 @@ final connection = await store.getAllPaged(
 - Cursor pagination is more efficient than offset for large datasets
 - Cursors should be opaque to clients (no assumptions about format)
 - Consider caching cursor positions for fast backward navigation
-- Cursor must include all orderBy fields to maintain consistency
+- Cursor must include all orderByField fields to maintain consistency
 - Integration with GraphQL Relay spec is a future consideration
 
 ## Implementation Notes (Completed)

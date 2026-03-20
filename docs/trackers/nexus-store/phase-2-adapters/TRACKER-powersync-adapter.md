@@ -54,9 +54,9 @@ Implement the PowerSync backend adapter for nexus_store, providing offline-first
 - [x] `powersync_query_translator.dart`
   - [x] Implement QueryTranslator interface with SqlQueryTranslatorMixin
   - [x] Translate Query.where() to SQL WHERE clause
-  - [x] Translate Query.orderBy() to SQL ORDER BY
-  - [x] Translate Query.limit() to SQL LIMIT
-  - [x] Translate Query.offset() to SQL OFFSET
+  - [x] Translate Query.orderByField() to SQL ORDER BY
+  - [x] Translate Query.limitTo() to SQL LIMIT
+  - [x] Translate Query.offsetBy() to SQL OFFSET
   - [x] Handle comparison operators (>, <, >=, <=, !=)
   - [x] Handle IN, NOT IN operators
   - [x] Handle IS NULL operator
