@@ -217,7 +217,8 @@ class LazyListView<T, L extends Object?> extends StatelessWidget {
           if (index.isOdd) {
             return separatorBuilder!(context, index ~/ 2);
           }
-          index = index ~/ 2;
+          final adjustedIndex = index ~/ 2;
+          return _buildItem(context, adjustedIndex);
         }
 
         return _buildItem(context, index);
@@ -254,7 +255,8 @@ class LazyListView<T, L extends Object?> extends StatelessWidget {
           if (index.isOdd) {
             return separatorBuilder!(context, index ~/ 2);
           }
-          index = index ~/ 2;
+          final adjustedIndex = index ~/ 2;
+          return _indexItemBuilder!(context, adjustedIndex);
         }
 
         return _indexItemBuilder!(context, index);

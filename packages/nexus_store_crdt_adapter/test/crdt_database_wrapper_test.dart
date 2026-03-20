@@ -205,8 +205,8 @@ void main() {
           expect(deltaChangeset, isA<CrdtChangeset>());
           // Should only contain the second record
           if (deltaChangeset.containsKey('test_table')) {
-            final records = deltaChangeset['test_table']!;
-            expect(records.every((r) => r['id'] != '1'), isTrue);
+            final records = deltaChangeset['test_table'];
+            expect(records!.every((r) => r['id'] != '1'), isTrue);
           }
         });
       });

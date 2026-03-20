@@ -185,8 +185,8 @@ void main() {
         final changeset = await backendA.getChangeset();
 
         // Latest state should reflect the update
-        final records = changeset['test_models']!;
-        expect(records.length, equals(1));
+        final records = changeset['test_models'];
+        expect(records!.length, equals(1));
         expect(records.first['name'], equals('Alice Updated'));
         expect(records.first['age'], equals(31));
       });

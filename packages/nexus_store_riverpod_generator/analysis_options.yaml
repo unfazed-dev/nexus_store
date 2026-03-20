@@ -6,7 +6,7 @@ linter:
     - avoid_empty_else
     - avoid_print
     - avoid_relative_lib_imports
-    - avoid_returning_null_for_future
+
     - avoid_types_as_parameter_names
     - await_only_futures
     - camel_case_extensions

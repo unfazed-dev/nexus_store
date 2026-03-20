@@ -21,7 +21,7 @@ linter:
     # Error rules
     - always_use_package_imports
     - avoid_dynamic_calls
-    - avoid_returning_null_for_future
+
     - avoid_slow_async_io
     - cancel_subscriptions
     - close_sinks
@@ -52,7 +52,7 @@ linter:
     - avoid_redundant_argument_values
     - avoid_renaming_method_parameters
     - avoid_return_types_on_setters
-    - avoid_returning_null
+
     - avoid_returning_this
     - avoid_setters_without_getters
     - avoid_single_cascade_in_expression_statements
