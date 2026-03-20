@@ -62,12 +62,8 @@ jobs:
       - name: Bootstrap packages
         run: melos bootstrap
 
-      - name: Run build_runner (if needed)
-        run: |
-          cd packages/${{ matrix.package }}
-          if grep -q "build_runner" pubspec.yaml; then
-            dart run build_runner build --delete-conflicting-outputs
-          fi
+      - name: Run build_runner
+        run: melos run build:runner
 
       - name: Run tests with coverage
         run: |
@@ -109,12 +105,8 @@ jobs:
       - name: Bootstrap packages
         run: melos bootstrap
 
-      - name: Run build_runner (if needed)
-        run: |
-          cd packages/${{ matrix.package }}
-          if grep -q "build_runner" pubspec.yaml; then
-            flutter pub run build_runner build --delete-conflicting-outputs
-          fi
+      - name: Run build_runner
+        run: melos run build:runner
 
       - name: Run tests
         run: |
@@ -146,6 +138,9 @@ jobs:
       - name: Bootstrap packages
         run: melos bootstrap
 
+      - name: Run build_runner
+        run: melos run build:runner
+
       - name: Run tests
         run: |
           cd packages/nexus_store_powersync_adapter
@@ -176,6 +171,9 @@ jobs:
       - name: Bootstrap packages
         run: melos bootstrap
 
+      - name: Run build_runner
+        run: melos run build:runner
+
       - name: Run tests (excluding integration tests)
         run: |
           cd packages/nexus_store_supabase_adapter
@@ -205,6 +203,9 @@ jobs:
 
       - name: Bootstrap packages
         run: melos bootstrap
+
+      - name: Run build_runner
+        run: melos run build:runner
 
       - name: Run core package tests with coverage
         run: |
