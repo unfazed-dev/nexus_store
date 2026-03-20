@@ -28,6 +28,9 @@ jobs:
       - name: Bootstrap packages
         run: melos bootstrap
 
+      - name: Run build_runner
+        run: melos run build:runner
+
       - name: Check formatting
         run: melos run format:check
 
